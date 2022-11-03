@@ -1,0 +1,13 @@
+name = "Pidgeons"
+uuid = "0eb8d820-af6a-4919-95ae-11206f830c31"
+authors = ["Paul Tiede <ptiede91@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
