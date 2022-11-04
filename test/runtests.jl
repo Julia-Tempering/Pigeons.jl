@@ -15,6 +15,7 @@ using ForwardDiff
 end
 
 @testset "Basic NRPT test (normal distribution)" begin
+    Random.seed!(2340981)
     N = 2
     InitialState = [[5.0] for _ in 1:(N+1)]
     ntotal = 100
@@ -24,6 +25,6 @@ end
     out = ParallelTempering.NRPT(V_0, V_1, InitialState, ntotal, N, optimreference = false, prior_sampler = prior_sampler).States
     final_states = map((i) -> out[i][end], 1:length(out))
     final_mean = mean(final_states)[1]
-    @test (final_mean < 0.2) && (final_mean > -0.2)
+    @test (final_mean < 0.5) && (final_mean > -0.5)
 end
 
