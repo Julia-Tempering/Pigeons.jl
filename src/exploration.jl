@@ -1,3 +1,5 @@
+using Random
+
 # State: The state from the one previous scan. Of size: N+1 [dim_x]
 function LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, explore_target, n_explore)
     ChainAcceptance = Vector{Int64}(undef, length(States)) # Binary vector of length N+1: Did we successfully sample a new state (accept = 1)?
@@ -42,4 +44,18 @@ function LocalExploration(States, Kernels, optimreference_round, modref_means, m
     return (
         out             = out,
         ChainAcceptance = ChainAcceptance)
+end
+
+
+
+
+
+
+function setKernels(potential, Etas, L)
+    kernels = Vector{SS}(undef, size(Etas)[1])
+    for i in 1:size(Etas)[1]
+        loglik = (x) -> potential(x, Etas[i, :]) # Negative of the log *density* (*not* the log-likelihood, despite what it says!)
+        kernels[i] = SS(loglik) # Use slice sampling defaults
+    end
+    return kernels
 end

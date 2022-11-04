@@ -11,23 +11,17 @@ using Dates
 export nrpt, DEO, computeEtas, roundtrip, restarts
 
 ### Samplers
-include("explorationkernels.jl")
-include("hmc.jl")
-include("slice_sampling.jl")
+include("samplers/slice_sample.jl")
 
 ### NRPT
-include("etas.jl")
 include("acceptance.jl")
-include("communicationbarrier.jl")
-include("updateschedule.jl")
-include("roundtriprate.jl")
-include("lognormalizingconstant.jl")
-include("deoscan.jl")
+include("adaptation.jl")
 include("deo.jl")
+include("exploration.jl")
+include("restarts.jl")
 include("NRPT.jl")
 
-### Useful tools
-include("Winsorized_mean.jl")
-include("Winsorized_std.jl")
+### Utility functions
+include("utils.jl")
 
-end
+end # End module
