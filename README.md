@@ -1,4 +1,4 @@
-# Pidgeons
+# Pidgeons.jl
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://ptiede.github.io/Pidgeons.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://ptiede.github.io/Pidgeons.jl/dev/)
