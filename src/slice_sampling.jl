@@ -1,9 +1,8 @@
 using Distributions
 using StatsFuns
 using Random
-using Plots
-using BenchmarkTools
-using LinearAlgebra
+# using BenchmarkTools
+# using LinearAlgebra
 
 struct SS
     potential # -log(f(x))

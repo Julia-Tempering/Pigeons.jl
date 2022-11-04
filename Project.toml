@@ -1,7 +1,17 @@
 name = "Pidgeons"
 uuid = "0eb8d820-af6a-4919-95ae-11206f830c31"
-authors = ["Paul Tiede <ptiede91@gmail.com> and contributors"]
+authors = ["Paul Tiede <ptiede91@gmail.com>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, and contributors"]
 version = "0.1.0"
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 
 [compat]
 julia = "1.6"

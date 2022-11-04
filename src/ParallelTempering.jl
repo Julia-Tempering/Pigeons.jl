@@ -1,14 +1,16 @@
 module ParallelTempering 
 using Base: Forward
-using LinearAlgebra
+# using LinearAlgebra
 using Distributions
-using Statistics
+# using Statistics
 using StatsBase
-using Dierckx
+using StatsFuns
+# using Dierckx
 using ForwardDiff
 using Interpolations
-using TimerOutputs
+# using TimerOutputs
 using Roots
+using Dates
 
 export nrpt, sampleNUTS, DEO, computeEtas, roundtrip, plot_samples, summarize_samples, plot_roundtrip, plot_globalbarrier, 
 plot_trace, plot_localbarrier, plot_ESS, get_chain_states, plot_sumroundtrip, run_all_PT_methods, run_simulation, 

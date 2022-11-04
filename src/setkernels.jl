@@ -1,8 +1,8 @@
-using AdvancedHMC 
-using ForwardDiff
-using ReverseDiff
+# using AdvancedHMC 
+# using ForwardDiff
+# using ReverseDiff
 using Random
-include("../src/hmc.jl") 
+# include("../src/hmc.jl") 
 
 function setKernels(potential, Etas, L)
     kernels = Vector{SS}(undef, size(Etas)[1])

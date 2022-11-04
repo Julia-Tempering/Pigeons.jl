@@ -1,6 +1,6 @@
 using ForwardDiff
 using StaticArrays
-using Statistics
+# using Statistics
 using Distributions
 
 # function computeEtas(ϕ, β)
