@@ -8,45 +8,35 @@
 #' @param InitialState Matrix of initial states for all N+1 chains. Dimensions: (N+1) x (dim_x).
 #' @param ntotal Total number of scans/iterations.
 #' @param N The total number of chains is N+1.
-#' @param pars Any additional parameters that should be sent to 'potential'.
-#' @param optimreference Controls whether the reference distribution is to be optimized.
-#' @param K (Removed.)
+#' @param optimreference Whether the reference distribution is to be optimized.
 #' @param MaxRound Maximum number of rounds for tuning.
 #' @param fulltrajectory Controls whether to keep track of all 'States', 'Indices', 'Energies', and 'Lifts'.
-#' @param optimpath Controls whether the path is to be optimized. Not implemented yet.
-#' @param gradsamps (Removed.)
-#' @param gradientfn (Removed.)
 #' @param Phi (Partially removed. Useful for constructing non-linear paths.)
 #' @param verbose Controls whether to print all of the output.
 #' @param resolution Resolution of the output for the estimates of the local communication barrier. 
 #' @param prior_sampler User may supply an efficient sampler that can obtain samples from the *prior* / original reference distribution.
 #' @param optimreference_start On which tuning round to start optimizing the reference distribution.
-#' @param optimHMC_start On which tuning round to start tuning the HMC exploration kernel
 #' @param full_covariance Controls whether to use a mean-field approximation for the modified reference (false) or a full covariance matrix (true)
 #' @param Winsorize Whether or not to use a Winsorized/trimmed mean when estimating the parameters of the variational reference
-#' @param HMC_std_multiplier Multiply the estimated chain standard deviations by this factor (can be a vector)
-#' @param L Number of leapfrog steps
 #' @param two_references Whether to run two PT chains in parallel with two different references: prior and variational reference. Note that with this setting there are 2*(N+1) chains in total.
-#' @param explore_target Whether to use local exploration in the target chain. (Default is true, but set it to false if you want to test an accept/reject algorithm.)
 #' @param modref_means_start Starting values for modref_means
 #' @param modref_stds_start Starting values for modref_stds
 #' @param n_explore Number of exploration steps to take before considering a communication swap
+
+#' @param HMC_std_multiplier Multiply the estimated chain standard deviations by this factor (can be a vector)
+#' @param L Number of leapfrog steps
+#' @param explore_target Whether to use local exploration in the target chain. (Default is true, but set it to false if you want to test an accept/reject algorithm.)
 #'
 #' @export
 function NRPT(V_0, V_1, InitialState, ntotal, N; 
     optimreference = true,
-    K = 100,
     MaxRound = floor(Int, log2(ntotal))-2,
     fulltrajectory = true, 
-    optimpath = true,
-    gradsamps = 100,
-    gradientfn = nothing,
     Phi = [0.5 0.5],
     verbose = false,
     resolution = 101,
     prior_sampler = nothing,
     optimreference_start = 4,
-    optimHMC_start = 4,
     full_covariance = false,
     Winsorize = false,
     HMC_std_multiplier = nothing,
@@ -65,18 +55,13 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
         ntotal                  = ntotal, 
         N                       = N, 
         optimreference          = optimreference,
-        K                       = K,
         MaxRound                = MaxRound,
         fulltrajectory          = fulltrajectory,
-        optimpath               = optimpath,
-        gradsamps               = gradsamps,
-        gradientfn              = gradientfn,
         Phi                     = Phi,
         verbose                 = verbose,
         resolution              = resolution,
         prior_sampler           = prior_sampler,
         optimreference_start    = optimreference_start,
-        optimHMC_start          = optimHMC_start,
         full_covariance         = full_covariance,
         Winsorize               = Winsorize,
         HMC_std_multiplier      = HMC_std_multiplier,
