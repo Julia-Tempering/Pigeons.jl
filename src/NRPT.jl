@@ -33,7 +33,7 @@
 #' @param n_explore Number of exploration steps to take before considering a communication swap
 #'
 #' @export
-function nrpt(V_0, V_1, InitialState, ntotal, N; 
+function NRPT(V_0, V_1, InitialState, ntotal, N; 
     optimreference = true,
     K = 100,
     MaxRound = floor(Int, log2(ntotal))-2,

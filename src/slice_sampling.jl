@@ -1,8 +1,6 @@
 using Distributions
 using StatsFuns
 using Random
-# using BenchmarkTools
-# using LinearAlgebra
 
 struct SS
     potential # -log(f(x))
@@ -10,7 +8,7 @@ struct SS
     p # Slices are no larger than 2^p * w
     dim_fraction # Proportion of variables to update
 end
-SS(potential) = SS(potential, 1.0, 10, 1.0) # Note the defaults!
+SS(potential) = SS(potential, 1.0, 10, 1.0)
 
 function slice_double(h::SS, g, x_0, z, c)
     U = rand(Uniform(0.0, 1.0))
