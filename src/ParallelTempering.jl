@@ -33,7 +33,7 @@ include("roundtriprate.jl")
 include("lognormalizingconstant.jl")
 include("deoscan.jl")
 include("deo.jl")
-include("nrpt.jl")
+include("NRPT.jl")
 
 
 ### Useful tools
