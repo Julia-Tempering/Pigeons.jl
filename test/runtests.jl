@@ -7,7 +7,7 @@ using Random
     # Write your tests here
 end
 
-@testset "Basic NRPT test (normal distribution)" begin
+@testset "NRPT fixed reference test: normal distribution" begin
     Random.seed!(2340981)
     N = 2
     InitialState = [[5.0] for _ in 1:(N+1)]

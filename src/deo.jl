@@ -10,14 +10,13 @@
 #' @param Phi As in NRPT
 #' @param nscan Number of scans to use
 #' @param N As in NRPT
-#' @param verbose As in NRPT
 #' @param resolution As in NRPT
 #' @param optimreference_round As in NRPT
 #' @param modref_means
 #' @param modref_stds
 #' @param prior_sampler
 #' @param chain_stds For tuning HMC exploration. N+1 [ dim_x]. Stores the estimated standard deviations from each chain based on the previous tuning round.
-function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)  
+function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, nscan, N, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)  
 
     # Initialize
     Rejection = zeros(N)
@@ -43,7 +42,7 @@ function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
     # Start scanning
     for n in 1:nscan
         # Perform scan
-        New = DEOscan(potential, States[n], Indices[n], Lifts[n], Etas, n, N, Kernels, Schedule, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
+        New = DEOscan(potential, States[n], Indices[n], Lifts[n], Etas, n, N, Kernels, Schedule, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
         
         # Update 'States', 'Energies', etc.
         States[n+1] = New.State
@@ -67,17 +66,6 @@ function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
     RoundTripRate = RoundTrip/nscan
     ChainAcceptanceRate = ChainAcceptance/nscan
 
-    # Print additional information
-    if verbose
-        println("Average rejection rate = $(mean(Rejection))")
-        println("Min rejection rate = $(minimum(Rejection))")
-        println("Max rejection rate = $(maximum(Rejection))")
-        println("Global barrier ≈ $GlobalBarrier")
-        println("Log-normalizing constant = $(NormalizingConstant)")
-        println("Total round trips = $RoundTrip")
-        println("Round trip rate = $RoundTripRate")
-    end
-
     return (
         States              = States[2:end], # Intentional! (First element is from the previous tuning round)
         Energies            = Energies[2:end], 
@@ -98,10 +86,10 @@ end
 
 
 # State: The state from the one previous scan. Of size: N+1 [dim_x]
-function DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore) 
+function DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore) 
     
     # Local exploration phase    
-    newState_full = LocalExploration(State, Kernels, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
+    newState_full = LocalExploration(State, Kernels, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
     newState = newState_full.out
     ChainAcceptance = newState_full.ChainAcceptance
 

@@ -1,5 +1,5 @@
 # State: The state from the one previous scan. Of size: N+1 [dim_x]
-function LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
+function LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
     ChainAcceptance = Vector{Int64}(undef, length(States)) # Binary vector of length N+1: Did we successfully sample a new state (accept = 1)?
 
     if (!optimreference_round)
@@ -32,11 +32,6 @@ function LocalExploration(States, Kernels, optimreference_round, modref_means, m
         out_other = map((i) -> out_other[i][end], 1:length(out_other))
         ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)]
         out = vcat(out_reference, out_other)
-    end
-
-    if !explore_target
-        # Not an efficient implementation at the moment because we are overwriting previously done (unnecesary) exploration
-        out[end] = copy(States[end])
     end
 
     return (

@@ -12,18 +12,18 @@
 #' @param MaxRound Maximum number of rounds for tuning.
 #' @param fulltrajectory Controls whether to keep track of all 'States', 'Indices', 'Energies', and 'Lifts'.
 #' @param Phi (Partially removed. Useful for constructing non-linear paths.)
-#' @param verbose Controls whether to print all of the output.
 #' @param resolution Resolution of the output for the estimates of the local communication barrier. 
-#' @param prior_sampler User may supply an efficient sampler that can obtain samples from the *prior* / original reference distribution.
+#' @param prior_sampler User may supply an efficient sampler that can obtain 
+#    samples from the *prior* / original reference distribution.
 #' @param optimreference_start On which tuning round to start optimizing the reference distribution.
-#' @param full_covariance Controls whether to use a mean-field approximation for the modified reference (false) or a full covariance matrix (true)
+#' @param full_covariance Controls whether to use a mean-field approximation for the modified 
+#    reference (false) or a full covariance matrix (true)
 #' @param Winsorize Whether or not to use a Winsorized/trimmed mean when estimating the parameters of the variational reference
-#' @param two_references Whether to run two PT chains in parallel with two different references: prior and variational reference. Note that with this setting there are 2*(N+1) chains in total.
+#' @param two_references Whether to run two PT chains in parallel with two different references: 
+#    prior and variational reference. Note that with this setting there are 2*(N+1) chains in total.
 #' @param modref_means_start Starting values for modref_means
 #' @param modref_stds_start Starting values for modref_stds
 #' @param n_explore Number of exploration steps to take before considering a communication swap
-
-#' @param explore_target Whether to use local exploration in the target chain. (Default is true, but set it to false if you want to test an accept/reject algorithm.)
 #'
 #' @export
 function NRPT(V_0, V_1, InitialState, ntotal, N; 
@@ -31,14 +31,12 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
     MaxRound = floor(Int, log2(ntotal))-2,
     fulltrajectory = true, 
     Phi = [0.5 0.5],
-    verbose = false,
     resolution = 101,
     prior_sampler = nothing,
     optimreference_start = 4,
     full_covariance = false,
     Winsorize = false,
     two_references = false,
-    explore_target = true,
     modref_means_start = nothing,
     modref_stds_start = nothing,
     n_explore = 1)
@@ -54,14 +52,12 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
         MaxRound                = MaxRound,
         fulltrajectory          = fulltrajectory,
         Phi                     = Phi,
-        verbose                 = verbose,
         resolution              = resolution,
         prior_sampler           = prior_sampler,
         optimreference_start    = optimreference_start,
         full_covariance         = full_covariance,
         Winsorize               = Winsorize,
         two_references          = two_references,
-        explore_target          = explore_target,
         modref_means_start      = modref_means_start,
         modref_stds_start       = modref_stds_start,
         n_explore               = n_explore,
@@ -77,7 +73,7 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
             out = V_0(x) * η[1] + V_1(x) * η[2]
         end
     end
-    old_potential = potential # This just points to the *original definition* of "potential()". Even if "potential()" changes, "old_potential()" stays the same!
+    old_potential = potential
 
     dim_x = length(InitialState[1]) # Dimension of x
     if (!isnothing(modref_means_start)) && (!isnothing(modref_stds_start))
@@ -196,20 +192,14 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
             nscan = ntotal - ntune # Use remaining scans in the last round
         end
 
-        if verbose # Include timing information
-            if !two_references
-                @time PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
-            else # Run two versions of PT in parallel
-                @time PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
-                @time PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], Schedules_old[:,round], Phi, nscan, N, verbose, resolution, false, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
-            end
-        else # Run DEO (deterministic even-odd)
-            if !two_references
-                PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
-            else # Run two versions of PT in parallel
-                PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
-                PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], Schedules_old[:,round], Phi, nscan, N, verbose, resolution, false, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
-            end
+        if !two_references
+            PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, resolution, 
+                     optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+        else # Run two versions of PT in parallel
+            PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, resolution, 
+                     optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+            PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], Schedules_old[:,round], Phi, nscan, N, resolution, 
+                         false, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
         end
         ntune += nscan
 
@@ -302,12 +292,6 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
 
         if (nscan == 2^min(MaxRound, 11)) # Old code. Doesn't do anything important.
             count = ntune
-        end
-
-        if verbose && (round <= MaxRound)
-            println("Finished Round $round with $nscan scans")
-        elseif verbose && (round == MaxRound+1)
-            println("Finished Final Round $round with $nscan scans")
         end
 
         FinalStates = PT.States
