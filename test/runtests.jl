@@ -11,7 +11,7 @@ end
     Random.seed!(2340981)
     N = 2
     InitialState = [[5.0] for _ in 1:(N+1)]
-    ntotal = 100
+    ntotal = 200
     V_0(θ) = -logpdf(Normal(10.0, 1.0), θ[1])
     prior_sampler() = [rand(Normal(10.0, 1.0))]
     V_1(θ) = -logpdf(Normal(0.0, 1.0), θ[1])

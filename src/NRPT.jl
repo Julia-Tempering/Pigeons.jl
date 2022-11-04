@@ -1,6 +1,6 @@
 #' Non-reversible parallel tempering (NRPT)
 #'
-#' The main NRPT and variational PT function
+#' The main NRPT function
 #'
 #' @param potential Function with three arguments (x, η, params) that returns a 'double'. 
 #'   'x' is the point at which the log-density V_0(x; params=params) * η[1] + V_1(x) * η[2] is evaluated, 

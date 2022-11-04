@@ -1,5 +1,3 @@
-# include("../src/setkernels.jl")
-
 #' Deterministic even-odd parallel tempering (DEO/NRPT)
 #'
 #' Performs NRPT with DEO
@@ -96,7 +94,6 @@ function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
         Etas                = Etas
 )
 end
-
 
 
 

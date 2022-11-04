@@ -41,16 +41,6 @@ function roundtrip(IndicesMatrix; cumulative = false)
     return trips
 end
 
-function roundtrip(Indices::Vector{Array{Int64,1}})
-    IndicesMatrix = reduce(hcat, PTefficient.Indices)'
-    roundtrip(IndicesMatrix)
-end
-
-
-function roundtriprate(Indices::AbstractArray)
-    n, N = size(Indices)
-    roundtrip(Indices)/n
-end
 
 
 # Computes the number of *restarts* instead of the number of round trips!

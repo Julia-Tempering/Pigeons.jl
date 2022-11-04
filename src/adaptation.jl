@@ -15,12 +15,6 @@ function updateschedule(cumulativebarrier, N)
     return newschedule
 end
 
-function updateschedule(rejection, schedule, N) 
-    cumulativebarrier = communicationbarrier(rejection, schedule).cumulativebarrier
-    updateschedule(cumulativebarrier, N) 
-    return newschedule
-end
-
 
 
 function communicationbarrier(rejection, schedule)
