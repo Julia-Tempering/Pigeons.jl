@@ -17,7 +17,7 @@
 #' @param modref_stds
 #' @param prior_sampler
 #' @param chain_stds For tuning HMC exploration. N+1 [ dim_x]. Stores the estimated standard deviations from each chain based on the previous tuning round.
-function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, L, explore_target, n_explore)  
+function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)  
 
     # Initialize
     Rejection = zeros(N)
@@ -35,7 +35,7 @@ function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
     Lifts[1] = InitialLift
 
     Kernels = Vector{SS}(undef, size(Etas)[1])
-    Kernels = setKernels(potential, Etas, L)
+    Kernels = setKernels(potential, Etas)
 
     ChainAcceptance = zeros(N+1)
 
@@ -43,7 +43,7 @@ function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
     # Start scanning
     for n in 1:nscan
         # Perform scan
-        New = DEOscan(potential, States[n], Indices[n], Lifts[n], Etas, n, N, Kernels, Schedule, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, explore_target, n_explore)
+        New = DEOscan(potential, States[n], Indices[n], Lifts[n], Etas, n, N, Kernels, Schedule, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
         
         # Update 'States', 'Energies', etc.
         States[n+1] = New.State
@@ -98,10 +98,10 @@ end
 
 
 # State: The state from the one previous scan. Of size: N+1 [dim_x]
-function DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, explore_target, n_explore) 
+function DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore) 
     
     # Local exploration phase    
-    newState_full = LocalExploration(State, Kernels, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, explore_target, n_explore)
+    newState_full = LocalExploration(State, Kernels, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
     newState = newState_full.out
     ChainAcceptance = newState_full.ChainAcceptance
 

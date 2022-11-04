@@ -23,8 +23,6 @@
 #' @param modref_stds_start Starting values for modref_stds
 #' @param n_explore Number of exploration steps to take before considering a communication swap
 
-#' @param HMC_std_multiplier Multiply the estimated chain standard deviations by this factor (can be a vector)
-#' @param L Number of leapfrog steps
 #' @param explore_target Whether to use local exploration in the target chain. (Default is true, but set it to false if you want to test an accept/reject algorithm.)
 #'
 #' @export
@@ -39,8 +37,6 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
     optimreference_start = 4,
     full_covariance = false,
     Winsorize = false,
-    HMC_std_multiplier = nothing,
-    L = 10,
     two_references = false,
     explore_target = true,
     modref_means_start = nothing,
@@ -64,8 +60,6 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
         optimreference_start    = optimreference_start,
         full_covariance         = full_covariance,
         Winsorize               = Winsorize,
-        HMC_std_multiplier      = HMC_std_multiplier,
-        L                       = L,
         two_references          = two_references,
         explore_target          = explore_target,
         modref_means_start      = modref_means_start,
@@ -125,10 +119,6 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
         RoundTrips_old = zeros(MaxRound+1) 
         RoundTripRates_old = zeros(MaxRound+1)
         ChainAcceptanceRates_old = [Vector{Float64}(undef, N+1) for _ in 1:(MaxRound+1)]
-    end
-
-    if isnothing(HMC_std_multiplier)
-        HMC_std_multiplier = [1.0 for _ in 1:(N+1)]
     end
 
 
@@ -208,17 +198,17 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
 
         if verbose # Include timing information
             if !two_references
-                @time PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, L, explore_target, n_explore)
+                @time PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
             else # Run two versions of PT in parallel
-                @time PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, L, explore_target, n_explore)
-                @time PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], Schedules_old[:,round], Phi, nscan, N, verbose, resolution, false, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, L, explore_target, n_explore)
+                @time PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
+                @time PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], Schedules_old[:,round], Phi, nscan, N, verbose, resolution, false, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
             end
         else # Run DEO (deterministic even-odd)
             if !two_references
-                PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, L, explore_target, n_explore)
+                PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
             else # Run two versions of PT in parallel
-                PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, L, explore_target, n_explore)
-                PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], Schedules_old[:,round], Phi, nscan, N, verbose, resolution, false, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, HMC_std_multiplier, L, explore_target, n_explore)
+                PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, verbose, resolution, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
+                PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], Schedules_old[:,round], Phi, nscan, N, verbose, resolution, false, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, explore_target, n_explore)
             end
         end
         ntune += nscan
