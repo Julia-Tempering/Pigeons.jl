@@ -6,19 +6,9 @@ using Statistics
 using StatsBase
 using Dierckx
 using ForwardDiff
-using Plots
-using GLMakie
-using CairoMakie
 using Interpolations
-using RCall
 using TimerOutputs
-@rlibrary mcmcse
-using StatsPlots
 using Roots
-using Dates
-using JLD2
-using CSV
-using DataFrames
 
 export nrpt, sampleNUTS, DEO, computeEtas, roundtrip, plot_samples, summarize_samples, plot_roundtrip, plot_globalbarrier, 
 plot_trace, plot_localbarrier, plot_ESS, get_chain_states, plot_sumroundtrip, run_all_PT_methods, run_simulation, 
