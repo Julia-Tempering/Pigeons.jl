@@ -1,5 +1,4 @@
 using Distributions
-using StatsFuns
 using Random
 
 struct SS

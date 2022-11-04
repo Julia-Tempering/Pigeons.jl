@@ -3,13 +3,11 @@ module Pidgeons
 using Base: Forward
 using Distributions
 using StatsBase
-using StatsFuns
-using ForwardDiff
 using Interpolations
 using Roots
 using Dates
 
-export nrpt, DEO, computeEtas, roundtrip, restarts
+export NRPT
 
 ### Samplers
 include("samplers/slice_sample.jl")

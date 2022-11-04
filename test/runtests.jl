@@ -2,7 +2,6 @@ using Pidgeons
 using Test
 using Distributions
 using Random
-using ForwardDiff
 
 @testset "Pidgeons.jl" begin
     # Write your tests here
