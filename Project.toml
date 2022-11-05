@@ -12,6 +12,7 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
+Interpolations = "0.14"
 julia = "1.6"
 
 [extras]
