@@ -1,4 +1,4 @@
-module Pidgeons
+module Pigeons
 
 using Base: Forward
 using Distributions

@@ -55,6 +55,6 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
-            using Pidgeons
-            DocMeta.setdocmeta!(Pidgeons, :DocTestSetup, :(using Pidgeons); recursive=true)
-            doctest(Pidgeons)'
+            using Pigeons
+            DocMeta.setdocmeta!(Pigeons, :DocTestSetup, :(using Pigeons); recursive=true)
+            doctest(Pigeons)'

@@ -68,7 +68,7 @@ git-tree-sha1 = "6c01a9b494f6d2a9fc180a08b182fcb06f0958a0"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
 version = "2.4.2"
 
-[[deps.Pidgeons]]
+[[deps.Pigeons]]
 path = ".."
 uuid = "0eb8d820-af6a-4919-95ae-11206f830c31"
 version = "0.1.0"

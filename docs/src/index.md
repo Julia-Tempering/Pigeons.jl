@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = Pidgeons
+CurrentModule = Pigeons
 ```
 
-# Pidgeons
+# Pigeons
 
-Documentation for [Pidgeons](https://github.com/ptiede/Pidgeons.jl).
+Documentation for [Pigeons](https://github.com/Julia-Tempering/Pigeons.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [Pidgeons]
+Modules = [Pigeons]
 ```
