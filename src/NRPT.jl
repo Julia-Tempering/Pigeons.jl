@@ -1,31 +1,32 @@
-#' Non-reversible parallel tempering (NRPT)
-#'
-#' The main NRPT function
-#'
-#' @param potential Function with three arguments (x, η, params) that returns a 'double'. 
-#'   'x' is the point at which the log-density V_0(x; params=params) * η[1] + V_1(x) * η[2] is evaluated, 
-#'   where V_0 is the negative log density of the reference and V_1 is the negative log density of the target.
-#' @param InitialState Matrix of initial states for all N+1 chains. Dimensions: (N+1) x (dim_x).
-#' @param ntotal Total number of scans/iterations.
-#' @param N The total number of chains is N+1.
-#' @param optimreference Whether the reference distribution is to be optimized.
-#' @param MaxRound Maximum number of rounds for tuning.
-#' @param fulltrajectory Controls whether to keep track of all 'States', 'Indices', 'Energies', and 'Lifts'.
-#' @param Phi (Partially removed. Useful for constructing non-linear paths.)
-#' @param resolution Resolution of the output for the estimates of the local communication barrier. 
-#' @param prior_sampler User may supply an efficient sampler that can obtain 
-#    samples from the *prior* / original reference distribution.
-#' @param optimreference_start On which tuning round to start optimizing the reference distribution.
-#' @param full_covariance Controls whether to use a mean-field approximation for the modified 
-#    reference (false) or a full covariance matrix (true)
-#' @param Winsorize Whether or not to use a Winsorized/trimmed mean when estimating the parameters of the variational reference
-#' @param two_references Whether to run two PT chains in parallel with two different references: 
-#    prior and variational reference. Note that with this setting there are 2*(N+1) chains in total.
-#' @param modref_means_start Starting values for modref_means
-#' @param modref_stds_start Starting values for modref_stds
-#' @param n_explore Number of exploration steps to take before considering a communication swap
-#'
-#' @export
+"""
+    NRPT(V_0, V_1, InitialState, ntotal, N) 
+
+Non-reversible parallel tempering (NRPT).
+
+# Arguments
+ - `potential`: Function with three arguments (x, η, params) that returns a 'double'. 
+   'x' is the point at which the log-density V_0(x; params=params) * η[1] + V_1(x) * η[2] is evaluated, 
+   where V_0 is the negative log density of the reference and V_1 is the negative log density of the target.
+ - `InitialState`: Matrix of initial states for all N+1 chains. Dimensions: (N+1) x (dim_x).
+ - `ntotal`: Total number of scans/iterations.
+ - `N`: The total number of chains is N+1.
+ - `optimreference`: Whether the reference distribution is to be optimized.
+ - `MaxRound`: Maximum number of rounds for tuning.
+ - `fulltrajectory`: Controls whether to keep track of all 'States', 'Indices', 'Energies', and 'Lifts'.
+ - `Phi`: (Partially removed. Useful for constructing non-linear paths.)
+ - `resolution`: Resolution of the output for the estimates of the local communication barrier. 
+ - `prior_sampler`: User may supply an efficient sampler that can obtain 
+    samples from the *prior* / original reference distribution.
+ - `optimreference_start`: On which tuning round to start optimizing the reference distribution.
+ - `full_covariance`: Controls whether to use a mean-field approximation for the modified 
+    reference (false) or a full covariance matrix (true)
+ - `Winsorize`: Whether or not to use a Winsorized/trimmed mean when estimating the parameters of the variational reference
+ - `two_references`: Whether to run two PT chains in parallel with two different references: 
+    prior and variational reference. Note that with this setting there are 2*(N+1) chains in total.
+ - `modref_means_start`: Starting values for modref_means
+ - `modref_stds_start`: Starting values for modref_stds
+ - `n_explore`: Number of exploration steps to take before considering a communication swap
+"""
 function NRPT(V_0, V_1, InitialState, ntotal, N; 
     optimreference = true,
     MaxRound = floor(Int, log2(ntotal))-2,

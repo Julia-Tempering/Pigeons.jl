@@ -1,5 +1,9 @@
-### Update Schedule
-# Given the cumulative communication barrier function, find the optimal schedule of size N+1 
+"""
+    updateschedule(cumulativebarrier, N)
+
+Update the annealing schedule. Given the cumulative communication barrier function
+in `cumulativebarrier`, find the optimal schedule of size `N`+1.
+"""
 function updateschedule(cumulativebarrier, N)
     if N == 1
         newschedule = [0.0, 1.0]
@@ -16,7 +20,13 @@ function updateschedule(cumulativebarrier, N)
 end
 
 
+"""
+    communicationbarrier(rejection, schedule)
 
+Compute the local communication barrier and cumulative barrier functions from the 
+`rejection` rates and the current annealing `schedule`. The estimation of the barriers 
+is based on Fritsch-Carlson monotonic interpolation.
+"""
 function communicationbarrier(rejection, schedule)
     x = schedule
     y = [0; cumsum(rejection)]
