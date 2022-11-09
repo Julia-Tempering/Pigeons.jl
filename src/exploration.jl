@@ -1,12 +1,20 @@
-# State: The state from the one previous scan. Of size: N+1 [dim_x]
-function LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
-    ChainAcceptance = Vector{Int64}(undef, length(States)) # Binary vector of length N+1: Did we successfully sample a new state (accept = 1)?
+"""
+    LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, 
+        modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+        ChainAcceptance = Vector{Int64}(undef, length(States))
+
+Perform one local exploration move. `State` is the state from the **one** 
+previous scan, which is of size N+1[dim_x].
+"""
+function LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, 
+    modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+    ChainAcceptance = Vector{Int64}(undef, length(States)) # Length N+1: Binary indicators
 
     if (!optimreference_round)
         if (!isnothing(prior_sampler))
             out_reference = prior_sampler()
             out_reference = [out_reference]
-            ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)] # Sampling from the reference chain always results in acceptance
+            ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)] # Reference sampling is always accepted
             out_other = slice_sample.(Kernels[2:end], States[2:end], repeat([n_explore], size(States[2:end])[1]))
             out_other = map((i) -> out_other[i][end], 1:length(out_other))
             out = vcat(out_reference, out_other)
@@ -40,11 +48,16 @@ function LocalExploration(States, Kernels, optimreference_round, modref_means, m
 end
 
 
+"""
+    setKernels(potential, Etas)
 
+Set the local exploration kernels given the `potential` and the annealing 
+parameters, `Etas`.
+"""
 function setKernels(potential, Etas)
     kernels = Vector{SS}(undef, size(Etas)[1])
     for i in 1:size(Etas)[1]
-        loglik = (x) -> potential(x, Etas[i, :]) # Negative of the log *density* (*not* the log-likelihood, despite what it says!)
+        loglik = (x) -> potential(x, Etas[i, :]) # Neg. log *density* (*not* the log-likelihood!)
         kernels[i] = SS(loglik) # Use slice sampling defaults
     end
     return kernels

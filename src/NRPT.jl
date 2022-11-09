@@ -6,7 +6,8 @@ Non-reversible parallel tempering (NRPT).
 # Arguments
  - `potential`: Function with three arguments (x, η, params) that returns a 'double'. 
    'x' is the point at which the log-density V_0(x; params=params) * η[1] + V_1(x) * η[2] is evaluated, 
-   where V_0 is the negative log density of the reference and V_1 is the negative log density of the target.
+   where V_0 is the negative log density of the reference and V_1 is the negative 
+   log density of the target.
  - `InitialState`: Matrix of initial states for all N+1 chains. Dimensions: (N+1) x (dim_x).
  - `ntotal`: Total number of scans/iterations.
  - `N`: The total number of chains is N+1.
@@ -20,7 +21,8 @@ Non-reversible parallel tempering (NRPT).
  - `optimreference_start`: On which tuning round to start optimizing the reference distribution.
  - `full_covariance`: Controls whether to use a mean-field approximation for the modified 
     reference (false) or a full covariance matrix (true)
- - `Winsorize`: Whether or not to use a Winsorized/trimmed mean when estimating the parameters of the variational reference
+ - `Winsorize`: Whether or not to use a Winsorized/trimmed mean when estimating 
+ the parameters of the variational reference
  - `two_references`: Whether to run two PT chains in parallel with two different references: 
     prior and variational reference. Note that with this setting there are 2*(N+1) chains in total.
  - `modref_means_start`: Starting values for modref_means
@@ -94,7 +96,7 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
     end
     modref_covs = Matrix{Float64}(undef, dim_x, dim_x)
     modref_covs_inv = similar(modref_covs)
-    chain_stds = Vector{typeof(modref_stds)}(undef, N+1) # For tuning HMC exploration only. Initialized below.
+    chain_stds = Vector{typeof(modref_stds)}(undef, N+1) # For tuning HMC exploration only.
     
     Rejections = zeros(N,MaxRound+1) # Chain communication rejection rates (exclude the last chain)
     LocalBarriers = zeros(resolution,MaxRound+1)
@@ -194,13 +196,17 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
         end
 
         if !two_references
-            PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, resolution, 
-                     optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+            PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], 
+                     Phi, nscan, N, resolution, optimreference_round, modref_means, 
+                     modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
         else # Run two versions of PT in parallel
-            PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], Phi, nscan, N, resolution, 
-                     optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
-            PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], Schedules_old[:,round], Phi, nscan, N, resolution, 
-                         false, modref_means, modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+            PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], 
+                     Phi, nscan, N, resolution, optimreference_round, modref_means, 
+                     modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+            PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], 
+                         Schedules_old[:,round], Phi, nscan, N, resolution, false, 
+                         modref_means, modref_stds, modref_covs, full_covariance, 
+                         prior_sampler, chain_stds, n_explore)
         end
         ntune += nscan
 
@@ -251,12 +257,12 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
         end
 
         ### Perform optimization
-        if optimreference && (round >= optimreference_start) && (round <= MaxRound) # Optimize the reference distribution
+        if optimreference && (round >= optimreference_start) && (round <= MaxRound) # Optimize the reference
             optimreference_round = true
 
-            if !fixed_variational_ref # Tune the variational reference
+            if !fixed_variational_ref # Tune the reference
                 if !two_references
-                    statesToConsider = map((x) -> PT.States[x][end], 1:nscan) # Take 'nscan' scans from the target distribution.
+                    statesToConsider = map((x) -> PT.States[x][end], 1:nscan) # Take 'nscan' scans from the target
                 else # Merge the various states into one long vector
                     statesToConsider = vcat(map((x) -> PT.States[x][end], 1:nscan), map((x) -> PT_old.States[x][end], 1:nscan))
                 end
@@ -287,7 +293,8 @@ function NRPT(V_0, V_1, InitialState, ntotal, N;
             end # Otherwise, we have already specified the variational reference means and covariances
 
             # Update definition of 'potential'
-            new_potential2(x, η) = new_potential(x, η, modref_means, modref_stds, modref_covs_inv, V_1, full_covariance)
+            new_potential2(x, η) = new_potential(x, η, modref_means, modref_stds, 
+                                                 modref_covs_inv, V_1, full_covariance)
             potential = new_potential2
         end
 

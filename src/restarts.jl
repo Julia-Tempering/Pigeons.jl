@@ -1,6 +1,12 @@
-# Round trip for a trajectory
-#' cumulative: Whether to store the output as a vector containing information about the number of total round trips up to sample 'n'
-#'   If false, the output is a scalar
+"""
+    roundtrip(IndicesMatrix; cumulative)
+
+Compute the number of round trips for a given index process trajectory. 
+`IndicesMatrix` is a matrix containing information about the index process.
+`cumulative` indicates whether we should store the output as a vector containing 
+information about the number of total round trips up to sample `n`. If false, the
+output is a scalar.
+"""
 function roundtrip(IndicesMatrix; cumulative = false)
     n, N = size(IndicesMatrix) # Number of samples x number of chains/machines
     if cumulative
@@ -42,8 +48,12 @@ function roundtrip(IndicesMatrix; cumulative = false)
 end
 
 
+"""
+    restarts(IndicesMatrix; cumulative)
 
-# Computes the number of *restarts* instead of the number of round trips!
+Compute the number of restarts for a given index process trajectory. 
+Otherwise, it is the same as `roundtrip()`.
+"""
 function restarts(IndicesMatrix; cumulative = false)
     n, N = size(IndicesMatrix) # Number of samples x number of chains/machines
     if cumulative

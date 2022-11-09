@@ -9,6 +9,11 @@ struct SS
 end
 SS(potential) = SS(potential, 1.0, 10, 1.0)
 
+"""
+    slice_double(h, g, x_0, z, c)
+
+Double the current slice.
+"""
 function slice_double(h::SS, g, x_0, z, c)
     U = rand(Uniform(0.0, 1.0))
     L = x_0[c] - h.w*U
@@ -35,6 +40,12 @@ function slice_double(h::SS, g, x_0, z, c)
            R = R)
 end
 
+
+"""
+    slice_shrink(h, g, x_0, z, L, R, c)
+
+Shrink the current slice.
+"""
 function slice_shrink(h, g, x_0, z, L, R, c)
     Lbar = L
     Rbar = R
@@ -56,6 +67,12 @@ function slice_shrink(h, g, x_0, z, L, R, c)
     return x_1
 end
 
+
+"""
+    slice_accept(h::SS, g, x_0, x_1, z, L, R, c)
+
+Test whether to accept the current slice.
+"""
 function slice_accept(h::SS, g, x_0, x_1, z, L, R, c)
     Lhat = L
     Rhat = R
@@ -89,6 +106,13 @@ function slice_accept(h::SS, g, x_0, x_1, z, L, R, c)
     return acceptable
 end
 
+
+"""
+    slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int64)
+
+Slice sample `nsamps` given a starting vector  `x_0` and the struct `h` 
+that contains information about the log-density.
+"""
 function slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int64)
     g(x) = -h.potential(x) # log(f(x))
     x = Vector{typeof(x_0)}(undef, nsamps + 1)
