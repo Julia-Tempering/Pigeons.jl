@@ -123,7 +123,7 @@ function DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule,
     # Compute acceptance probability
     Acceptance = acceptanceprobability(newEnergy, newEnergy1, newEnergy2)
 
-    # Update Rejection
+    # Update rejection
     Rejection = 1 .- Acceptance # Vectorized
     # Odd/Even swaps
     isodd(n) ? (P = 1 :2:N) : (P = 2:2:N)
