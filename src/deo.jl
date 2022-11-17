@@ -67,7 +67,7 @@ function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, ϕ,
     localbarrier, cumulativebarrier, GlobalBarrier = communicationbarrier(Rejection, Schedule)
     LocalBarrier = localbarrier.(range(0, 1, length = resolution))
     GlobalBarrier = GlobalBarrier
-    NormalizingConstant = lognormalizingconstant(reduce(hcat, Energies)', Schedule)
+    norm_constant = lognormalizingconstant(reduce(hcat, Energies)', Schedule)
     Schedule = updateschedule(cumulativebarrier, N) 
     Etas = computeEtas(ϕ, Schedule)
     RoundTrip = roundtrip(reduce(hcat, Indices)')
@@ -82,7 +82,7 @@ function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, ϕ,
         Rejection           = Rejection,
         LocalBarrier        = LocalBarrier,
         GlobalBarrier       = GlobalBarrier,
-        NormalizingConstant = NormalizingConstant,
+        norm_constant = norm_constant,
         ScheduleUpdate      = Schedule,
         RoundTrip           = RoundTrip,
         RoundTripRate       = RoundTripRate,

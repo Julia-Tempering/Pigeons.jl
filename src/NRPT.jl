@@ -101,26 +101,26 @@ function NRPT(V_0,
     modref_covs = Matrix{Float64}(undef, dim_x, dim_x)
     modref_covs_inv = similar(modref_covs)
     
-    Rejections = zeros(N,maxround+1) # Chain communication rejection rates (exclude the last chain)
-    LocalBarriers = zeros(resolution,maxround+1)
-    GlobalBarriers = zeros(maxround+1) # Include a global communication barrier estimate for each round
-    NormalizingConstant = zeros(maxround+1)
-    Schedules = zeros(N+1,maxround+2) # Annealing schedules
-    Schedules[:,1] = collect(range(0, 1, length = N+1)) # Start with an equally spaced schedule
-    RoundTrips = zeros(maxround+1) # Number of round trips
-    RoundTripRates = zeros(maxround+1)
-    ChainAcceptanceRates = [Vector{Float64}(undef, N+1) for _ in 1:(maxround+1)]
+    rejections = zeros(N,maxround+1) # Chain communication rejection rates (exclude the last chain)
+    local_barriers = zeros(resolution,maxround+1)
+    global_barriers = zeros(maxround+1) # Include a global communication barrier estimate for each round
+    norm_constant = zeros(maxround+1)
+    schedules = zeros(N+1,maxround+2) # Annealing schedules
+    schedules[:,1] = collect(range(0, 1, length = N+1)) # Start with an equally spaced schedule
+    roundtrips = zeros(maxround+1) # Number of round trips
+    roundtriprates = zeros(maxround+1)
+    chain_acceptance_rates = [Vector{Float64}(undef, N+1) for _ in 1:(maxround+1)]
     
     if two_references
-        Rejections_old = zeros(N,maxround+1) 
-        LocalBarriers_old = zeros(resolution,maxround+1)
-        GlobalBarriers_old = zeros(maxround+1) 
-        NormalizingConstant_old = zeros(maxround+1)
-        Schedules_old = zeros(N+1,maxround+2) 
-        Schedules_old[:,1] = collect(range(0, 1, length = N+1)) 
-        RoundTrips_old = zeros(maxround+1) 
-        RoundTripRates_old = zeros(maxround+1)
-        ChainAcceptanceRates_old = [Vector{Float64}(undef, N+1) for _ in 1:(maxround+1)]
+        rejections_old = zeros(N,maxround+1) 
+        local_barriers_old = zeros(resolution,maxround+1)
+        global_barriers_old = zeros(maxround+1) 
+        norm_constant_old = zeros(maxround+1)
+        schedules_old = zeros(N+1,maxround+2) 
+        schedules_old[:,1] = collect(range(0, 1, length = N+1)) 
+        roundtrips_old = zeros(maxround+1) 
+        roundtriprates_old = zeros(maxround+1)
+        chain_acceptance_rates_old = [Vector{Float64}(undef, N+1) for _ in 1:(maxround+1)]
     end
 
 
@@ -130,7 +130,7 @@ function NRPT(V_0,
     States[1] = initial_state # N+1 [ dim_x]
     FinalStates = initial_state
 
-    Etas = computeEtas(ϕ, Schedules[:,1]) # If ϕ = [0.5 0.5], returns a linear path
+    Etas = computeEtas(ϕ, schedules[:,1]) # If ϕ = [0.5 0.5], returns a linear path
     Energies = Vector{typeof(potential.(initial_state, eachrow(Etas)))}(undef,1)
     Energies[1] = potential.(initial_state, eachrow(Etas)) # Current energy for each chain
 
@@ -145,7 +145,7 @@ function NRPT(V_0,
         States_old[1] = initial_state
         FinalStates_old = initial_state
 
-        Etas_old = computeEtas(ϕ, Schedules_old[:,1])
+        Etas_old = computeEtas(ϕ, schedules_old[:,1])
         Energies_old = Vector{typeof(potential.(initial_state, eachrow(Etas)))}(undef,1)
         Energies_old[1] = old_potential.(initial_state, eachrow(Etas_old))
 
@@ -194,39 +194,39 @@ function NRPT(V_0,
         end
 
         if !two_references
-            PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], 
+            PT = deo(potential, States[end], Indices[end], Lifts[end], schedules[:,round], 
                      ϕ, nscan, N, resolution, optimreference_round, modref_means, 
                      modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
         else # Run two versions of PT in parallel
-            PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], 
+            PT = deo(potential, States[end], Indices[end], Lifts[end], schedules[:,round], 
                      ϕ, nscan, N, resolution, optimreference_round, modref_means, 
                      modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
             PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], 
-                         Schedules_old[:,round], ϕ, nscan, N, resolution, false, 
+                         schedules_old[:,round], ϕ, nscan, N, resolution, false, 
                          modref_means, modref_stds, modref_covs, full_covariance, 
                          prior_sampler, n_explore)
         end
         ntune += nscan
 
         ###  Update monitoring/diagnostics
-        Rejections[:,round] = PT.Rejection # 'PT' is a "list"-like object
-        LocalBarriers[:,round] = PT.LocalBarrier
-        GlobalBarriers[round] = PT.GlobalBarrier
-        NormalizingConstant[round] = PT.NormalizingConstant
-        Schedules[:,round+1] = PT.ScheduleUpdate
-        RoundTrips[round] = PT.RoundTrip
-        RoundTripRates[round] = PT.RoundTripRate
-        ChainAcceptanceRates[round] = PT.ChainAcceptanceRate
+        rejections[:,round] = PT.Rejection # 'PT' is a "list"-like object
+        local_barriers[:,round] = PT.LocalBarrier
+        global_barriers[round] = PT.GlobalBarrier
+        norm_constant[round] = PT.norm_constant
+        schedules[:,round+1] = PT.ScheduleUpdate
+        roundtrips[round] = PT.RoundTrip
+        roundtriprates[round] = PT.RoundTripRate
+        chain_acceptance_rates[round] = PT.ChainAcceptanceRate
 
         if two_references
-            Rejections_old[:,round] = PT_old.Rejection
-            LocalBarriers_old[:,round] = PT_old.LocalBarrier
-            GlobalBarriers_old[round] = PT_old.GlobalBarrier
-            NormalizingConstant_old[round] = PT_old.NormalizingConstant
-            Schedules_old[:,round+1] = PT_old.ScheduleUpdate
-            RoundTrips_old[round] = PT_old.RoundTrip
-            RoundTripRates_old[round] = PT_old.RoundTripRate
-            ChainAcceptanceRates_old[round] = PT_old.ChainAcceptanceRate
+            rejections_old[:,round] = PT_old.Rejection
+            local_barriers_old[:,round] = PT_old.LocalBarrier
+            global_barriers_old[round] = PT_old.GlobalBarrier
+            norm_constant_old[round] = PT_old.norm_constant
+            schedules_old[:,round+1] = PT_old.ScheduleUpdate
+            roundtrips_old[round] = PT_old.RoundTrip
+            roundtriprates_old[round] = PT_old.RoundTripRate
+            chain_acceptance_rates_old[round] = PT_old.ChainAcceptanceRate
         end
 
         ### Update states
@@ -313,14 +313,14 @@ function NRPT(V_0,
         Energies            = Energies,
         Indices             = Indices,
         Lifts               = Lifts,
-        Rejections          = Rejections,
-        LocalBarriers       = LocalBarriers,
-        GlobalBarriers      = GlobalBarriers,
-        NormalizingConstant = NormalizingConstant,
-        Schedules           = Schedules,
-        RoundTrips          = RoundTrips,
-        RoundTripRates      = RoundTripRates,
-        ChainAcceptanceRates = ChainAcceptanceRates,
+        rejections          = rejections,
+        local_barriers       = local_barriers,
+        global_barriers      = global_barriers,
+        norm_constant = norm_constant,
+        schedules           = schedules,
+        roundtrips          = roundtrips,
+        roundtriprates      = roundtriprates,
+        chain_acceptance_rates = chain_acceptance_rates,
         N                   = N,
         potential           = potential,
         count               = count,
@@ -341,14 +341,14 @@ function NRPT(V_0,
             Energies            = Energies_old,
             Indices             = Indices_old,
             Lifts               = Lifts_old,
-            Rejections          = Rejections_old,
-            LocalBarriers       = LocalBarriers_old,
-            GlobalBarriers      = GlobalBarriers_old,
-            NormalizingConstant = NormalizingConstant_old,
-            Schedules           = Schedules_old,
-            RoundTrips          = RoundTrips_old,
-            RoundTripRates      = RoundTripRates_old,
-            ChainAcceptanceRates = ChainAcceptanceRates_old,
+            rejections          = rejections_old,
+            local_barriers       = local_barriers_old,
+            global_barriers      = global_barriers_old,
+            norm_constant = norm_constant_old,
+            schedules           = schedules_old,
+            roundtrips          = roundtrips_old,
+            roundtriprates      = roundtriprates_old,
+            chain_acceptance_rates = chain_acceptance_rates_old,
             N                   = N,
             potential           = old_potential,
             count               = count,
