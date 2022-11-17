@@ -1,11 +1,11 @@
 """
-    Winsorized_mean(x; α)
+    winsorized_mean(x; α)
 
-Compute the Winsorized mean from an input `x`, which is assumed to be a vector of vectors. 
-`α` denotes the percentage of observations to Winsorize at the bottom and the top 
-so that we use 1 - 2α observations and Winsorize the rest.
+Compute the winsorized mean from an input `x`, which is assumed to be a vector of vectors. 
+`α` denotes the percentage of observations to winsorize at the bottom and the top 
+so that we use 1 - 2α observations and winsorize the rest.
 """
-function Winsorized_mean(x; α=0.1)
+function winsorized_mean(x; α=0.1)
     dim_x = length(x[1])
     out = Vector{Float64}(undef, dim_x)
     n = length(x)
@@ -21,12 +21,12 @@ end
 
 
 """
-    Winsorized_std(x; α)
+    winsorized_std(x; α)
 
-Compute the Winsorized standard deviation. The parameters are the same 
-as those for `Winsorized_mean()`.
+Compute the winsorized standard deviation. The parameters are the same 
+as those for `winsorized_mean()`.
 """
-function Winsorized_std(x; α=0.1)
+function winsorized_std(x; α=0.1)
     dim_x = length(x[1])
     out = Vector{Float64}(undef, dim_x)
     n = length(x)
@@ -36,8 +36,8 @@ function Winsorized_std(x; α=0.1)
         y = map((i) -> x[i][j], 1:n)
         y2 = y .^ 2
         y2 = sort(y2)
-        y2_mean = 1/n * (n_lower * y2[n_lower] + sum(y2[(n_lower + 1):(n - n_lower)]) + n_lower * y2[n - n_lower + 1]) # Winsorized estimate of E[Y[j]^2]
-        out[j] = sqrt(y2_mean - Winsorized_mean(y; α=α)[1]^2)
+        y2_mean = 1/n * (n_lower * y2[n_lower] + sum(y2[(n_lower + 1):(n - n_lower)]) + n_lower * y2[n - n_lower + 1]) # winsorized estimate of E[Y[j]^2]
+        out[j] = sqrt(y2_mean - winsorized_mean(y; α=α)[1]^2)
     end
     
     return out

@@ -14,14 +14,14 @@ Non-reversible parallel tempering (NRPT).
  - `optimreference`: Whether the reference distribution is to be optimized.
  - `maxround`: Maximum number of rounds for tuning.
  - `fulltrajectory`: Controls whether to keep track of all 'States', 'Indices', 'Energies', and 'Lifts'.
- - `Phi`: (Partially removed. Useful for constructing non-linear paths.)
+ - `ϕ`: (Partially removed. Useful for constructing non-linear paths.)
  - `resolution`: Resolution of the output for the estimates of the local communication barrier. 
  - `prior_sampler`: User may supply an efficient sampler that can obtain 
     samples from the *prior* / original reference distribution.
  - `optimreference_start`: On which tuning round to start optimizing the reference distribution.
  - `full_covariance`: Controls whether to use a mean-field approximation for the modified 
     reference (false) or a full covariance matrix (true)
- - `Winsorize`: Whether or not to use a Winsorized/trimmed mean when estimating 
+ - `winsorize`: Whether or not to use a winsorized/trimmed mean when estimating 
  the parameters of the variational reference
  - `two_references`: Whether to run two PT chains in parallel with two different references: 
     prior and variational reference. Note that with this setting there are 2*(N+1) chains in total.
@@ -37,12 +37,12 @@ function NRPT(V_0,
     optimreference::Bool = true,
     maxround::Int = floor(Int, log2(ntotal))-2,
     fulltrajectory::Bool = true, 
-    Phi = [0.5 0.5],
+    ϕ = [0.5 0.5],
     resolution::Int = 101,
     prior_sampler = nothing,
     optimreference_start::Int = 4,
     full_covariance::Bool = false,
-    Winsorize::Bool = false,
+    winsorize::Bool = false,
     two_references::Bool = false,
     modref_means_start = nothing,
     modref_stds_start = nothing,
@@ -58,12 +58,12 @@ function NRPT(V_0,
         optimreference          = optimreference,
         maxround                = maxround,
         fulltrajectory          = fulltrajectory,
-        Phi                     = Phi,
+        ϕ                     = ϕ,
         resolution              = resolution,
         prior_sampler           = prior_sampler,
         optimreference_start    = optimreference_start,
         full_covariance         = full_covariance,
-        Winsorize               = Winsorize,
+        winsorize               = winsorize,
         two_references          = two_references,
         modref_means_start      = modref_means_start,
         modref_stds_start       = modref_stds_start,
@@ -130,7 +130,7 @@ function NRPT(V_0,
     States[1] = initial_state # N+1 [ dim_x]
     FinalStates = initial_state
 
-    Etas = computeEtas(Phi, Schedules[:,1]) # If Phi = [0.5 0.5], returns a linear path
+    Etas = computeEtas(ϕ, Schedules[:,1]) # If ϕ = [0.5 0.5], returns a linear path
     Energies = Vector{typeof(potential.(initial_state, eachrow(Etas)))}(undef,1)
     Energies[1] = potential.(initial_state, eachrow(Etas)) # Current energy for each chain
 
@@ -145,7 +145,7 @@ function NRPT(V_0,
         States_old[1] = initial_state
         FinalStates_old = initial_state
 
-        Etas_old = computeEtas(Phi, Schedules_old[:,1])
+        Etas_old = computeEtas(ϕ, Schedules_old[:,1])
         Energies_old = Vector{typeof(potential.(initial_state, eachrow(Etas)))}(undef,1)
         Energies_old[1] = old_potential.(initial_state, eachrow(Etas_old))
 
@@ -195,14 +195,14 @@ function NRPT(V_0,
 
         if !two_references
             PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], 
-                     Phi, nscan, N, resolution, optimreference_round, modref_means, 
+                     ϕ, nscan, N, resolution, optimreference_round, modref_means, 
                      modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
         else # Run two versions of PT in parallel
             PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], 
-                     Phi, nscan, N, resolution, optimreference_round, modref_means, 
+                     ϕ, nscan, N, resolution, optimreference_round, modref_means, 
                      modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
             PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], 
-                         Schedules_old[:,round], Phi, nscan, N, resolution, false, 
+                         Schedules_old[:,round], ϕ, nscan, N, resolution, false, 
                          modref_means, modref_stds, modref_covs, full_covariance, 
                          prior_sampler, n_explore)
         end
@@ -265,22 +265,22 @@ function NRPT(V_0,
                     statesToConsider = vcat(map((x) -> PT.States[x][end], 1:nscan), map((x) -> PT_old.States[x][end], 1:nscan))
                 end
                 # statesToConsider is now a vector of length nscan (or 2*nscan) containing vectors of length dim_x
-                if Winsorize
-                    modref_means = Winsorized_mean(statesToConsider)
+                if winsorize
+                    modref_means = winsorized_mean(statesToConsider)
                 else
                     modref_means = mean(statesToConsider)
                 end
                 println("Modified reference means = $modref_means")
                 
                 if !full_covariance
-                    if Winsorize
-                        modref_stds = Winsorized_std(statesToConsider)
+                    if winsorize
+                        modref_stds = winsorized_std(statesToConsider)
                     else
                         modref_stds = std(statesToConsider) # Mean-field approximation
                     end
                     println("Modified reference stds = $modref_stds")
                 else
-                    if Winsorize
+                    if winsorize
                         error("Full covariance matrix Winsorization not implemented.")
                     else
                         modref_covs = cov(statesToConsider) # Full covariance matrix approximation

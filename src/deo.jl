@@ -1,5 +1,5 @@
 """
-    deo(potential, initial_state, InitialIndex, InitialLift, Schedule, Phi, 
+    deo(potential, initial_state, InitialIndex, InitialLift, Schedule, ϕ, 
         nscan, N, resolution, optimreference_round, modref_means, modref_stds, modref_covs, 
         full_covariance, prior_sampler, n_explore)
 
@@ -11,7 +11,7 @@ Deterministic even-odd parallel tempering (DEO/NRPT).
 - `InitialIndex`: Starting indices
 - `InitialLift`: Starting lift
 - `Schedule`: Annealing schedule
-- `Phi`: As in NRPT
+- `ϕ`: As in NRPT
 - `nscan`: Number of scans to use
 - `N`: As in NRPT
 - `resolution`: As in NRPT
@@ -20,13 +20,13 @@ Deterministic even-odd parallel tempering (DEO/NRPT).
 - `modref_stds`
 - `prior_sample`
 """
-function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, Phi, 
+function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, ϕ, 
     nscan::Int, N::Int, resolution::Int, optimreference_round, modref_means, modref_stds, modref_covs, 
     full_covariance::Bool, prior_sampler, n_explore::Int)  
 
     # Initialize
     Rejection = zeros(N)
-    Etas = computeEtas(Phi, Schedule)
+    Etas = computeEtas(ϕ, Schedule)
     States = Vector{typeof(initial_state)}(undef, nscan + 1) # nscan+1 [ N+1 [ dim_x ] ]  
     States[1] = initial_state
 
@@ -69,7 +69,7 @@ function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, Phi,
     GlobalBarrier = GlobalBarrier
     NormalizingConstant = lognormalizingconstant(reduce(hcat, Energies)', Schedule)
     Schedule = updateschedule(cumulativebarrier, N) 
-    Etas = computeEtas(Phi, Schedule)
+    Etas = computeEtas(ϕ, Schedule)
     RoundTrip = roundtrip(reduce(hcat, Indices)')
     RoundTripRate = RoundTrip/nscan
     ChainAcceptanceRate = ChainAcceptance/nscan
