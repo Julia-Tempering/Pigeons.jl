@@ -34,6 +34,6 @@ function communicationbarrier(rejection::Vector{T} where T <: Real,
     spl = Interpolations.interpolate(x, y, FritschCarlsonMonotonicInterpolation())
     cumulativebarrier(β) = spl(β)
     localbarrier(β) = Interpolations.gradient(spl, β)[1]
-    GlobalBarrier = sum(rejection)
-    return (localbarrier = localbarrier, cumulativebarrier = cumulativebarrier, GlobalBarrier = GlobalBarrier)
+    globalbarrier = sum(rejection)
+    return (localbarrier = localbarrier, cumulativebarrier = cumulativebarrier, globalbarrier = globalbarrier)
 end

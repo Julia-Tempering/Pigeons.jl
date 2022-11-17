@@ -210,23 +210,23 @@ function NRPT(V_0,
 
         ###  Update monitoring/diagnostics
         rejections[:,round] = PT.Rejection # 'PT' is a "list"-like object
-        local_barriers[:,round] = PT.LocalBarrier
-        global_barriers[round] = PT.GlobalBarrier
+        local_barriers[:,round] = PT.localbarrier
+        global_barriers[round] = PT.globalbarrier
         norm_constant[round] = PT.norm_constant
         schedules[:,round+1] = PT.scheduleUpdate
         roundtrips[round] = PT.RoundTrip
         roundtriprates[round] = PT.RoundTripRate
-        chain_acceptance_rates[round] = PT.chainacceptanceRate
+        chain_acceptance_rates[round] = PT.chain_acceptance_rate
 
         if two_references
             rejections_old[:,round] = PT_old.Rejection
-            local_barriers_old[:,round] = PT_old.LocalBarrier
-            global_barriers_old[round] = PT_old.GlobalBarrier
+            local_barriers_old[:,round] = PT_old.localbarrier
+            global_barriers_old[round] = PT_old.globalbarrier
             norm_constant_old[round] = PT_old.norm_constant
             schedules_old[:,round+1] = PT_old.scheduleUpdate
             roundtrips_old[round] = PT_old.RoundTrip
             roundtriprates_old[round] = PT_old.RoundTripRate
-            chain_acceptance_rates_old[round] = PT_old.chainacceptanceRate
+            chain_acceptance_rates_old[round] = PT_old.chain_acceptance_rate
         end
 
         ### Update states

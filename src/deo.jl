@@ -64,15 +64,15 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
 
     # Prepare output
     Rejection = Rejection/nscan
-    localbarrier, cumulativebarrier, GlobalBarrier = communicationbarrier(Rejection, schedule)
-    LocalBarrier = localbarrier.(range(0, 1, length = resolution))
-    GlobalBarrier = GlobalBarrier
+    localbarrier, cumulativebarrier, globalbarrier = communicationbarrier(Rejection, schedule)
+    localbarrier = localbarrier.(range(0, 1, length = resolution))
+    globalbarrier = globalbarrier
     norm_constant = lognormalizingconstant(reduce(hcat, energies)', schedule)
     schedule = updateschedule(cumulativebarrier, N) 
     etas = computeetas(ϕ, schedule)
     RoundTrip = roundtrip(reduce(hcat, indices)')
     RoundTripRate = RoundTrip/nscan
-    chainacceptanceRate = chainacceptance/nscan
+    chain_acceptance_rate = chainacceptance/nscan
 
     return (
         states              = states[2:end], # First state is from the previous round
@@ -80,13 +80,13 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
         indices             = indices[2:end], 
         lifts               = lifts[2:end],
         Rejection           = Rejection,
-        LocalBarrier        = LocalBarrier,
-        GlobalBarrier       = GlobalBarrier,
+        localbarrier        = localbarrier,
+        globalbarrier       = globalbarrier,
         norm_constant = norm_constant,
         scheduleUpdate      = schedule,
         RoundTrip           = RoundTrip,
         RoundTripRate       = RoundTripRate,
-        chainacceptanceRate = chainacceptanceRate,
+        chain_acceptance_rate = chain_acceptance_rate,
         etas                = etas
 )
 end
