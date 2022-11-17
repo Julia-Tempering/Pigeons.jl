@@ -117,7 +117,7 @@ function deoscan(potential, state, index, lift, etas, n, N, kernels,
     newindex = copy(index)
     newlift = copy(lift)
 
-    # Communication phase
+    # Communication phase ----------
     # Compute acceptance probability
     Acceptance = acceptanceprobability(newEnergy, newEnergy1, newEnergy2)
 

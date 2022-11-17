@@ -1,3 +1,29 @@
+struct PT_output
+    states
+    final_states
+    energies
+    indices
+    lifts
+    rejections
+    local_barriers
+    global_barriers
+    norm_constant
+    schedules
+    roundtrips
+    roundtriprates
+    chain_acceptance_rates
+    N
+    potential
+    count
+    nscan
+    dim_x
+    modref_means
+    modref_stds
+    modref_covs
+    end_time
+end
+
+
 """
     NRPT(V_0, V_1, initial_state, ntotal, N) 
 
@@ -307,58 +333,21 @@ function NRPT(V_0,
         end
     end
     
-    out = (
-        states              = states,
-        final_states         = final_states,
-        energies            = energies,
-        indices             = indices,
-        lifts               = lifts,
-        rejections          = rejections,
-        local_barriers       = local_barriers,
-        global_barriers      = global_barriers,
-        norm_constant = norm_constant,
-        schedules           = schedules,
-        roundtrips          = roundtrips,
-        roundtriprates      = roundtriprates,
-        chain_acceptance_rates = chain_acceptance_rates,
-        N                   = N,
-        potential           = potential,
-        count               = count,
-        nscan               = nscan,
-        dim_x               = dim_x,
-        input_info          = input_info,
-        modref_means        = modref_means,
-        modref_stds         = modref_stds,
-        modref_covs         = modref_covs,
-        end_time            = Dates.now()
-    )
+    out = PT_output(states, final_states, energies, indices, lifts, rejections,
+                    local_barriers, global_barriers, norm_constant, schedules,
+                    roundtrips, roundtriprates, chain_acceptance_rates, N, potential,
+                    count, nscan, dim_x, modref_means, modref_stds,
+                    modref_covs, Dates.now())
 
     if two_references
         out_new = out
-        out_old = (
-            states              = states_old,
-            final_states         = final_states_old,
-            energies            = energies_old,
-            indices             = indices_old,
-            lifts               = lifts_old,
-            rejections          = rejections_old,
-            local_barriers       = local_barriers_old,
-            global_barriers      = global_barriers_old,
-            norm_constant = norm_constant_old,
-            schedules           = schedules_old,
-            roundtrips          = roundtrips_old,
-            roundtriprates      = roundtriprates_old,
-            chain_acceptance_rates = chain_acceptance_rates_old,
-            N                   = N,
-            potential           = old_potential,
-            count               = count,
-            nscan               = nscan,
-            dim_x               = dim_x,
-            input_info          = input_info
-        )
+        out_old = PT_output(states, final_states, energies, indices, lifts, rejections,
+                            local_barriers, global_barriers, norm_constant, schedules,
+                            roundtrips, roundtriprates, chain_acceptance_rates, N, potential,
+                            count, nscan, dim_x, nothing, nothing, nothing,
+                            Dates.now())
         out = (out_new = out_new, out_old = out_old, input_info = input_info)
     end
 
-    # Return all relevant information
     return out
 end
