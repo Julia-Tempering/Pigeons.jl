@@ -23,8 +23,8 @@ Deterministic even-odd parallel tempering (DEO/NRPT).
 standard deviations from each chain based on the previous tuning round.
 """
 function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
-    nscan, N, resolution, optimreference_round, modref_means, modref_stds, modref_covs, 
-    full_covariance, prior_sampler, chain_stds, n_explore)  
+    nscan::Int, N::Int, resolution::Int, optimreference_round, modref_means, modref_stds, modref_covs, 
+    full_covariance::Bool, prior_sampler, chain_stds, n_explore::Int)  
 
     # Initialize
     Rejection = zeros(N)

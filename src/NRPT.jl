@@ -29,20 +29,24 @@ Non-reversible parallel tempering (NRPT).
  - `modref_stds_start`: Starting values for modref_stds
  - `n_explore`: Number of exploration steps to take before considering a communication swap
 """
-function NRPT(V_0, V_1, InitialState, ntotal, N; 
-    optimreference = true,
-    MaxRound = floor(Int, log2(ntotal))-2,
-    fulltrajectory = true, 
+function NRPT(V_0, 
+    V_1, 
+    InitialState::Vector{Vector{T}} where T <: Real, 
+    ntotal::Int, 
+    N::Int; 
+    optimreference::Bool = true,
+    MaxRound::Int = floor(Int, log2(ntotal))-2,
+    fulltrajectory::Bool = true, 
     Phi = [0.5 0.5],
-    resolution = 101,
+    resolution::Int = 101,
     prior_sampler = nothing,
-    optimreference_start = 4,
-    full_covariance = false,
-    Winsorize = false,
-    two_references = false,
+    optimreference_start::Int = 4,
+    full_covariance::Bool = false,
+    Winsorize::Bool = false,
+    two_references::Bool = false,
     modref_means_start = nothing,
     modref_stds_start = nothing,
-    n_explore = 1)
+    n_explore::Int = 1)
 
     # Collect input information
     input_info = (

@@ -10,7 +10,7 @@ using Dates
 export NRPT
 
 ### Samplers
-include("samplers/slice_sample.jl")
+include("samplers/samplers.jl")
 
 ### NRPT
 include("acceptance.jl")

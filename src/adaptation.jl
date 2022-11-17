@@ -4,7 +4,7 @@
 Update the annealing schedule. Given the cumulative communication barrier function
 in `cumulativebarrier`, find the optimal schedule of size `N`+1.
 """
-function updateschedule(cumulativebarrier, N)
+function updateschedule(cumulativebarrier, N::Int)
     if N == 1
         newschedule = [0.0, 1.0]
     else 
@@ -27,7 +27,8 @@ Compute the local communication barrier and cumulative barrier functions from th
 `rejection` rates and the current annealing `schedule`. The estimation of the barriers 
 is based on Fritsch-Carlson monotonic interpolation.
 """
-function communicationbarrier(rejection, schedule)
+function communicationbarrier(rejection::Vector{T} where T <: Real, 
+                              schedule::Vector{T} where T <: Real)
     x = schedule
     y = [0; cumsum(rejection)]
     spl = Interpolations.interpolate(x, y, FritschCarlsonMonotonicInterpolation())
