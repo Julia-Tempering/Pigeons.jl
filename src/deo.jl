@@ -1,7 +1,7 @@
 """
     deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
         nscan, N, resolution, optimreference_round, modref_means, modref_stds, modref_covs, 
-        full_covariance, prior_sampler, chain_stds, n_explore)
+        full_covariance, prior_sampler, n_explore)
 
 Deterministic even-odd parallel tempering (DEO/NRPT).
 
@@ -19,12 +19,10 @@ Deterministic even-odd parallel tempering (DEO/NRPT).
 - `modref_means`
 - `modref_stds`
 - `prior_sample`
-- `chain_stds`: For tuning HMC exploration. N+1 [ dim_x]. Stores the estimated 
-standard deviations from each chain based on the previous tuning round.
 """
 function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
     nscan::Int, N::Int, resolution::Int, optimreference_round, modref_means, modref_stds, modref_covs, 
-    full_covariance::Bool, prior_sampler, chain_stds, n_explore::Int)  
+    full_covariance::Bool, prior_sampler, n_explore::Int)  
 
     # Initialize
     Rejection = zeros(N)
@@ -52,7 +50,7 @@ function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi,
         # Perform scan
         New = DEOscan(potential, States[n], Indices[n], Lifts[n], Etas, n, N, Kernels, 
         Schedule, optimreference_round, modref_means, modref_stds, modref_covs, 
-        full_covariance, prior_sampler, chain_stds, n_explore)
+        full_covariance, prior_sampler, n_explore)
         
         # Update 'States', 'Energies', etc.
         States[n+1] = New.State
@@ -97,7 +95,7 @@ end
 """
     DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule, 
         optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, 
-        prior_sampler, chain_stds, n_explore) 
+        prior_sampler, n_explore) 
 
 Perform one DEO scan (local exploration + communication). Arguments are 
 similar to those for `deo()`. Note that `State` is the state from the **one** previous 
@@ -105,11 +103,11 @@ scan, which is of size N+1[dim_x].
 """
 function DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule, 
     optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, 
-    prior_sampler, chain_stds, n_explore) 
+    prior_sampler, n_explore) 
     
     # Local exploration phase    
     newState_full = LocalExploration(State, Kernels, optimreference_round, modref_means, 
-    modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+    modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
     newState = newState_full.out
     ChainAcceptance = newState_full.ChainAcceptance
 

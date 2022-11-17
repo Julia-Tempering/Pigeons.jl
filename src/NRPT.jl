@@ -100,7 +100,6 @@ function NRPT(V_0,
     end
     modref_covs = Matrix{Float64}(undef, dim_x, dim_x)
     modref_covs_inv = similar(modref_covs)
-    chain_stds = Vector{typeof(modref_stds)}(undef, N+1) # For tuning HMC exploration only.
     
     Rejections = zeros(N,MaxRound+1) # Chain communication rejection rates (exclude the last chain)
     LocalBarriers = zeros(resolution,MaxRound+1)
@@ -157,11 +156,6 @@ function NRPT(V_0,
         Lifts_old[1] = [2(i%2)-1 for i ∈ 1:N+1]
     end
 
-    # Initialize to MVN(0, I)
-    for j in 1:N+1
-        chain_stds[j] = [1.0 for i in 1:dim_x]
-    end
-
 
     # Initial samples (with tuning)
     nscan = 1 # Number of scans to use for *this round*
@@ -202,15 +196,15 @@ function NRPT(V_0,
         if !two_references
             PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], 
                      Phi, nscan, N, resolution, optimreference_round, modref_means, 
-                     modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+                     modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
         else # Run two versions of PT in parallel
             PT = deo(potential, States[end], Indices[end], Lifts[end], Schedules[:,round], 
                      Phi, nscan, N, resolution, optimreference_round, modref_means, 
-                     modref_stds, modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+                     modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
             PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], 
                          Schedules_old[:,round], Phi, nscan, N, resolution, false, 
                          modref_means, modref_stds, modref_covs, full_covariance, 
-                         prior_sampler, chain_stds, n_explore)
+                         prior_sampler, n_explore)
         end
         ntune += nscan
 
