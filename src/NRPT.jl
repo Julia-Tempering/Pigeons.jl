@@ -1,5 +1,5 @@
 """
-    NRPT(V_0, V_1, InitialState, ntotal, N) 
+    NRPT(V_0, V_1, initial_state, ntotal, N) 
 
 Non-reversible parallel tempering (NRPT).
 
@@ -8,11 +8,11 @@ Non-reversible parallel tempering (NRPT).
    'x' is the point at which the log-density V_0(x; params=params) * η[1] + V_1(x) * η[2] is evaluated, 
    where V_0 is the negative log density of the reference and V_1 is the negative 
    log density of the target.
- - `InitialState`: Matrix of initial states for all N+1 chains. Dimensions: (N+1) x (dim_x).
+ - `initial_state`: Matrix of initial states for all N+1 chains. Dimensions: (N+1) x (dim_x).
  - `ntotal`: Total number of scans/iterations.
  - `N`: The total number of chains is N+1.
  - `optimreference`: Whether the reference distribution is to be optimized.
- - `MaxRound`: Maximum number of rounds for tuning.
+ - `maxround`: Maximum number of rounds for tuning.
  - `fulltrajectory`: Controls whether to keep track of all 'States', 'Indices', 'Energies', and 'Lifts'.
  - `Phi`: (Partially removed. Useful for constructing non-linear paths.)
  - `resolution`: Resolution of the output for the estimates of the local communication barrier. 
@@ -31,11 +31,11 @@ Non-reversible parallel tempering (NRPT).
 """
 function NRPT(V_0, 
     V_1, 
-    InitialState::Vector{Vector{T}} where T <: Real, 
+    initial_state::Vector{Vector{T}} where T <: Real, 
     ntotal::Int, 
     N::Int; 
     optimreference::Bool = true,
-    MaxRound::Int = floor(Int, log2(ntotal))-2,
+    maxround::Int = floor(Int, log2(ntotal))-2,
     fulltrajectory::Bool = true, 
     Phi = [0.5 0.5],
     resolution::Int = 101,
@@ -52,11 +52,11 @@ function NRPT(V_0,
     input_info = (
         V_0                     = V_0, 
         V_1                     = V_1, 
-        InitialState            = InitialState, 
+        initial_state            = initial_state, 
         ntotal                  = ntotal, 
         N                       = N, 
         optimreference          = optimreference,
-        MaxRound                = MaxRound,
+        maxround                = maxround,
         fulltrajectory          = fulltrajectory,
         Phi                     = Phi,
         resolution              = resolution,
@@ -82,7 +82,7 @@ function NRPT(V_0,
     end
     old_potential = potential
 
-    dim_x = length(InitialState[1]) # Dimension of x
+    dim_x = length(initial_state[1]) # Dimension of x
     if (!isnothing(modref_means_start)) && (!isnothing(modref_stds_start))
         fixed_variational_ref = true
     else
@@ -101,38 +101,38 @@ function NRPT(V_0,
     modref_covs = Matrix{Float64}(undef, dim_x, dim_x)
     modref_covs_inv = similar(modref_covs)
     
-    Rejections = zeros(N,MaxRound+1) # Chain communication rejection rates (exclude the last chain)
-    LocalBarriers = zeros(resolution,MaxRound+1)
-    GlobalBarriers = zeros(MaxRound+1) # Include a global communication barrier estimate for each round
-    NormalizingConstant = zeros(MaxRound+1)
-    Schedules = zeros(N+1,MaxRound+2) # Annealing schedules
+    Rejections = zeros(N,maxround+1) # Chain communication rejection rates (exclude the last chain)
+    LocalBarriers = zeros(resolution,maxround+1)
+    GlobalBarriers = zeros(maxround+1) # Include a global communication barrier estimate for each round
+    NormalizingConstant = zeros(maxround+1)
+    Schedules = zeros(N+1,maxround+2) # Annealing schedules
     Schedules[:,1] = collect(range(0, 1, length = N+1)) # Start with an equally spaced schedule
-    RoundTrips = zeros(MaxRound+1) # Number of round trips
-    RoundTripRates = zeros(MaxRound+1)
-    ChainAcceptanceRates = [Vector{Float64}(undef, N+1) for _ in 1:(MaxRound+1)]
+    RoundTrips = zeros(maxround+1) # Number of round trips
+    RoundTripRates = zeros(maxround+1)
+    ChainAcceptanceRates = [Vector{Float64}(undef, N+1) for _ in 1:(maxround+1)]
     
     if two_references
-        Rejections_old = zeros(N,MaxRound+1) 
-        LocalBarriers_old = zeros(resolution,MaxRound+1)
-        GlobalBarriers_old = zeros(MaxRound+1) 
-        NormalizingConstant_old = zeros(MaxRound+1)
-        Schedules_old = zeros(N+1,MaxRound+2) 
+        Rejections_old = zeros(N,maxround+1) 
+        LocalBarriers_old = zeros(resolution,maxround+1)
+        GlobalBarriers_old = zeros(maxround+1) 
+        NormalizingConstant_old = zeros(maxround+1)
+        Schedules_old = zeros(N+1,maxround+2) 
         Schedules_old[:,1] = collect(range(0, 1, length = N+1)) 
-        RoundTrips_old = zeros(MaxRound+1) 
-        RoundTripRates_old = zeros(MaxRound+1)
-        ChainAcceptanceRates_old = [Vector{Float64}(undef, N+1) for _ in 1:(MaxRound+1)]
+        RoundTrips_old = zeros(maxround+1) 
+        RoundTripRates_old = zeros(maxround+1)
+        ChainAcceptanceRates_old = [Vector{Float64}(undef, N+1) for _ in 1:(maxround+1)]
     end
 
 
     # Initialize states
-    States = Vector{typeof(InitialState)}(undef,1) # Store the (current) state: 1 [N+1 [dim_x]]. 
+    States = Vector{typeof(initial_state)}(undef,1) # Store the (current) state: 1 [N+1 [dim_x]]. 
     # Later becomes of size: previous_nscan [N+1 [dim_x]] (!fulltrajectory), or: all_previous_nscans [N+1 [dim_x]]
-    States[1] = InitialState # N+1 [ dim_x]
-    FinalStates = InitialState
+    States[1] = initial_state # N+1 [ dim_x]
+    FinalStates = initial_state
 
     Etas = computeEtas(Phi, Schedules[:,1]) # If Phi = [0.5 0.5], returns a linear path
-    Energies = Vector{typeof(potential.(InitialState, eachrow(Etas)))}(undef,1)
-    Energies[1] = potential.(InitialState, eachrow(Etas)) # Current energy for each chain
+    Energies = Vector{typeof(potential.(initial_state, eachrow(Etas)))}(undef,1)
+    Energies[1] = potential.(initial_state, eachrow(Etas)) # Current energy for each chain
 
     Indices = Vector{typeof([i for i ∈ 1:1:N+1])}(undef,1)
     Indices[1] = [i for i ∈ 1:1:N+1] # 1, 2, ..., N+1
@@ -141,13 +141,13 @@ function NRPT(V_0,
     Lifts[1] = [2(i%2)-1 for i ∈ 1:N+1] # -1 if even chain, +1 if odd chain
 
     if two_references
-        States_old = Vector{typeof(InitialState)}(undef,1)
-        States_old[1] = InitialState
-        FinalStates_old = InitialState
+        States_old = Vector{typeof(initial_state)}(undef,1)
+        States_old[1] = initial_state
+        FinalStates_old = initial_state
 
         Etas_old = computeEtas(Phi, Schedules_old[:,1])
-        Energies_old = Vector{typeof(potential.(InitialState, eachrow(Etas)))}(undef,1)
-        Energies_old[1] = old_potential.(InitialState, eachrow(Etas_old))
+        Energies_old = Vector{typeof(potential.(initial_state, eachrow(Etas)))}(undef,1)
+        Energies_old[1] = old_potential.(initial_state, eachrow(Etas_old))
 
         Indices_old = Vector{typeof([i for i ∈ 1:1:N+1])}(undef,1)
         Indices_old[1] = [i for i ∈ 1:1:N+1]
@@ -186,10 +186,10 @@ function NRPT(V_0,
     end
 
 
-    for round in 1:MaxRound+1
+    for round in 1:maxround+1
         nscan *= 2 # Double the number of scans
         
-        if round == MaxRound + 1
+        if round == maxround + 1
             nscan = ntotal - ntune # Use remaining scans in the last round
         end
 
@@ -255,7 +255,7 @@ function NRPT(V_0,
         end
 
         ### Perform optimization
-        if optimreference && (round >= optimreference_start) && (round <= MaxRound) # Optimize the reference
+        if optimreference && (round >= optimreference_start) && (round <= maxround) # Optimize the reference
             optimreference_round = true
 
             if !fixed_variational_ref # Tune the reference
@@ -296,7 +296,7 @@ function NRPT(V_0,
             potential = new_potential2
         end
 
-        if (nscan == 2^min(MaxRound, 11)) # Old code. Doesn't do anything important.
+        if (nscan == 2^min(maxround, 11)) # Old code. Doesn't do anything important.
             count = ntune
         end
 

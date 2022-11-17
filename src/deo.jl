@@ -1,5 +1,5 @@
 """
-    deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
+    deo(potential, initial_state, InitialIndex, InitialLift, Schedule, Phi, 
         nscan, N, resolution, optimreference_round, modref_means, modref_stds, modref_covs, 
         full_covariance, prior_sampler, n_explore)
 
@@ -7,7 +7,7 @@ Deterministic even-odd parallel tempering (DEO/NRPT).
 
 # Arguments
 - `potential`: Function as in NRPT, but with only two arguments: x and η
-- `InitialState`: Starting state, as in NRPT. Input is of size: N+1 [ dim_x ]
+- `initial_state`: Starting state, as in NRPT. Input is of size: N+1 [ dim_x ]
 - `InitialIndex`: Starting indices
 - `InitialLift`: Starting lift
 - `Schedule`: Annealing schedule
@@ -20,18 +20,18 @@ Deterministic even-odd parallel tempering (DEO/NRPT).
 - `modref_stds`
 - `prior_sample`
 """
-function deo(potential, InitialState, InitialIndex, InitialLift, Schedule, Phi, 
+function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, Phi, 
     nscan::Int, N::Int, resolution::Int, optimreference_round, modref_means, modref_stds, modref_covs, 
     full_covariance::Bool, prior_sampler, n_explore::Int)  
 
     # Initialize
     Rejection = zeros(N)
     Etas = computeEtas(Phi, Schedule)
-    States = Vector{typeof(InitialState)}(undef, nscan + 1) # nscan+1 [ N+1 [ dim_x ] ]  
-    States[1] = InitialState
+    States = Vector{typeof(initial_state)}(undef, nscan + 1) # nscan+1 [ N+1 [ dim_x ] ]  
+    States[1] = initial_state
 
-    Energies = Vector{typeof(potential.(InitialState,  eachrow(Etas)))}(undef, nscan + 1)
-    Energies[1] = potential.(InitialState, eachrow(Etas))
+    Energies = Vector{typeof(potential.(initial_state,  eachrow(Etas)))}(undef, nscan + 1)
+    Energies[1] = potential.(initial_state, eachrow(Etas))
 
     Indices = Vector{typeof(InitialIndex)}(undef, nscan + 1)
     Indices[1] = InitialIndex

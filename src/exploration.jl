@@ -1,6 +1,6 @@
 """
     LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, 
-        modref_covs, full_covariance, prior_sampler, chain_stds, n_explore)
+        modref_covs, full_covariance, prior_sampler, n_explore)
         ChainAcceptance = Vector{Int64}(undef, length(States))
 
 Perform one local exploration move. `State` is the state from the **one** 
