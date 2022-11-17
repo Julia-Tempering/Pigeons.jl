@@ -1,11 +1,11 @@
 using Distributions
 using Random
 
-struct SS
-    potential # -log(f(x))
-    w # Initial slice size
-    p # Slices are no larger than 2^p * w
-    dim_fraction # Proportion of variables to update
+struct SS{T, W<:Float64, P<:Int, D<:Float64}
+    potential::T # -log(f(x))
+    w::W # Initial slice size
+    p::P # Slices are no larger than 2^p * w
+    dim_fraction::D # Proportion of variables to update
 end
 SS(potential) = SS(potential, 1.0, 10, 1.0)
 
@@ -14,7 +14,7 @@ SS(potential) = SS(potential, 1.0, 10, 1.0)
 
 Double the current slice.
 """
-function slice_double(h::SS, g, x_0, z, c)
+function slice_double(h::SS, g, x_0::Vector{Float64}, z::Float64, c::Int)
     U = rand(Uniform(0.0, 1.0))
     L = x_0[c] - h.w*U
     R = L + h.w
@@ -46,7 +46,8 @@ end
 
 Shrink the current slice.
 """
-function slice_shrink(h, g, x_0, z, L, R, c)
+function slice_shrink(h::SS, g, x_0::Vector{Float64}, z::Float64, L::Float64, 
+                      R::Float64, c::Int)
     Lbar = L
     Rbar = R
 
@@ -73,7 +74,8 @@ end
 
 Test whether to accept the current slice.
 """
-function slice_accept(h::SS, g, x_0, x_1, z, L, R, c)
+function slice_accept(h::SS, g, x_0::Vector{Float64}, x_1, z::Float64, L::Float64, 
+                      R::Float64, c::Int)
     Lhat = L
     Rhat = R
     Lhatvec = copy(x_0)
@@ -108,19 +110,19 @@ end
 
 
 """
-    slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int64)
+    slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int)
 
 Slice sample `nsamps` given a starting vector  `x_0` and the struct `h` 
 that contains information about the log-density.
 """
-function slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int64)
+function slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int)
     g(x) = -h.potential(x) # log(f(x))
     x = Vector{typeof(x_0)}(undef, nsamps + 1)
     x[1] = x_0
     dim_x = length(x_0)
 
     for i in 2:(nsamps+1)
-        C = StatsBase.sample(1:dim_x, Int64(ceil(dim_x*h.dim_fraction)), replace=false) # Set of coordinates to update
+        C = StatsBase.sample(1:dim_x, Int64(ceil(dim_x*h.dim_fraction)), replace = false) # Set of coordinates to update
         x_0 = deepcopy(x[i-1])
         x_1 = deepcopy(x_0)
         for c in C
