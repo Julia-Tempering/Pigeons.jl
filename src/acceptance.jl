@@ -1,8 +1,8 @@
 """
-    acceptanceprobability(newEnergy, newEnergy1, newEnergy2)
+    acceptanceprobability(newenergy, newenergy1, newenergy2)
 
 Compute acceptance probabilities for communication moves. 
-`newEnergy` inputs are lists of numbers. 
+`newenergy` inputs are lists of numbers. 
 
 # Arguments
 - `newenergy`: -log([π_β_0(x^0), π_β_1(x^1), ..., π_β_N(x^N)]) : length N+1

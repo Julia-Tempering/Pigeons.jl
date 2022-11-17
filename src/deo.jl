@@ -111,15 +111,15 @@ function deoscan(potential, state, index, lift, etas, n, N, kernels,
     newstate = newstate_full.out
     chainacceptance = newstate_full.chainacceptance
 
-    newEnergy = potential.(newstate, eachrow(etas)) # See acceptance.jl for more information
-    newEnergy1 = potential.(newstate[2:end], eachrow(etas[1:end-1, :])) 
-    newEnergy2 = potential.(newstate[1:end-1], eachrow(etas[2:end, :])) 
+    newenergy = potential.(newstate, eachrow(etas)) # See acceptance.jl for more information
+    newenergy1 = potential.(newstate[2:end], eachrow(etas[1:end-1, :])) 
+    newenergy2 = potential.(newstate[1:end-1], eachrow(etas[2:end, :])) 
     newindex = copy(index)
     newlift = copy(lift)
 
     # Communication phase ----------
     # Compute acceptance probability
-    Acceptance = acceptanceprobability(newEnergy, newEnergy1, newEnergy2)
+    Acceptance = acceptanceprobability(newenergy, newenergy1, newenergy2)
 
     # Update rejection
     Rejection = 1 .- Acceptance # Vectorized
@@ -131,7 +131,7 @@ function deoscan(potential, state, index, lift, etas, n, N, kernels,
         if rand(Bernoulli(Acceptance[i]))
             # Perform swap
             newstate[i], newstate[i+1] = newstate[i+1], newstate[i]
-            newEnergy[i], newEnergy[i+1] = newEnergy[i+1], newEnergy[i]
+            newenergy[i], newenergy[i+1] = newenergy[i+1], newenergy[i]
             newindex[i_1], newindex[i_2] = i+1, i
         end
     end
@@ -143,7 +143,7 @@ function deoscan(potential, state, index, lift, etas, n, N, kernels,
     end
     return (
         state           = newstate, 
-        Energy          = newEnergy, 
+        Energy          = newenergy, 
         index           = newindex, 
         lift            = newlift, 
         Rejection       = Rejection,
