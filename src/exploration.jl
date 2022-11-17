@@ -1,7 +1,7 @@
 """
     LocalExploration(states, kernels, optimreference_round, modref_means, modref_stds, 
         modref_covs, full_covariance, prior_sampler, n_explore)
-        ChainAcceptance = Vector{Int64}(undef, length(states))
+        chainacceptance = Vector{Int64}(undef, length(states))
 
 Perform one local exploration move. `state` is the state from the **one** 
 previous scan, which is of size N+1[dim_x].
@@ -9,20 +9,20 @@ previous scan, which is of size N+1[dim_x].
 function LocalExploration(states, kernels, optimreference_round, modref_means, modref_stds, 
                           modref_covs, full_covariance, prior_sampler, n_explore)
     
-    ChainAcceptance = Vector{Int64}(undef, length(states)) # Length N+1: Binary indicators
+    chainacceptance = Vector{Int64}(undef, length(states)) # Length N+1: Binary indicators
 
     if (!optimreference_round)
         if (!isnothing(prior_sampler))
             out_reference = prior_sampler()
             out_reference = [out_reference]
-            ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)] # Reference sampling is always accepted
+            chainacceptance = [1.0 for _ in 1:length(chainacceptance)] # Reference sampling is always accepted
             out_other = slice_sample.(kernels[2:end], states[2:end], repeat([n_explore], size(states[2:end])[1]))
             out_other = map((i) -> out_other[i][end], 1:length(out_other))
             out = vcat(out_reference, out_other)
         else # No prior sampler
             out = slice_sample.(kernels, states, repeat([n_explore], size(states)[1]))
             out = map((i) -> out[i][end], 1:length(out)) 
-            ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)]
+            chainacceptance = [1.0 for _ in 1:length(chainacceptance)]
             # Vector of length N+1, containing vectors of length dim_x
         end
     else # The reference distribution is being tuned in this round
@@ -36,16 +36,16 @@ function LocalExploration(states, kernels, optimreference_round, modref_means, m
         end
         
         out_reference = [out_reference]
-        ChainAcceptance[1] = 1
+        chainacceptance[1] = 1
         out_other = slice_sample.(kernels[2:end], states[2:end], repeat([n_explore], size(states[2:end])[1]))
         out_other = map((i) -> out_other[i][end], 1:length(out_other))
-        ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)]
+        chainacceptance = [1.0 for _ in 1:length(chainacceptance)]
         out = vcat(out_reference, out_other)
     end
 
     return (
         out             = out,
-        ChainAcceptance = ChainAcceptance)
+        chainacceptance = chainacceptance)
 end
 
 

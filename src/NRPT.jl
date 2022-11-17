@@ -216,7 +216,7 @@ function NRPT(V_0,
         schedules[:,round+1] = PT.scheduleUpdate
         roundtrips[round] = PT.RoundTrip
         roundtriprates[round] = PT.RoundTripRate
-        chain_acceptance_rates[round] = PT.ChainAcceptanceRate
+        chain_acceptance_rates[round] = PT.chainacceptanceRate
 
         if two_references
             rejections_old[:,round] = PT_old.Rejection
@@ -226,7 +226,7 @@ function NRPT(V_0,
             schedules_old[:,round+1] = PT_old.scheduleUpdate
             roundtrips_old[round] = PT_old.RoundTrip
             roundtriprates_old[round] = PT_old.RoundTripRate
-            chain_acceptance_rates_old[round] = PT_old.ChainAcceptanceRate
+            chain_acceptance_rates_old[round] = PT_old.chainacceptanceRate
         end
 
         ### Update states

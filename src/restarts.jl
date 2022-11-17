@@ -1,14 +1,14 @@
 """
-    roundtrip(indicesMatrix; cumulative)
+    roundtrip(indices_matrix; cumulative)
 
 Compute the number of round trips for a given index process trajectory. 
-`indicesMatrix` is a matrix containing information about the index process.
+`indices_matrix` is a matrix containing information about the index process.
 `cumulative` indicates whether we should store the output as a vector containing 
 information about the number of total round trips up to sample `n`. If false, the
 output is a scalar.
 """
-function roundtrip(indicesMatrix; cumulative = false)
-    n, N = size(indicesMatrix) # Number of samples x number of chains/machines
+function roundtrip(indices_matrix; cumulative = false)
+    n, N = size(indices_matrix) # Number of samples x number of chains/machines
     if cumulative
         trips = fill(0, n)
     else
@@ -16,7 +16,7 @@ function roundtrip(indicesMatrix; cumulative = false)
     end
 
     for j ∈ 1:N
-        trajectory = indicesMatrix[:,j]
+        trajectory = indices_matrix[:,j]
         if 1 ∉ trajectory
             break # This machine/particle did not contribute to the round trip count
         end
@@ -49,13 +49,13 @@ end
 
 
 """
-    restarts(indicesMatrix; cumulative)
+    restarts(indices_matrix; cumulative)
 
 Compute the number of restarts for a given index process trajectory. 
 Otherwise, it is the same as `roundtrip()`.
 """
-function restarts(indicesMatrix; cumulative = false)
-    n, N = size(indicesMatrix) # Number of samples x number of chains/machines
+function restarts(indices_matrix; cumulative = false)
+    n, N = size(indices_matrix) # Number of samples x number of chains/machines
     if cumulative
         trips = fill(0, n)
     else
@@ -63,7 +63,7 @@ function restarts(indicesMatrix; cumulative = false)
     end
 
     for j ∈ 1:N
-        trajectory = indicesMatrix[:,j]
+        trajectory = indices_matrix[:,j]
         if 1 ∉ trajectory
             break # This machine/particle did not contribute to the restart count
         end

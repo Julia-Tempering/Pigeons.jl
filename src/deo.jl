@@ -42,7 +42,7 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
     kernels = Vector{SS}(undef, size(etas)[1])
     kernels = setkernels(potential, etas)
 
-    ChainAcceptance = zeros(N+1)
+    chainacceptance = zeros(N+1)
 
 
     # Start scanning
@@ -58,7 +58,7 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
         indices[n+1] = New.index
         lifts[n+1] = New.lift
         Rejection += New.Rejection # Rejection *probability* (stable) and not a rejection *count*
-        ChainAcceptance += New.ChainAcceptance
+        chainacceptance += New.chainacceptance
     end
 
 
@@ -72,7 +72,7 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
     etas = computeetas(ϕ, schedule)
     RoundTrip = roundtrip(reduce(hcat, indices)')
     RoundTripRate = RoundTrip/nscan
-    ChainAcceptanceRate = ChainAcceptance/nscan
+    chainacceptanceRate = chainacceptance/nscan
 
     return (
         states              = states[2:end], # First state is from the previous round
@@ -86,7 +86,7 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
         scheduleUpdate      = schedule,
         RoundTrip           = RoundTrip,
         RoundTripRate       = RoundTripRate,
-        ChainAcceptanceRate = ChainAcceptanceRate,
+        chainacceptanceRate = chainacceptanceRate,
         etas                = etas
 )
 end
@@ -109,7 +109,7 @@ function DEOscan(potential, state, index, lift, etas, n, N, kernels, schedule,
     newstate_full = LocalExploration(state, kernels, optimreference_round, modref_means, 
     modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
     newstate = newstate_full.out
-    ChainAcceptance = newstate_full.ChainAcceptance
+    chainacceptance = newstate_full.chainacceptance
 
     newEnergy = potential.(newstate, eachrow(etas)) # See acceptance.jl for more information
     newEnergy1 = potential.(newstate[2:end], eachrow(etas[1:end-1, :])) 
@@ -147,5 +147,5 @@ function DEOscan(potential, state, index, lift, etas, n, N, kernels, schedule,
         index           = newindex, 
         lift            = newlift, 
         Rejection       = Rejection,
-        ChainAcceptance = ChainAcceptance)
+        chainacceptance = chainacceptance)
 end

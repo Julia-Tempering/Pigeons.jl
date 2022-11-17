@@ -25,7 +25,7 @@
 
 #     current_q = deepcopy(state) # state
 #     current_p = Vector{Float64}(undef, length(chain_std)) # Momentum
-#     ChainAcceptance = 0
+#     chainacceptance = 0
 #     M = diagm(1 ./ chain_std.^2) # Inverse of variances (diagonal matrix)
 #     M_inv = diagm(chain_std.^2) # Variances (diagonal matrix)
 #     for j in 1:length(current_p)
@@ -36,14 +36,14 @@
 #         p, q = leapfrog(h, current_p, current_q, M_inv) # New (proposed) states
 #         current_q_full = acceptance(h, p, q, current_p, current_q, M_inv)
 #         current_q = deepcopy(current_q_full.state)
-#         ChainAcceptance = deepcopy(current_q_full.ChainAcceptance)
+#         chainacceptance = deepcopy(current_q_full.chainacceptance)
 #         for j in 1:length(current_p)
 #             current_p[j] = rand(Normal(0.0, 1/chain_std[j]))
 #         end
 #     end
 #     return (
 #         current_q       = current_q,
-#         ChainAcceptance = ChainAcceptance)
+#         chainacceptance = chainacceptance)
 # end
 
 # function leapfrog(h::HMC, p, q, M_inv)
@@ -76,10 +76,10 @@
 #     if rand() < exp(current_U - proposed_U + current_K - proposed_K)
 #         return (
 #             state           = q,
-#             ChainAcceptance = 1)
+#             chainacceptance = 1)
 #     else
 #         return (
 #             state           = current_q,
-#             ChainAcceptance = 0)
+#             chainacceptance = 0)
 #     end
 # end
