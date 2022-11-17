@@ -7,7 +7,7 @@ using Interpolations
 using Roots
 using Dates
 
-export NRPT
+export NRPT, slice_sample, SS
 
 ### Samplers
 include("samplers/samplers.jl")
