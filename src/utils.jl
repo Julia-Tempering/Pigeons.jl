@@ -45,14 +45,14 @@ end
 
 
 """
-    lognormalizingconstant(energies, Schedule)
+    lognormalizingconstant(energies, schedule)
 
 Compute an estimate of the log normalizing constant given a vector of 
-`energies` and the corresponding annealing `Schedule`.
+`energies` and the corresponding annealing `schedule`.
 """
-function lognormalizingconstant(energies, Schedule)
+function lognormalizingconstant(energies, schedule)
     n, N = size(energies)
-    Δβ = Schedule[2:end] .- Schedule[1:end-1]
+    Δβ = schedule[2:end] .- schedule[1:end-1]
     μ = mean(energies, dims = 1)[2:end]
     sum(Δβ.*μ)
 end

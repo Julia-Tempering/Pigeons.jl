@@ -23,7 +23,7 @@
 
 #     chain_std = HMC_std_multiplier .* chain_std # If multiplier > 1, explores the state space more
 
-#     current_q = deepcopy(state) # State
+#     current_q = deepcopy(state) # state
 #     current_p = Vector{Float64}(undef, length(chain_std)) # Momentum
 #     ChainAcceptance = 0
 #     M = diagm(1 ./ chain_std.^2) # Inverse of variances (diagonal matrix)

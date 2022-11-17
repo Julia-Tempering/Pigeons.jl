@@ -213,7 +213,7 @@ function NRPT(V_0,
         local_barriers[:,round] = PT.LocalBarrier
         global_barriers[round] = PT.GlobalBarrier
         norm_constant[round] = PT.norm_constant
-        schedules[:,round+1] = PT.ScheduleUpdate
+        schedules[:,round+1] = PT.scheduleUpdate
         roundtrips[round] = PT.RoundTrip
         roundtriprates[round] = PT.RoundTripRate
         chain_acceptance_rates[round] = PT.ChainAcceptanceRate
@@ -223,7 +223,7 @@ function NRPT(V_0,
             local_barriers_old[:,round] = PT_old.LocalBarrier
             global_barriers_old[round] = PT_old.GlobalBarrier
             norm_constant_old[round] = PT_old.norm_constant
-            schedules_old[:,round+1] = PT_old.ScheduleUpdate
+            schedules_old[:,round+1] = PT_old.scheduleUpdate
             roundtrips_old[round] = PT_old.RoundTrip
             roundtriprates_old[round] = PT_old.RoundTripRate
             chain_acceptance_rates_old[round] = PT_old.ChainAcceptanceRate
