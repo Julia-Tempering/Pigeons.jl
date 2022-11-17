@@ -213,9 +213,9 @@ function NRPT(V_0,
         local_barriers[:,round] = PT.localbarrier
         global_barriers[round] = PT.globalbarrier
         norm_constant[round] = PT.norm_constant
-        schedules[:,round+1] = PT.scheduleUpdate
+        schedules[:,round+1] = PT.schedule_update
         roundtrips[round] = PT.RoundTrip
-        roundtriprates[round] = PT.RoundTripRate
+        roundtriprates[round] = PT.roundtriprate
         chain_acceptance_rates[round] = PT.chain_acceptance_rate
 
         if two_references
@@ -223,9 +223,9 @@ function NRPT(V_0,
             local_barriers_old[:,round] = PT_old.localbarrier
             global_barriers_old[round] = PT_old.globalbarrier
             norm_constant_old[round] = PT_old.norm_constant
-            schedules_old[:,round+1] = PT_old.scheduleUpdate
+            schedules_old[:,round+1] = PT_old.schedule_update
             roundtrips_old[round] = PT_old.RoundTrip
-            roundtriprates_old[round] = PT_old.RoundTripRate
+            roundtriprates_old[round] = PT_old.roundtriprate
             chain_acceptance_rates_old[round] = PT_old.chain_acceptance_rate
         end
 

@@ -71,7 +71,7 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
     schedule = updateschedule(cumulativebarrier, N) 
     etas = computeetas(ϕ, schedule)
     RoundTrip = roundtrip(reduce(hcat, indices)')
-    RoundTripRate = RoundTrip/nscan
+    roundtriprate = RoundTrip/nscan
     chain_acceptance_rate = chainacceptance/nscan
 
     return (
@@ -83,9 +83,9 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
         localbarrier        = localbarrier,
         globalbarrier       = globalbarrier,
         norm_constant = norm_constant,
-        scheduleUpdate      = schedule,
+        schedule_update      = schedule,
         RoundTrip           = RoundTrip,
-        RoundTripRate       = RoundTripRate,
+        roundtriprate       = roundtriprate,
         chain_acceptance_rate = chain_acceptance_rate,
         etas                = etas
 )
