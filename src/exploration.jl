@@ -1,12 +1,12 @@
 """
-    LocalExploration(states, kernels, optimreference_round, modref_means, modref_stds, 
+    local_exploration(states, kernels, optimreference_round, modref_means, modref_stds, 
         modref_covs, full_covariance, prior_sampler, n_explore)
         chainacceptance = Vector{Int64}(undef, length(states))
 
 Perform one local exploration move. `state` is the state from the **one** 
 previous scan, which is of size N+1[dim_x].
 """
-function LocalExploration(states, kernels, optimreference_round, modref_means, modref_stds, 
+function local_exploration(states, kernels, optimreference_round, modref_means, modref_stds, 
                           modref_covs, full_covariance, prior_sampler, n_explore)
     
     chainacceptance = Vector{Int64}(undef, length(states)) # Length N+1: Binary indicators

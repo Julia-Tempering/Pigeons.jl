@@ -122,7 +122,8 @@ function slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int)
     dim_x = length(x_0)
 
     for i in 2:(nsamps+1)
-        C = StatsBase.sample(1:dim_x, Int64(ceil(dim_x*h.dim_fraction)), replace = false) # Set of coordinates to update
+        C = StatsBase.sample(1:dim_x, Int64(ceil(dim_x*h.dim_fraction)), 
+                             replace = false) # Set of coordinates to update
         x_0 = deepcopy(x[i-1])
         x_1 = deepcopy(x_0)
         for c in C

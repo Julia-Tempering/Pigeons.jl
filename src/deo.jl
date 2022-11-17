@@ -48,8 +48,8 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
     # Start scanning
     for n in 1:nscan
         # Perform scan
-        New = DEOscan(potential, states[n], indices[n], lifts[n], etas, n, N, kernels, 
-        schedule, optimreference_round, modref_means, modref_stds, modref_covs, 
+        New = deoscan(potential, states[n], indices[n], lifts[n], etas, n, N, kernels, 
+        optimreference_round, modref_means, modref_stds, modref_covs, 
         full_covariance, prior_sampler, n_explore)
         
         # Update 'states', 'energies', etc.
@@ -93,7 +93,7 @@ end
 
 
 """
-    DEOscan(potential, state, index, lift, etas, n, N, kernels, schedule, 
+    deoscan(potential, state, index, lift, etas, n, N, kernels, 
         optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, 
         prior_sampler, n_explore) 
 
@@ -101,12 +101,12 @@ Perform one DEO scan (local exploration + communication). Arguments are
 similar to those for `deo()`. Note that `state` is the state from the **one** previous 
 scan, which is of size N+1[dim_x].
 """
-function DEOscan(potential, state, index, lift, etas, n, N, kernels, schedule, 
+function deoscan(potential, state, index, lift, etas, n, N, kernels, 
     optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, 
     prior_sampler, n_explore) 
     
     # Local exploration phase    
-    newstate_full = LocalExploration(state, kernels, optimreference_round, modref_means, 
+    newstate_full = local_exploration(state, kernels, optimreference_round, modref_means, 
     modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
     newstate = newstate_full.out
     chainacceptance = newstate_full.chainacceptance
