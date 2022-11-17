@@ -1,25 +1,25 @@
 """
-    LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, 
+    LocalExploration(states, Kernels, optimreference_round, modref_means, modref_stds, 
         modref_covs, full_covariance, prior_sampler, n_explore)
-        ChainAcceptance = Vector{Int64}(undef, length(States))
+        ChainAcceptance = Vector{Int64}(undef, length(states))
 
 Perform one local exploration move. `State` is the state from the **one** 
 previous scan, which is of size N+1[dim_x].
 """
-function LocalExploration(States, Kernels, optimreference_round, modref_means, modref_stds, 
+function LocalExploration(states, Kernels, optimreference_round, modref_means, modref_stds, 
     modref_covs, full_covariance, prior_sampler, n_explore)
-    ChainAcceptance = Vector{Int64}(undef, length(States)) # Length N+1: Binary indicators
+    ChainAcceptance = Vector{Int64}(undef, length(states)) # Length N+1: Binary indicators
 
     if (!optimreference_round)
         if (!isnothing(prior_sampler))
             out_reference = prior_sampler()
             out_reference = [out_reference]
             ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)] # Reference sampling is always accepted
-            out_other = slice_sample.(Kernels[2:end], States[2:end], repeat([n_explore], size(States[2:end])[1]))
+            out_other = slice_sample.(Kernels[2:end], states[2:end], repeat([n_explore], size(states[2:end])[1]))
             out_other = map((i) -> out_other[i][end], 1:length(out_other))
             out = vcat(out_reference, out_other)
         else # No prior sampler
-            out = slice_sample.(Kernels, States, repeat([n_explore], size(States)[1]))
+            out = slice_sample.(Kernels, states, repeat([n_explore], size(states)[1]))
             out = map((i) -> out[i][end], 1:length(out)) 
             ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)]
             # Vector of length N+1, containing vectors of length dim_x
@@ -36,7 +36,7 @@ function LocalExploration(States, Kernels, optimreference_round, modref_means, m
         
         out_reference = [out_reference]
         ChainAcceptance[1] = 1
-        out_other = slice_sample.(Kernels[2:end], States[2:end], repeat([n_explore], size(States[2:end])[1]))
+        out_other = slice_sample.(Kernels[2:end], states[2:end], repeat([n_explore], size(states[2:end])[1]))
         out_other = map((i) -> out_other[i][end], 1:length(out_other))
         ChainAcceptance = [1.0 for _ in 1:length(ChainAcceptance)]
         out = vcat(out_reference, out_other)
@@ -49,15 +49,15 @@ end
 
 
 """
-    setKernels(potential, Etas)
+    setKernels(potential, etas)
 
 Set the local exploration kernels given the `potential` and the annealing 
-parameters, `Etas`.
+parameters, `etas`.
 """
-function setKernels(potential, Etas)
-    kernels = Vector{SS}(undef, size(Etas)[1])
-    for i in 1:size(Etas)[1]
-        loglik = (x) -> potential(x, Etas[i, :]) # Neg. log *density* (*not* the log-likelihood!)
+function setKernels(potential, etas)
+    kernels = Vector{SS}(undef, size(etas)[1])
+    for i in 1:size(etas)[1]
+        loglik = (x) -> potential(x, etas[i, :]) # Neg. log *density* (*not* the log-likelihood!)
         kernels[i] = SS(loglik) # Use slice sampling defaults
     end
     return kernels

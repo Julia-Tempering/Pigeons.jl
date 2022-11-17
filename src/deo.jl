@@ -26,21 +26,21 @@ function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, ϕ,
 
     # Initialize
     Rejection = zeros(N)
-    Etas = computeEtas(ϕ, Schedule)
-    States = Vector{typeof(initial_state)}(undef, nscan + 1) # nscan+1 [ N+1 [ dim_x ] ]  
-    States[1] = initial_state
+    etas = computeetas(ϕ, Schedule)
+    states = Vector{typeof(initial_state)}(undef, nscan + 1) # nscan+1 [ N+1 [ dim_x ] ]  
+    states[1] = initial_state
 
-    Energies = Vector{typeof(potential.(initial_state,  eachrow(Etas)))}(undef, nscan + 1)
-    Energies[1] = potential.(initial_state, eachrow(Etas))
+    energies = Vector{typeof(potential.(initial_state,  eachrow(etas)))}(undef, nscan + 1)
+    energies[1] = potential.(initial_state, eachrow(etas))
 
-    Indices = Vector{typeof(InitialIndex)}(undef, nscan + 1)
-    Indices[1] = InitialIndex
+    indices = Vector{typeof(InitialIndex)}(undef, nscan + 1)
+    indices[1] = InitialIndex
 
-    Lifts = Vector{typeof(InitialLift)}(undef, nscan + 1)
-    Lifts[1] = InitialLift
+    lifts = Vector{typeof(InitialLift)}(undef, nscan + 1)
+    lifts[1] = InitialLift
 
-    Kernels = Vector{SS}(undef, size(Etas)[1])
-    Kernels = setKernels(potential, Etas)
+    Kernels = Vector{SS}(undef, size(etas)[1])
+    Kernels = setKernels(potential, etas)
 
     ChainAcceptance = zeros(N+1)
 
@@ -48,15 +48,15 @@ function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, ϕ,
     # Start scanning
     for n in 1:nscan
         # Perform scan
-        New = DEOscan(potential, States[n], Indices[n], Lifts[n], Etas, n, N, Kernels, 
+        New = DEOscan(potential, states[n], indices[n], lifts[n], etas, n, N, Kernels, 
         Schedule, optimreference_round, modref_means, modref_stds, modref_covs, 
         full_covariance, prior_sampler, n_explore)
         
-        # Update 'States', 'Energies', etc.
-        States[n+1] = New.State
-        Energies[n+1] = New.Energy
-        Indices[n+1] = New.Index
-        Lifts[n+1] = New.Lift
+        # Update 'states', 'energies', etc.
+        states[n+1] = New.State
+        energies[n+1] = New.Energy
+        indices[n+1] = New.Index
+        lifts[n+1] = New.Lift
         Rejection += New.Rejection # Rejection *probability* (stable) and not a rejection *count*
         ChainAcceptance += New.ChainAcceptance
     end
@@ -67,18 +67,18 @@ function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, ϕ,
     localbarrier, cumulativebarrier, GlobalBarrier = communicationbarrier(Rejection, Schedule)
     LocalBarrier = localbarrier.(range(0, 1, length = resolution))
     GlobalBarrier = GlobalBarrier
-    norm_constant = lognormalizingconstant(reduce(hcat, Energies)', Schedule)
+    norm_constant = lognormalizingconstant(reduce(hcat, energies)', Schedule)
     Schedule = updateschedule(cumulativebarrier, N) 
-    Etas = computeEtas(ϕ, Schedule)
-    RoundTrip = roundtrip(reduce(hcat, Indices)')
+    etas = computeetas(ϕ, Schedule)
+    RoundTrip = roundtrip(reduce(hcat, indices)')
     RoundTripRate = RoundTrip/nscan
     ChainAcceptanceRate = ChainAcceptance/nscan
 
     return (
-        States              = States[2:end], # First state is from the previous round
-        Energies            = Energies[2:end], 
-        Indices             = Indices[2:end], 
-        Lifts               = Lifts[2:end],
+        states              = states[2:end], # First state is from the previous round
+        energies            = energies[2:end], 
+        indices             = indices[2:end], 
+        lifts               = lifts[2:end],
         Rejection           = Rejection,
         LocalBarrier        = LocalBarrier,
         GlobalBarrier       = GlobalBarrier,
@@ -87,13 +87,13 @@ function deo(potential, initial_state, InitialIndex, InitialLift, Schedule, ϕ,
         RoundTrip           = RoundTrip,
         RoundTripRate       = RoundTripRate,
         ChainAcceptanceRate = ChainAcceptanceRate,
-        Etas                = Etas
+        etas                = etas
 )
 end
 
 
 """
-    DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule, 
+    DEOscan(potential, State, Index, Lift, etas, n, N, Kernels, Schedule, 
         optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, 
         prior_sampler, n_explore) 
 
@@ -101,7 +101,7 @@ Perform one DEO scan (local exploration + communication). Arguments are
 similar to those for `deo()`. Note that `State` is the state from the **one** previous 
 scan, which is of size N+1[dim_x].
 """
-function DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule, 
+function DEOscan(potential, State, Index, Lift, etas, n, N, Kernels, Schedule, 
     optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, 
     prior_sampler, n_explore) 
     
@@ -111,9 +111,9 @@ function DEOscan(potential, State, Index, Lift, Etas, n, N, Kernels, Schedule,
     newState = newState_full.out
     ChainAcceptance = newState_full.ChainAcceptance
 
-    newEnergy = potential.(newState, eachrow(Etas)) # See acceptance.jl for more information
-    newEnergy1 = potential.(newState[2:end], eachrow(Etas[1:end-1, :])) 
-    newEnergy2 = potential.(newState[1:end-1], eachrow(Etas[2:end, :])) 
+    newEnergy = potential.(newState, eachrow(etas)) # See acceptance.jl for more information
+    newEnergy1 = potential.(newState[2:end], eachrow(etas[1:end-1, :])) 
+    newEnergy2 = potential.(newState[1:end-1], eachrow(etas[2:end, :])) 
     newIndex = copy(Index)
     newLift = copy(Lift)
 

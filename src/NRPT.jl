@@ -13,7 +13,7 @@ Non-reversible parallel tempering (NRPT).
  - `N`: The total number of chains is N+1.
  - `optimreference`: Whether the reference distribution is to be optimized.
  - `maxround`: Maximum number of rounds for tuning.
- - `fulltrajectory`: Controls whether to keep track of all 'States', 'Indices', 'Energies', and 'Lifts'.
+ - `fulltrajectory`: Controls whether to keep track of all 'states', 'indices', 'energies', and 'lifts'.
  - `ϕ`: (Partially removed. Useful for constructing non-linear paths.)
  - `resolution`: Resolution of the output for the estimates of the local communication barrier. 
  - `prior_sampler`: User may supply an efficient sampler that can obtain 
@@ -125,35 +125,35 @@ function NRPT(V_0,
 
 
     # Initialize states
-    States = Vector{typeof(initial_state)}(undef,1) # Store the (current) state: 1 [N+1 [dim_x]]. 
+    states = Vector{typeof(initial_state)}(undef,1) # Store the (current) state: 1 [N+1 [dim_x]]. 
     # Later becomes of size: previous_nscan [N+1 [dim_x]] (!fulltrajectory), or: all_previous_nscans [N+1 [dim_x]]
-    States[1] = initial_state # N+1 [ dim_x]
-    FinalStates = initial_state
+    states[1] = initial_state # N+1 [ dim_x]
+    final_states = initial_state
 
-    Etas = computeEtas(ϕ, schedules[:,1]) # If ϕ = [0.5 0.5], returns a linear path
-    Energies = Vector{typeof(potential.(initial_state, eachrow(Etas)))}(undef,1)
-    Energies[1] = potential.(initial_state, eachrow(Etas)) # Current energy for each chain
+    etas = computeetas(ϕ, schedules[:,1]) # If ϕ = [0.5 0.5], returns a linear path
+    energies = Vector{typeof(potential.(initial_state, eachrow(etas)))}(undef,1)
+    energies[1] = potential.(initial_state, eachrow(etas)) # Current energy for each chain
 
-    Indices = Vector{typeof([i for i ∈ 1:1:N+1])}(undef,1)
-    Indices[1] = [i for i ∈ 1:1:N+1] # 1, 2, ..., N+1
+    indices = Vector{typeof([i for i ∈ 1:1:N+1])}(undef,1)
+    indices[1] = [i for i ∈ 1:1:N+1] # 1, 2, ..., N+1
 
-    Lifts = Vector{typeof([2(i%2)-1 for i ∈ 1:N+1])}(undef,1)
-    Lifts[1] = [2(i%2)-1 for i ∈ 1:N+1] # -1 if even chain, +1 if odd chain
+    lifts = Vector{typeof([2(i%2)-1 for i ∈ 1:N+1])}(undef,1)
+    lifts[1] = [2(i%2)-1 for i ∈ 1:N+1] # -1 if even chain, +1 if odd chain
 
     if two_references
-        States_old = Vector{typeof(initial_state)}(undef,1)
-        States_old[1] = initial_state
-        FinalStates_old = initial_state
+        states_old = Vector{typeof(initial_state)}(undef,1)
+        states_old[1] = initial_state
+        final_states_old = initial_state
 
-        Etas_old = computeEtas(ϕ, schedules_old[:,1])
-        Energies_old = Vector{typeof(potential.(initial_state, eachrow(Etas)))}(undef,1)
-        Energies_old[1] = old_potential.(initial_state, eachrow(Etas_old))
+        etas_old = computeetas(ϕ, schedules_old[:,1])
+        energies_old = Vector{typeof(potential.(initial_state, eachrow(etas)))}(undef,1)
+        energies_old[1] = old_potential.(initial_state, eachrow(etas_old))
 
-        Indices_old = Vector{typeof([i for i ∈ 1:1:N+1])}(undef,1)
-        Indices_old[1] = [i for i ∈ 1:1:N+1]
+        indices_old = Vector{typeof([i for i ∈ 1:1:N+1])}(undef,1)
+        indices_old[1] = [i for i ∈ 1:1:N+1]
 
-        Lifts_old = Vector{typeof([2(i%2)-1 for i ∈ 1:N+1])}(undef,1)
-        Lifts_old[1] = [2(i%2)-1 for i ∈ 1:N+1]
+        lifts_old = Vector{typeof([2(i%2)-1 for i ∈ 1:N+1])}(undef,1)
+        lifts_old[1] = [2(i%2)-1 for i ∈ 1:N+1]
     end
 
 
@@ -194,14 +194,14 @@ function NRPT(V_0,
         end
 
         if !two_references
-            PT = deo(potential, States[end], Indices[end], Lifts[end], schedules[:,round], 
+            PT = deo(potential, states[end], indices[end], lifts[end], schedules[:,round], 
                      ϕ, nscan, N, resolution, optimreference_round, modref_means, 
                      modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
         else # Run two versions of PT in parallel
-            PT = deo(potential, States[end], Indices[end], Lifts[end], schedules[:,round], 
+            PT = deo(potential, states[end], indices[end], lifts[end], schedules[:,round], 
                      ϕ, nscan, N, resolution, optimreference_round, modref_means, 
                      modref_stds, modref_covs, full_covariance, prior_sampler, n_explore)
-            PT_old = deo(old_potential, States_old[end], Indices_old[end], Lifts_old[end], 
+            PT_old = deo(old_potential, states_old[end], indices_old[end], lifts_old[end], 
                          schedules_old[:,round], ϕ, nscan, N, resolution, false, 
                          modref_means, modref_stds, modref_covs, full_covariance, 
                          prior_sampler, n_explore)
@@ -231,26 +231,26 @@ function NRPT(V_0,
 
         ### Update states
         if fulltrajectory # Store all information
-            States = vcat(States, PT.States)
-            Energies = vcat(Energies, PT.Energies)
-            Indices = vcat(Indices, PT.Indices)
-            Lifts = vcat(Lifts, PT.Lifts)
+            states = vcat(states, PT.states)
+            energies = vcat(energies, PT.energies)
+            indices = vcat(indices, PT.indices)
+            lifts = vcat(lifts, PT.lifts)
             if two_references
-                States_old = vcat(States_old, PT_old.States)
-                Energies_old = vcat(Energies_old, PT_old.Energies)
-                Indices_old = vcat(Indices_old, PT_old.Indices)
-                Lifts_old = vcat(Lifts_old, PT_old.Lifts)
+                states_old = vcat(states_old, PT_old.states)
+                energies_old = vcat(energies_old, PT_old.energies)
+                indices_old = vcat(indices_old, PT_old.indices)
+                lifts_old = vcat(lifts_old, PT_old.lifts)
             end
         else # Keep only the latest information
-            States = PT.States
-            Energies = PT.Energies
-            Indices = PT.Indices
-            Lifts = PT.Lifts
+            states = PT.states
+            energies = PT.energies
+            indices = PT.indices
+            lifts = PT.lifts
             if two_references
-                States_old = PT_old.States
-                Energies_old = PT_old.Energies
-                Indices_old = PT_old.Indices
-                Lifts_old = PT_old.Lifts
+                states_old = PT_old.states
+                energies_old = PT_old.energies
+                indices_old = PT_old.indices
+                lifts_old = PT_old.lifts
             end
         end
 
@@ -260,9 +260,9 @@ function NRPT(V_0,
 
             if !fixed_variational_ref # Tune the reference
                 if !two_references
-                    statesToConsider = map((x) -> PT.States[x][end], 1:nscan) # Take 'nscan' scans from the target
+                    statesToConsider = map((x) -> PT.states[x][end], 1:nscan) # Take 'nscan' scans from the target
                 else # Merge the various states into one long vector
-                    statesToConsider = vcat(map((x) -> PT.States[x][end], 1:nscan), map((x) -> PT_old.States[x][end], 1:nscan))
+                    statesToConsider = vcat(map((x) -> PT.states[x][end], 1:nscan), map((x) -> PT_old.states[x][end], 1:nscan))
                 end
                 # statesToConsider is now a vector of length nscan (or 2*nscan) containing vectors of length dim_x
                 if winsorize
@@ -300,19 +300,19 @@ function NRPT(V_0,
             count = ntune
         end
 
-        FinalStates = PT.States
+        final_states = PT.states
         nscan_old = nscan
         if two_references
-            FinalStates_old = PT_old.States
+            final_states_old = PT_old.states
         end
     end
     
     out = (
-        States              = States,
-        FinalStates         = FinalStates,
-        Energies            = Energies,
-        Indices             = Indices,
-        Lifts               = Lifts,
+        states              = states,
+        final_states         = final_states,
+        energies            = energies,
+        indices             = indices,
+        lifts               = lifts,
         rejections          = rejections,
         local_barriers       = local_barriers,
         global_barriers      = global_barriers,
@@ -336,11 +336,11 @@ function NRPT(V_0,
     if two_references
         out_new = out
         out_old = (
-            States              = States_old,
-            FinalStates         = FinalStates_old,
-            Energies            = Energies_old,
-            Indices             = Indices_old,
-            Lifts               = Lifts_old,
+            states              = states_old,
+            final_states         = final_states_old,
+            energies            = energies_old,
+            indices             = indices_old,
+            lifts               = lifts_old,
             rejections          = rejections_old,
             local_barriers       = local_barriers_old,
             global_barriers      = global_barriers_old,

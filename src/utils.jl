@@ -45,30 +45,30 @@ end
 
 
 """
-    lognormalizingconstant(Energies, Schedule)
+    lognormalizingconstant(energies, Schedule)
 
 Compute an estimate of the log normalizing constant given a vector of 
-`Energies` and the corresponding annealing `Schedule`.
+`energies` and the corresponding annealing `Schedule`.
 """
-function lognormalizingconstant(Energies, Schedule)
-    n, N = size(Energies)
+function lognormalizingconstant(energies, Schedule)
+    n, N = size(energies)
     Δβ = Schedule[2:end] .- Schedule[1:end-1]
-    μ = mean(Energies, dims = 1)[2:end]
+    μ = mean(energies, dims = 1)[2:end]
     sum(Δβ.*μ)
 end
 
 
 """
-    computeEtas(ϕ, β)
+    computeetas(ϕ, β)
 
-Compute the `Etas` matrix given `ϕ`, which is an Array(K - 1, 2) containing 
+Compute the `etas` matrix given `ϕ`, which is an Array(K - 1, 2) containing 
 knot parameters, and `β`, a vector of `N`+1 schedules. For linear paths, 
 the function returns an (N+1)x2 matrix with entries 1-β in the first column 
 and β in the second column. (This function is useful for those wishing to consider
 non-linear paths. However, full support is provided only for linear paths at 
 the moment.) 
 """
-function computeEtas(ϕ, β)
+function computeetas(ϕ, β)
     if ϕ != [0.5 0.5]
         error("ϕ must be [0.5 0.5]")
     end
