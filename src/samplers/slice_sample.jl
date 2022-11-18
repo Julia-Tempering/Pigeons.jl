@@ -124,15 +124,15 @@ function slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int)
     for i in 2:(nsamps+1)
         C = StatsBase.sample(1:dim_x, Int64(ceil(dim_x*h.dim_fraction)), 
                              replace = false) # Set of coordinates to update
-        x_0 = deepcopy(x[i-1])
-        x_1 = deepcopy(x_0)
+        x_0 = copy(x[i-1])
+        x_1 = copy(x_0)
         for c in C
             z = g(x_0) - rand(Exponential(1.0)) # log(y)
             L, R = slice_double(h, g, x_0, z, c)
             x_1[c] = slice_shrink(h, g, x_0, z, L, R, c)
-            x_0 = deepcopy(x_1)
+            x_0 = copy(x_1)
         end
-        x[i] = deepcopy(x_1)
+        x[i] = copy(x_1)
     end
     x = x[2:end] # Remove x_0
     return x
