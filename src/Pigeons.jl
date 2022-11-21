@@ -8,7 +8,6 @@ import MPI: Comm, Allreduce, Comm_rank,
             Comm_dup, Request, Waitall,
             RequestSet, mpiexec
 
-using EntangledMPI
 using Base: Forward
 using Distributions
 using StatsBase
