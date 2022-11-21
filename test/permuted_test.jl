@@ -1,4 +1,4 @@
-using EntangledMPI
+using Pigeons
 using OnlineStats
 using Random
 using MPI

@@ -15,8 +15,8 @@ At the moment (TODO: publish SplittableRandoms.jl and Pigeons.jl to registry)
 
 ```
 ]
-add https://github.com/UBC-Stat-ML/SplittableRandoms.jl
-add git@github.com:Julia-Tempering/Pigeons.jl.git
+dev https://github.com/UBC-Stat-ML/SplittableRandoms.jl
+dev git@github.com:Julia-Tempering/Pigeons.jl.git
 ```
 
 Since latter is private, you may have to add to your .profile file:
