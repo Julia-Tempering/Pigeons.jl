@@ -81,3 +81,24 @@ function computeetas(ϕ, β)
 
     return out
 end
+
+function split_slice(
+    my_globals::UnitRange, # NB: assumes my_globals are contiguous, i.e. don't duck-type UnitRate
+    rng)
+@assert my_globals[1] ≥ 1
+# todo: could be done more efficiently with a tree but low priority
+# get rid of stuff at left of slice
+n_to_burn = my_globals[1] - 1
+[split(rng) for i in 1:n_to_burn]
+# get the slice of random objects by splitting:
+return [split(rng) for i in my_globals]
+end
+
+macro abstract() quote error("Attempted to call an abstract function.") end end
+
+function mpi_test(n_processes::Int, test_file::String; options = [])
+    project_folder = dirname(Base.current_project())
+    mpiexec() do exe
+        run(`$exe -n $n_processes $(Base.julia_cmd()) --project=$project_folder $test_file $options`)
+    end
+end

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+description="Watch live the stdout+err of an MPI job launched via mpi-run"
+
+pick_latest="latest"
+e=$pick_latest
+r=0
+n=20
+
+error=false
+while getopts "e:r:h" opt; do
+  case "$opt" in
+    r)  r=$OPTARG
+      ;;
+    e)  e=$OPTARG
+      ;;
+    h)  error=true
+      ;;
+    *)  error=true
+  esac
+done
+
+if [[ $error == true ]]; then
+  echo $description
+  echo "$0 [-e exec] [-r rank_of_mpi_to_watch] [-n max number_of_initial_lines_to_show]"
+  echo "   if -e skipped, pick results/latest, else specify folder in results/all"
+  echo "   if -r skipped, watch rank 0"
+  echo "   if -n skipped, print at most 20 lines initially"
+  exit 0
+fi
+
+if [[ $e == $pick_latest ]]; then
+    exec_folder=results/latest
+else
+    exec_folder=results/all/$e
+fi
+
+qsub_id=$(cat $exec_folder/qsub_id)
+echo "Queue status for job $qsub_id:"
+qstat $qsub_id
+
+printf "Waiting"
+while [[ ! -d $exec_folder/1/ ]]
+do
+    printf "."
+    sleep 1
+done
+printf "\n"
+
+echo "Watching rank $r node stdout (note ctrl-c will not kill job, just stop monitoring):"
+echo "   -------------"
+stdout_file=$(find $exec_folder/1/ -type d -regex ".*rank.0*$r")/stdout
+tail -n $n -f $stdout_file
