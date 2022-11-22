@@ -30,7 +30,6 @@ include("NRPT.jl")
 
 ### Other
 include("utils.jl")
-
 export  split_slice,
         mpi_test
 
@@ -40,10 +39,12 @@ export  my_global_indices,
         find_process,
         find_local_index,
         my_load
+
 include("mpi_utils/Entanglement.jl")
 export  Entangler,
         transmit,
         transmit!
+
 include("mpi_utils/PermutedDistributedArray.jl")
 export  PermutedDistributedArray,
         permuted_get,
@@ -57,8 +58,10 @@ export  Replica,
         chain,
         entangler,
         load
+
 include("swap_graphs.jl")
 export deo
+
 include("swap.jl")
 export  swap_round!,
         swap_decision,
