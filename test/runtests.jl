@@ -17,14 +17,14 @@ function test_load_balance(n_processes, n_tasks)
 end
 
 @testset "Entanglement" begin
-    mpi_test(1, "test/entanglement_test.jl")
-    mpi_test(2, "test/entanglement_test.jl")
+    mpi_test(1, "entanglement_test.jl")
+    mpi_test(2, "entanglement_test.jl")
 end
 
 @testset "PermutedDistributedArray" begin
-    mpi_test(1, "test/permuted_test.jl", options = ["-s"])
-    mpi_test(1, "test/permuted_test.jl")
-    mpi_test(2, "test/permuted_test.jl")
+    mpi_test(1, "permuted_test.jl", options = ["-s"])
+    mpi_test(1, "permuted_test.jl")
+    mpi_test(2, "permuted_test.jl")
 end
 
 @testset "LoadBalance" begin
@@ -53,7 +53,7 @@ end
 test_split_slice_helper(range) = [rand(r) for r in split_slice(range,  SplittableRandom(1))]
 
 @testset "test_swap" begin
-    mpi_test(3, "test/swap_test.jl")
+    mpi_test(3, "swap_test.jl")
 end
 
 @testset "split_test" begin
