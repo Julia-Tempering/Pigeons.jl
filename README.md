@@ -7,3 +7,30 @@
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 
 Distributed Non-Reversible Parallel Tempering
+
+
+## Install
+
+At the moment (TODO: publish SplittableRandoms.jl and Pigeons.jl to registry)
+
+```
+]
+dev https://github.com/UBC-Stat-ML/SplittableRandoms.jl
+dev git@github.com:Julia-Tempering/Pigeons.jl.git
+```
+
+Since latter is private, you may have to add to your .profile file:
+
+```
+export SSH_KEY_PATH=/path/to/user/.ssh/id_rsa
+export SSH_PUB_KEY_PATH=/path/to/user/.ssh/id_rsa.pub
+```
+
+## Instructions to run MPI code
+
+From log-in node:
+
+- Clone into a shared directory in a MPI cluster 
+- Inside the cloned repo, call `./mpi-setup` 
+- To launch a job, type `./mpi-run -h` to see an example and documentation. **Note:** you may need to run first with a single node to avoid Julia compilation crashing due to concurrent access to the .julia directory. 
+- To monitor the job, type `./mpi-watch`

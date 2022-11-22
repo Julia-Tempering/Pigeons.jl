@@ -1,0 +1,83 @@
+#!/bin/bash
+
+description="Create a PBS script calling mpiexec and submit it using qsub. The job gets a unique execution folder symlinked in results/latest"
+example="Example:  ./mpi-run julia -p 2000 -t 00:01:00  julia --project=. test/benchmark_distributed_array.jl"
+
+default_alloc="st-alexbou-1"
+
+A=$default_alloc
+
+# If changing those default, update help message below
+p=1
+c=1
+t=00:30:00
+m=8gb
+
+error=false
+while getopts "A:p:c:t:m:h" opt; do
+  case "$opt" in
+    A)  A=$OPTARG
+      ;;
+    h)  error=true
+      ;; 
+    p)  p=$OPTARG
+      ;;
+    c)  c=$OPTARG
+      ;;
+    t)  t=$OPTARG
+      ;;
+    m)  m=$OPTARG
+      ;;
+    *)  error=true
+  esac
+done
+
+if [[ $# < 1 || $error == true ]]; then
+  echo $description
+  echo "$0 [-p #processor] [-c #cpus_per_node] [-t time_budget] [-m mem] [-A pbs_allocation] program [program_args...]"
+  echo $example
+  echo "Defaults: 1 processor, 1 cpu per nodes, 00:30:00 time budget (30 min), 8gb memory, $default_alloc alloc"
+  exit 0
+fi
+
+shift $(expr $OPTIND - 1 )
+command="$@"
+
+date=$(date '+%Y-%m-%d-%H-%M-%S')
+rnd=$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c 8)
+unique_name=$date-$rnd
+unique_folder=results/all/$unique_name
+mkdir -p $unique_folder
+
+cd results
+rm -f latest
+ln -s all/$unique_name latest
+cd ..
+
+pbs_arguments="-l walltime=$t,select=$p:ncpus=$c:mpiprocs=$c:mem=$m"
+pbs_arguments="$pbs_arguments -A $A"
+pbs_arguments="$pbs_arguments -N $rnd"
+
+echo "#!/bin/bash" > .tmp_pbs_script
+echo "cd \$PBS_O_WORKDIR" >> .tmp_pbs_script
+echo "source ./modules.sh" >> .tmp_pbs_script
+echo "ORDERLY_UNIQUE_DIR=$unique_dir" >> .tmp_pbs_script
+echo "mpiexec --merge-stderr-to-stdout --output-filename $unique_folder $command" >> .tmp_pbs_script
+
+echo "Submitting: $command"
+echo "    time limit: $t"
+echo "    # processes: $p"
+echo "    # cpu per process: $c"
+echo "    memory: $m"
+echo "    allocation: $A"
+
+qsub_id=`qsub $pbs_arguments .tmp_pbs_script`
+echo $qsub_id > $unique_folder/qsub_id
+
+echo "Submission successful"
+echo "    job id: $qsub_id"
+
+echo "Useful commands:"
+echo "    To watch: 'mpi-watch'"
+echo "    To kill: 'qdel $qsub_id'"
+echo "    Query queue status: 'qstat $qsub_id'"
