@@ -20,7 +20,8 @@ include("exploration.jl")
 include("restarts.jl")
 include("NRPT.jl")
 
-### Utility functions
+### Other
 include("utils.jl")
+include("summary.jl")
 
 end # End module
