@@ -1,5 +1,5 @@
 """
-Low-level API to specify which chain will interact with which.
+Mid-level API to specify which chain will interact with which.
 
 Given chain at input index, what index will it swap with?
 Convention: if a chain is not interacting, return its index.

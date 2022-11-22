@@ -8,6 +8,7 @@ using ArgMacros
     @argumentdefault Int 37 N "--N"
     @argumentdefault Int 1000 iters "--iters"
     @argumentflag single "-s" # no MPI
+    @argumentdefault Float64 0.5 swap_pr "--pr"
 end
 
 """
@@ -22,8 +23,15 @@ function Pigeons.swap_decision(swapper::TestSwapper, chain1::Int, stat1::Float64
     return uniform < swapper.constant_swap_accept_pr
 end
 
-function test_swap(n_chains::Int, n_iters::Int, useMPI::Bool)
-    swapper = TestSwapper(0.4)
+"""
+./mpi-run -p 100 -t 00:01:00 julia --project=. test/swap_test.jl --N 100 --iters 20000
+Entangler initialized 1 process (without MPI)
+Timing summary: 188.40296799999996 μs (526.5824745863137)
+Entangler initialized 100 MPI processes
+Timing summary: 5078.727238999977 μs (25379.513020933457)
+"""
+function test_swap(n_chains::Int, n_iters::Int, accept_pr::Float64, useMPI::Bool)
+    swapper = TestSwapper(accept_pr)
     rng = SplittableRandom(1)
     replicas = Replicas(n_chains, ConstantInitializer(nothing), rng, useMPI)
 
@@ -52,10 +60,10 @@ function test_swap(args::Args)
     n_iterations = args.iters
 
     # run serial
-    serial_replicas = test_swap(n_chains, n_iterations, false)
+    serial_replicas = test_swap(n_chains, n_iterations, args.swap_pr, false)
 
     # run parallel
-    parallel_replicas = test_swap(n_chains, n_iterations, !args.single)
+    parallel_replicas = test_swap(n_chains, n_iterations, args.swap_pr, !args.single)
     parallel_chains = chain.(parallel_replicas.locals)
 
     my_globals = my_global_indices(parallel_replicas.chain_to_replica_global_indices.entangler.load)

@@ -1,7 +1,33 @@
+"""
+Perform one round of swaps. 
 
-swap_decision(swapper, chain1::Int, stat1, chain2::Int, stat2)::Bool = @abstract
-swapstat(swapper, replica::Replica, partner_chain::Int) = @abstract
+This implementation is designed to support distributed PT with the following guarantees
+    - The running time is independent of the size of the state space 
+      ('swapping annealing parameters rather than states')
+    - Scalability to 1000s of processes communicating over MPI (see details below).
+    - The same method can be used when a single process is used and MPI is not available.
+    - Flexibility to extend PT to e.g. networks of targets and general paths.
 
+For more information on 
+    - swap_graph, see swap_graphs.jl
+    - swapper, see below, example in test/swap_test.jl
+
+Running time analysis. 
+
+Let N denote the number of chains, P, the number of processes, K = ceil(N/P) 
+the maximum number of chains held by one process. 
+Assuming the running time is dominated by communication latency and 
+a constant time for the latency of one 
+peer-to-peer communication, the theoretical running time is O(K). 
+In practice, latency will grow as a function of P, but empirically,
+this growth appears to be slow enough that for say P = N = few 1000s, 
+swapping will not be the computational bottleneck.
+
+Emphasis is on scaling laws rather than constants. For example, the current implementation 
+allocates O(N) while in the case of a single 
+process, it would be possible to have a no-allocation implementation. However again it is 
+unlikely that this method would be the bottleneck in single-process mode.
+"""
 function swap_round!(swapper, replicas::Replicas, swap_graph)
     # what chains (annealing parameters) are we swapping with?
     partner_chains = [_partner_chain(swap_graph, replicas.locals[i]) for i in eachindex(replicas.locals)]
@@ -24,6 +50,16 @@ function swap_round!(swapper, replicas::Replicas, swap_graph)
     my_replica_global_indices = my_global_indices(replicas.chain_to_replica_global_indices.entangler.load)
     permuted_set!(replicas.chain_to_replica_global_indices, chain.(replicas.locals), my_replica_global_indices)
 end
+
+"""
+A 'swapper' first extracts sufficient statistics needed to perform a swap (potentially to be transmitted over network).
+    In the typical case, this will be log densities before and after proposed swap, an a uniform [0, 1] variate.
+
+Then based on two sets of sufficient statistics, deterministically decide if we should swap. 
+"""
+swapstat(swapper, replica::Replica, partner_chain::Int) = @abstract
+swap_decision(swapper, chain1::Int, stat1, chain2::Int, stat2)::Bool = @abstract
+
 
 # Private low-level functions:
 

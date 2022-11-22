@@ -82,16 +82,20 @@ function computeetas(ϕ, β)
     return out
 end
 
+"""
+From one splittable random object, one can conceptualize an infinite list of split random objects. 
+Return 
+"""
 function split_slice(
-    my_globals::UnitRange, # NB: assumes my_globals are contiguous, i.e. don't duck-type UnitRate
+    slice::UnitRange, # NB: assumes slice are contiguous, i.e. don't duck-type UnitRate
     rng)
-@assert my_globals[1] ≥ 1
+@assert slice[1] ≥ 1
 # todo: could be done more efficiently with a tree but low priority
 # get rid of stuff at left of slice
-n_to_burn = my_globals[1] - 1
+n_to_burn = slice[1] - 1
 [split(rng) for i in 1:n_to_burn]
 # get the slice of random objects by splitting:
-return [split(rng) for i in my_globals]
+return [split(rng) for i in slice]
 end
 
 macro abstract() quote error("Attempted to call an abstract function.") end end
