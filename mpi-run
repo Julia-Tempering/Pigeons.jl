@@ -48,6 +48,7 @@ rnd=$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c 8)
 unique_name=$date-$rnd
 unique_folder=results/all/$unique_name
 mkdir -p $unique_folder
+pbs_script=$unique_folder/script.sh
 
 cd results
 rm -f latest
@@ -58,11 +59,11 @@ pbs_arguments="-l walltime=$t,select=$p:ncpus=$c:mpiprocs=$c:mem=$m"
 pbs_arguments="$pbs_arguments -A $A"
 pbs_arguments="$pbs_arguments -N $rnd"
 
-echo "#!/bin/bash" > .tmp_pbs_script
-echo "cd \$PBS_O_WORKDIR" >> .tmp_pbs_script
-echo "source ./modules.sh" >> .tmp_pbs_script
-echo "ORDERLY_UNIQUE_DIR=$unique_dir" >> .tmp_pbs_script
-echo "mpiexec --merge-stderr-to-stdout --output-filename $unique_folder $command" >> .tmp_pbs_script
+echo "#!/bin/bash" > $pbs_script
+echo "cd \$PBS_O_WORKDIR" >> $pbs_script
+echo "source ./modules.sh" >> $pbs_script
+echo "ORDERLY_UNIQUE_DIR=$unique_dir" >> $pbs_script
+echo "mpiexec --merge-stderr-to-stdout --output-filename $unique_folder $command" >> $pbs_script
 
 echo "Submitting: $command"
 echo "    time limit: $t"
@@ -71,7 +72,7 @@ echo "    # cpu per process: $c"
 echo "    memory: $m"
 echo "    allocation: $A"
 
-qsub_id=`qsub $pbs_arguments .tmp_pbs_script`
+qsub_id=`qsub $pbs_arguments $pbs_script`
 echo $qsub_id > $unique_folder/qsub_id
 
 echo "Submission successful"
