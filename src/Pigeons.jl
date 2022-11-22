@@ -28,8 +28,9 @@ include("exploration.jl")
 include("restarts.jl")
 include("NRPT.jl")
 
-### Utility functions
+### Other
 include("utils.jl")
+
 export  split_slice,
         mpi_test
 
@@ -62,6 +63,8 @@ include("swap.jl")
 export  swap_round!,
         swap_decision,
         swapstat
+
+include("summary.jl")
 
 end # End module
 
