@@ -4,20 +4,24 @@ Perform one round of swaps.
 This implementation is designed to support distributed PT with the following guarantees
     - The running time is independent of the size of the state space 
       ('swapping annealing parameters rather than states')
+    - The output is identical no matter how many MPI processes are used. In particular, 
+      this means that we can check correctness by comparing to the serial, # process = 1 version.
     - Scalability to 1000s of processes communicating over MPI (see details below).
-    - The same method can be used when a single process is used and MPI is not available.
+    - The same function can be used when a single process is used and MPI is not available.
     - Flexibility to extend PT to e.g. networks of targets and general paths.
 
-For more information on 
+For more information on input argument..
+    - swapper, see below, example in test/swap_test.jl, and [TODO: default implementation at ____.jl]
+    - replicas, see Replicas.jl
     - swap_graph, see swap_graphs.jl
-    - swapper, see below, example in test/swap_test.jl
+
 
 Running time analysis. 
 
-Let N denote the number of chains, P, the number of processes, K = ceil(N/P) 
+Let N denote the number of chains, P, the number of processes, and K = ceil(N/P),  
 the maximum number of chains held by one process. 
 Assuming the running time is dominated by communication latency and 
-a constant time for the latency of one 
+a constant time for the latency of each  
 peer-to-peer communication, the theoretical running time is O(K). 
 In practice, latency will grow as a function of P, but empirically,
 this growth appears to be slow enough that for say P = N = few 1000s, 
@@ -35,7 +39,7 @@ function swap_round!(swapper, replicas::Replicas, swap_graph)
     # translate these annealing parameters (chains) into replica global indices (so that we can find machines that hold them)
     partner_replica_global_indices = permuted_get(replicas.chain_to_replica_global_indices, partner_chains)
 
-    # assemble sufficient statistics needed to perform a swap (log densities and uniform variates with standard swaps)
+    # assemble sufficient statistics needed to perform a swap (for vanilla PT, log likelihood and a uniform variate)
     # ... for each of my replicas
     my_swapstats = [swapstat(swapper, replicas.locals[i], partner_chains[i]) for i in eachindex(replicas.locals)]
     # ... and their partners via MPI
@@ -53,7 +57,8 @@ end
 
 """
 A 'swapper' first extracts sufficient statistics needed to perform a swap (potentially to be transmitted over network).
-    In the typical case, this will be log densities before and after proposed swap, an a uniform [0, 1] variate.
+    In the typical case, this will be log densities before and after proposed swap (or just the likelihood with linear 
+    annealing paths), and a uniform [0, 1] variate.
 
 Then based on two sets of sufficient statistics, deterministically decide if we should swap. 
 """

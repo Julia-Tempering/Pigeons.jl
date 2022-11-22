@@ -4,6 +4,13 @@ using SplittableRandoms
 using MPI
 using ArgMacros
 
+"""
+Two ways to invoke this test:
+- as a test case, see runtests.jl
+- from the CLI for benchmarking, e.g. 
+julia --project=. test/swap_test.jl --N 100 --iters 20000 --pr 0.5
+"""
+
 @structarguments false Args begin
     @argumentdefault Int 37 N "--N"
     @argumentdefault Int 1000 iters "--iters"
@@ -24,11 +31,15 @@ function Pigeons.swap_decision(swapper::TestSwapper, chain1::Int, stat1::Float64
 end
 
 """
+Examples stats from Sockeye
+
 ./mpi-run -p 100 -t 00:01:00 julia --project=. test/swap_test.jl --N 100 --iters 20000
 Entangler initialized 1 process (without MPI)
 Timing summary: 188.40296799999996 μs (526.5824745863137)
 Entangler initialized 100 MPI processes
 Timing summary: 5078.727238999977 μs (25379.513020933457)
+
+[TODO: results on 1000 chains are queued at the moment]
 """
 function test_swap(n_chains::Int, n_iters::Int, accept_pr::Float64, useMPI::Bool)
     swapper = TestSwapper(accept_pr)
@@ -66,9 +77,9 @@ function test_swap(args::Args)
     parallel_replicas = test_swap(n_chains, n_iterations, args.swap_pr, !args.single)
     parallel_chains = chain.(parallel_replicas.locals)
 
+    # check they match up
     my_globals = my_global_indices(parallel_replicas.chain_to_replica_global_indices.entangler.load)
     serial_chains = chain.(serial_replicas.locals[my_globals])
-
     @assert parallel_chains == serial_chains
 end
 

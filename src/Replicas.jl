@@ -4,24 +4,28 @@ Low-level structs used for swapping.
 
 mutable struct Replica{S}
     state::S
-    chain::Int # Terminology: chain=i means we are currently using beta_i for that replica 
+    chain::Int # Terminology (as in JRSSB NRPT paper): chain=i means we are currently using beta_i for that replica 
     rng::SplittableRandom
 end
 chain(r::Replica) = r.chain
 
-struct Replicas{S}
-    locals::Vector{Replica{S}} # the subset of replicas hosted in this process
-    chain_to_replica_global_indices::PermutedDistributedArray{Int}
+struct Replicas{S} # A collection of replicas - see below for a convenient way to create 
+    # the subset of replicas hosted in this process, indexed by a 'local index' with no specific meaning
+    locals::Vector{Replica{S}} 
+    # maps 'chain's to 'global indices', where the latter is used to keep track of all replicas split across many processes
+    chain_to_replica_global_indices::PermutedDistributedArray{Int} 
 end
-entangler(r::Replicas) = r.chain_to_replica_global_indices.entangler
-load(r::Replicas) = entangler(r).load
+entangler(r::Replicas) = r.chain_to_replica_global_indices.entangler # an 'entangler' encapsulates the MPI details
+load(r::Replicas) = entangler(r).load # load balancing information
 
 # utilities to initialize Replicas
 initialization(initializer, rng::SplittableRandom, chain::Int) = @abstract
+# ... initialize all to the same state
 struct ConstantInitializer{S}
     init::S 
 end
 initialization(initializer::ConstantInitializer, rng::SplittableRandom, chain::Int) = initializer.init
+# ... TODO: initialize from prior / with some 'nothing' convention / others
 
 function Replicas(n_chains::Int, initializer, rng::SplittableRandom, useMPI::Bool) where S
     entangler = Entangler(n_chains, parent_communicator = (useMPI ? COMM_WORLD : nothing))
