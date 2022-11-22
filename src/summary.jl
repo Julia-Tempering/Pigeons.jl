@@ -27,7 +27,7 @@ TODO: Make this output much nicer :)
 """
 function print(s::Summary)
     println("          | mean | variance")
-    println("---------------------------")
+    println("----------|----------------")
     for i in s.n_samples
         println("variable ", i, "|", s.means[i], "|", s.vars[i])
     end
