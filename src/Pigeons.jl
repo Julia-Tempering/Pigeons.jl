@@ -2,9 +2,9 @@ module Pigeons
 
 import SplittableRandoms: SplittableRandom, split
 
-import MPI: Comm, Allreduce, Comm_rank, 
-            Isend, Irecv!, Recv!, COMM_WORLD, 
-            Comm_size, Comm_rank, Init, 
+import MPI: Comm, Allreduce, Comm_rank,
+            Isend, Irecv!, Recv!, COMM_WORLD,
+            Comm_size, Comm_rank, Init,
             Comm_dup, Request, Waitall,
             RequestSet, mpiexec
 
@@ -16,6 +16,9 @@ using Roots
 using Dates
 
 export NRPT, slice_sample, SS
+
+# abstract types
+include("abstract.jl")
 
 ### Samplers
 include("samplers/samplers.jl")

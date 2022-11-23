@@ -1,8 +1,8 @@
 """
     winsorized_mean(x; α)
 
-Compute the winsorized mean from an input `x`, which is assumed to be a vector of vectors. 
-`α` denotes the percentage of observations to winsorize at the bottom and the top 
+Compute the winsorized mean from an input `x`, which is assumed to be a vector of vectors.
+`α` denotes the percentage of observations to winsorize at the bottom and the top
 so that we use 1 - 2α observations and winsorize the rest.
 """
 function winsorized_mean(x; α=0.1)
@@ -23,7 +23,7 @@ end
 """
     winsorized_std(x; α)
 
-Compute the winsorized standard deviation. The parameters are the same 
+Compute the winsorized standard deviation. The parameters are the same
 as those for `winsorized_mean()`.
 """
 function winsorized_std(x; α=0.1)
@@ -39,7 +39,7 @@ function winsorized_std(x; α=0.1)
         y2_mean = 1/n * (n_lower * y2[n_lower] + sum(y2[(n_lower + 1):(n - n_lower)]) + n_lower * y2[n - n_lower + 1]) # winsorized estimate of E[Y[j]^2]
         out[j] = sqrt(y2_mean - winsorized_mean(y; α=α)[1]^2)
     end
-    
+
     return out
 end
 
@@ -47,7 +47,7 @@ end
 """
     lognormalizingconstant(energies, schedule)
 
-Compute an estimate of the log normalizing constant given a vector of 
+Compute an estimate of the log normalizing constant given a vector of
 `energies` and the corresponding annealing `schedule`.
 """
 function lognormalizingconstant(energies, schedule)
@@ -61,12 +61,12 @@ end
 """
     computeetas(ϕ, β)
 
-Compute the `etas` matrix given `ϕ`, which is an Array(K - 1, 2) containing 
-knot parameters, and `β`, a vector of `N`+1 schedules. For linear paths, 
-the function returns an (N+1)x2 matrix with entries 1-β in the first column 
+Compute the `etas` matrix given `ϕ`, which is an Array(K - 1, 2) containing
+knot parameters, and `β`, a vector of `N`+1 schedules. For linear paths,
+the function returns an (N+1)x2 matrix with entries 1-β in the first column
 and β in the second column. (This function is useful for those wishing to consider
-non-linear paths. However, full support is provided only for linear paths at 
-the moment.) 
+non-linear paths. However, full support is provided only for linear paths at
+the moment.)
 """
 function computeetas(ϕ, β)
     if ϕ != [0.5 0.5]
@@ -83,7 +83,7 @@ function computeetas(ϕ, β)
 end
 
 """
-From one splittable random object, one can conceptualize an infinite list of splittable random objects. 
+From one splittable random object, one can conceptualize an infinite list of splittable random objects.
 Return a slice from this infinite list.
 """
 function split_slice(
@@ -98,7 +98,32 @@ function split_slice(
     return [split(rng) for i in slice]
 end
 
-macro abstract() quote error("Attempted to call an abstract function.") end end
+"""
+    macro abstractmethod(ex)
+
+Denotes a function as being a abstract interface. This will define the methods to
+automatically fail if not called.
+
+```julia
+
+@abstract computeeta(path::Any, β::Real)
+
+computeeta("foo", 1.0)
+ERROR: AssertionError: computeeta is a abstract function you need to implement it for path::String, β::Float64
+Stacktrace:
+```
+"""
+macro abstractmethod(ex)
+    ex.head == :call ? nothing : return :(throw(AssertionError("Must be a single line call")))
+    name = string(ex.args[1])
+    args = join(string.(ex.args[2:end]), ", ")
+
+    q = quote
+        $ex = throw(AssertionError($name*" is a abstract function you need to implement it for "*$args))
+    end
+    return esc(q)
+
+end
 
 function mpi_test(n_processes::Int, test_file::String; options = [])
     project_folder = dirname(Base.current_project())
