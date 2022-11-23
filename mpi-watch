@@ -37,10 +37,20 @@ fi
 exec_info_dir=$exec_folder/executionInfo
 qsub_id=$(cat $exec_info_dir/qsub_id.txt)
 
+cd $exec_folder
+resolved_exec_folder=$(pwd)
+cd -
+
 cat << EOF
-Command: $(cat $exec_info_dir/command.txt)
-PBS resources: $(cat $exec_info_dir/pbs-resources.txt)
-Git commit: $(cat $exec_info_dir/git-commit.txt)
+Watching $qsub_id:
+    Command: $(cat $exec_info_dir/command.txt)
+    Exec directory: $resolved_exec_folder
+    PBS resources: $(cat $exec_info_dir/pbs-resources.txt)
+    Git commit: $(cat $exec_info_dir/git-commit.txt)
+Useful commands:
+    To watch: 'mpi-watch'
+    To kill: 'qdel $qsub_id'
+    General queue status: 'pbsnodes -aSj'
 Queue status for job $qsub_id:
 EOF
 qstat $qsub_id

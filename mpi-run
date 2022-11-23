@@ -97,4 +97,5 @@ Submission successful
 Useful commands:
     To watch: 'mpi-watch'
     To kill: 'qdel $qsub_id'
+    General queue status: 'pbsnodes -aSj'
 EOF
