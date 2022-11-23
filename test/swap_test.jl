@@ -40,6 +40,10 @@ Entangler initialized 100 MPI processes
 Timing summary: 5078.727238999977 μs (25379.513020933457)
 
 [TODO: results on 1000 chains are queued at the moment]
+Entangler initialized 1 process (without MPI)
+Timing summary: 2031.172538 μs (944.5616995332483)
+Entangler initialized 1000 MPI processes
+Timing summary: 131189.92799899983 μs (630977.8558821594)
 """
 function test_swap(n_chains::Int, n_iters::Int, accept_pr::Float64, useMPI::Bool)
     swapper = TestSwapper(accept_pr)

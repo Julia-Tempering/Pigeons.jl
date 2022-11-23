@@ -48,22 +48,33 @@ rnd=$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c 8)
 unique_name=$date-$rnd
 unique_folder=results/all/$unique_name
 mkdir -p $unique_folder
-pbs_script=$unique_folder/script.sh
+exec_info_dir=$unique_folder/executionInfo
+mkdir -p $exec_info_dir
+pbs_script=$exec_info_dir/pbs-script.sh
 
 cd results
 rm -f latest
 ln -s all/$unique_name latest
 cd ..
 
-pbs_arguments="-l walltime=$t,select=$p:ncpus=$c:mpiprocs=$c:mem=$m"
-pbs_arguments="$pbs_arguments -A $A"
-pbs_arguments="$pbs_arguments -N $rnd"
+pbs_resources="walltime=$t,select=$p:ncpus=$c:mpiprocs=$c:mem=$m"
+
+echo $command > $exec_info_dir/command.txt
+echo $pbs_resources > $exec_info_dir/pbs-resources.txt
+git rev-parse HEAD > $exec_info_dir/git-commit.txt
 
 echo "#!/bin/bash" > $pbs_script
+echo "#PBS -l $pbs_resources" > $pbs_script
+echo "#PBS -A $A" > $pbs_script
+echo "#PBS -N $rnd" > $pbs_script
+echo "#PBS -o $exec_info_dir/stdout.txt" > $pbs_script
+echo "#PBS -e $exec_info_dir/stderr.txt" > $pbs_script
 echo "cd \$PBS_O_WORKDIR" >> $pbs_script
 echo "source ./modules.sh" >> $pbs_script
-echo "ORDERLY_UNIQUE_DIR=$unique_dir" >> $pbs_script
+echo "EXEC_DIR=$unique_folder" >> $pbs_script # Launched program can use this environmnent variable to determine where to write output
+echo "date +%s > $exec_info_dir/start-time.txt" >> $pbs_script
 echo "mpiexec --merge-stderr-to-stdout --output-filename $unique_folder $command" >> $pbs_script
+echo "date +%s > $exec_info_dir/end-time.txt" >> $pbs_script
 
 echo "Submitting: $command"
 echo "    time limit: $t"
@@ -72,8 +83,8 @@ echo "    # cpu per process: $c"
 echo "    memory: $m"
 echo "    allocation: $A"
 
-qsub_id=`qsub $pbs_arguments $pbs_script`
-echo $qsub_id > $unique_folder/qsub_id
+qsub_id=`qsub $pbs_script`
+echo $qsub_id > $exec_info_dir/qsub_id.txt
 
 echo "Submission successful"
 echo "    job id: $qsub_id"

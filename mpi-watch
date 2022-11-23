@@ -34,8 +34,13 @@ if [[ $e == $pick_latest ]]; then
 else
     exec_folder=results/all/$e
 fi
+exec_info_dir=$unique_folder/executionInfo
 
-qsub_id=$(cat $exec_folder/qsub_id)
+echo "Command: $(cat $exec_info_dir/command.txt)"
+echo "PBS resources: $(cat $exec_info_dir/pbs-resources.txt)"
+echo "Git commit: $(cat $exec_info_dir/git-commit.txt)"
+
+qsub_id=$(cat $exec_info_dir/qsub_id.txt)
 echo "Queue status for job $qsub_id:"
 qstat $qsub_id
 
