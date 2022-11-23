@@ -125,6 +125,8 @@ macro abstractmethod(ex)
 
 end
 
+macro abstract() quote error("Attempted to call an abstract function.") end end
+
 function mpi_test(n_processes::Int, test_file::String; options = [])
     project_folder = dirname(Base.current_project())
     mpiexec() do exe
