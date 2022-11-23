@@ -35,13 +35,14 @@ else
     exec_folder=results/all/$e
 fi
 exec_info_dir=$unique_folder/executionInfo
-
-echo "Command: $(cat $exec_info_dir/command.txt)"
-echo "PBS resources: $(cat $exec_info_dir/pbs-resources.txt)"
-echo "Git commit: $(cat $exec_info_dir/git-commit.txt)"
-
 qsub_id=$(cat $exec_info_dir/qsub_id.txt)
-echo "Queue status for job $qsub_id:"
+
+cat << EOF
+Command: $(cat $exec_info_dir/command.txt)
+PBS resources: $(cat $exec_info_dir/pbs-resources.txt)
+Git commit: $(cat $exec_info_dir/git-commit.txt)
+Queue status for job $qsub_id:
+EOF
 qstat $qsub_id
 
 printf "Waiting"
