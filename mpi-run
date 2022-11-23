@@ -46,9 +46,9 @@ command="$@"
 date=$(date '+%Y-%m-%d-%H-%M-%S')
 rnd=$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c 8)
 unique_name=$date-$rnd
-unique_folder=results/all/$unique_name
-mkdir -p $unique_folder
-exec_info_dir=$unique_folder/executionInfo
+exec_folder=results/all/$unique_name
+mkdir -p $exec_folder
+exec_info_dir=$exec_folder/executionInfo
 mkdir -p $exec_info_dir
 pbs_script=$exec_info_dir/pbs-script.sh
 
@@ -72,9 +72,9 @@ cat << EOF > $pbs_script
 #PBS -e $exec_info_dir/stderr.txt
 cd \$PBS_O_WORKDIR
 source ./modules.sh
-EXEC_DIR=$unique_folder # Launched program can use this environmnent variable to determine where to write output
+EXEC_DIR=$exec_folder # Launched program can use this environmnent variable to determine where to write output
 date +%s > $exec_info_dir/start-time.txt
-mpiexec --merge-stderr-to-stdout --output-filename $unique_folder $command
+mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $command
 date +%s > $exec_info_dir/end-time.txt
 EOF
 
@@ -92,7 +92,7 @@ qsub_id=`qsub $pbs_script`
 echo $qsub_id > $exec_info_dir/qsub_id.txt
 
 cat << EOF
-Submission successful"
+Submission successful
     job id: $qsub_id
 Useful commands:
     To watch: 'mpi-watch'

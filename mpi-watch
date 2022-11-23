@@ -34,7 +34,7 @@ if [[ $e == $pick_latest ]]; then
 else
     exec_folder=results/all/$e
 fi
-exec_info_dir=$unique_folder/executionInfo
+exec_info_dir=$exec_folder/executionInfo
 qsub_id=$(cat $exec_info_dir/qsub_id.txt)
 
 cat << EOF
