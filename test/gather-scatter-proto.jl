@@ -35,7 +35,7 @@ function gs_swap(comm, rank, comm_size, rng)
     # if rank == 0
     #     mine[] = result[1]
     # end
-    println("$rank -> $(mine[])")
+    #println("$rank -> $(mine[])")
     #mine = MPI.Scatter(result, )
 
 end
