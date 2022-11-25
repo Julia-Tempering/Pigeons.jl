@@ -87,3 +87,5 @@ Git commit: 61fa0a8dc4a3315c11f116cde497e5a6f94f7d36
 Entangler initialized 1000 MPI processes
 Timing summary: 6569.785057999984 μs (18385.331459525063)
 """
+
+nothing

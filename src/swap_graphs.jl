@@ -1,7 +1,7 @@
 """
 Mid-level API to specify which chain will interact with which.
 
-Given chain at input index, what index will it swap with?
+Given chain at input index, what index will it swap with at the current iteration?
 Convention: if a chain is not interacting, return its index.
 
 Canonical example is the standard Odd and Even swap implemented below.

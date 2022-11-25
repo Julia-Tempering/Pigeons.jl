@@ -14,7 +14,6 @@ julia --project=. test/swap_test.jl --N 100 --iters 20000 --pr 0.5
 @structarguments false Args begin
     @argumentdefault Int 37 N "--N"
     @argumentdefault Int 1000 iters "--iters"
-    @argumentflag single "-s" # no MPI
     @argumentdefault Float64 0.5 swap_pr "--pr"
 end
 
@@ -33,16 +32,15 @@ end
 """
 See below for some performance evaluation results and comments.
 """
-function test_swap(n_chains::Int, n_iters::Int, accept_pr::Float64, useMPI::Bool)
+function test_swap(replicas, n_iters::Int, accept_pr::Float64)
 
     swapper = TestSwapper(accept_pr)
-    rng = SplittableRandom(1)
-    replicas = Replicas(n_chains, ConstantInitializer(nothing), rng, useMPI)
+    
 
     timing_stats = Series(Mean(), Variance())
 
     for iteration in 1:n_iters
-        t = @elapsed swap_round!(swapper, replicas, deo(n_chains, iteration))
+        t = @elapsed swap_round!(swapper, replicas, deo(n_chains_global(replicas), iteration))
     
         if iteration > n_iters / 2
             fit!(timing_stats, t)
@@ -59,6 +57,15 @@ function test_swap(n_chains::Int, n_iters::Int, accept_pr::Float64, useMPI::Bool
     return replicas
 end
 
+function test_swap(n_chains::Int, n_iters::Int, accept_pr::Float64, useMPI::Bool)
+    rng = SplittableRandom(1) 
+    if useMPI
+        test_swap(create_entangled_replicas(n_chains, 1:n_chains, rng, true), n_iters, accept_pr)
+    else
+        test_swap(   create_vector_replicas(n_chains, 1:n_chains, rng), n_iters, accept_pr)
+    end
+end
+
 function test_swap(args::Args)
     n_chains = args.N
     n_iterations = args.iters
@@ -67,12 +74,15 @@ function test_swap(args::Args)
     serial_replicas = test_swap(n_chains, n_iterations, args.swap_pr, false)
 
     # run parallel
-    parallel_replicas = test_swap(n_chains, n_iterations, args.swap_pr, !args.single)
+    parallel_replicas = test_swap(n_chains, n_iterations, args.swap_pr, true)
     parallel_chains = chain.(parallel_replicas.locals)
 
     # check they match up
     my_globals = my_global_indices(parallel_replicas.chain_to_replica_global_indices.entangler.load)
-    serial_chains = chain.(serial_replicas.locals[my_globals])
+    sort!(serial_replicas, by = replica -> replica.state)
+    serial_chains = chain.(serial_replicas[my_globals])
+    println("Par: $parallel_chains")
+    println("Ser: $serial_chains")
     @assert parallel_chains == serial_chains
 end
 
@@ -134,3 +144,5 @@ This is surprising since the MPI performance evaluation and MPI simulator litera
     work building distributed hash tables on top of MPI [Tsukamoto et al, 'Implementation and Evaluation of Distributed Hash Table Using MPI'], 
     but these appear more of a niche based on citation counts [2010 paper cited 4 times as of 2022]).
 """
+
+nothing
