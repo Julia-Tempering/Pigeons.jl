@@ -22,8 +22,8 @@ done
 
 if [[ $error == true ]]; then
   echo $description
-  echo "$0 [-e exec] [-r rank_of_mpi_to_watch] [-n max number_of_initial_lines_to_show]"
-  echo "   if -e skipped, pick results/latest, else specify folder in results/all"
+  echo "$0 [-e exec_folder] [-r rank_of_mpi_to_watch] [-n max number_of_initial_lines_to_show]"
+  echo "   if -e skipped, pick results/latest"
   echo "   if -r skipped, watch rank 0"
   echo "   if -n skipped, print at most 20 lines initially"
   exit 0
@@ -32,7 +32,7 @@ fi
 if [[ $e == $pick_latest ]]; then
     exec_folder=results/latest
 else
-    exec_folder=results/all/$e
+    exec_folder=$e
 fi
 exec_info_dir=$exec_folder/executionInfo
 qsub_id=$(cat $exec_info_dir/qsub_id.txt)

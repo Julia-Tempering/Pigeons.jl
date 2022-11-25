@@ -35,8 +35,6 @@ See below for some performance evaluation results and comments.
 """
 function test_swap(n_chains::Int, n_iters::Int, accept_pr::Float64, useMPI::Bool)
 
-    GC.enable_logging(true)
-
     swapper = TestSwapper(accept_pr)
     rng = SplittableRandom(1)
     replicas = Replicas(n_chains, ConstantInitializer(nothing), rng, useMPI)
