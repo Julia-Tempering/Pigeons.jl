@@ -81,8 +81,6 @@ function test_swap(args::Args)
     my_globals = my_global_indices(parallel_replicas.chain_to_replica_global_indices.entangler.load)
     sort!(serial_replicas, by = replica -> replica.state)
     serial_chains = chain.(serial_replicas[my_globals])
-    println("Par: $parallel_chains")
-    println("Ser: $serial_chains")
     @assert parallel_chains == serial_chains
 end
 
