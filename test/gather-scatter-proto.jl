@@ -20,14 +20,22 @@ function gs_swap(comm, rank, comm_size, rng)
     suff_stat = rand(rng)
     #println("node $rank : $suff_stat")
 
-    result = MPI.Allgather(suff_stat, comm)
+    result = MPI.Gather(suff_stat, comm)
 
+    if rank == 0
         #println("gathered: $result")
         for i in eachindex(result)
             result[i] = result[i] + 1
         end
         #println("altered to: $result")
+    end
 
+    mine = Ref{Float64}()
+    MPI.Scatter!(result, mine, comm)
+    # if rank == 0
+    #     mine[] = result[1]
+    # end
+    println("$rank -> $(mine[])")
     #mine = MPI.Scatter(result, )
 
 end
