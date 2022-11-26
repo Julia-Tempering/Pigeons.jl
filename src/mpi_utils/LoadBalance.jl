@@ -21,6 +21,8 @@ struct LoadBalance
     end
 end
 
+single_process_load(n_global_indices) = LoadBalance(1, 1, n_global_indices)
+
 function my_global_indices(lb::LoadBalance)
     start = my_first_global_idx(lb)
     return start:(start+my_load(lb)-1)

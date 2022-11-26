@@ -51,21 +51,31 @@ export  PermutedDistributedArray,
         permuted_set!
 
 ### Mid-level swap APIs
-include("Replicas.jl")
+include("Replica.jl")
 export  Replica,
-        Replicas,
-        ConstantInitializer,
-        chain,
+        chain
+
+include("pair_swapper.jl")
+export swap_decision,
+       swapstat
+
+include("replicas.jl")
+export  swap_round!,
+        locals,
+        load,
+        n_chains_global,
+        create_vector_replicas
+
+include("EntangledReplicas.jl")
+export  EntangledReplicas,
         entangler,
-        load
+        create_entangled_replicas
 
 include("swap_graphs.jl")
 export deo
 
 include("swap.jl")
-export  swap_round!,
-        swap_decision,
-        swapstat
+export  swap_round!
 
 include("summary.jl")
 

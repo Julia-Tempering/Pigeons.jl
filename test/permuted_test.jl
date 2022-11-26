@@ -13,6 +13,8 @@ end
 
 """
 Run from runtests.jl
+
+See some timing results at end of file.
 """
 
 function test_permuted(args::Args)
@@ -74,3 +76,16 @@ end
 
 
 test_permuted(Args())
+
+
+"""
+Command: julia --project=. test/permuted_test.jl --iters 10000 --N 1000
+Exec directory: /scratch/st-alexbou-1/Pigeons.jl/results/all/2022-11-23-19-59-01-m1LA6DS0
+PBS resources: walltime=00:01:00,select=1000:ncpus=1:mpiprocs=1:mem=8gb
+Git commit: 61fa0a8dc4a3315c11f116cde497e5a6f94f7d36
+
+Entangler initialized 1000 MPI processes
+Timing summary: 6569.785057999984 μs (18385.331459525063)
+"""
+
+nothing

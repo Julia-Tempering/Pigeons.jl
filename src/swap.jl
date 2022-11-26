@@ -1,5 +1,51 @@
 """
-Perform one round of swaps. 
+Implementation of swap! (an informal interface method defined in replicas)
+"""
+
+"""
+Single process implementation
+"""
+function swap_round!(pair_swapper, replicas::Vector{Replica{S}}, swap_graph) where S
+    @assert sorted(replicas)
+    # perform the swaps
+    for my_chain in eachindex(replicas)
+        my_replica = replicas[my_chain]
+        partner_chain = checked_partner_chain(swap_graph, my_chain)
+        if partner_chain >= my_chain
+            partner_replica = replicas[partner_chain]
+            @assert partner_replica.chain == partner_chain
+            my_swapstat      = swapstat(pair_swapper, my_replica, partner_chain)
+            partner_swapstat = partner_chain == my_chain ? 
+                my_swapstat :
+                swapstat(pair_swapper, partner_replica, my_chain)
+            _swap!(pair_swapper, my_replica,      my_swapstat,      partner_swapstat, partner_chain)
+            _swap!(pair_swapper, partner_replica, partner_swapstat, my_swapstat,      my_chain)
+        end
+    end
+    # re-sort
+    for my_chain in eachindex(replicas)
+        my_replica = replicas[my_chain]
+        if my_replica.chain != my_chain
+            partner_chain = my_replica.chain
+            partner_replica = replicas[partner_chain]
+            @assert partner_replica.chain == my_chain
+            replicas[my_chain]      = partner_replica
+            replicas[partner_chain] = my_replica
+        end
+    end
+end
+
+function sorted(replicas::Vector{Replica{S}}) where S
+    for i in eachindex(replicas)
+        if i != replicas[i].chain
+            return false
+        end
+    end
+    return true
+end
+
+"""
+Entangled MPI implementation.
 
 This implementation is designed to support distributed PT with the following guarantees
     - The running time is independent of the size of the state space 
@@ -32,22 +78,22 @@ allocates O(N) while in the case of a single
 process, it would be possible to have a no-allocation implementation. However again it is 
 unlikely that this method would be the bottleneck in single-process mode.
 """
-function swap_round!(swapper, replicas::Replicas, swap_graph)
+function swap_round!(pair_swapper, replicas::EntangledReplicas, swap_graph)
     # what chains (annealing parameters) are we swapping with?
-    partner_chains = [_partner_chain(swap_graph, replicas.locals[i]) for i in eachindex(replicas.locals)]
+    partner_chains = [checked_partner_chain(swap_graph, replicas.locals[i].chain) for i in eachindex(replicas.locals)]
 
     # translate these annealing parameters (chains) into replica global indices (so that we can find machines that hold them)
     partner_replica_global_indices = permuted_get(replicas.chain_to_replica_global_indices, partner_chains)
 
     # assemble sufficient statistics needed to perform a swap (for vanilla PT, log likelihood and a uniform variate)
     # ... for each of my replicas
-    my_swapstats = [swapstat(swapper, replicas.locals[i], partner_chains[i]) for i in eachindex(replicas.locals)]
+    my_swapstats = [swapstat(pair_swapper, replicas.locals[i], partner_chains[i]) for i in eachindex(replicas.locals)]
     # ... and their partners via MPI
     partner_swapstats = transmit(entangler(replicas), my_swapstats, partner_replica_global_indices)
 
     # each call of _swap! performs "one half" of a swap, changing one replicas' chain field in-place
     for i in eachindex(replicas.locals)
-        _swap!(swapper, replicas.locals[i], my_swapstats[i], partner_swapstats[i], partner_chains[i])
+        _swap!(pair_swapper, replicas.locals[i], my_swapstats[i], partner_swapstats[i], partner_chains[i])
     end
 
     # update the distributed array linking chains to replicas
@@ -55,33 +101,21 @@ function swap_round!(swapper, replicas::Replicas, swap_graph)
     permuted_set!(replicas.chain_to_replica_global_indices, chain.(replicas.locals), my_replica_global_indices)
 end
 
-"""
-A 'swapper' first extracts sufficient statistics needed to perform a swap (potentially to be transmitted over network).
-    In the typical case, this will be log densities before and after proposed swap (or just the likelihood with linear 
-    annealing paths), and a uniform [0, 1] variate.
+# Private low-level functions shared by all implementations:
 
-Then based on two sets of sufficient statistics, deterministically decide if we should swap. 
-"""
-swapstat(swapper, replica::Replica, partner_chain::Int) = @abstract
-swap_decision(swapper, chain1::Int, stat1, chain2::Int, stat2)::Bool = @abstract
-
-
-# Private low-level functions:
-
-function _swap!(swapper, r::Replica, my_swapstat, partner_swapstat, partner_chain::Int)
+function _swap!(pair_swapper, r::Replica, my_swapstat, partner_swapstat, partner_chain::Int)
     my_chain = r.chain
     if my_chain == partner_chain return nothing end
 
-    do_swap          =  swap_decision(swapper, my_chain, my_swapstat, partner_chain, partner_swapstat)
-    @assert do_swap  == swap_decision(swapper, partner_chain, partner_swapstat, my_chain, my_swapstat)
+    do_swap          =  swap_decision(pair_swapper, my_chain, my_swapstat, partner_chain, partner_swapstat)
+    @assert do_swap  == swap_decision(pair_swapper, partner_chain, partner_swapstat, my_chain, my_swapstat)
 
     if do_swap
         r.chain = partner_chain # NB: other "half" of the swap performed by partner
     end
 end
 
-function _partner_chain(swap_graph, r::Replica)::Int 
-    my_chain = r.chain
+function checked_partner_chain(swap_graph, my_chain::Int)::Int 
     result            = partner_chain(swap_graph, my_chain)
     @assert my_chain == partner_chain(swap_graph, result)
     return result
