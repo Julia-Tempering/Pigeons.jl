@@ -17,7 +17,7 @@ using Dates
 
 export NRPT, slice_sample, SS
 
-# abstract types
+### abstract types
 include("abstract.jl")
 
 ### Samplers
@@ -29,7 +29,7 @@ include("adaptation.jl")
 include("deo.jl")
 include("exploration.jl")
 include("restarts.jl")
-include("NRPT.jl")
+include("nrpt.jl")
 
 ### Other
 include("utils.jl")
