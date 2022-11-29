@@ -14,6 +14,7 @@ using StatsBase
 using Interpolations
 using Roots
 using Dates
+using OnlineStats
 
 export NRPT, slice_sample, SS
 
@@ -57,10 +58,10 @@ export  Replica,
 
 include("pair_swapper.jl")
 export swap_decision,
-       swapstat
+       swap_stat
 
 include("replicas.jl")
-export  swap_round!,
+export  swap!,
         locals,
         load,
         n_chains_global,
@@ -75,7 +76,7 @@ include("swap_graphs.jl")
 export deo
 
 include("swap.jl")
-export  swap_round!
+export  swap!
 
 include("summary.jl")
 

@@ -17,17 +17,7 @@ julia --project=. test/swap_test.jl --N 100 --iters 20000 --pr 0.5
     @argumentdefault Float64 0.5 swap_pr "--pr"
 end
 
-"""
-For testing purpose, a simple swap model where all swaps have equal acceptance probability. 
-"""
-struct TestSwapper 
-    constant_swap_accept_pr::Float64
-end
-Pigeons.swapstat(swapper::TestSwapper, replica::Replica, partner_chain::Int)::Float64 = rand(replica.rng)
-function Pigeons.swap_decision(swapper::TestSwapper, chain1::Int, stat1::Float64, chain2::Int, stat2::Float64)::Bool 
-    uniform = chain1 < chain2 ? stat1 : stat2
-    return uniform < swapper.constant_swap_accept_pr
-end
+
 
 """
 See below for some performance evaluation results and comments.
@@ -40,7 +30,7 @@ function test_swap(replicas, n_iters::Int, accept_pr::Float64)
     timing_stats = Series(Mean(), Variance())
 
     for iteration in 1:n_iters
-        t = @elapsed swap_round!(swapper, replicas, deo(n_chains_global(replicas), iteration))
+        t = @elapsed swap!(swapper, replicas, deo(n_chains_global(replicas), iteration))
     
         if iteration > n_iters / 2
             fit!(timing_stats, t)

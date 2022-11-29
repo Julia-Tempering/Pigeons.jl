@@ -7,6 +7,7 @@ end
 entangler(r::EntangledReplicas) = r.chain_to_replica_global_indices.entangler # an 'entangler' encapsulates the MPI details
 load(r::EntangledReplicas) = entangler(r).load # load balancing information
 locals(r::EntangledReplicas) = r.locals
+communicator(r::EntangledReplicas) = entangler(r).communicator
 
 function create_entangled_replicas(n_chains::Int, state_initializer, rng::SplittableRandom, useMPI::Bool)
     entangler = Entangler(n_chains, parent_communicator = (useMPI ? COMM_WORLD : nothing))
