@@ -1,0 +1,31 @@
+#!/bin/bash
+
+description="List runs"
+
+
+error=false
+while getopts "h" opt; do
+  case "$opt" in
+    h)  error=true
+      ;;
+    *)  error=true
+  esac
+done
+
+execs=results/all/
+
+echo exec_name,qsub_id,git_commit,start,end,command
+for exec_name in `ls $exex`; 
+do  
+  exec_dir=$execs/$exec_name/
+  exec_info_dir=$exec_dir/executionInfo/
+  qsub_id=$(cat $exec_info_dir/qsub_id.txt)
+  command=$(cat $exec_info_dir/command.txt)
+  git_commit=$(cat $exec_info_dir/git-commit.txt)
+  start=$(cat $exec_info_dir/start-time.txt)
+  end=$(cat $exec_info_dir/end-time.txt)
+  start_hr=$(date -d @$start)
+  end_hr=$(date -d @$end)
+
+  echo $exec_name,$qsub_id,$git_commit,$start_hr,$end_hr,$command
+done
