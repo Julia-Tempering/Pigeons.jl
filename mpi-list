@@ -15,7 +15,7 @@ done
 execs=results/all/
 
 echo exec_name,qsub_id,git_commit,start,end,command
-for exec_name in `ls $exex`; 
+for exec_name in `ls $execs`; 
 do  
   exec_dir=$execs/$exec_name/
   exec_info_dir=$exec_dir/executionInfo/
