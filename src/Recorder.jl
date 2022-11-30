@@ -11,7 +11,7 @@ end
 
 Recorder(replicas) = Recorder(communicator(replicas), empty_stat())
 empty_stats() = (;
-        :swap_acceptance_pr = GroupBy(Int, Mean())
+        swap_acceptance_pr = GroupBy(Int, Mean())
     )
 
 function fit_if_defined!(stats_tuple, key, value)

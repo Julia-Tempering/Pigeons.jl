@@ -14,8 +14,8 @@ swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)::Bool = @abs
 pair_swapper for general path models. 
 """
 struct Swapper{LP, R}
-    log_potentials::Vector{LP}
-    recorder::Recorder{R}
+    log_potentials::AbstractVector{LP}
+    recorder::R
 end
 struct SwapStat
     current_log_potential::Float64

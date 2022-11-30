@@ -18,6 +18,10 @@ using OnlineStats
 
 export NRPT, slice_sample, SS
 
+### Paths, discretization, log_potentials
+include("log_potentials.jl")
+include("path.jl")
+
 ### Samplers
 include("samplers/samplers.jl")
 
@@ -77,6 +81,12 @@ export deo
 
 include("swap.jl")
 export  swap!
+
+### Recorder are used to collect statistics
+include("Recorder.jl")
+
+
+
 
 include("summary.jl")
 
