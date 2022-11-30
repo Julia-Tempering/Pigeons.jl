@@ -19,13 +19,18 @@ for exec_name in `ls $execs`;
 do  
   exec_dir=$execs/$exec_name/
   exec_info_dir=$exec_dir/executionInfo/
-  qsub_id=$(cat $exec_info_dir/qsub_id.txt)
-  command=$(cat $exec_info_dir/command.txt)
-  git_commit=$(cat $exec_info_dir/git-commit.txt)
-  start=$(cat $exec_info_dir/start-time.txt)
-  end=$(cat $exec_info_dir/end-time.txt)
-  start_hr=$(date -d @$start)
-  end_hr=$(date -d @$end)
+  qsub_id=NA
+  command=NA
+  git_commit=NA
+  start_hr=NA
+  end_hr=NA
+  [ -f $exec_info_dir/qsub_id.txt ] && qsub_id=$(cat $exec_info_dir/qsub_id.txt)
+  [ -f $exec_info_dir/command.txt ] && command=$(cat $exec_info_dir/command.txt)
+  [ -f $exec_info_dir/git-commit.txt ] && git_commit=$(cat $exec_info_dir/git-commit.txt)
+  [ -f $exec_info_dir/start-time.txt ] && start=$(cat $exec_info_dir/start-time.txt)
+  [ -f $exec_info_dir/end-time.txt ] && end=$(cat $exec_info_dir/end-time.txt)
+  [ -f $exec_info_dir/start-time.txt ] && start_hr=$(date -d @$start)
+  [ -f $exec_info_dir/end-time.txt ] && end_hr=$(date -d @$end)
 
   echo $exec_name,$qsub_id,$git_commit,$start_hr,$end_hr,$command
 done
