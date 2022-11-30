@@ -5,11 +5,11 @@ using MPI
 
 MPI.Init()
 rk = MPI.Comm_rank(MPI.COMM_WORLD)
+sz = MPI.Comm_size(MPI.COMM_WORLD)
 result = one_per_host(MPI.COMM_WORLD)
 
-if result === nothing
-    println("Rank $rk excluded")
-else
-    new_rk =  MPI.Comm_rank(result)
-    println("Rank $rk included (new rank is $new_rk)")
+
+if rk == 0
+    subsz = MPI.Comm_size(result)
+    println("Subset of $subsz out of $sz")
 end
