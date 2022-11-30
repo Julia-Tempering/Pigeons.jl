@@ -6,7 +6,7 @@ import MPI: Comm, Allreduce, Comm_rank,
             Isend, Irecv!, Recv!, COMM_WORLD, 
             Comm_size, Comm_rank, Init, 
             Comm_dup, Request, Waitall,
-            RequestSet, mpiexec
+            RequestSet, mpiexec, Allreduce
 
 using Base: Forward
 using Distributions
@@ -18,9 +18,14 @@ using OnlineStats
 
 export NRPT, slice_sample, SS
 
+include("utils.jl")
+export  split_slice,
+        mpi_test
+
 ### Paths, discretization, log_potentials
 include("log_potentials.jl")
 include("path.jl")
+include("paths.jl")
 
 ### Samplers
 include("samplers/samplers.jl")
@@ -33,10 +38,7 @@ include("exploration.jl")
 include("restarts.jl")
 include("NRPT.jl")
 
-### Other
-include("utils.jl")
-export  split_slice,
-        mpi_test
+
 
 ### Low-level MPI utilities
 include("mpi_utils/LoadBalance.jl")
