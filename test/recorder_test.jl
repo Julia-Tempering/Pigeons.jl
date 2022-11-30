@@ -3,8 +3,7 @@ using OnlineStats
 using SplittableRandoms
 using MPI
 
-maybe simplest will be to write your own allreduce based on isend/etc...
-    -> ensures finer control on repro at same time..
+
 
 function test_recorder(replicas, n_iters::Int)
     n_chains = n_chains_global(replicas)

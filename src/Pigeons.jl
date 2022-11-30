@@ -6,7 +6,9 @@ import MPI: Comm, Allreduce, Comm_rank,
             Isend, Irecv!, Recv!, COMM_WORLD, 
             Comm_size, Comm_rank, Init, 
             Comm_dup, Request, Waitall,
-            RequestSet, mpiexec, Allreduce
+            RequestSet, mpiexec, Allreduce, 
+            Allgather, Comm_split
+
 
 using Base: Forward
 using Distributions
@@ -56,6 +58,9 @@ include("mpi_utils/PermutedDistributedArray.jl")
 export  PermutedDistributedArray,
         permuted_get,
         permuted_set!
+
+include("mpi_utils/one_per_host.jl")
+export one_per_host
 
 ### Mid-level swap APIs
 include("Replica.jl")
