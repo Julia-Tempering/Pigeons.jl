@@ -72,6 +72,7 @@ cat << EOF > $pbs_script
 #PBS -e $exec_info_dir/stderr.txt
 cd \$PBS_O_WORKDIR
 source ./modules.sh
+cp \$PBS_NODEFILE $exec_info_dir/nodes.txt
 EXEC_DIR=$exec_folder # Launched program can use this environmnent variable to determine where to write output
 date +%s > $exec_info_dir/start-time.txt
 mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $command
