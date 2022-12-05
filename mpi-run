@@ -1,7 +1,7 @@
 #!/bin/bash
 
 description="Create a PBS script calling mpiexec and submit it using qsub. The job gets a unique execution folder symlinked in results/latest"
-example="Example:  ./mpi-run julia -p 2000 -t 00:01:00  julia --project=. test/benchmark_distributed_array.jl"
+example="Example:  ./mpi-run -p 2000 -t 00:01:00 julia --project=. test/benchmark_distributed_array.jl"
 
 default_alloc="st-alexbou-1"
 

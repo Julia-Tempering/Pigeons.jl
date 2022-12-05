@@ -7,7 +7,8 @@ import MPI: Comm, Allreduce, Comm_rank,
             Comm_size, Comm_rank, Init, 
             Comm_dup, Request, Waitall,
             RequestSet, mpiexec, Allreduce, 
-            Allgather, Comm_split
+            Allgather, Comm_split, isend, recv,
+            bcast
 
 
 using Base: Forward
@@ -52,7 +53,9 @@ export  my_global_indices,
 include("mpi_utils/Entanglement.jl")
 export  Entangler,
         transmit,
-        transmit!
+        transmit!,
+        reduce_deterministically,
+        all_reduce_deterministically
 
 include("mpi_utils/PermutedDistributedArray.jl")
 export  PermutedDistributedArray,

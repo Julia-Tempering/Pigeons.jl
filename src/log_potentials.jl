@@ -1,3 +1,7 @@
-# Example implementations of log_potential's
 
-(d::Distribution)(x) = logpdf(d, x)
+# dist_seq? distributions = sequence of distributions
+
+log_unnormalized_ratio(distributions, numerator::Int, denominator::Int, state) = @abstract 
+
+
+#length(distributions)
