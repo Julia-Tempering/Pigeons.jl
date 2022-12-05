@@ -124,38 +124,42 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
     myload = my_load(e.load)
     @assert length(source_data) == myload
     n_remaining_to_reduce = e.load.n_global_indices
-    # merging will be done in round in this array
+    # merging will be done in this array
     work_array = copy(source_data)
     spacing = 1 # as we reduce, the spacing between remaining entries will double every iteration
+    # 'global' refers to the index space shared by all machines, 'local' to the index this machines sees (indexing source_data and work_array)
     myglobals = my_global_indices(e.load)
-    # half of the iteration, the first local entry will be send to the left neighbour machine (unless this is the first process)
-    sending_iteration = iseven(first(myglobals)) 
-    is_first_process = first(myglobals) == 1
+    n_global_indices_remaining_before = first(myglobals) - 1
     # as we send off entries to the left neighbour machine, this process' first entry will shift
     my_first_remaining_local = 1
     # outer loop is over the levels of a binary tree over the global indices
+    iteration = 1
     while n_remaining_to_reduce > 1
         transmit_index = next_transmit_index!(e)
         current_local = my_first_remaining_local
         # on the current level of the tree, merge neighbour indices
+        did_send = false
         while current_local ≤ myload 
             current_global = first(myglobals) + current_local - 1
-            current_tag = tag(e, transmit_index, current_global)
-            if sending_iteration && !is_first_process && current_local == my_first_remaining_local
-                # send the first off to left neighbour
+            if isodd(n_global_indices_remaining_before) && current_local == my_first_remaining_local
+                # need to send the first off to left neighbour
                 dest_global_index = current_global - spacing 
                 dest_process = find_process(e.load, dest_global_index)
-                isend(work_array[current_local], e.communicator; dest = dest_process, tag = current_tag)
-                my_first_remaining_local += spacing
-                current_local += spacing                
+                dest_rank = dest_process - 1
+                isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
+                current_local += spacing           
+                did_send = true     
             elseif current_global + spacing ≤ e.load.n_global_indices
+                
                 # a merge into work_array[current_local]
                 first_to_merge = work_array[current_local]
                 # second could be local or a receive
                 second_local_index = current_local + spacing 
-                second_to_merge = second_local_index ≤ myload ?
-                    work_array[second_local_index] :        # merge with another entry in this machine
-                    recv(e.communicator; tag = current_tag) # merge with the entry provided by right neighbour
+
+                second_to_merge = second_local_index ≤ myload ?                    # second entry from...
+                    work_array[second_local_index] :                               # ...another entry in this machine, or,
+                    recv(e.communicator; tag = tag(e, transmit_index, iteration) ) # ...neighbour machine
+                
                 # merge
                 work_array[current_local] = operation(first_to_merge, second_to_merge)
                 current_local += 2*spacing
@@ -165,9 +169,13 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
                 current_local += 2*spacing
             end  
         end
-        sending_iteration = !sending_iteration
+        if did_send 
+            my_first_remaining_local += spacing
+        end
+        n_global_indices_remaining_before = ceil(Int, n_global_indices_remaining_before/2)
         spacing = spacing * 2
         n_remaining_to_reduce = ceil(Int, n_remaining_to_reduce/2)
+        iteration += 1
     end
     return e.load.my_process_index == 1 ? work_array[1] : nothing
 end
@@ -180,6 +188,7 @@ function all_reduce_deterministically(operation, source_data::AbstractVector{T},
         end
         return result
     else
+        reduce_deterministically(operation, source_data, e)
         return bcast(nothing, e.communicator)
     end
 end
