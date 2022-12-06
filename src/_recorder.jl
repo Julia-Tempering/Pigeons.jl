@@ -1,18 +1,9 @@
 """
-Statistics in the process of being collected. In particular, in an MPI environment 
+Statistics in the process of being collected, in particular, 
     they have not been reduced yet. Use reduced_stats(..) to do the reduction.
 """
-struct Recorder{C, S} 
-    communicator::C # current implementations: Nothing or Comm
-    stats::S        # S will typically be a NamedTuple carrying all the statistics we may need to MPI-reduce
-end
 
-
-
-# TODO: write samples to disk as well?
-
-Recorder(replicas) = Recorder(communicator(replicas), empty_stats())
-empty_stats() = (;
+empty_recorder() = (;
         swap_acceptance_pr = GroupBy(Int, Mean())
     )
 
