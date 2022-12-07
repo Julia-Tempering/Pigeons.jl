@@ -94,7 +94,7 @@ include("swap.jl")
 export  swap!
 
 ### Recorder are used to collect statistics
-include("Recorder.jl")
+include("recorder.jl")
 
 
 
