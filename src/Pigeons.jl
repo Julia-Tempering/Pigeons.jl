@@ -26,6 +26,7 @@ export  split_slice,
         mpi_test
 
 ### Paths, discretization, log_potentials
+include("log_potential.jl")
 include("log_potentials.jl")
 include("path.jl")
 include("paths.jl")

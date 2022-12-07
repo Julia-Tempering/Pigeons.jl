@@ -7,41 +7,40 @@ A pair_swapper first extracts sufficient statistics needed to perform a swap (po
 
 Then based on two sets of sufficient statistics, deterministically decide if we should swap. 
 """
-swap_stat(pair_swapper, replica::Replica, partner_chain::Int) = @abstract
-swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)::Bool = @abstract
+# swap_stat(pair_swapper, replica::Replica, partner_chain::Int) = @abstract
+# swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)::Bool = @abstract
+# record_swap_stats!(pair_swapper, recorder, chain1::Int, stat1, chain2::Int, stat2) = @abstract
+
 
 """
-pair_swapper for general path models. 
+Default pair_swapper: assume pair_swapper conforms the log_potentials interface. 
 """
-struct Swapper{LP, R}
-    log_potentials::AbstractVector{LP}
-    recorder::R
-end
-struct SwapStat
-    current_log_potential::Float64
-    translocated_log_potential::Float64 # what would be the log potential of current state if moved to the other chain (annealing parameter)?
+struct SwapStat 
+    log_ratio::Float64 
     uniform::Float64
 end
-function swap_stat(swapper::Swapper, replica::Replica, partner_chain::Int) 
+function swap_stat(log_potentials, replica::Replica, partner_chain::Int) 
     my_chain = replica.chain
-    current_log_potential      = swapper.log_potentials[my_chain](replica.state)
-    translocated_log_potential = swapper.log_potentials[partner_chain](replica.state)
-    return SwapStat(current_log_potential, translocated_log_potential, rand(replica.rng))
+    log_ratio = log_unnormalized_ratio(log_potentials, partner_chain, my_chain, replica.state)
+    return SwapStat(log_ratio, rand(replica.rng))
 end
-function swap_decision(swapper::Swapper, chain1::Int, stat1, chain2::Int, stat2)
+function record_swap_stats!(pair_swapper, recorder, chain1::Int, stat1, chain2::Int, stat2)
+    acceptance_pr = swap_acceptance_probability(stat1, stat2)
+    index = min(chain1, chain2)
+    fit_if_defined!(recorder, :swap_acceptance_pr, (index, acceptance_pr))
+    # TODO accumulate stepping-stone statistics
+end
+function swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)
     acceptance_pr = swap_acceptance_probability(stat1, stat2)
     uniform = chain1 < chain2 ? stat1.uniform : stat2.uniform
-    if chain1 < chain2
-        record_swap_stats!(swapper.recorder, chain1::Int, stat1, chain2::Int, stat2)
-    end
     return uniform < acceptance_pr
 end
-swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = 
-    stat1.translocated_log_potential + stat2.translocated_log_potential -
-   (stat1.current_log_potential      + stat2.current_log_potential)
+swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
 
 """
 For testing/benchmarking purpose, a simple swap model where all swaps have equal acceptance probability. 
+
+Could also be used to pre-warm-start swap connections during exploration phase by setting pr = 0. 
 """
 struct TestSwapper 
     constant_swap_accept_pr::Float64

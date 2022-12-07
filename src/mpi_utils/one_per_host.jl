@@ -5,6 +5,8 @@ For benchmarking purpose: subset the communicator so that at most one MPI proces
 Division is done so that original rank 0 is always included.
 
 Return the new communicator or nothing if this machine is not in the subset. 
+
+See also '-s' option in mpi-run
 """
 function one_per_host(communicator)
     my_host_hash = hash(gethostname())

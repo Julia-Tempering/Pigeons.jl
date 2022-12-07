@@ -5,7 +5,7 @@ Implementation of swap! (an informal interface method defined in replicas)
 """
 Single process implementation
 """
-function swap!(pair_swapper, replicas::Vector{Replica{S}}, swap_graph) where S
+function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
     @assert sorted(replicas)
     # perform the swaps
     for my_chain in eachindex(replicas)
@@ -35,7 +35,7 @@ function swap!(pair_swapper, replicas::Vector{Replica{S}}, swap_graph) where S
     end
 end
 
-function sorted(replicas::Vector{Replica{S}}) where S
+function sorted(replicas) 
     for i in eachindex(replicas)
         if i != replicas[i].chain
             return false
@@ -109,6 +109,10 @@ function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partn
 
     do_swap          =  swap_decision(pair_swapper, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
     @assert do_swap  == swap_decision(pair_swapper, partner_chain, partner_swap_stat, my_chain, my_swap_stat)
+
+    if my_chain < partner_chain
+        record_swap_stats!(pair_swapper, r.recorder, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
+    end
 
     if do_swap
         r.chain = partner_chain # NB: other "half" of the swap performed by partner

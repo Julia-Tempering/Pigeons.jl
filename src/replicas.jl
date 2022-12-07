@@ -1,6 +1,6 @@
 """
 replicas: an informal interface, implementations store the process' replicas. 
-    WARNING: Since we provide MPI implementations, DO NOT assume that this will contain all the replicas, as 
+    Since we provide MPI implementations, do not assume that this will contain all the replicas, as 
     other can be located in other processes/machines
 
 Implementations provided
@@ -23,6 +23,10 @@ load(replicas::Vector) = single_process_load(length(replicas))
 communicator(replicas) = @abstract 
 communicator(replicas::Vector) = nothing
 
+# return an entangler
+entangler(replicas) = @abstract 
+entangler(replicas::Vector) = Entangler(length(replicas); parent_communicator = nothing, verbose = false)
+
 # the total number of chains across all processes
 n_chains_global(replicas) = load(replicas).n_global_indices
 
@@ -39,5 +43,6 @@ initialization(state_initializer::AbstractVector, rng::SplittableRandom, chain::
 function create_vector_replicas(n_chains::Int, state_initializer, rng::SplittableRandom)
     split_rngs = split_slice(1:n_chains, rng)
     states = [initialization(state_initializer, split_rngs[i], i) for i in eachindex(split_rngs)]
-    return Replica.(states, 1:n_chains, split_rngs)
+    recorders = [empty_recorder() for i in eachindex(split_rngs)]
+    return Replica.(states, 1:n_chains, split_rngs, recorders)
 end

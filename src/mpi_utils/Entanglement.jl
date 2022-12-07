@@ -134,11 +134,13 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
     my_first_remaining_local = 1
     # outer loop is over the levels of a binary tree over the global indices
     iteration = 1
+
     while n_remaining_to_reduce > 1
         transmit_index = next_transmit_index!(e)
         current_local = my_first_remaining_local
         # on the current level of the tree, merge neighbour indices
         did_send = false
+
         while current_local ≤ myload 
             current_global = first(myglobals) + current_local - 1
             if isodd(n_global_indices_remaining_before) && current_local == my_first_remaining_local
@@ -150,16 +152,13 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
                 current_local += spacing           
                 did_send = true     
             elseif current_global + spacing ≤ e.load.n_global_indices
-                
                 # a merge into work_array[current_local]
                 first_to_merge = work_array[current_local]
                 # second could be local or a receive
                 second_local_index = current_local + spacing 
-
                 second_to_merge = second_local_index ≤ myload ?                    # second entry from...
                     work_array[second_local_index] :                               # ...another entry in this machine, or,
                     recv(e.communicator; tag = tag(e, transmit_index, iteration) ) # ...neighbour machine
-                
                 # merge
                 work_array[current_local] = operation(first_to_merge, second_to_merge)
                 current_local += 2*spacing
@@ -169,6 +168,7 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
                 current_local += 2*spacing
             end  
         end
+        
         if did_send 
             my_first_remaining_local += spacing
         end
@@ -177,6 +177,7 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
         n_remaining_to_reduce = ceil(Int, n_remaining_to_reduce/2)
         iteration += 1
     end
+
     return e.load.my_process_index == 1 ? work_array[1] : nothing
 end
 
