@@ -50,3 +50,4 @@ function swap_decision(swapper::TestSwapper, chain1::Int, stat1::Float64, chain2
     uniform = chain1 < chain2 ? stat1 : stat2
     return uniform < swapper.constant_swap_accept_pr
 end
+record_swap_stats!(swapper::TestSwapper, recorder, chain1::Int, stat1, chain2::Int, stat2) = nothing

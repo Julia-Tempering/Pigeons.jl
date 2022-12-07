@@ -18,19 +18,13 @@ function test_recorder(replicas, n_iters::Int)
             replica.state = new_sample
         end
     end
-    reduced = Pigeons.reduced_stats(replicas)
-    println(Pigeons.state.(locals(replicas)))
-    println(value(reduced[:swap_acceptance_pr]))
-    println("---")
+    return Pigeons.reduced_stats(replicas)
 end
 
 n_chains = 5
+n_iters = 1000
 
-test_recorder(create_vector_replicas(n_chains, Ref(0.0), SplittableRandom(1) ), 20)
-test_recorder(create_vector_replicas(n_chains, Ref(0.0), SplittableRandom(1) ), 20)
+one_machine = test_recorder(create_vector_replicas(n_chains, Ref(0.0), SplittableRandom(1) ), n_iters)
+mpi = test_recorder(create_entangled_replicas(n_chains, Ref(0.0), SplittableRandom(1), true), n_iters)
 
-
-test_recorder(create_entangled_replicas(n_chains, Ref(0.0), SplittableRandom(1), true), 20)
-test_recorder(create_entangled_replicas(n_chains, Ref(0.0), SplittableRandom(1), true), 20)
-
-
+@assert one_machine == mpi

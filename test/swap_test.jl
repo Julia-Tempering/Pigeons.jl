@@ -24,7 +24,7 @@ See below for some performance evaluation results and comments.
 """
 function test_swap(replicas, n_iters::Int, accept_pr::Float64)
 
-    swapper = TestSwapper(accept_pr)
+    swapper = Pigeons.TestSwapper(accept_pr)
     
 
     timing_stats = Series(Mean(), Variance())
