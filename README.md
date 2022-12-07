@@ -11,11 +11,10 @@ Distributed Non-Reversible Parallel Tempering
 
 ## Install
 
-At the moment (TODO: publish SplittableRandoms.jl and Pigeons.jl to registry)
+At the moment (TODO: publish Pigeons.jl to registry)
 
 ```
 ]
-dev https://github.com/UBC-Stat-ML/SplittableRandoms.jl
 dev git@github.com:Julia-Tempering/Pigeons.jl.git
 ```
 

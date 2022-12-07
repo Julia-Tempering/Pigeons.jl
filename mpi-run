@@ -1,7 +1,7 @@
 #!/bin/bash
 
 description="Create a PBS script calling mpiexec and submit it using qsub. The job gets a unique execution folder symlinked in results/latest"
-example="Example:  ./mpi-run julia -p 2000 -t 00:01:00  julia --project=. test/benchmark_distributed_array.jl"
+example="Example:  ./mpi-run -p 2000 -t 00:01:00 julia --project=. test/benchmark_distributed_array.jl"
 
 default_alloc="st-alexbou-1"
 
@@ -13,11 +13,15 @@ c=1
 t=00:30:00
 m=8gb
 
+scatter=false
 error=false
-while getopts "A:p:c:t:m:h" opt; do
+while getopts "A:p:c:t:m:hs" opt; do
   case "$opt" in
     A)  A=$OPTARG
       ;;
+    s) 
+        scatter=true
+      ;; 
     h)  error=true
       ;; 
     p)  p=$OPTARG
@@ -34,9 +38,9 @@ done
 
 if [[ $# < 1 || $error == true ]]; then
   echo $description
-  echo "$0 [-p #processor] [-c #cpus_per_node] [-t time_budget] [-m mem] [-A pbs_allocation] program [program_args...]"
+  echo "$0 [-p #processor] [-c #cpus_per_node] [-t time_budget] [-m mem] [-A pbs_allocation] [-s] program [program_args...]"
   echo $example
-  echo "Defaults: 1 processor, 1 cpu per nodes, 00:30:00 time budget (30 min), 8gb memory, $default_alloc alloc"
+  echo "Defaults: 1 processor, 1 cpu per nodes, 00:30:00 time budget (30 min), 8gb memory, $default_alloc alloc; -s is to scatter, i.e. one process per node, for benchmarking"
   exit 0
 fi
 
@@ -62,16 +66,22 @@ pbs_resources="walltime=$t,select=$p:ncpus=$c:mpiprocs=$c:mem=$m"
 echo $command > $exec_info_dir/command.txt
 echo $pbs_resources > $exec_info_dir/pbs-resources.txt
 git rev-parse HEAD > $exec_info_dir/git-commit.txt
+scatter_string=""
+if [[ $scatter == true ]]; then
+  scatter_string="#PBS -l place=scatter"
+fi
 
 cat << EOF > $pbs_script
 #!/bin/bash
 #PBS -l $pbs_resources
+$scatter_string
 #PBS -A $A
 #PBS -N $rnd
 #PBS -o $exec_info_dir/stdout.txt
 #PBS -e $exec_info_dir/stderr.txt
 cd \$PBS_O_WORKDIR
 source ./modules.sh
+cp \$PBS_NODEFILE $exec_info_dir/nodes.txt
 EXEC_DIR=$exec_folder # Launched program can use this environmnent variable to determine where to write output
 date +%s > $exec_info_dir/start-time.txt
 mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $command

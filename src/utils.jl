@@ -106,3 +106,8 @@ function mpi_test(n_processes::Int, test_file::String; options = [])
         run(`$exe -n $n_processes $(Base.julia_cmd()) --project=$project_folder $project_folder/test/$test_file $options`)
     end
 end
+
+# Compute w*x, but if w==0.0, do not evaluate x and just return 0.0
+macro weighted(w, x) 
+    :($(esc(w)) == 0.0 ? 0.0 : $(esc(w)) * $(esc(x)))
+end

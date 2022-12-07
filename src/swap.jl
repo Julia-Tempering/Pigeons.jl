@@ -5,7 +5,7 @@ Implementation of swap! (an informal interface method defined in replicas)
 """
 Single process implementation
 """
-function swap_round!(pair_swapper, replicas::Vector{Replica{S}}, swap_graph) where S
+function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
     @assert sorted(replicas)
     # perform the swaps
     for my_chain in eachindex(replicas)
@@ -14,12 +14,12 @@ function swap_round!(pair_swapper, replicas::Vector{Replica{S}}, swap_graph) whe
         if partner_chain >= my_chain
             partner_replica = replicas[partner_chain]
             @assert partner_replica.chain == partner_chain
-            my_swapstat      = swapstat(pair_swapper, my_replica, partner_chain)
-            partner_swapstat = partner_chain == my_chain ? 
-                my_swapstat :
-                swapstat(pair_swapper, partner_replica, my_chain)
-            _swap!(pair_swapper, my_replica,      my_swapstat,      partner_swapstat, partner_chain)
-            _swap!(pair_swapper, partner_replica, partner_swapstat, my_swapstat,      my_chain)
+            my_swap_stat      = swap_stat(pair_swapper, my_replica, partner_chain)
+            partner_swap_stat = partner_chain == my_chain ? 
+                my_swap_stat :
+                swap_stat(pair_swapper, partner_replica, my_chain)
+            _swap!(pair_swapper, my_replica,      my_swap_stat,      partner_swap_stat, partner_chain)
+            _swap!(pair_swapper, partner_replica, partner_swap_stat, my_swap_stat,      my_chain)
         end
     end
     # re-sort
@@ -35,7 +35,7 @@ function swap_round!(pair_swapper, replicas::Vector{Replica{S}}, swap_graph) whe
     end
 end
 
-function sorted(replicas::Vector{Replica{S}}) where S
+function sorted(replicas) 
     for i in eachindex(replicas)
         if i != replicas[i].chain
             return false
@@ -78,7 +78,7 @@ allocates O(N) while in the case of a single
 process, it would be possible to have a no-allocation implementation. However again it is 
 unlikely that this method would be the bottleneck in single-process mode.
 """
-function swap_round!(pair_swapper, replicas::EntangledReplicas, swap_graph)
+function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
     # what chains (annealing parameters) are we swapping with?
     partner_chains = [checked_partner_chain(swap_graph, replicas.locals[i].chain) for i in eachindex(replicas.locals)]
 
@@ -87,13 +87,13 @@ function swap_round!(pair_swapper, replicas::EntangledReplicas, swap_graph)
 
     # assemble sufficient statistics needed to perform a swap (for vanilla PT, log likelihood and a uniform variate)
     # ... for each of my replicas
-    my_swapstats = [swapstat(pair_swapper, replicas.locals[i], partner_chains[i]) for i in eachindex(replicas.locals)]
+    my_swap_stats = [swap_stat(pair_swapper, replicas.locals[i], partner_chains[i]) for i in eachindex(replicas.locals)]
     # ... and their partners via MPI
-    partner_swapstats = transmit(entangler(replicas), my_swapstats, partner_replica_global_indices)
+    partner_swap_stats = transmit(entangler(replicas), my_swap_stats, partner_replica_global_indices)
 
     # each call of _swap! performs "one half" of a swap, changing one replicas' chain field in-place
     for i in eachindex(replicas.locals)
-        _swap!(pair_swapper, replicas.locals[i], my_swapstats[i], partner_swapstats[i], partner_chains[i])
+        _swap!(pair_swapper, replicas.locals[i], my_swap_stats[i], partner_swap_stats[i], partner_chains[i])
     end
 
     # update the distributed array linking chains to replicas
@@ -103,12 +103,16 @@ end
 
 # Private low-level functions shared by all implementations:
 
-function _swap!(pair_swapper, r::Replica, my_swapstat, partner_swapstat, partner_chain::Int)
+function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partner_chain::Int)
     my_chain = r.chain
     if my_chain == partner_chain return nothing end
 
-    do_swap          =  swap_decision(pair_swapper, my_chain, my_swapstat, partner_chain, partner_swapstat)
-    @assert do_swap  == swap_decision(pair_swapper, partner_chain, partner_swapstat, my_chain, my_swapstat)
+    do_swap          =  swap_decision(pair_swapper, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
+    @assert do_swap  == swap_decision(pair_swapper, partner_chain, partner_swap_stat, my_chain, my_swap_stat)
+
+    if my_chain < partner_chain
+        record_swap_stats!(pair_swapper, r.recorder, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
+    end
 
     if do_swap
         r.chain = partner_chain # NB: other "half" of the swap performed by partner

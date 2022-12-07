@@ -19,6 +19,15 @@ end
 @testset "Entanglement" begin
     mpi_test(1, "entanglement_test.jl")
     mpi_test(2, "entanglement_test.jl")
+
+    mpi_test(1, "reduce_test.jl")
+    mpi_test(2, "reduce_test.jl")
+    mpi_test(3, "reduce_test.jl")
+end
+
+@testset "recorder.jl" begin
+    mpi_test(1, "recorder_test.jl")
+    mpi_test(2, "recorder_test.jl")
 end
 
 @testset "PermutedDistributedArray" begin

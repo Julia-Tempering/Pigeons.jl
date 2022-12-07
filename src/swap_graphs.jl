@@ -6,9 +6,10 @@ Convention: if a chain is not interacting, return its index.
 
 Canonical example is the standard Odd and Even swap implemented below.
 
-Extension point for e.g. implementing variational methods with more than 2 legs,
-    or PT algorithms dealing with more than one target simultaneously for 
-    the purpose of model selection. 
+Extension point for e.g. 
+    - parallel parallel tempering
+    - variational methods with more than 2 legs,
+    - PT algorithms dealing with more than one target simultaneously for the purpose of model selection. 
 """
 partner_chain(swap_graph, index::Int) = @abstract
 
