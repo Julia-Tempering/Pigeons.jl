@@ -141,12 +141,12 @@ function informal_interfaces(mod)
         f -> map(name -> (name, resolve(name, mod)), f)
 end
 
+const informal_file_name = ".interfaces"
 function informal_doc(doc_dir, mod::Module)
     contents = join([informal_doc(n, i, mod) for (n, i) in informal_interfaces(mod)], "\n\n---\n\n")
-    file_name = ".interfaces.md"
-    f = "$doc_dir/src/$file_name"
+    f = "$doc_dir/src/$informal_file_name.md"
     write(f, contents)
-    return file_name
+    return "$informal_file_name.md"
 end
 
 function get_doc(name::Symbol, mod::Module)
@@ -154,11 +154,26 @@ function get_doc(name::Symbol, mod::Module)
     return eval(expr)
 end
 
+informal_section(name) = "Informal interface `$name`"
+function informal_link(name) 
+    section_link = replace(informal_section(name), " " => "-", "`" => "")
+    return "$informal_file_name.html#$section_link"
+end
+macro ii(name_symbol)
+    name = string(name_symbol)
+    link = informal_link(name)
+    return "[$name]($link)"
+end
+
+function Base.show(io::IO, informal::InformalInterfaceSpec) 
+    
+end
+
 function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)
     comments = get_doc(name, mod)
     return """
 
-    ### Informal interface `$name`
+    ### $(informal_section(name))
 
     $comments
 
