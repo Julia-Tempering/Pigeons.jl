@@ -7,12 +7,31 @@ empty_recorder() = (;
         swap_acceptance_pr = GroupBy(Int, Mean())
     )
 
+"""
+$TYPEDSIGNATURES
+"""
 function fit_if_defined!(stats_tuple, key, value)
     if haskey(stats_tuple, key)
         fit!(stats_tuple[key], value)
     end
 end
 
+"""
+$(SIGNATURES)
+First one... ??? bb arg..
+"""
+mytest(x::Int) = x == 1 ? 1.0 : 2
+
+"""
+$(SIGNATURES)
+Second one...
+"""
+mytest(::Float64) = 1.0
+
+"""
+$(METHODLIST)
+Takes in a $(api("replicas"))
+"""
 reduced_stats(replicas) = all_reduce_deterministically(merge_stat_tuple, recorder.(locals(replicas)), entangler(replicas))
 
 function merge_stat_tuple(stat1, stat2)

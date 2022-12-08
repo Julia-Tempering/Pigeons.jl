@@ -111,3 +111,129 @@ end
 macro weighted(w, x) 
     :($(esc(w)) == 0.0 ? 0.0 : $(esc(w)) * $(esc(x)))
 end
+
+# helpers to automate documention generation
+
+
+using MacroTools
+export @informal, informal_doc
+
+
+
+struct InformalInterfaceSpec
+    declaration::Expr
+end
+
+function declarations(i::InformalInterfaceSpec) 
+    @capture(i.declaration, begin methods__ end)
+    return methods
+end
+
+macro informal(arg)
+    return quote
+        $(esc(arg)); InformalInterfaceSpec(:($$(Meta.quot(arg)))) 
+    end
+    # println(methods_expression)
+    # return quote
+    #     begin
+    #         quoted = quote $$(esc($methods_expression)) end
+    #         $(esc($methods_expression))
+    #         InformalInterfaceSpec(quoted)
+    #     end
+    # end
+end
+
+macro desp(arg)
+    return quote
+        ( :($$(Meta.quot(arg))), $(esc(arg)) )
+    end
+end
+
+
+
+# macro informal(methods_expression)
+#      @capture(methods_expression, begin methods__ end)
+#      for method in methods
+#         eval(method)
+#      end
+#      return InformalInterfaceSpec(convert(Vector{Expr},methods))
+# end
+
+resolve(name::Symbol, mod) = mod.eval(:($name))
+
+function informal_interfaces(mod)
+    return names(mod; all = true) |> 
+        t -> filter(name -> typeof(resolve(name, mod)) == InformalInterfaceSpec, t) |>
+        f -> map(name -> (name, resolve(name, mod)), f)
+end
+
+
+"""
+my_informal doc
+"""
+my_informal = @informal begin
+    """my f doc"""
+    my_first_fct(::Int) = 2
+    """another doc"""
+    my_second_fct(::Int) = 4 
+end
+
+export my_first_fct, my_second_fct
+
+
+# """
+# my interface description
+# """
+# @informal my_interface begin
+#     """my doc"""
+#     f(::Int) = 2
+#     g(::Int) = 4
+# end
+
+# @informal second begin
+#     function myf()
+#         return "asdf"
+#     end
+# end
+
+function informal_doc(doc_dir, mod::Module)
+    contents = join([informal_doc(n, i, mod) for (n, i) in informal_interfaces(mod)])
+    file_name = ".interfaces.md"
+    f = "$doc_dir/src/$file_name"
+    write(f, contents)
+    return file_name
+end
+
+function get_doc(name::Symbol, mod::Module)
+    expr = :(@doc $mod.$name)
+    return eval(expr)
+end
+
+
+function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)
+    comments = get_doc(name, mod)
+    return """
+
+    ### $name
+
+    $comments
+
+    $(join([informal_doc(declaration, mod) for declaration in declarations(interface)]))
+
+    """
+end
+
+function informal_doc(declaration::Expr, mod::Module)
+    split = split_documented(declaration)
+    return """
+    - [`$mod.$(split[:name])()`](@ref)
+
+    """
+end
+
+function split_documented(declaration::Expr)
+    expression = declaration.head == :macrocall ? declaration.args[4] : declaration
+    return MacroTools.splitdef(expression)
+end
+
+

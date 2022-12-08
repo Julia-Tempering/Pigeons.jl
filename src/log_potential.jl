@@ -9,3 +9,4 @@ Convention: we assume that if `f` is a log_potential, then it supports `f(x)`
 # Example implementations of log_potential's
 
 (d::Distribution)(x) = logpdf(d, x)
+

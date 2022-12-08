@@ -11,6 +11,10 @@ Extension point for e.g.
     - variational methods with more than 2 legs,
     - PT algorithms dealing with more than one target simultaneously for the purpose of model selection. 
 """
+
+"""
+$TYPEDSIGNATURES
+"""
 partner_chain(swap_graph, index::Int) = @abstract
 
 struct OddEven
@@ -20,6 +24,8 @@ end
 odd(n_chains::Int) =  OddEven(false, n_chains)
 even(n_chains::Int) = OddEven(true, n_chains)
 deo(n_chains::Int, current_iteration::Int) = iseven(current_iteration) ? even(n_chains) : odd(n_chains)
+
+"""$TYPEDSIGNATURES"""
 function partner_chain(swap_graph::OddEven, index::Int)
     @assert 1 ≤ index ≤ swap_graph.n_chains
     direction = (iseven(index) == swap_graph.even ? 1 : -1)
