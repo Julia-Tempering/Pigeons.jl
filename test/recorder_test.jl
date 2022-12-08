@@ -7,8 +7,8 @@ using MPI
 
 function test_recorder(replicas, n_iters::Int)
     n_chains = n_chains_global(replicas)
-    path = Pigeons.TranslatedNormalPath(2.0)
-    discretization = Pigeons.discretize(path, Pigeons.equally_spaced(n_chains))
+    path = TranslatedNormalPath(2.0)
+    discretization = discretize(path, equally_spaced(n_chains))
     for iteration in 1:n_iters
         swap!(discretization, replicas, deo(n_chains, iteration))
         
@@ -18,7 +18,7 @@ function test_recorder(replicas, n_iters::Int)
             replica.state = new_sample
         end
     end
-    return Pigeons.reduced_stats(replicas)
+    return reduced_stats(replicas)
 end
 
 n_chains = 5

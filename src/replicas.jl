@@ -7,32 +7,31 @@ Implementations provided
     - EntangledReplicas: using an MPI-based implementation
     - Vector: for the single process case (above can handle that case, but the array based implementation is non-allocating)
 """
+@informal replicas begin
+    swap!(pair_swapper, replicas, swap_graph) = @abstract 
+    """Return the replica's that are stored in this machine"""
+    locals(replicas) = @abstract 
+    """Return the load balancer"""
+    load(replicas) = @abstract
+    """Return the communicator or nothing if no MPI needed"""
+    communicator(replicas) = @abstract 
+    entangler(replicas) = @abstract 
+end
 
-# More info and implementations are in swap.jl
-swap!(pair_swapper, replicas, swap_graph) = @abstract 
-
-# return the replica's that are stored in this machine
-locals(replicas) = @abstract 
+# Non-distributed implementation allowing zero-allocation swaps:
 locals(replicas::Vector) = replicas
-
-# return the load balancer
-load(replicas) = @abstract
 load(replicas::Vector) = single_process_load(length(replicas))
-
-# return the communicator or nothing if no MPI needed
-communicator(replicas) = @abstract 
 communicator(replicas::Vector) = nothing
-
-# return an entangler
-entangler(replicas) = @abstract 
 entangler(replicas::Vector) = Entangler(length(replicas); parent_communicator = nothing, verbose = false)
 
 # the total number of chains across all processes
 n_chains_global(replicas) = load(replicas).n_global_indices
 
 
-# utilities to initialize replicas
-initialization(state_initializer, rng::SplittableRandom, chain::Int) = @abstract
+"""Utility to initialize replicas' states"""
+@informal state_initializer begin 
+    initialization(state_initializer, rng::SplittableRandom, chain::Int) = @abstract
+end
 # ... initialize all to the same state
 initialization(state_initializer::Ref, rng::SplittableRandom, chain::Int) = state_initializer[]
 # ... initialize to a value specific to each chain

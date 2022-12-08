@@ -30,7 +30,6 @@ mytest(::Float64) = 1.0
 
 """
 $(METHODLIST)
-Takes in a $(api("replicas"))
 """
 reduced_stats(replicas) = all_reduce_deterministically(merge_stat_tuple, recorder.(locals(replicas)), entangler(replicas))
 

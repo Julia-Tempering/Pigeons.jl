@@ -1,3 +1,9 @@
+
+struct SwapStat 
+    log_ratio::Float64 
+    uniform::Float64
+end
+
 """
 pair_swapper: an informal interface, implementations take care of performing a swap between two parallel tempering chains.
 
@@ -7,33 +13,30 @@ A pair_swapper first extracts sufficient statistics needed to perform a swap (po
 
 Then based on two sets of sufficient statistics, deterministically decide if we should swap. 
 """
-# swap_stat(pair_swapper, replica::Replica, partner_chain::Int) = @abstract
-# swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)::Bool = @abstract
-# record_swap_stats!(pair_swapper, recorder, chain1::Int, stat1, chain2::Int, stat2) = @abstract
-
-
-"""
-Default pair_swapper: assume pair_swapper conforms the log_potentials interface. 
-"""
-struct SwapStat 
-    log_ratio::Float64 
-    uniform::Float64
-end
-function swap_stat(log_potentials, replica::Replica, partner_chain::Int) 
-    my_chain = replica.chain
-    log_ratio = log_unnormalized_ratio(log_potentials, partner_chain, my_chain, replica.state)
-    return SwapStat(log_ratio, rand(replica.rng))
-end
-function record_swap_stats!(pair_swapper, recorder, chain1::Int, stat1, chain2::Int, stat2)
-    acceptance_pr = swap_acceptance_probability(stat1, stat2)
-    index = min(chain1, chain2)
-    fit_if_defined!(recorder, :swap_acceptance_pr, (index, acceptance_pr))
-    # TODO accumulate stepping-stone statistics
-end
-function swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)
-    acceptance_pr = swap_acceptance_probability(stat1, stat2)
-    uniform = chain1 < chain2 ? stat1.uniform : stat2.uniform
-    return uniform < acceptance_pr
+@informal pair_swapper begin
+    """
+    By default, the pair_swapper is treated as a log_potentials object.
+    Two sufficient statistics are computed:
+        - The result of calling log_unnormalized_ratio on pair_swapper
+        - A uniform number to coordinate the swap decision.
+    """
+    function swap_stat(pair_swapper, replica::Replica, partner_chain::Int) 
+        log_potentials = pair_swapper
+        my_chain = replica.chain
+        log_ratio = log_unnormalized_ratio(log_potentials, partner_chain, my_chain, replica.state)
+        return SwapStat(log_ratio, rand(replica.rng))
+    end
+    function record_swap_stats!(pair_swapper, recorder, chain1::Int, stat1, chain2::Int, stat2)
+        acceptance_pr = swap_acceptance_probability(stat1, stat2)
+        index = min(chain1, chain2)
+        fit_if_defined!(recorder, :swap_acceptance_pr, (index, acceptance_pr))
+        # TODO accumulate stepping-stone statistics
+    end
+    function swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)
+        acceptance_pr = swap_acceptance_probability(stat1, stat2)
+        uniform = chain1 < chain2 ? stat1.uniform : stat2.uniform
+        return uniform < acceptance_pr
+    end
 end
 swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
 

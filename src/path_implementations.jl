@@ -11,7 +11,7 @@ function interpolate(::LinearInterpolator, ref_log_potential, target_log_potenti
     @weighted(beta,       target_log_potential(x))
 end
 
-path(ref, target, interpolator = LinearInterpolator()) = Path(ref, target, interpolator)
+create_path(ref, target, interpolator = LinearInterpolator()) = Path(ref, target, interpolator)
 
 struct InterpolatingPath{LP1,LP2,I} # LP = log_potential type, i.e. lp isa LP => supports lp(point)
     ref::LP1

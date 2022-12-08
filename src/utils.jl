@@ -114,13 +114,8 @@ end
 
 # helpers to automate documention generation
 
-
-using MacroTools
-export @informal, informal_doc
-
-
-
 struct InformalInterfaceSpec
+    name::Symbol
     declaration::Expr
 end
 
@@ -129,35 +124,14 @@ function declarations(i::InformalInterfaceSpec)
     return methods
 end
 
-macro informal(arg)
+macro informal(name, arg)
     return quote
-        $(esc(arg)); InformalInterfaceSpec(:($$(Meta.quot(arg)))) 
-    end
-    # println(methods_expression)
-    # return quote
-    #     begin
-    #         quoted = quote $$(esc($methods_expression)) end
-    #         $(esc($methods_expression))
-    #         InformalInterfaceSpec(quoted)
-    #     end
-    # end
-end
-
-macro desp(arg)
-    return quote
-        ( :($$(Meta.quot(arg))), $(esc(arg)) )
+        $(esc(name)) = begin
+            $(esc(arg));
+            InformalInterfaceSpec(:($$(Meta.quot(name))), :($$(Meta.quot(arg)))) 
+        end
     end
 end
-
-
-
-# macro informal(methods_expression)
-#      @capture(methods_expression, begin methods__ end)
-#      for method in methods
-#         eval(method)
-#      end
-#      return InformalInterfaceSpec(convert(Vector{Expr},methods))
-# end
 
 resolve(name::Symbol, mod) = mod.eval(:($name))
 
@@ -167,37 +141,8 @@ function informal_interfaces(mod)
         f -> map(name -> (name, resolve(name, mod)), f)
 end
 
-
-"""
-my_informal doc
-"""
-my_informal = @informal begin
-    """my f doc"""
-    my_first_fct(::Int) = 2
-    """another doc"""
-    my_second_fct(::Int) = 4 
-end
-
-export my_first_fct, my_second_fct
-
-
-# """
-# my interface description
-# """
-# @informal my_interface begin
-#     """my doc"""
-#     f(::Int) = 2
-#     g(::Int) = 4
-# end
-
-# @informal second begin
-#     function myf()
-#         return "asdf"
-#     end
-# end
-
 function informal_doc(doc_dir, mod::Module)
-    contents = join([informal_doc(n, i, mod) for (n, i) in informal_interfaces(mod)])
+    contents = join([informal_doc(n, i, mod) for (n, i) in informal_interfaces(mod)], "\n\n---\n\n")
     file_name = ".interfaces.md"
     f = "$doc_dir/src/$file_name"
     write(f, contents)
@@ -209,12 +154,11 @@ function get_doc(name::Symbol, mod::Module)
     return eval(expr)
 end
 
-
 function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)
     comments = get_doc(name, mod)
     return """
 
-    ### $name
+    ### Informal interface `$name`
 
     $comments
 
@@ -235,5 +179,3 @@ function split_documented(declaration::Expr)
     expression = declaration.head == :macrocall ? declaration.args[4] : declaration
     return MacroTools.splitdef(expression)
 end
-
-

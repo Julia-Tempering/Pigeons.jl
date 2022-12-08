@@ -11,11 +11,12 @@ Extension point for e.g.
     - variational methods with more than 2 legs,
     - PT algorithms dealing with more than one target simultaneously for the purpose of model selection. 
 """
-
-"""
-$TYPEDSIGNATURES
-"""
-partner_chain(swap_graph, index::Int) = @abstract
+@informal swap_graph begin
+    """
+    $TYPEDSIGNATURES
+    """
+    partner_chain(swap_graph, index::Int) = @abstract
+end
 
 struct OddEven
     even::Bool
