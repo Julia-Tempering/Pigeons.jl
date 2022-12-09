@@ -1,5 +1,6 @@
 using Pigeons
 using Documenter
+using DocStringExtensions
 
 DocMeta.setdocmeta!(Pigeons, :DocTestSetup, :(using Pigeons); recursive=true)
 
@@ -16,7 +17,10 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md", 
+        "Parallel Tempering (PT)" => "pt.md", 
+        "Distributed PT" => "distributed.md",
         "Interfaces" => informal_doc(@__DIR__, Pigeons),
+        "Reference" => "reference.md",
     ],
 )
 

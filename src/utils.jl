@@ -124,6 +124,19 @@ function declarations(i::InformalInterfaceSpec)
     return methods
 end
 
+"""
+    @informal name begin ... end
+
+Document an informal interface with provided `name`, and functions 
+specified in a `begin .. end` block. 
+
+`@informal` will spit back the contents of the `begin .. end` block so 
+this macro can be essentially ignored at first read. 
+
+When building documentation, this allows us to use the 
+function [`informal_doc()`](@ref) to automatically document the 
+informal interface.
+"""
 macro informal(name, arg)
     return quote
         $(esc(name)) = begin
@@ -142,10 +155,31 @@ function informal_interfaces(mod)
 end
 
 const informal_file_name = ".interfaces"
+
+"""
+$(TYPEDSIGNATURES)
+Generate informal interface documentation, e.g.: 
+```
+makedocs(;
+    ...
+    pages=[
+        "Home" => "index.md", 
+        "Interfaces" => informal_doc(@__DIR__, MyModuleName),
+        ...
+    ]
+)
+```
+"""
 function informal_doc(doc_dir, mod::Module)
+    head = """
+    Descriptions of *informal interfaces* (see [Pigeons.@informal](reference.html#Pigeons.@informal-Tuple{Any,%20Any}) to see how this page 
+    was generated).
+
+    ---
+    """
     contents = join([informal_doc(n, i, mod) for (n, i) in informal_interfaces(mod)], "\n\n---\n\n")
     f = "$doc_dir/src/$informal_file_name.md"
-    write(f, contents)
+    write(f, head * contents)
     return "$informal_file_name.md"
 end
 
@@ -154,7 +188,7 @@ function get_doc(name::Symbol, mod::Module)
     return eval(expr)
 end
 
-informal_section(name) = "Informal interface `$name`"
+informal_section(name) = "`$name`"
 function informal_link(name) 
     section_link = replace(informal_section(name), " " => "-", "`" => "")
     return "$informal_file_name.html#$section_link"
@@ -165,15 +199,10 @@ macro ii(name_symbol)
     return "[$name]($link)"
 end
 
-function Base.show(io::IO, informal::InformalInterfaceSpec) 
-    
-end
-
 function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)
     comments = get_doc(name, mod)
     return """
-
-    ### $(informal_section(name))
+    ## $(informal_section(name))
 
     $comments
 

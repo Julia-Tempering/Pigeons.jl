@@ -16,29 +16,33 @@ function fit_if_defined!(stats_tuple, key, value)
     end
 end
 
-"""
-$(SIGNATURES)
-First one... ??? bb arg..
-"""
-mytest(x::Int) = x == 1 ? 1.0 : 2
+#=
+- recorders: tuple: recorderKey -> recorder
+- recorder
+    signatures:
+        record(r, ...)
+        merge(r1, r2)
+
+    impls:
+        OnlineStat for in-memory
+        some kind of on-disk (work_dir + shared_dir), for check-point and large stats
+    
+=#
 
 """
-$(SIGNATURES)
-Second one...
+$TYPEDSIGNATURES
 """
-mytest(::Float64) = 1.0
+reduced_stats(replicas) = all_reduce_deterministically(merge_recorders, recorder.(locals(replicas)), entangler(replicas))
 
-"""
-$(METHODLIST)
-"""
-reduced_stats(replicas) = all_reduce_deterministically(merge_stat_tuple, recorder.(locals(replicas)), entangler(replicas))
+function merge_recorders(recorder1, recorder2)
+    shared_keys = keys(recorder1)
+    @assert shared_keys == keys(recorder2)
 
-function merge_stat_tuple(stat1, stat2)
-    shared_keys = keys(stat1)
-    @assert shared_keys == keys(stat2)
-    values1 = values(stat1)
-    values2 = values(stat2)
+    values1 = values(recorder1)
+    values2 = values(recorder2)
     merged_values = [merge(values1[i], values2[i]) for i in eachindex(values1)]
     return (; zip(shared_keys, merged_values)...)
 end
+
+
 

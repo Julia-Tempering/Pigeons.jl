@@ -1,13 +1,12 @@
 """
-An encoding of a probability distribution, where only the un-normalized probability density function is known. 
+An log_potential encodes a probability distribution, where only the 
+un-normalized probability density function is known. 
 
-Terminology: we use 'log_potential' for the log of an un-normalized probability density function.
+To make MyType conforms this informal interface, implement 
 
-Convention: we assume that if `f` is a log_potential, then it supports `f(x)`
+    (log_potential::MyType)(x)
+
+which should return the log of the un-normalized density.
 """
-@informal log_potential begin
-    
-end
-
 # Example:
-(d::Distribution)(x) = logpdf(d, x)
+(d::Distribution)(x) = logpdf(d, x) 
