@@ -33,9 +33,7 @@ Pigeons takes as input the function ``\gamma``.
     Since we work in log-scale, we use the terminology 
     `log_potential` as a shorthand for the 
     unnormalized log density ``\log \gamma(x)``. 
-    In the codebase, when a function argument is called 
-    `log_potential`, we assume we can write
-    `log_potential(x)` to compute ``\log \gamma(x)``.
+    See informal interface [`log_potential`](@ref).
 
 Pigeons' outputs can be used for two tasks:
 
@@ -60,9 +58,9 @@ Pigeons shines in the following scenarios:
 
 ## Example
 
-!!! warning
+!!! warning "TODO"
 
-    TODO: later on, once we have interfaces with some PPLs, write some user-facing examples, 
+    Later on, once we have interfaces with some PPLs, write some user-facing examples, 
     showing the key capabilities
 
 
@@ -70,9 +68,11 @@ Pigeons shines in the following scenarios:
 
 The most general way to invoke Pigeons is by specifying two ingredients: a sequence of distributions, 
 ``\pi_1, \pi_2, \dots, \pi_N``, and for each ``\pi_i``, a ``\pi_i``-invariant Markov transition kernel.
-To sequence of distributions is specified using the informal interface 
+The sequence of distributions is specified using the informal interface [`log_potentials`](@ref). 
 
+!!! warning "TODO"
 
+    Add instructions for Markov transition kernels.
 
 
 

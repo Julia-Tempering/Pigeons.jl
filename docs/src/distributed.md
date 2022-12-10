@@ -7,7 +7,8 @@ CurrentModule = Pigeons
 ## Introduction
 
 Pigeons provides an implementation of Distributed PT based on [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464), Algorithm 5. 
-This page documents our implementation.
+This page describes the challenges of implementing this distributed, parallelized and random algorithm and 
+how we addressed these challenges.
 
 In Distributed PT, one or several computers run MCMC simulations in parallel and communicate with each other 
 to improve MCMC efficiency. 
@@ -64,30 +65,4 @@ maintaining the same asymptotic runtime complexity.
 
 ## Overview of the algorithm
 
-We start with a some terminology and then provide an overview of distributed/parallel PT, focussing on 
-the parts that involve communication between machines and/or threads. 
-
-Let $X_n$ denote a Markov chain with state space `S`. 
-
-We refer the reader to [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) for more 
-background on PT algorithms. 
-
-
-
-
-
-
-
-
-- [Replica](@ref): a point in the state space. **add doc right here instead?**
-
-```@docs
-Pigeons.Replica
-```
-
-
-
-**show pic**
-
-**replicas**
-
+[go back to algo, ]

@@ -11,5 +11,5 @@ CurrentModule = Pigeons
 
 ```@autodocs
 Modules = [Pigeons]
-
+Filter = t -> typeof(t) !== Pigeons.InformalInterfaceSpec
 ```

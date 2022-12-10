@@ -1,5 +1,5 @@
 """
-An log_potential encodes a probability distribution, where only the 
+A `log_potential` encodes a probability distribution, where only the 
 un-normalized probability density function is known. 
 
 To make MyType conforms this informal interface, implement 
@@ -8,5 +8,9 @@ To make MyType conforms this informal interface, implement
 
 which should return the log of the un-normalized density.
 """
+@informal log_potential begin
+    
+end
+
 # Example:
 (d::Distribution)(x) = logpdf(d, x) 

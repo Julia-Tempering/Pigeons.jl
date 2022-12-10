@@ -200,11 +200,16 @@ macro ii(name_symbol)
 end
 
 function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)
-    comments = get_doc(name, mod)
     return """
     ## $(informal_section(name))
 
-    $comments
+    #### Description
+
+    ```@docs
+    $mod.$name
+    ```
+
+    $(isempty(declarations(interface)) ? "" : "#### Contract")
 
     $(join([informal_doc(declaration, mod) for declaration in declarations(interface)]))
 
