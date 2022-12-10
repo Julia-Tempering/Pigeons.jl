@@ -15,7 +15,7 @@ Then based on two sets of sufficient statistics, deterministically decide if we 
 """
 @informal pair_swapper begin
     """
-    By default, the $(@ii(pair_swapper)) is treated as a $(@ii(log_potentials)) object.
+    By default, the [`pair_swapper`](@ref) is treated as a [`log_potentials`(@ref) object.
     Two sufficient statistics are computed: 
         - The result of calling log_unnormalized_ratio on pair_swapper
         - A uniform number to coordinate the swap decision.

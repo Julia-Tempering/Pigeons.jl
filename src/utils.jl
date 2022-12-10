@@ -114,9 +114,11 @@ end
 
 # helpers to automate documention generation
 
-struct InformalInterfaceSpec
+mutable struct InformalInterfaceSpec
     name::Symbol
     declaration::Expr
+    examples::Set{Expr}
+    InformalInterfaceSpec() = new(:UNKNOWN, :(), Set{Expr}())
 end
 
 function declarations(i::InformalInterfaceSpec) 
@@ -138,10 +140,30 @@ function [`informal_doc()`](@ref) to automatically document the
 informal interface.
 """
 macro informal(name, arg)
+    name_symbol = Symbol(string(name))
     return quote
         $(esc(name)) = begin
             $(esc(arg));
-            InformalInterfaceSpec(:($$(Meta.quot(name))), :($$(Meta.quot(arg)))) 
+            if !@isdefined $(name_symbol)
+                $(esc(name)) = InformalInterfaceSpec()
+            end
+            $(esc(name)).name = :($$(Meta.quot(name)))
+            $(esc(name)).declaration = :($$(Meta.quot(arg)))
+            return $(esc(name))
+        end
+    end
+end
+
+# TODO: make informal and provides robust to relative ordering
+macro provides(name, arg)
+    name_symbol = Symbol(string(name))
+    return quote
+        begin
+            if !@isdefined $(name_symbol)
+                $(esc(name)) = InformalInterfaceSpec()
+            end
+            push!($(esc(name)).examples, :($$(Meta.quot(arg))));
+            $(esc(arg))
         end
     end
 end
@@ -211,10 +233,18 @@ function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Modul
 
     $(isempty(declarations(interface)) ? "" : "#### Contract")
 
-    $(join([informal_doc(declaration, mod) for declaration in declarations(interface)]))
+    $(join([informal_doc(e, mod) for e in declarations(interface)]))
+
+    
 
     """
 end
+
+#=
+$(isempty(interface.examples) ? "" : "#### Examples of ways to instantiate")
+
+    $(join([informal_doc(e, mod) for e in interface.examples]))
+=#
 
 function informal_doc(declaration::Expr, mod::Module)
     split = split_documented(declaration)

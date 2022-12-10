@@ -68,11 +68,14 @@ Pigeons shines in the following scenarios:
 
 The most general way to invoke Pigeons is by specifying two ingredients: a sequence of distributions, 
 ``\pi_1, \pi_2, \dots, \pi_N``, and for each ``\pi_i``, a ``\pi_i``-invariant Markov transition kernel.
-The sequence of distributions is specified using the informal interface [`log_potentials`](@ref). 
+Typically, $\pi_1$ is a distribution from which we can sample i.i.d. (e.g. the prior, or a variational 
+approximation), while the last distribution coincides with the distribution of interest, 
+$\pi_N = \pi$. 
+This sequence of distributions is specified using the informal interface [`log_potentials`](@ref). 
 
 !!! warning "TODO"
 
-    Add instructions for Markov transition kernels.
+    Add instructions for Markov transition kernels, and example code.
 
 
 

@@ -1,20 +1,33 @@
 """
-replicas: an informal interface, implementations store the process' replicas. 
-    Since we provide MPI implementations, do not assume that this will contain all the replicas, as 
-    other can be located in other processes/machines
+Stores the process' replicas. 
+Since we provide MPI implementations, do not assume that this will contain all the replicas, as 
+others can be located in other processes/machines
 
 Implementations provided
-    - EntangledReplicas: using an MPI-based implementation
-    - Vector: for the single process case (above can handle that case, but the array based implementation is non-allocating)
+    - [`EntangledReplicas`](@ref): using an MPI-based implementation
+    - `Vector{Replica}`: for the single process case (above can handle that case, but the array based implementation is non-allocating)
 """
 @informal replicas begin
     swap!(pair_swapper, replicas, swap_graph) = @abstract 
-    """Return the replica's that are stored in this machine"""
+    """
+    $(TYPEDSIGNATURES)
+    Return the replica's that are stored in this machine
+    """
     locals(replicas) = @abstract 
-    """Return the load balancer"""
+    """
+    $TYPEDSIGNATURES
+    Return the [`LoadBalance`](@ref) (possibly [`single_process_load`](@ref))
+    """
     load(replicas) = @abstract
-    """Return the communicator or nothing if no MPI needed"""
+    """
+    $TYPEDSIGNATURES
+    Return the `MPI.Comm` or `nothing` if no MPI needed
+    """
     communicator(replicas) = @abstract 
+    """
+    $TYPEDSIGNATURES
+    Return the [`Entangler`](@ref) (possibly a no-communication Entangler)
+    """
     entangler(replicas) = @abstract 
 end
 
@@ -39,6 +52,8 @@ initialization(state_initializer::AbstractVector, rng::SplittableRandom, chain::
 # ... TODO: initialize from prior / other smart inits
 
 
+
+#@provides replica 
 function create_vector_replicas(n_chains::Int, state_initializer, rng::SplittableRandom)
     split_rngs = split_slice(1:n_chains, rng)
     states = [initialization(state_initializer, split_rngs[i], i) for i in eachindex(split_rngs)]
