@@ -8,7 +8,13 @@ only high-level or some kind of switch allowing
 different exports based on MCMC-developer vs 
 Bayesian modeller profiles...
 
-Maybe a special macro to export all for e.g. internal dev, testing, etc (e.g. use https://github.com/hayesall/ExportPublic.jl)
+We do want all these to be documented though 
+(and certainly not every single private one, so 
+keep it like that for now)
+
+Maybe build some macro(s) to control export granularity 
+    for e.g. internal dev, testing, etc (e.g. use https://github.com/hayesall/ExportPublic.jl)
+    with the default for most user still just 'using Pigeons'
 =#
 
 
@@ -130,9 +136,10 @@ include("swap.jl")
 export  swap!
 
 ### Recorder are used to collect statistics
+include("recorders.jl")
 include("recorder.jl")
-export  empty_recorder,
-        fit_if_defined!,
+export  default_recorders,
+        record!,
         reduced_stats
 
 

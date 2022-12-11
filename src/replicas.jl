@@ -69,6 +69,6 @@ See also [`state_initializer`](@ref).
 @provides replicas function create_vector_replicas(n_chains::Int, state_initializer, rng::SplittableRandom)
     split_rngs = split_slice(1:n_chains, rng)
     states = [initialization(state_initializer, split_rngs[i], i) for i in eachindex(split_rngs)]
-    recorders = [empty_recorder() for i in eachindex(split_rngs)]
+    recorders = [default_recorders() for i in eachindex(split_rngs)]
     return Replica.(states, 1:n_chains, split_rngs, recorders)
 end

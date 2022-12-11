@@ -13,10 +13,10 @@ mutable struct Replica{S, T}
     rng::SplittableRandom
 
     """Records statistics. Each replica carries its own for thread safety/distribution, to be reduced to access."""
-    recorder::T       
+    recorders::T       
 end
 
 # useful for broadcasting, e.g., chain.(replica)
 chain(r::Replica) = r.chain 
 state(r::Replica) = r.state
-recorder(r::Replica) = r.recorder
+_recorders(r::Replica) = r.recorders

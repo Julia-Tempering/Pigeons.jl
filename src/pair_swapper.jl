@@ -15,7 +15,7 @@ Then based on two sets of sufficient statistics, deterministically decide if we 
 """
 @informal pair_swapper begin
     """
-    By default, the [`pair_swapper`](@ref) is treated as a [`log_potentials`(@ref) object.
+    By default, the [`pair_swapper`](@ref) is treated as a [`log_potentials`](@ref) object.
     Two sufficient statistics are computed: 
         - The result of calling log_unnormalized_ratio on pair_swapper
         - A uniform number to coordinate the swap decision.
@@ -29,7 +29,7 @@ Then based on two sets of sufficient statistics, deterministically decide if we 
     function record_swap_stats!(pair_swapper, recorder, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
         index = min(chain1, chain2)
-        fit_if_defined!(recorder, :swap_acceptance_pr, (index, acceptance_pr))
+        record!(recorder, :swap_acceptance_pr, (index, acceptance_pr))
         # TODO accumulate stepping-stone statistics
     end
     function swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)

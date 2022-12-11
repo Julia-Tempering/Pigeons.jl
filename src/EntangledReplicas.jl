@@ -20,7 +20,7 @@ See also [`state_initializer`](@ref).
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)
     split_rngs = split_slice(my_globals, rng)
     states = [initialization(state_initializer, split_rngs[i], my_globals[i]) for i in eachindex(split_rngs)]
-    recorders = [empty_recorder() for i in eachindex(split_rngs)]
+    recorders = [default_recorders() for i in eachindex(split_rngs)]
     locals = Replica.(states, my_globals, split_rngs, recorders)
     return EntangledReplicas(locals, chain_to_replica_global_indices)
 end

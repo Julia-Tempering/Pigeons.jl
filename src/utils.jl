@@ -188,7 +188,7 @@ makedocs(;
 """
 function informal_doc(doc_dir, mod::Module)
     head = """
-    Descriptions of *informal interfaces* (see [Pigeons.@informal](reference.html#Pigeons.@informal-Tuple{Any,%20Any}) to see how this page 
+    Descriptions of *informal interfaces* (see [Pigeons.@informal](reference.html#Pigeons.@informal-Tuple{Symbol,%20Expr}) to see how this page 
     was generated).
 
     ---
@@ -231,10 +231,6 @@ function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Modul
     $(join(Set([informal_doc(e, mod) for e in current_providers])))
 
     """
-end
-
-function unique(entries)
-    
 end
 
 function informal_doc(declaration::Expr, mod::Module)
