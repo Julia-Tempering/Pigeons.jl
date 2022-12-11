@@ -117,8 +117,7 @@ end
 mutable struct InformalInterfaceSpec
     name::Symbol
     declaration::Expr
-    examples::Set{Expr}
-    InformalInterfaceSpec(name, declaration) = new(name, declaration, Set{Expr}())
+    InformalInterfaceSpec(name, declaration) = new(name, declaration)
 end
 
 function declarations(i::InformalInterfaceSpec) 
@@ -139,7 +138,7 @@ When building documentation, this allows us to use the
 function [`informal_doc()`](@ref) to automatically document the 
 informal interface.
 """
-macro informal(name, arg)
+macro informal(name::Symbol, arg::Expr)
     return quote
         $(esc(name)) = begin
             $(esc(arg));
@@ -148,14 +147,18 @@ macro informal(name, arg)
     end
 end
 
-# TODO: make informal and provides robust to relative ordering
-macro provides(name, arg)
-    name_symbol = Symbol(string(name))
-    return quote
-        begin
-            push!($(esc(name)).examples, :($$(Meta.quot(arg))));
-            $(esc(arg))
-        end
+const providers = Dict{String, Set{Expr}}() # we would want Pair{Module,Symbol} but Module seems to have buggy hash/equality behaviour
+function add_provider(key, value)
+    if !haskey(providers, key)
+        providers[key] = Set{Expr}()
+    end
+    push!(providers[key], value)
+end
+macro provides(name::Symbol, arg::Expr)
+    key = "$__module__.$name"
+    add_provider(key, arg)
+    return quote 
+        $(esc(arg))
     end
 end
 
@@ -206,13 +209,10 @@ function informal_link(name)
     section_link = replace(informal_section(name), " " => "-", "`" => "")
     return "$informal_file_name.html#$section_link"
 end
-macro ii(name_symbol)
-    name = string(name_symbol)
-    link = informal_link(name)
-    return "[$name]($link)"
-end
 
 function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)
+    key = "$mod.$name"
+    current_providers = haskey(providers, key) ? providers[key] : Set{Expr}()
     return """
     ## $(informal_section(name))
 
@@ -226,7 +226,9 @@ function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Modul
 
     $(join([informal_doc(e, mod) for e in declarations(interface)]))
 
-    
+    $(isempty(current_providers) ? "" : "#### Examples of functions providing instances")
+
+    $(join([informal_doc(e, mod) for e in current_providers]))
 
     """
 end
