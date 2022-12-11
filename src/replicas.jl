@@ -41,8 +41,17 @@ entangler(replicas::Vector) = Entangler(length(replicas); parent_communicator = 
 n_chains_global(replicas) = load(replicas).n_global_indices
 
 
-"""Utility to initialize replicas' states"""
+"""
+Determine how to initialize the states in the replicas. 
+Implementations include `Ref(my_state)`, to signal all replicas will 
+be initalized to `my_state`, or a `Vector(...)` for chain-specific 
+initializations.
+"""
 @informal state_initializer begin 
+    """
+    $TYPEDSIGNATURES
+    Determine [`state_initializer`](@ref)'s initialization for the given `chain`.
+    """
     initialization(state_initializer, rng::SplittableRandom, chain::Int) = @abstract
 end
 # ... initialize all to the same state
@@ -52,7 +61,11 @@ initialization(state_initializer::AbstractVector, rng::SplittableRandom, chain::
 # ... TODO: initialize from prior / other smart inits
 
 
-
+"""
+$TYPEDSIGNATURES
+Create [`replicas`](@ref) when distributed computing is not needed. 
+See also [`state_initializer`](@ref).
+"""
 @provides replicas function create_vector_replicas(n_chains::Int, state_initializer, rng::SplittableRandom)
     split_rngs = split_slice(1:n_chains, rng)
     states = [initialization(state_initializer, split_rngs[i], i) for i in eachindex(split_rngs)]

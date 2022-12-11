@@ -9,7 +9,12 @@ load(r::EntangledReplicas) = entangler(r).load # load balancing information
 locals(r::EntangledReplicas) = r.locals
 communicator(r::EntangledReplicas) = entangler(r).communicator
 
-function create_entangled_replicas(n_chains::Int, state_initializer, rng::SplittableRandom, useMPI::Bool)
+"""
+$TYPEDSIGNATURES
+Create distributed replicas. The argument `useMPI = false` is only for debugging purpose.
+See also [`state_initializer`](@ref). 
+"""
+@provides replicas function create_entangled_replicas(n_chains::Int, state_initializer, rng::SplittableRandom, useMPI::Bool = true)
     entangler = Entangler(n_chains, parent_communicator = (useMPI ? COMM_WORLD : nothing))
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)

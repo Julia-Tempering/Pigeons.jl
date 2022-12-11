@@ -226,14 +226,16 @@ function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Modul
 
     $(join([informal_doc(e, mod) for e in declarations(interface)]))
 
-    $(isempty(current_providers) ? "" : "#### Examples of functions providing instances")
+    $(isempty(current_providers) ? "" : "#### Examples of functions providing instances of this interface")
 
-    $(join([informal_doc(e, mod) for e in current_providers]))
+    $(join(Set([informal_doc(e, mod) for e in current_providers])))
 
     """
 end
 
-
+function unique(entries)
+    
+end
 
 function informal_doc(declaration::Expr, mod::Module)
     split = split_documented(declaration)
