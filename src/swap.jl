@@ -111,7 +111,7 @@ function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partn
     @assert do_swap  == swap_decision(pair_swapper, partner_chain, partner_swap_stat, my_chain, my_swap_stat)
 
     if my_chain < partner_chain
-        record_swap_stats!(pair_swapper, r.recorder, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
+        record_swap_stats!(pair_swapper, r.recorders, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
     end
 
     if do_swap

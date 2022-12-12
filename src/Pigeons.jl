@@ -27,8 +27,7 @@ import MPI: Comm, Allreduce, Comm_rank,
             RequestSet, mpiexec, Allreduce, 
             Allgather, Comm_split, isend, recv,
             bcast
-
-
+            
 using Base: Forward
 using Distributions
 using StatsBase

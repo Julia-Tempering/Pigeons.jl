@@ -48,6 +48,6 @@ function merge_recorders(recorders1, recorders2)
 
     values1 = values(recorders1)
     values2 = values(recorders2)
-    merged_values = [merge(values1[i], values2[i]) for i in eachindex(values1)]
+    merged_values = [combine(values1[i], values2[i]) for i in eachindex(values1)]
     return (; zip(shared_keys, merged_values)...)
 end

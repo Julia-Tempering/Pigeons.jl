@@ -14,11 +14,11 @@ See also [`recorders`](@ref).
     """
     $(TYPEDSIGNATURES)
     """
-    merge(recorder1, recorder2) = @abstract
+    combine(recorder1, recorder2) = @abstract
 end
 
 
 record!(recorder::OnlineStat, value) = fit!(recorder, value)
-
+combine(recorder1::OnlineStat, recorder2::OnlineStat) = merge(recorder1, recorder2)
 
 
