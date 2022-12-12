@@ -37,7 +37,10 @@ load(replicas::Vector) = single_process_load(length(replicas))
 communicator(replicas::Vector) = nothing
 entangler(replicas::Vector) = Entangler(length(replicas); parent_communicator = nothing, verbose = false)
 
-# the total number of chains across all processes
+"""
+$TYPEDSIGNATURES
+Given a [`replicas`](@ref), return the total number of chains across all processes.
+"""
 n_chains_global(replicas) = load(replicas).n_global_indices
 
 

@@ -1,7 +1,5 @@
 # default representation of paths based on interpolating two log_potential's
 
-# TODO: break and/or organize this
-
 # use this extension point to create new types of interpolations
 interpolate(interpolator, ref, target, beta, x) = @abstract
 struct LinearInterpolator end

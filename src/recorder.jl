@@ -13,12 +13,12 @@ See also [`recorders`](@ref).
 
     """
     $(TYPEDSIGNATURES)
+    By default, call `Base.merge()`.
     """
-    combine(recorder1, recorder2) = @abstract
+    combine(recorder1, recorder2) = merge(recorder1, recorder2)
 end
 
 
 record!(recorder::OnlineStat, value) = fit!(recorder, value)
-combine(recorder1::OnlineStat, recorder2::OnlineStat) = merge(recorder1, recorder2)
 
 
