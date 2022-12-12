@@ -8,6 +8,13 @@ Implementations provided
     - `Vector{Replica}`: for the single process case (above can handle that case, but the array based implementation is non-allocating)
 """
 @informal replicas begin
+    """
+    $(TYPEDSIGNATURES)
+    For each pair of chains encoded in [`swap_graph`](@ref), use 
+    [`pair_swapper`](@ref) to decide if the pair will swap or not, 
+    and write the changes in-place into [`replicas`](@ref) (i.e. exchanging 
+    the `Replica`'s `chain` fields for those that swapped.)
+    """
     swap!(pair_swapper, replicas, swap_graph) = @abstract 
     """
     $(TYPEDSIGNATURES)

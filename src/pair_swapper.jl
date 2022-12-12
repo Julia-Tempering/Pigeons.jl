@@ -5,20 +5,20 @@ struct SwapStat
 end
 
 """
-pair_swapper: an informal interface, implementations take care of performing a swap between two parallel tempering chains.
+Informs [`swap!()`](@ref) about how to perform a swap between a given pair of chains.
 
 A pair_swapper first extracts sufficient statistics needed to perform a swap (potentially to be transmitted over network).
-    In the typical case, this will be log densities before and after proposed swap (or just the likelihood with linear 
-    annealing paths), and a uniform [0, 1] variate.
 
 Then based on two sets of sufficient statistics, deterministically decide if we should swap. 
 """
 @informal pair_swapper begin
     """
+    $TYPEDSIGNATURES
     By default, the [`pair_swapper`](@ref) is treated as a [`log_potentials`](@ref) object.
     Two sufficient statistics are computed: 
-        - The result of calling log_unnormalized_ratio on pair_swapper
-        - A uniform number to coordinate the swap decision.
+
+    - The result of calling [`log_unnormalized_ratio()`](@ref) on [`pair_swapper`](@ref)
+    - A uniform number to coordinate the swap decision.
     """
     function swap_stat(pair_swapper, replica::Replica, partner_chain::Int) 
         log_potentials = pair_swapper
@@ -26,12 +26,18 @@ Then based on two sets of sufficient statistics, deterministically decide if we 
         log_ratio = log_unnormalized_ratio(log_potentials, partner_chain, my_chain, replica.state)
         return SwapStat(log_ratio, rand(replica.rng))
     end
+    """
+    $TYPEDSIGNATURES
+    """
     function record_swap_stats!(pair_swapper, recorder, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
         index = min(chain1, chain2)
         record!(recorder, :swap_acceptance_pr, (index, acceptance_pr))
         # TODO accumulate stepping-stone statistics
     end
+    """
+    $TYPEDSIGNATURES
+    """
     function swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
         uniform = chain1 < chain2 ? stat1.uniform : stat2.uniform
@@ -47,6 +53,10 @@ Could also be used to pre-warm-start swap connections during exploration phase b
 """
 struct TestSwapper 
     constant_swap_accept_pr::Float64
+    """
+    $TYPEDSIGNATURES
+    """
+    @provides pair_swapper TestSwapper(constant_swap_accept_pr) = new(constant_swap_accept_pr)
 end
 swap_stat(swapper::TestSwapper, replica::Replica, partner_chain::Int)::Float64 = rand(replica.rng)
 function swap_decision(swapper::TestSwapper, chain1::Int, stat1::Float64, chain2::Int, stat2::Float64)::Bool 

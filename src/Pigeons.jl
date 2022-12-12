@@ -128,7 +128,7 @@ export  EntangledReplicas,
         entangler,
         create_entangled_replicas
 
-include("swap_graphs.jl")
+include("swap_graph.jl")
 export deo
 
 include("swap.jl")

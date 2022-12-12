@@ -59,9 +59,19 @@ The kernel can either modify `Replica.state` in-place, or modify the
     part of the code is more fleshed out...
 
 In the **communication phase**, PT proposes swaps between pairs of replicas. 
-These swaps allow the state to periodically visit reference chains. During these reference
+These swaps allow each replica's state to periodically visit reference chains. During these reference
 visits, the state can move around the space quickly. 
+In principle, there are two equivalent ways to do a swap: the `Replica`'s could exchange 
+their `state` fields; or alternatively, they could exchange their `chain` fields.
+Since we provide distributed implementations, we use the latter as it implies that 
+amount of data exchanged between two machines during a swap can be made very small (two floats). 
+This is remarkable that this cost does not vary with the dimensionality of the state space, 
+in constrast to the naive implementation which would transmit states over the network.
+See [Distributed PT](distributed.html) for more information on our distributed implementation.
 
+Both in distributed and single process mode, 
+swaps are performed using the function [`swap!()`](@ref), see the documentation there for
+more information.
 
 
 **pseudo-code: first just PT**
