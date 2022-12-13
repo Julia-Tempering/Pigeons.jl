@@ -3,11 +3,12 @@ CurrentModule = Pigeons
 ```
 
 
-## Introduction
-
 We provide in this page an overview of Non-Reversible Parallel Tempering (PT), 
 [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464), 
 linking it with some key parts of the code base. 
+
+
+## PT augmented state space, replicas
 
 Let ``X_n`` denote a Markov chain on state space ``\mathscr{X}`` with stationary distribution
 ``\pi``. 
@@ -39,13 +40,17 @@ and applying an integrable function ``f`` to each, will lead under weak assumpti
 to Monte Carlo averages that converge to the expectation of interest ``E[f(X)]`` for 
 ``X \sim \pi``.
 
+## Local exploration and communication
+
 PT alternates between two phases, each ``\boldsymbol{\pi}``-invariant: the local 
 exploration phase and the communication phase. Informally, the first phase attempts to achieve 
 mixing for the univariate statistics ``\pi_i(X^{(i)})``, while the second phase attempts to 
 translate well-mixing of the univariate statistics into global mixing of ``X^{(i)}`` by 
 leveraging the reference distribution(s).
 
-More precisely, in the **local exploration phase,**
+### Local exploration
+
+In the **local exploration phase,**
 each [`Replica`](@ref)'s state is modified using a ``\pi_i``-invariant kernel, 
 where ``i`` is given by `Replica.chain`. Often, `Replica.chain` corresponds to 
 an annealing parameter ``\beta_i`` but this need not be the case (see 
@@ -57,6 +62,8 @@ The kernel can either modify `Replica.state` in-place, or modify the
 
     More details about local exploration once the architecture of that 
     part of the code is more fleshed out...
+
+### Communication
 
 In the **communication phase**, PT proposes swaps between pairs of replicas. 
 These swaps allow each replica's state to periodically visit reference chains. During these reference
@@ -74,10 +81,60 @@ swaps are performed using the function [`swap!()`](@ref), see the documentation 
 more information.
 
 
-**pseudo-code: first just PT**
+## Basic PT algorithm
 
-**pair_swapper**
+Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) can be implemented in Pigeons (for pedagogy and/or those interested in extending the library; users of the library should instead follow higher-level instructions in [the home page](index.html)):
 
-**figure of swaps**
+```@example simple_algos
+using Pigeons
+using SplittableRandoms
+using Plots
 
-**pseudo-code: rounds/adaptation**
+# initialize replicas
+const n_chains = 10
+init = Ref(0.0)                      # initialize all states to zero
+rng = SplittableRandom(1)            # specialized rng (see Distributed PT page)
+keys = recorder_keys(:index_process) # determines which statistics to keep
+replicas = create_vector_replicas(n_chains, init, rng, keys)
+
+# initialize sequence of distributions
+normal_log_potentials = translated_normal_example(n_chains)
+
+function simple_deo(replicas, n_iters, normal_log_potentials)
+    for iteration in 1:n_iters
+        # communication phase
+        swap!(normal_log_potentials, replicas, deo(n_chains, iteration))
+        # toy local exploration (in this toy e.g. we can do iid for all chains)
+        for replica in locals(replicas)
+            distribution = normal_log_potentials[replica.chain]
+            replica.state = rand(replica.rng, distribution)
+        end
+    end
+    return reduced_recorder(replicas)
+end
+
+deo_result = simple_deo(replicas, 25, normal_log_potentials)
+p = index_process_plot(deo_result)
+savefig(p, "index_process.svg"); nothing # hide
+```
+
+![](index_process.svg)
+
+The code above illustrates the two steps needed to collect statistics from the execution of a PT algorithm: 
+
+- We specify which statistics to collect using [`recorder_keys()`](@ref) (by 
+    default, those that can be computed in constant memory only are included, 
+    those that have growing memory consumption, e.g. tracking the full 
+    index process as done here, need to be explicitly specified in advance).
+- Using [`reduced_recorder()`](@ref) to compile the statistics collected 
+    by the different replicas.
+    
+An object responsible for accumulating all different types of statistics for 
+one replica is called a  [`recorders`](@ref). An object accumulating one 
+type of statistic for one replica is a [`recorder`](@ref). 
+Each replica has a single recorders to ensure thread safety and distributed 
+computing. 
+
+
+## Adaptation and schedule update
+

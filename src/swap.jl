@@ -19,7 +19,9 @@ function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
                 my_swap_stat :
                 swap_stat(pair_swapper, partner_replica, my_chain)
             _swap!(pair_swapper, my_replica,      my_swap_stat,      partner_swap_stat, partner_chain)
+            if partner_chain != my_chain
             _swap!(pair_swapper, partner_replica, partner_swap_stat, my_swap_stat,      my_chain)
+            end
         end
     end
     # re-sort
@@ -92,7 +94,9 @@ function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
     partner_swap_stats = transmit(entangler(replicas), my_swap_stats, partner_replica_global_indices)
 
     # each call of _swap! performs "one half" of a swap, changing one replicas' chain field in-place
+    lb = load(replicas)
     for i in eachindex(replicas.locals)
+        @assert find_global_index(lb, i) === replicas.locals[i].replica_index
         _swap!(pair_swapper, replicas.locals[i], my_swap_stats[i], partner_swap_stats[i], partner_chains[i])
     end
 
@@ -105,11 +109,16 @@ end
 
 function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partner_chain::Int)
     my_chain = r.chain
+
+    # keep track of index process even if not performing swap
+    record!(r.recorders, :index_process, (r.replica_index, r.chain))
+
     if my_chain == partner_chain return nothing end
 
     do_swap          =  swap_decision(pair_swapper, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
     @assert do_swap  == swap_decision(pair_swapper, partner_chain, partner_swap_stat, my_chain, my_swap_stat)
 
+    # record statistics on this swap
     if my_chain < partner_chain
         record_swap_stats!(pair_swapper, r.recorders, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
     end
@@ -117,6 +126,27 @@ function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partn
     if do_swap
         r.chain = partner_chain # NB: other "half" of the swap performed by partner
     end
+end
+
+function record!(recorder::Dict, value)
+    replica_idx, chain = value
+    if !haskey(recorder, replica_idx)
+        recorder[replica_idx] = Int[]
+    end
+    push!(recorder[replica_idx], chain)
+end
+
+"""
+$TYPEDSIGNATURES
+Given a [`recorders`](@ref), create an index process plot.
+"""
+function index_process_plot(recorders)
+    index_process = recorders.index_process
+    p = plot()
+    for i in eachindex(index_process)
+        p = plot!(p, index_process[i], legend = false)
+    end
+    return p
 end
 
 function checked_partner_chain(swap_graph, my_chain::Int)::Int 

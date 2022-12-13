@@ -3,6 +3,7 @@ using OnlineStats
 using SplittableRandoms
 using MPI
 
+import Base.Threads.@threads
 
 
 function test_recorder(replicas, n_iters::Int)
@@ -12,19 +13,20 @@ function test_recorder(replicas, n_iters::Int)
     for iteration in 1:n_iters
         swap!(discretization, replicas, deo(n_chains, iteration))
         
-        for replica in locals(replicas)
+        @threads for replica in locals(replicas)
             dist = discretization[replica.chain]
             new_sample = rand(replica.rng, dist)
             replica.state = new_sample
         end
     end
-    return reduced_stats(replicas)
+    return reduced_recorder(replicas)
 end
 
 n_chains = 5
-n_iters = 1000
+n_iters = 20
 
-one_machine = test_recorder(create_vector_replicas(n_chains, Ref(0.0), SplittableRandom(1) ), n_iters)
-mpi = test_recorder(create_entangled_replicas(n_chains, Ref(0.0), SplittableRandom(1), true), n_iters)
+one_machine = test_recorder(create_vector_replicas(n_chains, Ref(0.0), SplittableRandom(1), Set([:index_process]) ), n_iters)
+mpi = test_recorder(create_entangled_replicas(n_chains, Ref(0.0), SplittableRandom(1), true, Set([:index_process])), n_iters)
 
 @assert one_machine == mpi
+

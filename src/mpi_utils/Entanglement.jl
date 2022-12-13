@@ -142,7 +142,7 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
         did_send = false
 
         while current_local ≤ myload 
-            current_global = first(myglobals) + current_local - 1
+            current_global = find_global_index(e.load, current_local)
             if isodd(n_global_indices_remaining_before) && current_local == my_first_remaining_local
                 # need to send the first off to left neighbour
                 dest_global_index = current_global - spacing 

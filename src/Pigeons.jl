@@ -27,6 +27,7 @@ import MPI: Comm, Allreduce, Comm_rank,
             RequestSet, mpiexec, Allreduce, 
             Allgather, Comm_split, isend, recv,
             bcast
+
             
 using Base: Forward
 using Distributions
@@ -37,6 +38,7 @@ using Dates
 using OnlineStats
 using MacroTools
 using DocStringExtensions
+using Plots
 
 
 export NRPT, slice_sample, SS
@@ -63,7 +65,8 @@ export  discretize,
 include("path_implementations.jl")
 export  LinearInterpolator,
         create_path,
-        TranslatedNormalPath
+        TranslatedNormalPath,
+        translated_normal_example
 
 
 ### Samplers
@@ -84,6 +87,7 @@ include("mpi_utils/LoadBalance.jl")
 export  my_global_indices,
         find_process,
         find_local_index,
+        find_global_index,
         my_load
 
 include("mpi_utils/Entanglement.jl")
@@ -132,14 +136,17 @@ include("swap_graph.jl")
 export deo
 
 include("swap.jl")
-export  swap!
+export  swap!,
+        index_process_plot
 
 ### Recorder are used to collect statistics
 include("recorders.jl")
+export  recorder_keys,
+        custom_recorders
 include("recorder.jl")
 export  default_recorders,
         record!,
-        reduced_stats
+        reduced_recorder
 
 
 

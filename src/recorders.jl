@@ -12,7 +12,7 @@ can select more expensive ones by enlarging that keyset.
 During PT execution, each recorders object keep track of only the 
 statistics for one replica (for thread safety and/or 
 distribution purpose).
-After a PT round, use [`reduced_stats()`](@ref) to do 
+After a PT round, use [`reduced_recorder()`](@ref) to do 
 a [reduction](https://en.wikipedia.org/wiki/MapReduce) before 
 accessing statistic values. 
 """
@@ -32,15 +32,38 @@ end
 
 """
 $(TYPEDSIGNATURES)
+Basic, constant-memory recorders.
 """
 @provides recorders default_recorders() = (;
         swap_acceptance_pr = GroupBy(Int, Mean()),
     )
 
 """
+$(TYPEDSIGNATURES)
+This returns `default_recorders()`[@ref] plus those 
+provided in the `recorder_keys`.  
+"""
+@provides recorders function custom_recorders(recorder_keys::Set{Symbol}) 
+    result = default_recorders()
+    if :index_process in recorder_keys
+        result = merge(result, (; index_process = Dict{Int, Vector{Int}}()))
+    end
+    return result
+end
+
+"""
+$(TYPEDSIGNATURES)
+Some statistics may induce memory requirements growing in 
+the number of iterations. Use this to select which ones, 
+if any to pass to [`custom_recorders()`](@ref).
+E.g.: `recorder_keys()` or `recorder_keys(:index_process)`.
+"""
+recorder_keys(args::Symbol...) = Set(args)
+
+"""
 $TYPEDSIGNATURES
 """
-reduced_stats(replicas) = all_reduce_deterministically(merge_recorders, _recorders.(locals(replicas)), entangler(replicas))
+reduced_recorder(replicas) = all_reduce_deterministically(merge_recorders, _recorders.(locals(replicas)), entangler(replicas))
 
 function merge_recorders(recorders1, recorders2)
     shared_keys = keys(recorders1)

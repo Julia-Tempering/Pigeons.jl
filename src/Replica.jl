@@ -13,7 +13,10 @@ mutable struct Replica{S, T}
     rng::SplittableRandom
 
     """Records statistics. Each replica carries its own for thread safety/distribution, to be reduced to access."""
-    recorders::T       
+    recorders::T   
+    
+    """A global id associated with this replica.""" 
+    replica_index::Int # we keep track of this for the sorted Vector implementation of replicas
 end
 
 # useful for broadcasting, e.g., chain.(replica)

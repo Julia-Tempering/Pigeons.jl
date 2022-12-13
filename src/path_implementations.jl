@@ -9,7 +9,10 @@ function interpolate(::LinearInterpolator, ref_log_potential, target_log_potenti
     @weighted(beta,       target_log_potential(x))
 end
 
-create_path(ref, target, interpolator = LinearInterpolator()) = Path(ref, target, interpolator)
+"""
+$TYPEDSIGNATURES
+"""
+@provides path create_path(ref, target, interpolator = LinearInterpolator()) = Path(ref, target, interpolator)
 
 struct InterpolatingPath{LP1,LP2,I} # LP = log_potential type, i.e. lp isa LP => supports lp(point)
     ref::LP1
@@ -26,9 +29,19 @@ end
 interpolate(path::InterpolatingPath, beta) = InterpolatedLogPotential(path, beta)
 
 
-# toy path for testing
+# 
 
+"""
+$FIELDS
+Toy path for testing.
+"""
 struct TranslatedNormalPath{T}
+    """Path between a MVN with mean zero at one end point and given `mean` at the other."""
     mean::T
 end
 interpolate(path::TranslatedNormalPath, beta) = Normal(beta * path.mean, 1)
+
+function translated_normal_example(n_chains)
+    path = TranslatedNormalPath(2.0)
+    return discretize(path, equally_spaced(n_chains))
+end

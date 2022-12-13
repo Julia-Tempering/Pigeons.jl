@@ -7,14 +7,13 @@ end
 """
 Informs [`swap!()`](@ref) about how to perform a swap between a given pair of chains.
 
-A pair_swapper first extracts sufficient statistics needed to perform a swap (potentially to be transmitted over network).
-
-Then based on two sets of sufficient statistics, deterministically decide if we should swap. 
+A default implementation is provided, 
+where the [`pair_swapper`](@ref) is treated as a [`log_potentials`](@ref) object.
 """
 @informal pair_swapper begin
     """
     $TYPEDSIGNATURES
-    By default, the [`pair_swapper`](@ref) is treated as a [`log_potentials`](@ref) object.
+    
     Two sufficient statistics are computed: 
 
     - The result of calling [`log_unnormalized_ratio()`](@ref) on [`pair_swapper`](@ref)
@@ -53,9 +52,6 @@ Could also be used to pre-warm-start swap connections during exploration phase b
 """
 struct TestSwapper 
     constant_swap_accept_pr::Float64
-    """
-    $TYPEDSIGNATURES
-    """
     @provides pair_swapper TestSwapper(constant_swap_accept_pr) = new(constant_swap_accept_pr)
 end
 swap_stat(swapper::TestSwapper, replica::Replica, partner_chain::Int)::Float64 = rand(replica.rng)

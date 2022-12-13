@@ -21,6 +21,10 @@ struct LoadBalance
     end
 end
 
+"""
+$TYPEDSIGNATURES
+A load balance with only one process.
+"""
 single_process_load(n_global_indices) = LoadBalance(1, 1, n_global_indices)
 
 function my_global_indices(lb::LoadBalance)
@@ -43,6 +47,11 @@ function find_local_index(lb::LoadBalance, global_idx::Int)::Int
     len = my_load(lb)
     @assert first ≤ global_idx < first + len
     return 1 + global_idx - first
+end
+
+function find_global_index(lb::LoadBalance, local_idx::Int)::Int
+    @assert 1 ≤ local_idx ≤ my_load(lb)
+    return my_first_global_idx(lb) + local_idx - 1
 end
 
 my_load(lb::LoadBalance)::Int = basic_load(lb) + (lb.my_process_index ≤ n_extras(lb) ? 1 : 0)
