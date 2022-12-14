@@ -138,13 +138,6 @@ These datastructures can be obtained using [`load()`](@ref), [`entangler()`](@re
 `replicas.chain_to_replica_global_indices` respectively.
 
 
-**load balance, global/local indices**
-
-**entangler**
-
-**PermutedDistributedArray**
-
-
 ## Distributed swaps
 
 

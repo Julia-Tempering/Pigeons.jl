@@ -6,6 +6,10 @@ number of times per iterations for algorithms running the
 same number of iterations).
 We call these 'occasions' a micro-iteration.
 
+This datastructure keeps track internally of appropriate unique 
+tags to coordinate the communication between MPI processes 
+without having to do any explicit synchnonization. 
+
 This struct contains:
 
 $FIELDS
