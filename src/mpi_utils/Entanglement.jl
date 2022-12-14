@@ -5,14 +5,44 @@ in their lifetime, at logically related occasions (e.g. a set
 number of times per iterations for algorithms running the 
 same number of iterations).
 We call these 'occasions' a micro-iteration.
+
+This struct contains:
+
+$FIELDS
+
+The key operations supported:
+
+- [`transmit()`](@ref) and [`transmit!()`](@ref): encapsulates 
+    pairwise communications where each MPI process is holding  
+    a `Vector`, the elements of which is to be permuted across the processes.
+- [`all_reduce_deterministically`](@ref) and [`reduce_deterministically`](@ref), 
+    to perform MPI collective reduction while maintaining the 
+    Parallelism Invariance property.
+
 """
 mutable struct Entangler
-    communicator::Union{Comm,Nothing}
-    load::LoadBalance
-    current_received_bits::Vector{Bool}
-    n_transmits::Int
     """
-    If parent_communicator is nothing, then assume there is only 
+    An MPI `Comm` object (or nothing if a single process is involved).
+    """
+    communicator::Union{Comm,Nothing}
+
+    """
+    How a set of tasks or "global indices" are distributed across processes. 
+    """
+    load::LoadBalance
+
+    """
+    An internal datastrcture used during MPI calls.
+    """
+    current_received_bits::Vector{Bool} 
+
+    """
+    The current micro-iteration.  
+    """
+    n_transmits::Int 
+
+    """
+    If `parent_communicator` is `nothing`, then assume there is only 
     one machine (self) and bypass MPI.
     """
     function Entangler(n_global_indices::Int; parent_communicator::Union{Comm,Nothing} = COMM_WORLD, verbose::Bool=true)
@@ -41,19 +71,10 @@ mutable struct Entangler
 end
 
 """
-For each i, source_data[i] is sent to_global_indices[i].
-Returns the data received for each e's load balancer's global index 
-(see LoadBalance for functions mapping the 'local index' i to a global index and back).
+$TYPEDSIGNATURES
 
-See Entangler's comments regarding the requirement that all machines call transmit() the 
-same number of times and at logically related intervals. 
-
-Additionally, at each micro-iteration, we assume that 
-{to_global_indices_p : p ranges over the difference processes} forms a partition of 
-{1, ..., e.load.n_global_indices}
-    (if ran in single-process mode, this 'partition property' will be checked [TODO: write test]
-     if ran in multi-process, opportunistic checks will be made [when several entries in to_global_indices 
-     lie in the same process] but systematic checks are not made for performance reasons])
+The same as [`transmit!()`](@ref) but instead of writing the result to an input argument, provide the result 
+as a returned `Vector`. 
 """
 function transmit(e::Entangler, source_data::AbstractVector{T}, to_global_indices::AbstractVector{Int})::Vector{T} where T
     result = Vector{T}(undef, length(source_data))  
@@ -61,10 +82,35 @@ function transmit(e::Entangler, source_data::AbstractVector{T}, to_global_indice
     return result
 end
 
-function tag(e::Entangler, transmit_index::Int, global_index::Int)
-    return transmit_index * e.load.n_global_indices + global_index
-end
 
+"""
+$TYPEDSIGNATURES
+
+Use MPI point-to-point communication to 
+permute the contents of `source_data` across MPI processes, writing the permuted data into 
+`write_received_data_here`. 
+The permutation is specified by the load balance in the input argument `e` as well as the 
+argument `to_global_indices`.
+
+More precisely, assume the Vectors `source_data`, `to_global_indices`, and `write_received_data_here` 
+are all of the length specified in `my_load(e.load)`. 
+
+For each `i`, `source_data[i]` is sent to MPI process `p = find_process(e.load, g)`, 
+where `g = to_global_indices[i]` and 
+written into this `p` 's `write_received_data_here[j]`, where `j = find_local_index(e.load, g)`
+
+See Entangler's comments regarding the requirement that all machines call transmit() the 
+same number of times and at logically related intervals. 
+
+Additionally, at each micro-iteration, we assume that 
+`{to_global_indices_p : p ranges over the difference processes}` forms a partition of 
+`{1, ..., e.load.n_global_indices}`
+If ran in single-process mode, this 'partition property' is checked; 
+if ran in multi-process, opportunistic checks will be made, namely when several entries in `to_global_indices` 
+lie in the same process, but systematic checks are not made for performance reasons. 
+
+We also assume `isbitstype(T) == true`. 
+"""
 function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indices::AbstractVector{Int}, write_received_data_here::Vector{T}) where T 
     myload = my_load(e.load)
     @assert myload == length(source_data) == length(write_received_data_here) == length(to_global_indices)
@@ -114,12 +160,34 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
     end
 end
 
-function next_transmit_index!(e::Entangler)::Int
-    result = e.n_transmits
-    e.n_transmits += 1
-    return result
-end
+"""
+$TYPEDSIGNATURES
 
+Perform a binary [reduction](https://en.wikipedia.org/wiki/MapReduce) of the 
+`source_data`, using MPI when needed. 
+
+Consider the binary tree with leaves given by the global indices specified in `e.load` and stored 
+in the different MPI processes' input `source_data` vectors. 
+At each node of the tree, a reduction is performed using `operation`, i.e. 
+by calling `operation(left_child, right_child)`.
+When, and only when a branch of the tree crosses from one MPI process to another one, 
+MPI communication is used to transmit the intermediate reduction. 
+
+At the end, for process 1, `reduce_deterministically()` will return the root of the 
+binary tree, and for the other processes, `reduce_deterministically()` will return 
+`nothing`. 
+
+Note that even when the `operation` is only approximately associative (typical situation 
+for floating point reductions), the output of this function is invariant to the 
+number of MPI processes involved (hence the terminology 'deterministically'). 
+This contrasts to direct use of MPI collective communications where the leaves are 
+MPI processes and hence will give slightly different outputs given different 
+numbers of MPI processes. In the context of randomized algorithms, these minor 
+differences are then amplified. 
+
+In contrast to [`transmit!()`](@ref), we do not assume `isbitstype(T) == true` and use 
+serialization when messages are transmitted over MPI.
+"""
 function reduce_deterministically(operation, source_data::AbstractVector{T}, e::Entangler) where T
     myload = my_load(e.load)
     @assert length(source_data) == myload
@@ -181,6 +249,13 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
     return e.load.my_process_index == 1 ? work_array[1] : nothing
 end
 
+"""
+$TYPEDSIGNATURES
+
+Same as [`reduce_deterministically()`](@ref) except that the result at the root of the 
+tree is then broadcast to all machines so that the output of `all_reduce_deterministically()` 
+is the root of the reduction tree for all MPI processes involved. 
+"""
 function all_reduce_deterministically(operation, source_data::AbstractVector{T}, e::Entangler) where T
     if e.load.my_process_index == 1
         result = reduce_deterministically(operation, source_data, e)
@@ -192,4 +267,20 @@ function all_reduce_deterministically(operation, source_data::AbstractVector{T},
         reduce_deterministically(operation, source_data, e)
         return bcast(nothing, e.communicator)
     end
+end
+
+# Keep track internally of integer identifier for the communication micro iterations 
+
+function tag(e::Entangler, transmit_index::Int, global_index::Int)
+    # The number of pair-wise communications within a micro-iteration is at most e.load.n_global_indices,
+    # so we can build tags as follows:
+    return transmit_index * e.load.n_global_indices + global_index
+end
+
+# A transmit index keeps track of the micro-iteration.
+# Each micro iteration contains several pairwise communications
+function next_transmit_index!(e::Entangler)::Int
+    result = e.n_transmits
+    e.n_transmits += 1
+    return result
 end
