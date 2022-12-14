@@ -58,7 +58,7 @@ leveraging the reference distribution(s).
 
 ### Local exploration
 
-In the **local exploration phase,**
+In the **local exploration phase**,
 each [`Replica`](@ref)'s state is modified using a ``\pi_i``-invariant kernel, 
 where ``i`` is given by `Replica.chain`. Often, `Replica.chain` corresponds to 
 an annealing parameter ``\beta_i`` but this need not be the case (see 
@@ -76,22 +76,25 @@ The kernel can either modify `Replica.state` in-place, or modify the
 In the **communication phase**, PT proposes swaps between pairs of replicas. 
 These swaps allow each replica's state to periodically visit reference chains. During these reference
 visits, the state can move around the space quickly. 
-In principle, there are two equivalent ways to do a swap: the `Replica`'s could exchange 
+In principle, there are two equivalent ways to do a swap: the `Replica`s could exchange 
 their `state` fields; or alternatively, they could exchange their `chain` fields.
-Since we provide distributed implementations, we use the latter as it implies that 
-amount of data exchanged between two machines during a swap can be made very small (two floats). 
+Since we provide distributed implementations, we use the latter as it ensures that 
+the amount of data that needs to be exchanged between two machines during a swap 
+can be made very small (two floats). 
 It is remarkable that this cost does not vary with the dimensionality of the state space, 
 in constrast to the naive implementation which would transmit states over the network.
 See [Distributed PT](distributed.html) for more information on our distributed implementation.
 
 Both in distributed and single process mode, 
-swaps are performed using the function [`swap!()`](@ref), see the documentation there for
+swaps are performed using the function [`swap!()`](@ref). See the documentation there for
 more information.
 
 
 ## Basic PT algorithm
 
-Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) can be implemented in Pigeons (for pedagogy and/or those interested in extending the library; users of the library should instead follow higher-level instructions in [the user guide page](index.html)):
+Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+can be implemented in Pigeons. (This example is for pedagogy and/or those interested in extending 
+the library. Users of the library should instead follow higher-level instructions in [the user guide page](index.html).)
 
 ```@example simple_algos
 using Pigeons
