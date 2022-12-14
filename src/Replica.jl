@@ -1,5 +1,5 @@
 """
-One of the ``N`` components that forms the state maintained by a PT algorithm. A Replica ontains:
+One of the ``N`` components that forms the state maintained by a PT algorithm. A Replica contains:
 $(FIELDS)
 """
 mutable struct Replica{S, T}

@@ -33,7 +33,7 @@ Implementations provided
     communicator(replicas) = @abstract 
     """
     $TYPEDSIGNATURES
-    Return the [`Entangler`](@ref) (possibly a no-communication Entangler)
+    Return the [`Entangler`](@ref) (possibly a no-communication Entangler if a single process is involved)
     """
     entangler(replicas) = @abstract 
 end

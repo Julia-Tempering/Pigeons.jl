@@ -27,7 +27,7 @@ For example, we provide this behaviour for any `Vector` containing [`log_potenti
     The ratio:
 
     ```math
-    f(x) = \\frac{\\text{d}\\pi_i}{\\text{d}\\pi_j}.
+    f(x) = \\frac{\\text{d}\\pi_i}{\\text{d}\\pi_j}(x)
     ```
 
     may only be known up to a normalization constant which can depend on ``i`` and ``j`` but 

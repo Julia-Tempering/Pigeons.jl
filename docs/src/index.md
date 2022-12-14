@@ -78,5 +78,8 @@ This sequence of distributions is specified using the informal interface [`log_p
     Add instructions for Markov transition kernels, and example code.
 
 
+## Running distributed jobs
 
+!!! warning "TODO"
 
+    Add instructions once the interface improves a bit.

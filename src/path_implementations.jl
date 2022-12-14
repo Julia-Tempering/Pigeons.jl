@@ -44,12 +44,15 @@ end
 interpolate(path::TranslatedNormalPath, beta) = Normal(beta * path.mean, 1)
 
 """
+A [`path`](@ref) of zero-mean normals for testing; contains:
 $FIELDS
-Toy path for testing.
 """
 struct ScaledPrecisionNormalPath
+    """Precision parameter of the reference."""
     precision0::Float64
+    """Precision parameter of the target."""
     precision1::Float64
+    """Dimensionality."""
     dim::Int
 end
 """

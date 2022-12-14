@@ -1,7 +1,20 @@
+"""
+An implementation of [`replicas`](@ref) for distributed PT. 
+Contains:
+$FIELDS
+"""
 struct EntangledReplicas{R} # implements the informal interface in replica.jl
-    # the subset of replicas hosted in this process, indexed by a 'local index' with no specific meaning
-    locals::Vector{R} 
-    # maps 'chain's to 'global indices', where the latter is used to keep track of all replicas split across many processes
+    """
+    The subset of replicas hosted in this process
+    """
+    locals::Vector{R}
+    
+    """
+    A specialized distributed array that 
+    maps chain indices to replica indices (global indices).
+    This corresponds to the mapping ``\\boldsymbol{j}`` in line 2 of 
+    Algorithm 5 in [Syed et al, 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
+    """
     chain_to_replica_global_indices::PermutedDistributedArray{Int} 
 end
 entangler(r::EntangledReplicas) = r.chain_to_replica_global_indices.entangler # an 'entangler' encapsulates the MPI details
