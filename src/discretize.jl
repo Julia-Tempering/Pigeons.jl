@@ -1,9 +1,13 @@
 """
-$FIELDS
+A partition of [0, 1] encoded by monotonically increasing grid points 
+starting at zero and ending at one.
 """
 struct Schedule{T}
     """Monotone increasing with end points at zero and one."""
     grids::T 
+    """
+    $TYPEDSIGNATURES
+    """
     function Schedule(grids::T) where {T}
         @assert issorted(grids)
         @assert first(grids) == 0.0

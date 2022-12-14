@@ -52,6 +52,9 @@ struct ScaledPrecisionNormalPath
     precision1::Float64
     dim::Int
 end
+"""
+$TYPEDSIGNATURES
+"""
 ScaledPrecisionNormalPath(dim::Int) = ScaledPrecisionNormalPath(1.0, 10.0, dim) 
 precision(path::ScaledPrecisionNormalPath, beta) = (1.0 - beta) * path.precision0 + beta * path.precision1
 interpolate(path::ScaledPrecisionNormalPath, beta) = MultivariateNormal(zeros(path.dim), Matrix(I, path.dim, path.dim) / precision(path, beta))
@@ -65,6 +68,10 @@ function scaled_normal_example(n_chains, dim)
     return discretize(path, Schedule(n_chains))
 end
 
+"""
+$TYPEDSIGNATURES
+From https://aip.scitation.org/doi/10.1063/1.1644093
+"""
 function analytic_cumulativebarrier(path::ScaledPrecisionNormalPath)
     b = beta(path.dim / 2.0, path.dim / 2.0)
     function cumulativebarrier(beta)

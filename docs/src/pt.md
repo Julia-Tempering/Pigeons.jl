@@ -11,7 +11,7 @@ linking it with some key parts of the code base.
 
     Read this page if you are interested in extending Pigeons or 
     understanding how it works under the hood. 
-    Reading this page is not required to use Pigeons, instead refer to the 
+    Reading this page is not required to use Pigeons, for that instead refer to the 
     [user guide](index.html). 
 
 
@@ -53,7 +53,7 @@ to Monte Carlo averages that converge to the expectation of interest ``E[f(X)]``
 PT alternates between two phases, each ``\boldsymbol{\pi}``-invariant: the local 
 exploration phase and the communication phase. Informally, the first phase attempts to achieve 
 mixing for the univariate statistics ``\pi_i(X^{(i)})``, while the second phase attempts to 
-translate well-mixing of the univariate statistics into global mixing of ``X^{(i)}`` by 
+translate well-mixing of these univariate statistics into global mixing of ``X^{(i)}`` by 
 leveraging the reference distribution(s).
 
 ### Local exploration
@@ -80,7 +80,7 @@ In principle, there are two equivalent ways to do a swap: the `Replica`'s could 
 their `state` fields; or alternatively, they could exchange their `chain` fields.
 Since we provide distributed implementations, we use the latter as it implies that 
 amount of data exchanged between two machines during a swap can be made very small (two floats). 
-This is remarkable that this cost does not vary with the dimensionality of the state space, 
+It is remarkable that this cost does not vary with the dimensionality of the state space, 
 in constrast to the naive implementation which would transmit states over the network.
 See [Distributed PT](distributed.html) for more information on our distributed implementation.
 
@@ -97,6 +97,7 @@ Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://r
 using Pigeons
 using SplittableRandoms
 using Plots
+import Base.Threads.@threads
 
 const n_chains = 20
 
@@ -115,7 +116,7 @@ function simple_deo(n_iters, log_potentials)
         # communication phase
         swap!(log_potentials, replicas, deo(n_chains, iteration))
         # toy local exploration (in this toy e.g. we can do iid for all chains)
-        for replica in locals(replicas)
+        @threads for replica in locals(replicas)
             distribution = log_potentials[replica.chain]
             replica.state = rand(replica.rng, distribution)
         end
@@ -142,7 +143,8 @@ The code above illustrates the two steps needed to collect statistics from the e
 An object responsible for accumulating all different types of statistics for 
 one replica is called a  [`recorders`](@ref). An object accumulating one 
 type of statistic for one replica is a [`recorder`](@ref). 
-Each replica has a single recorders to ensure thread safety and distributed 
+Each replica has a single recorders to ensure thread safety (as illustrated above 
+by the use of a parallel local exploration phase using `@thread`) and to enable distributed 
 computing. 
 
 
@@ -162,7 +164,7 @@ will use here.
 We now move to a simplified version of Algorithms 2 and 3 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) (again for pedagogy and/or those interested in extending the library), which are algorithms for adaptively discretizing a continuum of distribution.
 
 The algorithm starts with a simple initial discretization, here
-one where each grid is equally spaced built using [`Schedule()`](@ref)
+one where each grid is equally spaced, built using [`Schedule()`](@ref)
 and [`discretize()`](@ref):
 
 ```@example simple_algos
@@ -224,7 +226,7 @@ savefig("barriers.svg"); nothing # hide
 ![](barriers.svg)
 
 The simple normal model we are using has a [known closed form expression](https://aip.scitation.org/doi/10.1063/1.1644093) 
-for the cumulative barrier. We can compare it to check accuracy of our PT-derived 
+for the cumulative barrier. We can compare it to check the accuracy of our PT-derived 
 approximation:
 
 ```@example simple_algos
