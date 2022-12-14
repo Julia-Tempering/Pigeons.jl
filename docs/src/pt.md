@@ -58,7 +58,7 @@ leveraging the reference distribution(s).
 
 ### Local exploration
 
-In the **local exploration phase,**
+In the **local exploration phase**,
 each [`Replica`](@ref)'s state is modified using a ``\pi_i``-invariant kernel, 
 where ``i`` is given by `Replica.chain`. Often, `Replica.chain` corresponds to 
 an annealing parameter ``\beta_i`` but this need not be the case (see 
@@ -76,22 +76,25 @@ The kernel can either modify `Replica.state` in-place, or modify the
 In the **communication phase**, PT proposes swaps between pairs of replicas. 
 These swaps allow each replica's state to periodically visit reference chains. During these reference
 visits, the state can move around the space quickly. 
-In principle, there are two equivalent ways to do a swap: the `Replica`'s could exchange 
+In principle, there are two equivalent ways to do a swap: the `Replica`s could exchange 
 their `state` fields; or alternatively, they could exchange their `chain` fields.
-Since we provide distributed implementations, we use the latter as it implies that 
-amount of data exchanged between two machines during a swap can be made very small (two floats). 
+Since we provide distributed implementations, we use the latter as it ensures that 
+the amount of data that needs to be exchanged between two machines during a swap 
+can be made very small (two floats). 
 It is remarkable that this cost does not vary with the dimensionality of the state space, 
 in constrast to the naive implementation which would transmit states over the network.
 See [Distributed PT](distributed.html) for more information on our distributed implementation.
 
 Both in distributed and single process mode, 
-swaps are performed using the function [`swap!()`](@ref), see the documentation there for
+swaps are performed using the function [`swap!()`](@ref). See the documentation there for
 more information.
 
 
 ## Basic PT algorithm
 
-Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) can be implemented in Pigeons (for pedagogy and/or those interested in extending the library; users of the library should instead follow higher-level instructions in [the user guide page](index.html)):
+Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+can be implemented in Pigeons. (This example is for pedagogy and/or those interested in extending 
+the library. Users of the library should instead follow higher-level instructions in [the user guide page](index.html).)
 
 ```@example simple_algos
 using Pigeons
@@ -157,14 +160,16 @@ This section outlines this process.
 
 The starting point is a [`path`](@ref) object, which is a continuum of distributions. 
 A [`path`](@ref) is typically obtained via [`create_path()`](@ref). 
-We can also get a toy example consisting of a normal distributions with varying 
+We can also get a toy example consisting of normal distributions with varying 
 precision parameters via [`scaled_normal_example()`](@ref), which is what we 
 will use here.
 
-We now move to a simplified version of Algorithms 2 and 3 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) (again for pedagogy and/or those interested in extending the library), which are algorithms for adaptively discretizing a continuum of distribution.
+We now move to a simplified version of Algorithms 2 and 3 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+(again for pedagogy and/or those interested in extending the library), which are 
+algorithms for adaptively discretizing a continuum of distributions.
 
-The algorithm starts with a simple initial discretization, here
-one where each grid is equally spaced, built using [`Schedule()`](@ref)
+The algorithm starts with a simple initial discretization.
+Here it is one where each grid is equally spaced, being built using [`Schedule()`](@ref)
 and [`discretize()`](@ref):
 
 ```@example simple_algos
@@ -177,7 +182,8 @@ nothing # hide
 
 we then run one *round* of Algorithm 1, and use its output to 
 compute an initial estimate of the communication barriers as defined 
-in [Section 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) and implemented in [`communicationbarrier()`](@ref).
+in [Section 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+and implemented in [`communicationbarrier()`](@ref).
 
 ```@example simple_algos
 # continues from the above
@@ -192,9 +198,10 @@ barriers.globalbarrier
 ![](barrier.svg)
 
 We can then create a new schedule from the cumulative communication barrier 
-by following [Algorithm 2 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) and implemented in [`Schedule()`](@ref). 
-Finally, following [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) we can iterate this process by 
-performing several rounds of PT, each with increasing budget:
+by following [Algorithm 2 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+and implemented in [`Schedule()`](@ref). 
+Finally, following [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+we can iterate this process by performing several rounds of PT, each with increasing budget:
 
 ```@example simple_algos
 # continues from the above
@@ -225,9 +232,9 @@ savefig("barriers.svg"); nothing # hide
 
 ![](barriers.svg)
 
-The simple normal model we are using has a [known closed form expression](https://aip.scitation.org/doi/10.1063/1.1644093) 
-for the cumulative barrier. We can compare it to check the accuracy of our PT-derived 
-approximation:
+The simple normal model we are using has a [known closed-form expression](https://aip.scitation.org/doi/10.1063/1.1644093) 
+for the cumulative barrier. We can use this closed-form expression to check the 
+accuracy of our PT-derived approximation:
 
 ```@example simple_algos
 # continues from the above

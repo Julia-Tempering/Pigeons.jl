@@ -9,7 +9,7 @@ of the following algorithms:
 
 - Non-Reversible Parallel Tempering (NRPT), 
     [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-- Variational PT, [Surjanovic et al, 2022](https://arxiv.org/abs/2206.00080).
+- Variational PT, [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080).
 
 Pigeons can be used in a multi-threaded context, and/or 
 distributed over hundreds or thousands of MPI-communicating machines.
@@ -61,7 +61,7 @@ Pigeons shines in the following scenarios:
 !!! warning "TODO"
 
     Later on, once we have interfaces with some PPLs, write some user-facing examples, 
-    showing the key capabilities
+    showing the key capabilities.
 
 
 ## Specification of general models
