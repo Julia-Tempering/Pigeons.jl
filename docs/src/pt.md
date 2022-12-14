@@ -160,14 +160,16 @@ This section outlines this process.
 
 The starting point is a [`path`](@ref) object, which is a continuum of distributions. 
 A [`path`](@ref) is typically obtained via [`create_path()`](@ref). 
-We can also get a toy example consisting of a normal distributions with varying 
+We can also get a toy example consisting of normal distributions with varying 
 precision parameters via [`scaled_normal_example()`](@ref), which is what we 
 will use here.
 
-We now move to a simplified version of Algorithms 2 and 3 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) (again for pedagogy and/or those interested in extending the library), which are algorithms for adaptively discretizing a continuum of distribution.
+We now move to a simplified version of Algorithms 2 and 3 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+(again for pedagogy and/or those interested in extending the library), which are 
+algorithms for adaptively discretizing a continuum of distributions.
 
-The algorithm starts with a simple initial discretization, here
-one where each grid is equally spaced, built using [`Schedule()`](@ref)
+The algorithm starts with a simple initial discretization.
+Here it is one where each grid is equally spaced, being built using [`Schedule()`](@ref)
 and [`discretize()`](@ref):
 
 ```@example simple_algos
@@ -180,7 +182,8 @@ nothing # hide
 
 we then run one *round* of Algorithm 1, and use its output to 
 compute an initial estimate of the communication barriers as defined 
-in [Section 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) and implemented in [`communicationbarrier()`](@ref).
+in [Section 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+and implemented in [`communicationbarrier()`](@ref).
 
 ```@example simple_algos
 # continues from the above
@@ -195,9 +198,10 @@ barriers.globalbarrier
 ![](barrier.svg)
 
 We can then create a new schedule from the cumulative communication barrier 
-by following [Algorithm 2 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) and implemented in [`Schedule()`](@ref). 
-Finally, following [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) we can iterate this process by 
-performing several rounds of PT, each with increasing budget:
+by following [Algorithm 2 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+and implemented in [`Schedule()`](@ref). 
+Finally, following [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+we can iterate this process by performing several rounds of PT, each with increasing budget:
 
 ```@example simple_algos
 # continues from the above
@@ -228,9 +232,9 @@ savefig("barriers.svg"); nothing # hide
 
 ![](barriers.svg)
 
-The simple normal model we are using has a [known closed form expression](https://aip.scitation.org/doi/10.1063/1.1644093) 
-for the cumulative barrier. We can compare it to check the accuracy of our PT-derived 
-approximation:
+The simple normal model we are using has a [known closed-form expression](https://aip.scitation.org/doi/10.1063/1.1644093) 
+for the cumulative barrier. We can use this closed-form expression to check the 
+accuracy of our PT-derived approximation:
 
 ```@example simple_algos
 # continues from the above
