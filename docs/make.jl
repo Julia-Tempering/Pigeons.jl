@@ -16,7 +16,7 @@ makedocs(;
         assets=String[],
     ),
     pages=[
-        "Home" => "index.md", 
+        "Guide" => "index.md", 
         "Parallel Tempering (PT)" => "pt.md", 
         "Distributed PT" => "distributed.md",
         "Interfaces" => informal_doc(@__DIR__, Pigeons),

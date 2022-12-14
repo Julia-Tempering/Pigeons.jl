@@ -7,6 +7,14 @@ We provide in this page an overview of Non-Reversible Parallel Tempering (PT),
 [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464), 
 linking it with some key parts of the code base. 
 
+!!! note
+
+    Read this page if you are interested in extending Pigeons or 
+    understanding how it works under the hood. 
+    Reading this page is not required to use Pigeons, instead refer to the 
+    [user guide](index.html). 
+
+
 
 ## PT augmented state space, replicas
 
@@ -83,37 +91,39 @@ more information.
 
 ## Basic PT algorithm
 
-Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) can be implemented in Pigeons (for pedagogy and/or those interested in extending the library; users of the library should instead follow higher-level instructions in [the home page](index.html)):
+Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) can be implemented in Pigeons (for pedagogy and/or those interested in extending the library; users of the library should instead follow higher-level instructions in [the user guide page](index.html)):
 
 ```@example simple_algos
 using Pigeons
 using SplittableRandoms
 using Plots
 
-# initialize replicas
-const n_chains = 10
-init = Ref(0.0)                      # initialize all states to zero
-rng = SplittableRandom(1)            # specialized rng (see Distributed PT page)
-keys = recorder_keys(:index_process) # determines which statistics to keep
-replicas = create_vector_replicas(n_chains, init, rng, keys)
+const n_chains = 20
 
 # initialize sequence of distributions
-normal_log_potentials = translated_normal_example(n_chains)
+const dim = 8
+const normal_log_potentials = scaled_normal_example(n_chains, dim)
 
-function simple_deo(replicas, n_iters, normal_log_potentials)
+# initialize replicas
+const init = Ref(zeros(dim))               # initialize all states to zero
+const rng = SplittableRandom(1)            # specialized rng (see Distributed PT page)
+const keys = recorder_keys(:index_process) # determines which statistics to keep
+
+function simple_deo(n_iters, log_potentials)
+    replicas = create_vector_replicas(n_chains, init, rng, keys)
     for iteration in 1:n_iters
         # communication phase
-        swap!(normal_log_potentials, replicas, deo(n_chains, iteration))
+        swap!(log_potentials, replicas, deo(n_chains, iteration))
         # toy local exploration (in this toy e.g. we can do iid for all chains)
         for replica in locals(replicas)
-            distribution = normal_log_potentials[replica.chain]
+            distribution = log_potentials[replica.chain]
             replica.state = rand(replica.rng, distribution)
         end
     end
     return reduced_recorder(replicas)
 end
 
-deo_result = simple_deo(replicas, 25, normal_log_potentials)
+deo_result = simple_deo(100, normal_log_potentials)
 p = index_process_plot(deo_result)
 savefig(p, "index_process.svg"); nothing # hide
 ```
@@ -138,3 +148,91 @@ computing.
 
 ## Adaptation and schedule update
 
+PT requires as input a discrete set of probability distribution, i.e. [`log_potentials`](@ref). 
+How can those be automatically computed from just knowing the reference and target 
+distributions?
+This section outlines this process.
+
+The starting point is a [`path`](@ref) object, which is a continuum of distributions. 
+A [`path`](@ref) is typically obtained via [`create_path()`](@ref). 
+We can also get a toy example consisting of a normal distributions with varying 
+precision parameters via [`scaled_normal_example()`](@ref), which is what we 
+will use here.
+
+We now move to a simplified version of Algorithms 2 and 3 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) (again for pedagogy and/or those interested in extending the library), which are algorithms for adaptively discretizing a continuum of distribution.
+
+The algorithm starts with a simple initial discretization, here
+one where each grid is equally spaced built using [`Schedule()`](@ref)
+and [`discretize()`](@ref):
+
+```@example simple_algos
+# continues from the above
+path = ScaledPrecisionNormalPath(dim)
+schedule = Schedule(n_chains)
+log_potentials = discretize(path, schedule)
+nothing # hide
+```
+
+we then run one *round* of Algorithm 1, and use its output to 
+compute an initial estimate of the communication barriers as defined 
+in [Section 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) and implemented in [`communicationbarrier()`](@ref).
+
+```@example simple_algos
+# continues from the above
+deo_result = simple_deo(100, log_potentials)
+barriers = communicationbarrier(deo_result, schedule)
+plot(barriers.cumulativebarrier, legend = false)
+xlims!(0, 1)
+savefig("barrier.svg") # hide
+barriers.globalbarrier
+```
+
+![](barrier.svg)
+
+We can then create a new schedule from the cumulative communication barrier 
+by following [Algorithm 2 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) and implemented in [`Schedule()`](@ref). 
+Finally, following [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) we can iterate this process by 
+performing several rounds of PT, each with increasing budget:
+
+```@example simple_algos
+# continues from the above
+
+function adapt(schedule, n_iters)
+    log_potentials = discretize(path, schedule)
+    deo_result = simple_deo(n_iters, log_potentials)
+    barriers = communicationbarrier(deo_result, schedule)
+    plot!(barriers.cumulativebarrier)
+    xlims!(0, 1)
+    return (Schedule(n_chains, barriers.cumulativebarrier), barriers)
+end
+
+function nrpt(schedule)
+    n_iters = 2
+    for round_index in 1:10
+        schedule, barriers = adapt(schedule, n_iters)
+        n_iters *= 2
+    end
+    return barriers
+end
+
+plot()
+barriers = nrpt(schedule)
+
+savefig("barriers.svg"); nothing # hide
+```
+
+![](barriers.svg)
+
+The simple normal model we are using has a [known closed form expression](https://aip.scitation.org/doi/10.1063/1.1644093) 
+for the cumulative barrier. We can compare it to check accuracy of our PT-derived 
+approximation:
+
+```@example simple_algos
+# continues from the above
+analytic = analytic_cumulativebarrier(path)
+plot([analytic, barriers.cumulativebarrier], labels = ["analytic" "estimate"])
+xlims!(0, 1)
+savefig("compare-barriers.svg"); nothing # hide
+```
+
+![](compare-barriers.svg)

@@ -39,7 +39,8 @@ using OnlineStats
 using MacroTools
 using DocStringExtensions
 using Plots
-
+using LinearAlgebra
+using SpecialFunctions
 
 export NRPT, slice_sample, SS
 
@@ -59,14 +60,15 @@ export  interpolate
 
 include("discretize.jl")
 export  discretize,
-        Schedule,
-        equally_spaced
+        Schedule
 
 include("path_implementations.jl")
 export  LinearInterpolator,
         create_path,
         TranslatedNormalPath,
-        translated_normal_example
+        ScaledPrecisionNormalPath,
+        scaled_normal_example,
+        analytic_cumulativebarrier
 
 
 ### Samplers
@@ -75,6 +77,8 @@ include("samplers/samplers.jl")
 ### NRPT
 include("acceptance.jl")
 include("adaptation.jl")
+export communicationbarrier
+
 include("deo.jl")
 include("exploration.jl")
 include("restarts.jl")

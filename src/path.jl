@@ -1,12 +1,11 @@
 """
 A continuum of [`log_potential`](@ref)'s interpolating between two end-points.
-
-Convention: the continuum is indexed on [0, 1] 
+More precisely, a mapping from [0, 1] to the space of probability distributions. 
 """
 @informal path begin
     """
     $TYPEDSIGNATURES
-    Returns a [`log_potential`](@ref).
+    Returns the [`log_potential`](@ref) at point `beta` in the [`path`](@ref)
     """
     interpolate(path, beta) = @abstract
 end

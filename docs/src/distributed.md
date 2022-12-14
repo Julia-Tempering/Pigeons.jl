@@ -10,6 +10,13 @@ Pigeons provides an implementation of Distributed PT based on [Syed et al., 2021
 This page describes the challenges of implementing this distributed, parallelized and random algorithm and 
 how we addressed these challenges.
 
+!!! note
+
+    Read this page if you are interested in extending Pigeons or 
+    understanding how it works under the hood. 
+    Reading this page is not required to use Pigeons, instead refer to the 
+    [user guide](index.html). 
+
 In Distributed PT, one or several computers run MCMC simulations in parallel and communicate with each other 
 to improve MCMC efficiency. 
 We use the terminology **machine** for one of these computers, or, to be more precise, 
