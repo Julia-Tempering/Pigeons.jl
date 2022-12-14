@@ -124,7 +124,7 @@ function simple_deo(n_iters, log_potentials)
             replica.state = rand(replica.rng, distribution)
         end
     end
-    return reduced_recorder(replicas)
+    return reduced_recorders(replicas)
 end
 
 deo_result = simple_deo(100, normal_log_potentials)
@@ -140,7 +140,7 @@ The code above illustrates the two steps needed to collect statistics from the e
     default, those that can be computed in constant memory only are included, 
     those that have growing memory consumption, e.g. tracking the full 
     index process as done here, need to be explicitly specified in advance).
-- Using [`reduced_recorder()`](@ref) to compile the statistics collected 
+- Using [`reduced_recorders()`](@ref) to compile the statistics collected 
     by the different replicas.
     
 An object responsible for accumulating all different types of statistics for 

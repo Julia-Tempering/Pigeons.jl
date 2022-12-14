@@ -5,14 +5,14 @@ accumulated.
 
 The keyset of the NamedTuple controls which types of 
 statistics to accumulate (we refer to each element in 
-this keyset as a recorder_key). By default, only those 
+this keyset as a `recorder_key`). By default, only those 
 with constant memory requirement are selected, the user 
 can select more expensive ones by enlarging that keyset.
 
 During PT execution, each recorders object keep track of only the 
 statistics for one replica (for thread safety and/or 
 distribution purpose).
-After a PT round, use [`reduced_recorder()`](@ref) to do 
+After a PT round, use [`reduced_recorders()`](@ref) to do 
 a [reduction](https://en.wikipedia.org/wiki/MapReduce) before 
 accessing statistic values. 
 """
@@ -40,7 +40,7 @@ Basic, constant-memory recorders.
 
 """
 $(TYPEDSIGNATURES)
-This returns `default_recorders()`[@ref] plus those 
+This returns [`default_recorders()`](@ref) plus those 
 provided in the `recorder_keys`.  
 """
 @provides recorders function custom_recorders(recorder_keys::Set{Symbol}) 
@@ -62,8 +62,18 @@ recorder_keys(args::Symbol...) = Set(args)
 
 """
 $TYPEDSIGNATURES
+
+Perform a reduction across all the replicas' individual recorders, 
+using  [`combine()`](@ref) on each individual [`recorder`](@ref)
+held. 
+Returns a [`recorders`](@ref) with all the information merged. 
+
+Since this uses [`all_reduce_deterministically`](@ref), the output is 
+identical, no matter how many MPI processes are used, even when 
+the reduction involves only approximately associative [`combine()`](@ref)
+operations (e.g. most floating point ones).
 """
-reduced_recorder(replicas) = all_reduce_deterministically(merge_recorders, _recorders.(locals(replicas)), entangler(replicas))
+reduced_recorders(replicas) = all_reduce_deterministically(merge_recorders, _recorders.(locals(replicas)), entangler(replicas))
 
 function merge_recorders(recorders1, recorders2)
     shared_keys = keys(recorders1)

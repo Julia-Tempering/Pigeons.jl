@@ -90,7 +90,7 @@ const normal_log_potentials = scaled_normal_example(n_chains, dim)
 
 # initialize replicas
 const init = Ref(zeros(dim))               # initialize all states to zero
-const rng = SplittableRandom(1)            # specialized rng (see Distributed PT page)
+const rng = SplittableRandom(1)            
 const keys = recorder_keys(:index_process) # determines which statistics to keep
 
 function simple_distributed_deo(n_iters, log_potentials)
@@ -104,7 +104,7 @@ function simple_distributed_deo(n_iters, log_potentials)
             replica.state = rand(replica.rng, distribution)
         end
     end
-    return reduced_recorder(replicas)
+    return reduced_recorders(replicas)
 end
 
 deo_result = simple_distributed_deo(100, normal_log_potentials)
@@ -121,8 +121,9 @@ Indeed, beyond the superficial syntactic similarities between the single process
 distributed code, the behavious of [`swap!`](@ref) is quite different due the changing type 
 of `replica` controlling multiple dispatch. 
 
-In the following, after describing the distributed replicas datastructure, we discuss the key constructs in the above code that induce communication 
-between processes: [`swap!`](@ref) and [`reduced_recorder`](@ref). 
+In the following, after introducing a splittable random streams implementation and the distributed replicas datastructure, we discuss the key constructs that induce communication between processes in the above code: [`swap!`](@ref) and [`reduced_recorders`](@ref). 
+
+## Splittable random streams
 
 
 ## Distributed replicas
