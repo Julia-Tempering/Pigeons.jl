@@ -118,7 +118,8 @@ export  Replica,
 include("pair_swapper.jl")
 export swap_decision,
        swap_stat,
-       record_swap_stats!
+       record_swap_stats!,
+       SwapStat
 
 
 include("replicas.jl")
@@ -146,14 +147,14 @@ export  swap!,
 ### Recorder are used to collect statistics
 include("recorders.jl")
 export  recorder_keys,
-        custom_recorders
-include("recorder.jl")
-export  default_recorders,
-        record!,
+        record_if_requested!,
+        custom_recorders,
+        default_recorders,
         reduced_recorders
 
-
-
+include("recorder.jl")
+export  default_recorders,
+        record!
 
 include("summary.jl")
 

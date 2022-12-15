@@ -23,7 +23,7 @@ accessing statistic values.
     send the `value` to the [`recorder`](@key) corresponding to the 
     `recorder_key`.
     """
-    function record!(recorders, recorder_key, value)
+    function record_if_requested!(recorders::NamedTuple, recorder_key, value)
         if haskey(recorders, recorder_key)
             record!(recorders[recorder_key], value)
         end
@@ -32,6 +32,7 @@ end
 
 """
 $(TYPEDSIGNATURES)
+
 Basic, constant-memory recorders.
 """
 @provides recorders default_recorders() = (;
@@ -40,8 +41,11 @@ Basic, constant-memory recorders.
 
 """
 $(TYPEDSIGNATURES)
+
 This returns [`default_recorders()`](@ref) plus those 
-provided in the `recorder_keys`.  
+provided in the `recorder_keys`. 
+
+See also [`recorder_keys`](@ref).
 """
 @provides recorders function custom_recorders(recorder_keys::Set{Symbol}) 
     result = default_recorders()
@@ -57,6 +61,15 @@ Some statistics may induce memory requirements growing in
 the number of iterations. Use this to select which ones, 
 if any to pass to [`custom_recorders()`](@ref).
 E.g.: `recorder_keys()` or `recorder_keys(:index_process)`.
+
+Choices include (each specifying if it is included 
+in [`default_recorders()`](@ref)):
+
+- `:swap_acceptance_pr`: maintain swap acceptance probabilities
+    (included by default);
+- `:index_process`: keep, for each replica, the list of 
+    chains visited (not included by default).
+
 """
 recorder_keys(args::Symbol...) = Set(args)
 

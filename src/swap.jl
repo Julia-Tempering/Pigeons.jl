@@ -1,9 +1,7 @@
 """
-Implementation of swap! (an informal interface method defined in replicas)
-"""
+$TYPEDSIGNATURES
 
-"""
-Single process implementation
+Single process, non-allocating `swap!` implementation. 
 """
 function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
     @assert sorted(replicas)
@@ -47,7 +45,9 @@ function sorted(replicas)
 end
 
 """
-Entangled MPI implementation.
+$TYPEDSIGNATURES
+
+Entangled MPI `swap!` implementation.
 
 This implementation is designed to support distributed PT with the following guarantees
     - The running time is independent of the size of the state space 
@@ -74,11 +74,6 @@ peer-to-peer communication, the theoretical running time is O(K).
 In practice, latency will grow as a function of P, but empirically,
 this growth appears to be slow enough that for say P = N = few 1000s, 
 swapping will not be the computational bottleneck.
-
-Emphasis is on scaling laws rather than constants. For example, the current implementation 
-allocates O(N) while in the case of a single 
-process, it would be possible to have a no-allocation implementation. However again it is 
-unlikely that this method would be the bottleneck in single-process mode.
 """
 function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
     # what chains (annealing parameters) are we swapping with?
@@ -105,13 +100,27 @@ function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
     permuted_set!(replicas.chain_to_replica_global_indices, chain.(replicas.locals), my_replica_global_indices)
 end
 
-# Private low-level functions shared by all implementations:
+"""
+$TYPEDSIGNATURES
+
+Given a [`recorders`](@ref), create an index process plot.
+"""
+function index_process_plot(recorders)
+    index_process = recorders.index_process
+    p = plot()
+    for i in eachindex(index_process)
+        p = plot!(p, index_process[i], legend = false)
+    end
+    return p
+end
+
+# Private low-level functions shared by all implementations
 
 function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partner_chain::Int)
     my_chain = r.chain
 
     # keep track of index process even if not performing swap
-    record!(r.recorders, :index_process, (r.replica_index, r.chain))
+    record_if_requested!(r.recorders, :index_process, (r.replica_index, r.chain))
 
     if my_chain == partner_chain return nothing end
 
@@ -128,26 +137,6 @@ function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partn
     end
 end
 
-function record!(recorder::Dict, value)
-    replica_idx, chain = value
-    if !haskey(recorder, replica_idx)
-        recorder[replica_idx] = Int[]
-    end
-    push!(recorder[replica_idx], chain)
-end
-
-"""
-$TYPEDSIGNATURES
-Given a [`recorders`](@ref), create an index process plot.
-"""
-function index_process_plot(recorders)
-    index_process = recorders.index_process
-    p = plot()
-    for i in eachindex(index_process)
-        p = plot!(p, index_process[i], legend = false)
-    end
-    return p
-end
 
 function checked_partner_chain(swap_graph, my_chain::Int)::Int 
     result            = partner_chain(swap_graph, my_chain)

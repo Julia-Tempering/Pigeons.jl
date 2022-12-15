@@ -1,23 +1,44 @@
+"""
+Default statistics exchanged by a pair of chains in the process of proposing a swap. 
 
+$FIELDS
+
+See [`swap_stat()`](@ref)
+"""
 struct SwapStat 
     log_ratio::Float64 
     uniform::Float64
 end
 
 """
-Informs [`swap!()`](@ref) about how to perform a swap between a given pair of chains.
+Informs [`swap!()`](@ref) of how to perform a swap between a given pair of chains.
 
-A default implementation is provided, 
-where the [`pair_swapper`](@ref) is treated as a [`log_potentials`](@ref) object.
+This is done in two key steps:
+
+- Use [`swap_stat()`](@ref) to extract sufficient statistics needed to make a swap decision. 
+- Given these statistics for the two chains, [`swap_decision()`](@ref) then perform the swap.
+
+This broken down into two steps since in a distributed swap context, [`swap!()`](@ref) will
+take care of transmitting the sufficient 
+statistics over the network if necessary.
+
+The function [`record_swap_stats!()`](@ref) is also used to record information about swapping, 
+in particular mean swap acceptance probabilities.
+
+A default implementation of all of `pair_swapper`'s methods is provided, 
+where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@ref) interface.
 """
 @informal pair_swapper begin
     """
     $TYPEDSIGNATURES
     
-    Two sufficient statistics are computed: 
+    By default, two sufficient statistics are computed and stored in [`SwapStat`](@ref) struct:
 
     - The result of calling [`log_unnormalized_ratio()`](@ref) on [`pair_swapper`](@ref)
     - A uniform number to coordinate the swap decision.
+
+    This can be extended by dispatching on other `pair_swapper` types, with the 
+    constraint that the returned sufficient statistics should satisfies `isbitstype()`.
     """
     function swap_stat(pair_swapper, replica::Replica, partner_chain::Int) 
         log_potentials = pair_swapper
@@ -25,17 +46,29 @@ where the [`pair_swapper`](@ref) is treated as a [`log_potentials`](@ref) object
         log_ratio = log_unnormalized_ratio(log_potentials, partner_chain, my_chain, replica.state)
         return SwapStat(log_ratio, rand(replica.rng))
     end
+
     """
     $TYPEDSIGNATURES
+
+    Given a [`pair_swapper`](@ref), a [`recorders`](@ref), the provided chain indices, and 
+    the sufficient statistics computed by [`swap_stat()`](@ref), record:
+
+    - the swap acceptance probability.
+    - TODO: stepping stone statistics.
+
     """
-    function record_swap_stats!(pair_swapper, recorder, chain1::Int, stat1, chain2::Int, stat2)
+    function record_swap_stats!(pair_swapper, recorders, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
         index = min(chain1, chain2)
-        record!(recorder, :swap_acceptance_pr, (index, acceptance_pr))
+        record_if_requested!(recorders, :swap_acceptance_pr, (index, acceptance_pr))
         # TODO accumulate stepping-stone statistics
     end
+
     """
     $TYPEDSIGNATURES
+
+    Given a [`pair_swapper`](@ref), a [`recorders`](@ref), the provided chain indices, and 
+    the sufficient statistics computed by [`swap_stat()`](@ref), make a swap decision.
     """
     function swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
@@ -48,15 +81,33 @@ swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1
 """
 For testing/benchmarking purpose, a simple swap model where all swaps have equal acceptance probability. 
 
-Could also be used to pre-warm-start swap connections during exploration phase by setting pr = 0. 
+Could also be used to warm-start swap connections during exploration phase by setting pr = 0. 
 """
 struct TestSwapper 
     constant_swap_accept_pr::Float64
     @provides pair_swapper TestSwapper(constant_swap_accept_pr) = new(constant_swap_accept_pr)
 end
+
+"""
+$TYPEDSIGNATURES
+
+See [`TestSwapper`](@ref).
+"""
 swap_stat(swapper::TestSwapper, replica::Replica, partner_chain::Int)::Float64 = rand(replica.rng)
+
+"""
+$TYPEDSIGNATURES
+
+See [`TestSwapper`](@ref).
+"""
 function swap_decision(swapper::TestSwapper, chain1::Int, stat1::Float64, chain2::Int, stat2::Float64)::Bool 
     uniform = chain1 < chain2 ? stat1 : stat2
     return uniform < swapper.constant_swap_accept_pr
 end
+
+"""
+$TYPEDSIGNATURES
+
+See [`TestSwapper`](@ref).
+"""
 record_swap_stats!(swapper::TestSwapper, recorder, chain1::Int, stat1, chain2::Int, stat2) = nothing

@@ -83,6 +83,8 @@ function computeetas(ϕ, β)
 end
 
 """
+$TYPEDSIGNATURES
+
 From one splittable random object, one can conceptualize an infinite list of splittable random objects. 
 Return a slice from this infinite list.
 """

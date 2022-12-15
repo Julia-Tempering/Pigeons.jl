@@ -76,7 +76,7 @@ the two above issues while maintaining the same asymptotic runtime complexity.
 
 Let us start with a high-level picture of the basic distributed PT algorithm:
 
-```@example simple_algos
+```@example simple_distributed_algos
 using Pigeons
 using SplittableRandoms
 using Plots
@@ -123,12 +123,55 @@ of `replica` controlling multiple dispatch.
 
 In the following, after introducing a splittable random streams implementation and the distributed replicas datastructure, we discuss the key constructs that induce communication between processes in the above code: [`swap!`](@ref) and [`reduced_recorders`](@ref). 
 
+
 ## Splittable random streams
+
+To motivate splittable random streams, consider the following example to illustrate 
+how [thread-local random number generators](https://docs.julialang.org/en/v1/stdlib/Random/#Random.seed!) break Parallelism Invariance:
+
+```@example break_pi
+using Pigeons
+using SplittableRandoms
+using Random
+import Base.Threads.@threads
+
+println("Number of threads: $(Threads.nthreads())")
+
+const n_iters = 10000
+result = zeros(n_iters)
+Random.seed!(1)
+@threads for i in 1:n_iters
+    # in a real problem, do some expensive calculation here...
+    result[i] = rand()
+end
+println("Multi-threaded: $(last(result))")
+
+Random.seed!(1)
+for i in 1:n_iters
+    # in a real problem, do some expensive calculation here...
+    result[i] = rand()
+end
+println("Single-threaded: $(last(result))")
+```
+
+Unless only one thread is used, the two results will be different with 
+high probability. 
+
+To work around this, we associate one random number generator to each PT chain instead 
+of one per thread. 
+
+To do so, we use the 
+[SplittableRandoms.jl library](https://github.com/UBC-Stat-ML/SplittableRandoms.jl) which allows 
+us to turn one seed into several pseudo-independent random number generators. 
+Since each MPI process holds a subset of the chains, we internally use the 
+function [`split_slice()`](@ref) to 
+get the random number generators for the slice of replicas held in a given MPI process.
 
 
 ## Distributed replicas
 
-Calling [`create_entangled_replicas`](@ref) will produce a fresh [`EntangledReplicas`](@ref). 
+Calling [`create_entangled_replicas`](@ref) will produce a fresh [`EntangledReplicas`](@ref), 
+taking care of distributed random seed splitting internally. 
 An `EntangledReplicas` contains the list of replicas that are local to the machine, in addition
 to three data structures allowing distributed communication: 
 a [`LoadBalance`](@ref) which keeps track of 
