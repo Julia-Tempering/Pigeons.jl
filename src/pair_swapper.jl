@@ -51,7 +51,12 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     $TYPEDSIGNATURES
 
     Given a [`pair_swapper`](@ref), a [`recorders`](@ref), the provided chain indices, and 
-    the sufficient statistics computed by [`swap_stat()`](@ref), record:
+    the sufficient statistics computed by [`swap_stat()`](@ref), record statistics. 
+
+    To avoid accumulating twice the same statistic with (chain1, chain2) and 
+    (chain2, chain2), [`swap!()`](@ref) only calls this for the pair with chain1 < chain2.
+
+    By default, the following are computed:
 
     - the swap acceptance probability.
     - TODO: stepping stone statistics.
@@ -59,8 +64,8 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     """
     function record_swap_stats!(pair_swapper, recorders, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
-        index = min(chain1, chain2)
-        record_if_requested!(recorders, :swap_acceptance_pr, (index, acceptance_pr))
+        key = (chain1, chain2)
+        record_if_requested!(recorders, :swap_acceptance_pr, (key, acceptance_pr))
         # TODO accumulate stepping-stone statistics
     end
 
@@ -69,6 +74,13 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
 
     Given a [`pair_swapper`](@ref), a [`recorders`](@ref), the provided chain indices, and 
     the sufficient statistics computed by [`swap_stat()`](@ref), make a swap decision.
+
+    By default, this is done as follows:
+    
+    1. compute the standard swap acceptance probability `min(1, exp(stat1.log_ratio + stat2.log_ratio))`
+    2. make sure the two chains share the same uniform by picking the uniform from the chain with the smallest chain index 
+    3. swap if the shared uniform is smaller than the swap acceptance probability.
+
     """
     function swap_decision(pair_swapper, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
@@ -76,6 +88,7 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
         return uniform < acceptance_pr
     end
 end
+
 swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
 
 """

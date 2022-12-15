@@ -36,7 +36,7 @@ $(TYPEDSIGNATURES)
 Basic, constant-memory recorders.
 """
 @provides recorders default_recorders() = (;
-        swap_acceptance_pr = GroupBy(Int, Mean()),
+        swap_acceptance_pr = GroupBy(Tuple{Int, Int}, Mean()),
     )
 
 """
@@ -65,10 +65,12 @@ E.g.: `recorder_keys()` or `recorder_keys(:index_process)`.
 Choices include (each specifying if it is included 
 in [`default_recorders()`](@ref)):
 
-- `:swap_acceptance_pr`: maintain swap acceptance probabilities
+- `:swap_acceptance_pr`: maintain swap acceptance probabilities,
+    a `GroupBy(Tuple{Int, Int}, Mean())` object
     (included by default);
 - `:index_process`: keep, for each replica, the list of 
-    chains visited (not included by default).
+    chains visited (not included by default), a 
+    `Dict{Int, Vector{Int}}` object.
 
 """
 recorder_keys(args::Symbol...) = Set(args)

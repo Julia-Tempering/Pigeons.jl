@@ -46,6 +46,6 @@ end
 
 function communicationbarrier(recorders, schedule::Schedule)
     accept_recorder = recorders.swap_acceptance_pr
-    rejection = [1.0 - value(accept_recorder[i]) for i in 1:length(accept_recorder.value.keys)]
+    rejection = [1.0 - value(accept_recorder[(i, i+1)]) for i in 1:length(accept_recorder.value.keys)]
     return communicationbarrier(rejection, schedule.grids)
 end
