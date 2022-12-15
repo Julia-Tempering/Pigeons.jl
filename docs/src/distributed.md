@@ -55,7 +55,7 @@ implementations.
 This strategy is used extensively in Pigeons to ensure correctness. 
 In contrast, testing equality in distribution, while possible (e.g., see 
 [Geweke, 2004](https://www.jstor.org/stable/27590449#metadata_info_tab_contents)), incurs additional 
-false negative due to statistical error. 
+false negatives due to statistical error. 
 
 Two factors tend to cause violations of Parallelism Invariance: 
 
@@ -114,18 +114,21 @@ savefig(p, "index_process_dist.svg"); nothing # hide
 
 ![](index_process_dist.svg)
 
-Notice it is almost identical to the single-machine algorithm [presented earlier](pt.html#Basic-PT-algorithm) with the only difference being [`create_vector_replicas`](@ref) is 
+Notice the code is almost identical to the single-machine algorithm [presented earlier](pt.html#Basic-PT-algorithm) with the only difference being [`create_vector_replicas`](@ref) is 
 replaced by [`create_entangled_replicas`](@ref). Also, as promised the 
 output is identical despite a vastly different swap logic. 
 Indeed, beyond the superficial syntactic similarities between the single process and 
-distributed code, the behavious of [`swap!`](@ref) is quite different due the changing type 
-of `replica` controlling multiple dispatch. 
+distributed code, the behavious of [`swap!`](@ref) is quite different (this is triggered by multiple dispatch 
+detecting the different types for 
+`replica` in fully serial versus distributed). 
 
-In the following, after introducing a splittable random streams implementation and the distributed replicas datastructure, we discuss the key constructs that induce communication between processes in the above code: [`swap!`](@ref) and [`reduced_recorders`](@ref). 
+In the following, we go over the main building block of 
+our distributed PT algorithm. 
 
 
 ## Splittable random streams
 
+The first building block is a splittable random stream. 
 To motivate splittable random streams, consider the following example to illustrate 
 how [thread-local random number generators](https://docs.julialang.org/en/v1/stdlib/Random/#Random.seed!) break Parallelism Invariance:
 
@@ -154,11 +157,11 @@ end
 println("Single-threaded: $(last(result))")
 ```
 
-Unless only one thread is used, the two results will be different with 
+Unless only one thread is used, the result of the above parallel loop versus serial loop will be different with 
 high probability. 
 
 To work around this, we associate one random number generator to each PT chain instead 
-of one per thread. 
+of one generator per thread. 
 
 To do so, we use the 
 [SplittableRandoms.jl library](https://github.com/UBC-Stat-ML/SplittableRandoms.jl) which allows 
@@ -184,6 +187,29 @@ These datastructures can be obtained using [`load()`](@ref), [`entangler()`](@re
 
 ## Distributed swaps
 
+To perform distributed swaps, [`swap!()`](@ref) proceeds as follows:
+
+1. Use the [`swap_graph`](@ref) to determine swapping partner chains,
+2. translate partner chains into partner replicas (global indices) using
+    `replicas.chain_to_replica_global_indices`,
+3. compute [`swap_stat()`](@ref) for local chains, and use 
+    [`transmit()`](@ref) to obtain partner swap stats,
+4. use [`swap_decision()`](@ref) to decide if each pair should swap, and 
+5. update the `replicas.chain_to_replica_global_indices` datastructure. 
+
 
 ## Distributed reduction
+
+After each round of PT, the workers need to exchange richer messages
+compared to the information exchanged in the swaps. 
+These richer messages include swap acceptance probabilities, 
+statistics to adapt a variational reference, etc. 
+
+This part of the communication is performed using [`reduced_recorders()`](@ref) which 
+in turn calls [`all_reduce_deterministically()`](@ref) with the appropriate  
+merging operations. See [`reduced_recorders()`](@ref) and 
+[`all_reduce_deterministically()`](@ref) for more information on how 
+our implementation preserves Parallelism Invariance, while maintaining the logarithmic runtime of binary-tree based 
+collective operations (more precisely, `all_reduce_deterministically()` runs in time ``\log(N)`` 
+when each machine holds a single chain).
 

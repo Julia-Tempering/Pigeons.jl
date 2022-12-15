@@ -11,6 +11,10 @@ end
 
 """
 $TYPEDSIGNATURES
+
+Given a reference [`log_potential`](@ref) and a target [`log_potential`](@ref), 
+return a [`path`](@ref) interpolating between the two. 
+
 By default, the `interpolator` is a `LinearInterpolator`, i.e. 
 standard annealing.
 """
@@ -57,6 +61,8 @@ struct ScaledPrecisionNormalPath
 end
 """
 $TYPEDSIGNATURES
+
+Toy path for testing: see section I.4.1 in Syed et al 2021. 
 """
 ScaledPrecisionNormalPath(dim::Int) = ScaledPrecisionNormalPath(1.0, 10.0, dim) 
 precision(path::ScaledPrecisionNormalPath, beta) = (1.0 - beta) * path.precision0 + beta * path.precision1
@@ -64,6 +70,7 @@ interpolate(path::ScaledPrecisionNormalPath, beta) = MultivariateNormal(zeros(pa
 
 """
 $TYPEDSIGNATURES
+
 Toy path for testing: see section I.4.1 in Syed et al 2021. 
 """
 function scaled_normal_example(n_chains, dim)
@@ -73,7 +80,9 @@ end
 
 """
 $TYPEDSIGNATURES
-From https://aip.scitation.org/doi/10.1063/1.1644093
+
+Known cumulative barrier used for testing, 
+from [Predescu et al., 2003](https://aip.scitation.org/doi/10.1063/1.1644093).
 """
 function analytic_cumulativebarrier(path::ScaledPrecisionNormalPath)
     b = beta(path.dim / 2.0, path.dim / 2.0)

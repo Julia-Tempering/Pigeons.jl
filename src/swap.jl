@@ -90,7 +90,7 @@ function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
         _swap!(pair_swapper, replicas.locals[i], my_swap_stats[i], partner_swap_stats[i], partner_chains[i])
     end
 
-    # update the distributed array linking chains to replicas
+    # update the distributed array mapping chains to replicas
     my_replica_global_indices = my_global_indices(replicas.chain_to_replica_global_indices.entangler.load)
     permuted_set!(replicas.chain_to_replica_global_indices, chain.(replicas.locals), my_replica_global_indices)
 end

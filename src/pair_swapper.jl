@@ -1,5 +1,5 @@
 """
-Default statistics exchanged by a pair of chains in the process of proposing a swap. 
+Default statistics exchanged by a pair of chains in the process of proposing a swap:
 
 $FIELDS
 
@@ -13,16 +13,16 @@ end
 """
 Informs [`swap!()`](@ref) of how to perform a swap between a given pair of chains.
 
-This is done in two key steps:
+This is done in two steps:
 
 - Use [`swap_stat()`](@ref) to extract sufficient statistics needed to make a swap decision. 
 - Given these statistics for the two chains, [`swap_decision()`](@ref) then perform the swap.
 
-This broken down into two steps since in a distributed swap context, [`swap!()`](@ref) will
+The rationale for breaking this down into two steps is that in a distributed swap context, [`swap!()`](@ref) will
 take care of transmitting the sufficient 
 statistics over the network if necessary.
 
-The function [`record_swap_stats!()`](@ref) is also used to record information about swapping, 
+The function [`record_swap_stats!()`](@ref) is used to record information about swapping, 
 in particular mean swap acceptance probabilities.
 
 A default implementation of all of `pair_swapper`'s methods is provided, 
@@ -56,7 +56,7 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     To avoid accumulating twice the same statistic with (chain1, chain2) and 
     (chain2, chain2), [`swap!()`](@ref) only calls this for the pair with chain1 < chain2.
 
-    By default, the following are computed:
+    By default, the following are accumulated:
 
     - the swap acceptance probability.
     - TODO: stepping stone statistics.
@@ -92,12 +92,20 @@ end
 swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
 
 """
-For testing/benchmarking purpose, a simple swap model where all swaps have equal acceptance probability. 
+For testing/benchmarking purpose, a simple 
+[`pair_swapper`](@ref) where all swaps have equal 
+acceptance probability. 
 
-Could also be used to warm-start swap connections during exploration phase by setting pr = 0. 
+Could also be used to warm-start swap connections 
+during exploration phase by setting that 
+constant probability to zero.  
 """
 struct TestSwapper 
     constant_swap_accept_pr::Float64
+
+    """
+    $TYPEDSIGNATURES
+    """
     @provides pair_swapper TestSwapper(constant_swap_accept_pr) = new(constant_swap_accept_pr)
 end
 

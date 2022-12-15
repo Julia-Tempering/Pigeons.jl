@@ -4,8 +4,9 @@ Since we provide MPI implementations, do not assume that this will contain all t
 others can be located in other processes/machines
 
 Implementations provided
-    - [`EntangledReplicas`](@ref): using an MPI-based implementation
-    - `Vector{Replica}`: for the single process case (above can handle that case, but the array based implementation is non-allocating)
+
+- [`EntangledReplicas`](@ref): using an MPI-based implementation
+- `Vector{Replica}`: for the single process case (above can handle that case, but the array based implementation is non-allocating)
 """
 @informal replicas begin
     """
@@ -23,17 +24,17 @@ Implementations provided
     locals(replicas) = @abstract 
     """
     $TYPEDSIGNATURES
-    Return the [`LoadBalance`](@ref) (possibly [`single_process_load`](@ref))
+    Return the [`replicas`](@ref)'s [`LoadBalance`](@ref) (possibly [`single_process_load`](@ref))
     """
     load(replicas) = @abstract
     """
     $TYPEDSIGNATURES
-    Return the `MPI.Comm` or `nothing` if no MPI needed
+    Return the [`replicas`](@ref)'s `MPI.Comm` or `nothing` if no MPI needed
     """
     communicator(replicas) = @abstract 
     """
     $TYPEDSIGNATURES
-    Return the [`Entangler`](@ref) (possibly a no-communication Entangler if a single process is involved)
+    Return the [`replicas`](@ref)'s [`Entangler`](@ref) (possibly a no-communication Entangler if a single process is involved)
     """
     entangler(replicas) = @abstract 
 end

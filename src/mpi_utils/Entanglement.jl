@@ -1,6 +1,6 @@
 """
 Assume all the MPI processes linked by this communicator 
-will all call the transmit() method the same number of times 
+will all call the *key operations* listed below the same number of times 
 in their lifetime, at logically related occasions (e.g. a set 
 number of times per iterations for algorithms running the 
 same number of iterations).
@@ -14,10 +14,10 @@ This struct contains:
 
 $FIELDS
 
-The key operations supported:
+The *key operations* supported:
 
 - [`transmit()`](@ref) and [`transmit!()`](@ref): encapsulates 
-    pairwise communications where each MPI process is holding  
+    pairwise communications in which each MPI process is holding  
     a `Vector`, the elements of which is to be permuted across the processes.
 - [`all_reduce_deterministically`](@ref) and [`reduce_deterministically`](@ref), 
     to perform MPI collective reduction while maintaining the 
@@ -36,7 +36,7 @@ mutable struct Entangler
     load::LoadBalance
 
     """
-    An internal datastrcture used during MPI calls.
+    An internal datastructure used during MPI calls.
     """
     current_received_bits::Vector{Bool} 
 

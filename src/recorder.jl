@@ -9,7 +9,7 @@ See also [`recorders`](@ref).
     """
     $(TYPEDSIGNATURES)
 
-    Add `value` to the statistics accumlated by [`recorder`](@ref).
+    Add `value` to the statistics accumulated by [`recorder`](@ref).
     """
     record!(recorder, value) = @abstract 
 
@@ -33,9 +33,10 @@ record!(recorder::OnlineStat, value) = fit!(recorder, value)
 """
 $TYPEDSIGNATURES
 
-The value is a pair `(a, b)`
-Append `b` to the vector corresponding to `a`, creating an empty 
-vector if needed.
+Given a `value`, a pair `(a, b)`, and a `Dict{K, Vector{V}}` backed 
+[`recorder`](@ref), 
+append `b` to the vector corresponding to `a`, inserting an empty 
+vector into the dictionary first if needed.
 """
 function record!(recorder::Dict{K, Vector{V}}, value::Tuple{K, V}) where {K, V}
     a, b = value

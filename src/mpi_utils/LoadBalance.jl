@@ -12,8 +12,9 @@ two kinds of tasks arise:
 
 One such task index is called a `global_index`. 
 
-LoadBalance splits the global indices among `n_processes`. The difference in load 
-between processes is at most 1.
+LoadBalance splits the global indices among `n_processes`. LoadBalance 
+is constructed so that the difference in the number of global indices 
+a process is responsible of (its "load")  is at most one.
 
 A `LoadBalance` contains:
 
@@ -24,7 +25,7 @@ A local index indexes a slice in {1, 2, ..., `n_global_indices`}.
 Collectively over the `n_processes`, these slices form a partition of 
 the global indices.
 
-Key functions to utilize a LoadBalance struct (often abbreviated "Load"):
+Key functions to utilize a LoadBalance struct:
 
 - [`my_global_indices()`](@ref)
 - [`find_process()`](@ref)
@@ -34,8 +35,8 @@ Key functions to utilize a LoadBalance struct (often abbreviated "Load"):
 """
 struct LoadBalance
     """
-    An index for this process. 
-    We use 1-indexed for all exposed process indices, 
+    A unique index for this process. 
+    We use 1-indexed,  
     i.e. hide MPI's 0-indexed ranks.
     """
     my_process_index::Int

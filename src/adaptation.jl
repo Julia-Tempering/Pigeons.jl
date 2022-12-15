@@ -29,9 +29,9 @@ is based on Fritsch-Carlson monotonic interpolation.
 
 Returns a `NamedTuple` with fields:
 
-- localbarrier
-- cumulativebarrier
-- globalbarrier
+- `localbarrier`
+- `cumulativebarrier`
+- `globalbarrier`
 """
 function communicationbarrier(rejection::AbstractVector, schedule::AbstractVector)
     @assert length(schedule) == length(rejection) + 1

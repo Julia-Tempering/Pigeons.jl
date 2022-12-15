@@ -3,23 +3,25 @@ A distributed array making special assumptions on how
 it will be accessed and written to. 
 The indices of this distributed array correspond to the 
 notion of "global indices" defined in [`LoadBalance`](@ref). 
-Several MPI processes cooperate so that each maintains 
+Several MPI processes cooperate, each processing storing 
 data for a slice of this distributed array. 
 
-These assumptions allow for read/write costs that are 
+We make the following assumptions:
+
+- Each MPI process will set/get 
+    entries the same number of times in their lifetime, at 
+    logically related episodes (e.g. a set 
+    number of times per iterations for algorithms running the 
+    same number of iterations). 
+    These episodes are called micro-iteration as in [`Entangler`](@ref), 
+    which this datastructure is built on.
+
+- Moreover, at each time all process perform a get or a set, 
+    we assume that each global index is manipulated by exactly one 
+    process (i.e. an implicit permutation of the global indices).
+
+We use these assumptions to achieve  read/write costs that are 
 near-constant in the number of machines participating. 
-
-Specifically, we assume that each MPI process will set/get 
-entries the same number of times in their lifetime, at 
-logically related episodes (e.g. a set 
-number of times per iterations for algorithms running the 
-same number of iterations). 
-These episodes are called micro-iteration as in [`Entangler`](@ref), 
-which this datastructure is built on.
-
-Moreover, at each time all process perform a get or a set, 
-we assume that each global index is manipulated by exactly one 
-process (i.e. an implicit permutation of the global indices).
 
 This struct contains:
 

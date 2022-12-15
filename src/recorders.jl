@@ -1,5 +1,5 @@
 """
-A `NamedTuple` containing [`recorder`](@ref)'s. 
+A `NamedTuple` containing several [`recorder`](@ref)'s. 
 Each recorder is responsible for a type of statistic to be 
 accumulated. 
 
@@ -21,7 +21,7 @@ accessing statistic values.
     $TYPEDSIGNATURES
     If the [`recorders`](@ref) contains the given `recorder_key`, 
     send the `value` to the [`recorder`](@key) corresponding to the 
-    `recorder_key`.
+    `recorder_key`. Otherwise, do nothing.
     """
     function record_if_requested!(recorders::NamedTuple, recorder_key, value)
         if haskey(recorders, recorder_key)
@@ -33,7 +33,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Basic, constant-memory recorders.
+Basic, constant-memory [`recorders`](@ref).
 """
 @provides recorders default_recorders() = (;
         swap_acceptance_pr = GroupBy(Tuple{Int, Int}, Mean()),
