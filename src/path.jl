@@ -1,28 +1,14 @@
 """
-A continuum of log_potential's interpolating between two end-points.
+A continuum of [`log_potential`](@ref)'s interpolating between two end-points.
+More precisely, a mapping from [0, 1] to the space of probability distributions.
 
-Convention: the continuum is indexed on [0, 1] 
+The main use of this interface is to pass it to [`discretize()`](@ref).
 """
-
-interpolate(path, beta) = @abstract
-
-# move that stuff
-
-
-function equally_spaced(n_chains::Int)
-    grids = 0.0:(1.0/(n_chains-1)):1.0
-    @assert length(grids) == n_chains
-    return Schedule(grids)
+@informal path begin
+    """
+    $TYPEDSIGNATURES
+    Returns the [`log_potential`](@ref) at point `beta` in the [`path`](@ref)
+    """
+    interpolate(path, beta) = @abstract
 end
 
-struct Schedule{T}
-    grids::T 
-    function Schedule(grids::T) where {T}
-        @assert issorted(grids)
-        @assert first(grids) == 0.0
-        @assert last(grids) == 1.0
-        new{T}(grids)
-    end
-end
-
-discretize(path, betas::Schedule) = [interpolate(path, beta) for beta in betas.grids]

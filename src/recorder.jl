@@ -1,26 +1,49 @@
 """
-Statistics in the process of being collected, in particular, 
-    they have not been reduced yet. Use reduced_stats(..) to do the reduction.
+Accumulate a specific type of statistic, for example 
+by keeping constant size sufficient statistics 
+(via `OnlineStat`, which conforms this interface), 
+storing samples to a file, etc. 
+See also [`recorders`](@ref).
 """
+@informal recorder begin
+    """
+    $(TYPEDSIGNATURES)
 
-empty_recorder() = (;
-        swap_acceptance_pr = GroupBy(Int, Mean())
-    )
+    Add `value` to the statistics accumulated by [`recorder`](@ref).
+    """
+    record!(recorder, value) = @abstract 
 
-function fit_if_defined!(stats_tuple, key, value)
-    if haskey(stats_tuple, key)
-        fit!(stats_tuple[key], value)
+    """
+    $(TYPEDSIGNATURES)
+
+    Combine the two provided [`recorder`](@ref) objects. 
+
+    By default, call `Base.merge()`.
+    """
+    combine(recorder1, recorder2) = merge(recorder1, recorder2)
+end
+
+"""
+$TYPEDSIGNATURES
+
+Forwards to OnlineStats' `fit!`
+"""
+record!(recorder::OnlineStat, value) = fit!(recorder, value)
+
+"""
+$TYPEDSIGNATURES
+
+Given a `value`, a pair `(a, b)`, and a `Dict{K, Vector{V}}` backed 
+[`recorder`](@ref), 
+append `b` to the vector corresponding to `a`, inserting an empty 
+vector into the dictionary first if needed.
+"""
+function record!(recorder::Dict{K, Vector{V}}, value::Tuple{K, V}) where {K, V}
+    a, b = value
+    if !haskey(recorder, a)
+        recorder[a] = Vector{V}()
     end
+    push!(recorder[a], b)
 end
 
-reduced_stats(replicas) = all_reduce_deterministically(merge_stat_tuple, recorder.(locals(replicas)), entangler(replicas))
-
-function merge_stat_tuple(stat1, stat2)
-    shared_keys = keys(stat1)
-    @assert shared_keys == keys(stat2)
-    values1 = values(stat1)
-    values2 = values(stat2)
-    merged_values = [merge(values1[i], values2[i]) for i in eachindex(values1)]
-    return (; zip(shared_keys, merged_values)...)
-end
 

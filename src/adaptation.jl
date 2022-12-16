@@ -1,5 +1,5 @@
 """
-    updateschedule(cumulativebarrier, N)
+$TYPEDSIGNATURES
 
 Update the annealing schedule. Given the cumulative communication barrier function
 in `cumulativebarrier`, find the optimal schedule of size `N`+1.
@@ -21,19 +21,31 @@ end
 
 
 """
-    communicationbarrier(rejection, schedule)
+$TYPEDSIGNATURES
 
 Compute the local communication barrier and cumulative barrier functions from the 
 `rejection` rates and the current annealing `schedule`. The estimation of the barriers 
 is based on Fritsch-Carlson monotonic interpolation.
+
+Returns a `NamedTuple` with fields:
+
+- `localbarrier`
+- `cumulativebarrier`
+- `globalbarrier`
 """
-function communicationbarrier(rejection::Vector{T} where T <: Real, 
-                              schedule::Vector{T} where T <: Real)
+function communicationbarrier(rejection::AbstractVector, schedule::AbstractVector)
+    @assert length(schedule) == length(rejection) + 1
     x = schedule
     y = [0; cumsum(rejection)]
     spl = Interpolations.interpolate(x, y, FritschCarlsonMonotonicInterpolation())
     cumulativebarrier(β) = spl(β)
     localbarrier(β) = Interpolations.gradient(spl, β)[1]
     globalbarrier = sum(rejection)
-    return (localbarrier = localbarrier, cumulativebarrier = cumulativebarrier, globalbarrier = globalbarrier)
+    return (; localbarrier, cumulativebarrier, globalbarrier)
+end
+
+function communicationbarrier(recorders, schedule::Schedule)
+    accept_recorder = recorders.swap_acceptance_pr
+    rejection = [1.0 - value(accept_recorder[(i, i+1)]) for i in 1:length(accept_recorder.value.keys)]
+    return communicationbarrier(rejection, schedule.grids)
 end
