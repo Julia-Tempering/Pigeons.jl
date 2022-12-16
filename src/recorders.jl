@@ -12,7 +12,7 @@ can select more expensive ones by enlarging that keyset.
 During PT execution, each recorders object keep track of only the 
 statistics for one replica (for thread safety and/or 
 distribution purpose).
-After a PT round, use [`reduced_recorders()`](@ref) to do 
+After a PT round, use [`reduced_recorders!()`](@ref) to do 
 a [reduction](https://en.wikipedia.org/wiki/MapReduce) before 
 accessing statistic values. 
 """
@@ -56,6 +56,14 @@ See also [`recorder_keys`](@ref).
 end
 
 """
+$TYPEDSIGNATURES
+
+This returns a fresh [`recorders`](@ref) with the same recorder_keys as the provided 
+[`recorders`](@ref).
+"""
+@provides recorders empty_recorders(recorders) = custom_recorders(Set(keys(recorders)))
+
+"""
 $(TYPEDSIGNATURES)
 Some statistics may induce memory requirements growing in 
 the number of iterations. Use this to select which ones, 
@@ -79,23 +87,25 @@ recorder_keys(args::Symbol...) = Set(args)
 $TYPEDSIGNATURES
 
 Perform a reduction across all the replicas' individual recorders, 
-using  [`combine()`](@ref) on each individual [`recorder`](@ref)
+using  [`combine!()`](@ref) on each individual [`recorder`](@ref)
 held. 
 Returns a [`recorders`](@ref) with all the information merged. 
 
+Will reset the replicas' recorders at the same time. 
+
 Since this uses [`all_reduce_deterministically`](@ref), the output is 
 identical, no matter how many MPI processes are used, even when 
-the reduction involves only approximately associative [`combine()`](@ref)
+the reduction involves only approximately associative [`combine!()`](@ref)
 operations (e.g. most floating point ones).
 """
-reduced_recorders(replicas) = all_reduce_deterministically(merge_recorders, _recorders.(locals(replicas)), entangler(replicas))
+reduced_recorders!(replicas) = all_reduce_deterministically(merge_recorders!, _recorders.(locals(replicas)), entangler(replicas))
 
-function merge_recorders(recorders1, recorders2)
+function merge_recorders!(recorders1, recorders2)
     shared_keys = keys(recorders1)
     @assert shared_keys == keys(recorders2)
 
     values1 = values(recorders1)
     values2 = values(recorders2)
-    merged_values = [combine(values1[i], values2[i]) for i in eachindex(values1)]
+    merged_values = [combine!(values1[i], values2[i]) for i in eachindex(values1)]
     return (; zip(shared_keys, merged_values)...)
 end

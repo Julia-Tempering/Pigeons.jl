@@ -16,11 +16,37 @@ See also [`recorders`](@ref).
     """
     $(TYPEDSIGNATURES)
 
-    Combine the two provided [`recorder`](@ref) objects. 
+    Combine the two provided [`recorder`](@ref) objects, and then 
+    "dispose" of the two input arguments. 
 
-    By default, call `Base.merge()`.
+    At a high-level, we dispose to avoid the same statistic being 
+    counted twice. 
+
+    More precisely, for an in-memory recorder, we "empty!" the input arguments to 
+    ensure, e.g., that in the next PT round we start collecting statistics 
+    from scratch. For file-based recorders, disposing means erasing 
+    intermediate files that are no longer needed. 
+
+    By default, call `Base.merge()` followed by `Base.empty!()`
     """
-    combine(recorder1, recorder2) = merge(recorder1, recorder2)
+    function combine!(recorder1, recorder2) 
+        result = merge(recorder1, recorder2)
+        empty!(recorder1)
+        empty!(recorder2)
+        return result
+    end
+end
+
+function Base.empty!(x::Mean) 
+    x.μ = zero(x.μ)
+    x.n = zero(x.n)
+    return x
+end
+
+function Base.empty!(x::GroupBy)
+    x.n = zero(x.n)
+    empty!(x.value)
+    return x
 end
 
 """

@@ -19,7 +19,7 @@ function test_recorder(replicas, n_iters::Int)
             replica.state = new_sample
         end
     end
-    return reduced_recorders(replicas)
+    return reduced_recorders!(replicas)
 end
 
 n_chains = 5

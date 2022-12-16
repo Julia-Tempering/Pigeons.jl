@@ -150,7 +150,7 @@ export  recorder_keys,
         record_if_requested!,
         custom_recorders,
         default_recorders,
-        reduced_recorders
+        reduced_recorders!
 
 include("recorder.jl")
 export  default_recorders,

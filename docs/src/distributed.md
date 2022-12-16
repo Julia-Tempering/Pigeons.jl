@@ -104,7 +104,7 @@ function simple_distributed_deo(n_iters, log_potentials)
             replica.state = rand(replica.rng, distribution)
         end
     end
-    return reduced_recorders(replicas)
+    return reduced_recorders!(replicas)
 end
 
 deo_result = simple_distributed_deo(100, normal_log_potentials)
@@ -205,9 +205,9 @@ compared to the information exchanged in the swaps.
 These richer messages include swap acceptance probabilities, 
 statistics to adapt a variational reference, etc. 
 
-This part of the communication is performed using [`reduced_recorders()`](@ref) which 
+This part of the communication is performed using [`reduced_recorders!()`](@ref) which 
 in turn calls [`all_reduce_deterministically()`](@ref) with the appropriate  
-merging operations. See [`reduced_recorders()`](@ref) and 
+merging operations. See [`reduced_recorders!()`](@ref) and 
 [`all_reduce_deterministically()`](@ref) for more information on how 
 our implementation preserves Parallelism Invariance, while maintaining the logarithmic runtime of binary-tree based 
 collective operations (more precisely, `all_reduce_deterministically()` runs in time ``\log(N)`` 
