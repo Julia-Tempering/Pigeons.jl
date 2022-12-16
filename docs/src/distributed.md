@@ -118,7 +118,7 @@ Notice the code is almost identical to the single-machine algorithm [presented e
 replaced by [`create_entangled_replicas`](@ref). Also, as promised the 
 output is identical despite a vastly different swap logic. 
 Indeed, beyond the superficial syntactic similarities between the single process and 
-distributed code, the behavious of [`swap!`](@ref) is quite different (this is triggered by multiple dispatch 
+distributed code, the behaviour of [`swap!`](@ref) is quite different (this is triggered by multiple dispatch 
 detecting the different types for 
 `replica` in fully serial versus distributed). 
 
@@ -210,6 +210,6 @@ in turn calls [`all_reduce_deterministically()`](@ref) with the appropriate
 merging operations. See [`reduced_recorders()`](@ref) and 
 [`all_reduce_deterministically()`](@ref) for more information on how 
 our implementation preserves Parallelism Invariance, while maintaining the logarithmic runtime of binary-tree based 
-collective operations (more precisely, `all_reduce_deterministically()` runs in time ``\log(N)`` 
-when each machine holds a single chain).
+collective operations. (More precisely, `all_reduce_deterministically()` runs in time ``\log(N)`` 
+when each machine holds a single chain.)
 
