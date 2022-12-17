@@ -32,7 +32,7 @@ See also [`state_initializer`](@ref).
         state_initializer, 
         rng::SplittableRandom, 
         useMPI::Bool = true,
-        recorder_keys::Set{Symbol} = Set{Symbol}())
+        recorder_keys = Set{Symbol}())
     entangler = Entangler(n_chains, parent_communicator = (useMPI ? COMM_WORLD : nothing))
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)

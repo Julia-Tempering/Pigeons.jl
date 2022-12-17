@@ -19,14 +19,46 @@ function test_recorder(replicas, n_iters::Int)
             replica.state = new_sample
         end
     end
-    return reduced_recorders!(replicas)
+    return reduce_recorders!(replicas)
 end
 
 n_chains = 5
 n_iters = 20
 
-one_machine = test_recorder(create_vector_replicas(n_chains, Ref(0.0), SplittableRandom(1), Set([:index_process]) ), n_iters)
-mpi = test_recorder(create_entangled_replicas(n_chains, Ref(0.0), SplittableRandom(1), true, Set([:index_process])), n_iters)
+all_expensive_recorders = Set(keys(expensive_recorders()))
+
+vector_replica = create_vector_replicas(
+    n_chains, 
+    Ref(0.0), 
+    SplittableRandom(1), 
+    all_expensive_recorders )
+
+one_machine = test_recorder(vector_replica, n_iters)
+
+mpi = test_recorder(
+    create_entangled_replicas(
+        n_chains, 
+        Ref(0.0), 
+        SplittableRandom(1), 
+        true, 
+        all_expensive_recorders), 
+        n_iters)
 
 @assert one_machine == mpi
 
+# Now check that recorders get emptied properly
+
+vector_replica2 = create_vector_replicas(
+    n_chains, 
+    Ref(0.0), 
+    SplittableRandom(1), 
+    all_expensive_recorders )
+
+
+for i in eachindex(vector_replica2)
+    vector_replica2[i].recorders = vector_replica[i].recorders
+end
+
+one_machine2 = test_recorder(vector_replica2, n_iters)
+
+@assert one_machine == one_machine2

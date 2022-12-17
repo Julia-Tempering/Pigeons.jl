@@ -48,7 +48,8 @@ include("utils.jl")
 export  split_slice,
         mpi_test,
         @informal, 
-        informal_doc
+        informal_doc,
+        slice_tuple
 
 ### Paths, discretization, log_potentials
 include("log_potential.jl")
@@ -150,7 +151,9 @@ export  recorder_keys,
         record_if_requested!,
         custom_recorders,
         default_recorders,
-        reduced_recorders!
+        expensive_recorders,
+        all_recorders,
+        reduce_recorders!
 
 include("recorder.jl")
 export  default_recorders,

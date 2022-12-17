@@ -12,7 +12,7 @@ can select more expensive ones by enlarging that keyset.
 During PT execution, each recorders object keep track of only the 
 statistics for one replica (for thread safety and/or 
 distribution purpose).
-After a PT round, use [`reduced_recorders!()`](@ref) to do 
+After a PT round, use [`reduce_recorders!()`](@ref) to do 
 a [reduction](https://en.wikipedia.org/wiki/MapReduce) before 
 accessing statistic values. 
 """
@@ -33,7 +33,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Basic, constant-memory [`recorders`](@ref).
+Constant-memory [`recorders`](@ref).
 """
 @provides recorders default_recorders() = (;
         swap_acceptance_pr = GroupBy(Tuple{Int, Int}, Mean()),
@@ -42,29 +42,39 @@ Basic, constant-memory [`recorders`](@ref).
 """
 $(TYPEDSIGNATURES)
 
-This returns [`default_recorders()`](@ref) plus those 
-provided in the `recorder_keys`. 
-
-See also [`recorder_keys`](@ref).
+Non-constant-memory [`recorders`](@ref).
 """
-@provides recorders function custom_recorders(recorder_keys::Set{Symbol}) 
-    result = default_recorders()
-    if :index_process in recorder_keys
-        result = merge(result, (; index_process = Dict{Int, Vector{Int}}()))
-    end
-    return result
-end
-
-"""
-$TYPEDSIGNATURES
-
-This returns a fresh [`recorders`](@ref) with the same recorder_keys as the provided 
-[`recorders`](@ref).
-"""
-@provides recorders empty_recorders(recorders) = custom_recorders(Set(keys(recorders)))
+expensive_recorders() = (;
+    index_process = Dict{Int, Vector{Int}}(),
+)
 
 """
 $(TYPEDSIGNATURES)
+
+This returns all the [`default_recorders()`](@ref) plus the 
+[`expensive_recorders()`](@ref)  for which their key is 
+provided in the `recorder_keys`. 
+"""
+@provides recorders function custom_recorders(recorder_keys) 
+    result = default_recorders()
+    return merge(result, slice_tuple(expensive_recorders(), recorder_keys))
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Returns all the default recorder plus all 
+the [`expensive_recorders()`](@ref).
+"""
+@provides recorders function all_recorders()
+    return merge(default_recorders(), expensive_recorders())
+end
+
+
+
+"""
+$(TYPEDSIGNATURES)
+
 Some statistics may induce memory requirements growing in 
 the number of iterations. Use this to select which ones, 
 if any to pass to [`custom_recorders()`](@ref).
@@ -87,7 +97,7 @@ recorder_keys(args::Symbol...) = Set(args)
 $TYPEDSIGNATURES
 
 Perform a reduction across all the replicas' individual recorders, 
-using  [`combine!()`](@ref) on each individual [`recorder`](@ref)
+using [`combine!()`](@ref) on each individual [`recorder`](@ref)
 held. 
 Returns a [`recorders`](@ref) with all the information merged. 
 
@@ -98,7 +108,7 @@ identical, no matter how many MPI processes are used, even when
 the reduction involves only approximately associative [`combine!()`](@ref)
 operations (e.g. most floating point ones).
 """
-reduced_recorders!(replicas) = all_reduce_deterministically(merge_recorders!, _recorders.(locals(replicas)), entangler(replicas))
+reduce_recorders!(replicas) = all_reduce_deterministically(merge_recorders!, _recorders.(locals(replicas)), entangler(replicas))
 
 function merge_recorders!(recorders1, recorders2)
     shared_keys = keys(recorders1)

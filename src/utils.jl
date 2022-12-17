@@ -114,6 +114,25 @@ macro weighted(w, x)
     :($(esc(w)) == 0.0 ? 0.0 : $(esc(w)) * $(esc(x)))
 end
 
+"""
+$TYPEDSIGNATURES
+
+Subset the tuple to the given key_subset.
+Check all keys in key_subset are in keys(tuple).
+"""
+function slice_tuple(tuple, key_subset)
+    valids = keys(tuple)
+    for key in key_subset
+        @assert key in valids
+    end
+    return NamedTuple(
+        filter(
+            key_value_pair -> key_value_pair.first in key_subset, 
+            collect(pairs(tuple))
+        )
+    )
+end
+
 # helpers to automate documention generation
 
 mutable struct InformalInterfaceSpec
