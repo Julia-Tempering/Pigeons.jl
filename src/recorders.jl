@@ -19,6 +19,7 @@ accessing statistic values.
 @informal recorders begin 
     """
     $TYPEDSIGNATURES
+
     If the [`recorders`](@ref) contains the given `recorder_key`, 
     send the `value` to the [`recorder`](@key) corresponding to the 
     `recorder_key`. Otherwise, do nothing.
@@ -37,6 +38,7 @@ Constant-memory [`recorders`](@ref).
 """
 @provides recorders default_recorders() = (;
         swap_acceptance_pr = GroupBy(Tuple{Int, Int}, Mean()),
+        check_point = iostream_recorder("check-point", "."), 
     )
 
 """
@@ -51,8 +53,9 @@ expensive_recorders() = (;
 """
 $(TYPEDSIGNATURES)
 
-This returns all the [`default_recorders()`](@ref) plus the 
-[`expensive_recorders()`](@ref)  for which their key is 
+This returns all of [`default_recorders()`](@ref) plus 
+the subset of 
+[`expensive_recorders()`](@ref) for which the key is 
 provided in the `recorder_keys`. 
 """
 @provides recorders function custom_recorders(recorder_keys) 
@@ -70,29 +73,6 @@ the [`expensive_recorders()`](@ref).
     return merge(default_recorders(), expensive_recorders())
 end
 
-
-
-"""
-$(TYPEDSIGNATURES)
-
-Some statistics may induce memory requirements growing in 
-the number of iterations. Use this to select which ones, 
-if any to pass to [`custom_recorders()`](@ref).
-E.g.: `recorder_keys()` or `recorder_keys(:index_process)`.
-
-Choices include (each specifying if it is included 
-in [`default_recorders()`](@ref)):
-
-- `:swap_acceptance_pr`: maintain swap acceptance probabilities,
-    a `GroupBy(Tuple{Int, Int}, Mean())` object
-    (included by default);
-- `:index_process`: keep, for each replica, the list of 
-    chains visited (not included by default), a 
-    `Dict{Int, Vector{Int}}` object.
-
-"""
-recorder_keys(args::Symbol...) = Set(args)
-
 """
 $TYPEDSIGNATURES
 
@@ -108,7 +88,11 @@ identical, no matter how many MPI processes are used, even when
 the reduction involves only approximately associative [`combine!()`](@ref)
 operations (e.g. most floating point ones).
 """
-reduce_recorders!(replicas) = all_reduce_deterministically(merge_recorders!, _recorders.(locals(replicas)), entangler(replicas))
+reduce_recorders!(replicas) = 
+    all_reduce_deterministically(
+        merge_recorders!, 
+        _recorders.(locals(replicas)), 
+        entangler(replicas))
 
 function merge_recorders!(recorders1, recorders2)
     shared_keys = keys(recorders1)

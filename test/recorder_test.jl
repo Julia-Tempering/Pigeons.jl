@@ -19,6 +19,9 @@ function test_recorder(replicas, n_iters::Int)
             replica.state = new_sample
         end
     end
+    @threads for replica in locals(replicas)
+        record_if_requested!(replica.recorders, :check_point, (replica.replica_id, replica))
+    end
     return reduce_recorders!(replicas)
 end
 
