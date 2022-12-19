@@ -25,6 +25,11 @@ mutable struct RecordContext
     of `results/all`. 
     """
     output_folder::String
+
+    """
+    [`LoadBalance`](@ref) object.
+    """
+    load::LoadBalance
 end
 
 function output_file(context::RecordContext, path_relative_to_output_folder)

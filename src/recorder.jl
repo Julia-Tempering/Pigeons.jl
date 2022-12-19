@@ -83,8 +83,14 @@ combine!(cp::CheckPointRecorder, ::CheckPointRecorder) = cp
 Base.empty!(::CheckPointRecorder) = nothing
 
 function record!(recorder::CheckPointRecorder, context::RecordContext, value::Replica)  
-    output = output_file(context, "checkpoints/round=$(context.round)/replica=$(value.replica_index).jls")
-    TODO
+    replica_output = output_file(context, "checkpoints/round=$(context.round)/replica=$(value.replica_index).jls")
+    serialize(replica_output, value)
+    if context.load.my_process_index == 1
+        immutable_output = output_file(context, "checkpoints/immutables.jls")
+        if !isfile(immutable_output)
+            serialize_immutables(immutable_output)
+        end
+    end
 end
 
 

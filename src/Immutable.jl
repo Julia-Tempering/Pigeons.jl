@@ -1,5 +1,6 @@
 struct Immutable{K, T}
     data::T
+    # private constructor - do not use directly
     function Immutable(key::Type, data::T, lookup::Bool) where {T}
         if !lookup
             return new{key, T}(data)
@@ -49,7 +50,7 @@ Immutable(key, data::T) where {T} = Immutable(Val{key}, data)
 """
 $TYPEDSIGNATURES
 
-Use the type of `data` as a default key.
+Use the Type of `data` as a default key.
 """
 Immutable(data::T) where {T} = Immutable(T, data) 
 
@@ -70,6 +71,7 @@ $TYPEDSIGNATURES
 See [`Immutable()`](@ref).
 """
 function deserialize_immutables(filename::AbstractString)
+    empty!(immutables)
     merge!(immutables, deserialize(filename))
 end
 
