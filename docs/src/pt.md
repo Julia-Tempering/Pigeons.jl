@@ -111,7 +111,7 @@ const normal_log_potentials = scaled_normal_example(n_chains, dim)
 # initialize replicas
 const init = Ref(zeros(dim))               # initialize all states to zero
 const rng = SplittableRandom(1)            # specialized rng (see Distributed PT page)
-const keys = recorder_keys(:index_process) # determines which statistics to keep
+const keys = [:index_process]              # determines which statistics to keep
 
 function simple_deo(n_iters, log_potentials)
     replicas = create_vector_replicas(n_chains, init, rng, keys)
@@ -136,8 +136,8 @@ savefig(p, "index_process.svg"); nothing # hide
 
 The code above illustrates the two steps needed to collect statistics from the execution of a PT algorithm: 
 
-- We specify which statistics to collect using [`recorder_keys()`](@ref) (by 
-    default, those that can be computed in constant memory only are included, 
+- We specify which statistics to collect using the `keys` argument (by 
+    default, statistics that can be computed in constant memory only are included, 
     those that have growing memory consumption, e.g. tracking the full 
     index process as done here, need to be explicitly specified in advance).
 - Using [`reduce_recorders!()`](@ref) to compile the statistics collected 

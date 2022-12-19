@@ -13,7 +13,7 @@ We make the following assumptions:
     logically related episodes (e.g. a set 
     number of times per iterations for algorithms running the 
     same number of iterations). 
-    These episodes are called micro-iteration as in [`Entangler`](@ref), 
+    These episodes are called micro-iterations as in [`Entangler`](@ref), 
     which this datastructure is built on.
 
 - Moreover, at each time all process perform a get or a set, 

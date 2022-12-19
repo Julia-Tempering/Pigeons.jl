@@ -24,9 +24,9 @@ accessing statistic values.
     send the `value` to the [`recorder`](@key) corresponding to the 
     `recorder_key`. Otherwise, do nothing.
     """
-    function record_if_requested!(recorders::NamedTuple, recorder_key, value)
+    function record_if_requested!(recorders::NamedTuple, recorder_key::Symbol, context::RecordContext, value)
         if haskey(recorders, recorder_key)
-            record!(recorders[recorder_key], value)
+            record!(recorders[recorder_key], context, value)
         end
     end
 end
@@ -38,7 +38,7 @@ Constant-memory [`recorders`](@ref).
 """
 @provides recorders default_recorders() = (;
         swap_acceptance_pr = GroupBy(Tuple{Int, Int}, Mean()),
-        check_point = iostream_recorder("check-point", "."), 
+        check_point = CheckPointRecorder(), 
     )
 
 """

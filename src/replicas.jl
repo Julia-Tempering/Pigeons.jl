@@ -81,7 +81,7 @@ See also [`state_initializer`](@ref).
         n_chains::Int, 
         state_initializer, 
         rng::SplittableRandom,
-        recorder_keys::Set{Symbol} = Set{Symbol}())
+        recorder_keys = Set{Symbol}())
     split_rngs = split_slice(1:n_chains, rng)
     states = [initialization(state_initializer, split_rngs[i], i) for i in eachindex(split_rngs)]
     recorders = [custom_recorders(recorder_keys) for i in eachindex(split_rngs)]

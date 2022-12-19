@@ -27,7 +27,6 @@ import MPI: Comm, Allreduce, Comm_rank,
             RequestSet, mpiexec, Allreduce, 
             Allgather, Comm_split, isend, recv,
             bcast
-
             
 using Base: Forward
 using Distributions
@@ -41,6 +40,11 @@ using DocStringExtensions
 using Plots
 using LinearAlgebra
 using SpecialFunctions
+using Serialization
+
+import Base./
+import Serialization.serialize
+import Serialization.deserialize
 
 export NRPT, slice_sample, SS
 
@@ -50,6 +54,12 @@ export  split_slice,
         @informal, 
         informal_doc,
         slice_tuple
+
+include("Immutable.jl")
+export  Immutable,
+        serialize_immutables,
+        deserialize_immutables
+
 
 ### Paths, discretization, log_potentials
 include("log_potential.jl")
@@ -146,9 +156,11 @@ export  swap!,
         index_process_plot
 
 ### Recorder are used to collect statistics
+include("RecordContext.jl")
+export RecordContext
+
 include("recorders.jl")
-export  recorder_keys,
-        record_if_requested!,
+export  record_if_requested!,
         custom_recorders,
         default_recorders,
         expensive_recorders,

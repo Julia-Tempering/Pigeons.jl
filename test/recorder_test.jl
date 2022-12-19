@@ -20,7 +20,7 @@ function test_recorder(replicas, n_iters::Int)
         end
     end
     @threads for replica in locals(replicas)
-        record_if_requested!(replica.recorders, :check_point, (replica.replica_id, replica))
+        record_if_requested!(replica.recorders, :check_point, (replica.replica_index, replica))
     end
     return reduce_recorders!(replicas)
 end
