@@ -31,46 +31,35 @@ accessing statistic values.
     end
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Constant-memory [`recorders`](@ref).
-"""
-@provides recorders default_recorders() = (;
-        swap_acceptance_pr = GroupBy(Tuple{Int, Int}, Mean()),
-        check_point = CheckPointRecorder(), 
-    )
+const default_recorder_builders = [check_point, swap_acceptance_pr]
 
 """
 $(TYPEDSIGNATURES)
 
-Non-constant-memory [`recorders`](@ref).
-"""
-expensive_recorders() = (;
-    index_process = Dict{Int, Vector{Int}}(),
-)
+Create a [`recorders`](@ref), which is 
+implemented using A `NamedTuple`.
 
-"""
-$(TYPEDSIGNATURES)
+TODO FIX THIS DOC
 
-This returns all of [`default_recorders()`](@ref) plus 
-the subset of 
-[`expensive_recorders()`](@ref) for which the key is 
-provided in the `recorder_keys`. 
-"""
-@provides recorders function custom_recorders(recorder_keys) 
-    result = default_recorders()
-    return merge(result, slice_tuple(expensive_recorders(), recorder_keys))
-end
+where
+the keys are given by `recorder_keys`, an iterable 
+of `Symbol`'s, and the values are obtained by 
+calling a function with a function name given by the 
+recorder key. Each such function should create a 
+fresh [`recorder`](@ref) object.
 
+To see the list of such functions names, see the 
+list of "examples providing instances" in 
+the [`recorder`](@ref) documentation.
 """
-$(TYPEDSIGNATURES)
-
-Returns all the default recorder plus all 
-the [`expensive_recorders()`](@ref).
-"""
-@provides recorders function all_recorders()
-    return merge(default_recorders(), expensive_recorders())
+@provides recorders function create_recorders(recorder_builders = default_recorder_builders) 
+    tuple_keys = Symbol[]
+    tuple_values = Any[]
+    for recorder_builder in recorder_builders
+        push!(tuple_keys,  Symbol(current_recorder))
+        push!(tuple_values, recorder_builder())
+    end
+    return (; zip(tuple_keys, tuple_values)...)
 end
 
 """

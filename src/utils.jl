@@ -170,12 +170,12 @@ macro informal(name::Symbol, arg::Expr)
     end
 end
 
-const providers = Dict{String, Set{Expr}}() # we would want Pair{Module,Symbol} but Module seems to have buggy hash/equality behaviour
+const providers_dict = Dict{String, Set{Expr}}() # we would want Pair{Module,Symbol} but Module seems to have buggy hash/equality behaviour
 function add_provider(key, value)
-    if !haskey(providers, key)
-        providers[key] = Set{Expr}()
+    if !haskey(providers_dict, key)
+        providers_dict[key] = Set{Expr}()
     end
-    push!(providers[key], value)
+    push!(providers_dict[key], value)
 end
 macro provides(name::Symbol, arg::Expr)
     key = "$__module__.$name"
@@ -233,9 +233,19 @@ function informal_link(name)
     return "$informal_file_name.html#$section_link"
 end
 
-function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)
+"""
+$TYPEDSIGNATURES
+
+Provides a `Set{Expr}` containing all the providers of the 
+given name in the given module. 
+"""
+function providers(mod::Module, name::Symbol)
     key = "$mod.$name"
-    current_providers = haskey(providers, key) ? providers[key] : Set{Expr}()
+    return haskey(providers_dict, key) ? providers[key] : Set{Expr}()
+end
+
+function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)
+    current_providers = providers(mod, name)
     return """
     ## $(informal_section(name))
 

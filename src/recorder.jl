@@ -39,6 +39,17 @@ See also [`recorders`](@ref).
     end
 end
 
+""" Average MH swap acceptance probabilities for each pairs of interacting chains. """
+@provides recorder swap_acceptance_pr() = GroupBy(Tuple{Int, Int}, Mean())
+
+""" Snapshot saved to file to reproduce/restart intermediate computations. """
+@provides recorder check_point()        = CheckPointRecorder()
+
+""" Full index process stored in memory. """
+@provides recorder index_process()      = Dict{Int, Vector{Int}}()
+
+
+
 function Base.empty!(x::Mean) 
     x.μ = zero(x.μ)
     x.n = zero(x.n)
@@ -82,7 +93,7 @@ struct CheckPointRecorder end
 combine!(cp::CheckPointRecorder, ::CheckPointRecorder) = cp
 Base.empty!(::CheckPointRecorder) = nothing
 
-function record!(recorder::CheckPointRecorder, context::RecordContext, value::Replica)  
+function record!(::CheckPointRecorder, context::RecordContext, value::Replica)  
     replica_output = output_file(context, "checkpoints/round=$(context.round)/replica=$(value.replica_index).jls")
     serialize(replica_output, value)
     if context.load.my_process_index == 1

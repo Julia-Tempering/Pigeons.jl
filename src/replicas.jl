@@ -61,16 +61,37 @@ initializations.
 @informal state_initializer begin 
     """
     $TYPEDSIGNATURES
-    Determine [`state_initializer`](@ref)'s initialization for the given `chain`.
+    Determine [`state_initializer`](@ref)'s initialization for the given `replica_index`.
     """
-    initialization(state_initializer, rng::SplittableRandom, chain::Int) = @abstract
+    initialization(state_initializer, rng::SplittableRandom, replica_index::Int) = @abstract
 end
 # ... initialize all to the same state
-initialization(state_initializer::Ref, rng::SplittableRandom, chain::Int) = state_initializer[]
+initialization(state_initializer::Ref, ::SplittableRandom, ::Int) = state_initializer[]
 # ... initialize to a value specific to each chain
-initialization(state_initializer::AbstractVector, rng::SplittableRandom, chain::Int) = state_initializer[chain]
+initialization(state_initializer::AbstractVector, ::SplittableRandom, replica_index::Int) = state_initializer[replica_index]
 # ... TODO: initialize from prior / other smart inits
 
+# ... initialize from a checkpoint 
+struct CheckpointInitializer
+    checkpoint_folder::String
+    round::Int
+    """
+    $TYPEDSIGNATURES 
+
+    A [`state_initializer`](@ref) based on a checkpoint folder. 
+    The checkpoint folder should contain `immutables.jls` as well 
+    as the subfolders `round=x` where `x` is the input `round`.
+    """
+    @provides state_initializer function CheckpointInitializer(checkpoint_folder, round::Int)
+        immutable_output = "$checkpoint_folder/immutables.jls"
+        deserialize_immutables(immutable_output)
+    end
+end
+
+initialization(
+    state_initializer::CheckpointInitializer, 
+    ::SplittableRandom, 
+    replica_index::Int) = deserialize("$(state_initializer.checkpoint_folder)/round=$(state_initializer.round)/replica=$replica_index.jls")
 
 """
 $TYPEDSIGNATURES
