@@ -13,7 +13,6 @@ struct Immutable{K, T}
     end
 end
 
-
 Immutable(key::Type, data::T) where {T} = Immutable(key, data, true)
 
 """
@@ -51,6 +50,8 @@ Immutable(key, data::T) where {T} = Immutable(Val{key}, data)
 $TYPEDSIGNATURES
 
 Use the Type of `data` as a default key.
+
+TODO: use hash() instead?
 """
 Immutable(data::T) where {T} = Immutable(T, data) 
 

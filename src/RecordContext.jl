@@ -5,19 +5,8 @@ context to the [`recorder`](@ref):
 $FIELDS
 """
 mutable struct RecordContext
-    """
-    Index of the PT adaptation *round*, as defined in 
-    [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-    """
-    round::Int 
-
-    """
-    Number of (exploration, communication) pairs performed 
-    so far, corresponds to ``n`` in 
-    [Algorithm 1 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-    Round ``i`` typically performs ``2^i`` scans. 
-    """
-    scan::Int
+    """Current round and scan."""
+    iterators::PT_Iterators
 
     """
     Folder to write output to, which is unique to 

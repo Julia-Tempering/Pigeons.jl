@@ -31,7 +31,6 @@ See also [`state_initializer`](@ref).
         n_chains::Int, 
         state_initializer, 
         rng::SplittableRandom, 
-        useMPI::Bool = true,
         recorder_keys = Set{Symbol}())
     entangler = Entangler(n_chains, parent_communicator = (useMPI ? COMM_WORLD : nothing))
     my_globals = my_global_indices(entangler.load)

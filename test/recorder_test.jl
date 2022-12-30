@@ -43,7 +43,6 @@ mpi = test_recorder(
         n_chains, 
         Ref(0.0), 
         SplittableRandom(1), 
-        true, 
         all_expensive_recorders), 
         n_iters)
 

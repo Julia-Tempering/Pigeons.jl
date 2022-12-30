@@ -1,7 +1,11 @@
 """
+
+TODO: fix that doc
+
 A `NamedTuple` containing several [`recorder`](@ref)'s. 
 Each recorder is responsible for a type of statistic to be 
-accumulated. 
+accumulated (e.g. one for swap accept prs, one for round trip 
+info; some are in-memory, some are on file).
 
 The keyset of the NamedTuple controls which types of 
 statistics to accumulate (we refer to each element in 
@@ -12,26 +16,14 @@ can select more expensive ones by enlarging that keyset.
 During PT execution, each recorders object keep track of only the 
 statistics for one replica (for thread safety and/or 
 distribution purpose).
-After a PT round, use [`reduce_recorders!()`](@ref) to do 
+After a PT round, [`reduce_recorders!()`](@ref) is used to do 
 a [reduction](https://en.wikipedia.org/wiki/MapReduce) before 
 accessing statistic values. 
 """
-@informal recorders begin 
-    """
-    $TYPEDSIGNATURES
-
-    If the [`recorders`](@ref) contains the given `recorder_key`, 
-    send the `value` to the [`recorder`](@key) corresponding to the 
-    `recorder_key`. Otherwise, do nothing.
-    """
-    function record_if_requested!(recorders::NamedTuple, recorder_key::Symbol, context::RecordContext, value)
-        if haskey(recorders, recorder_key)
-            record!(recorders[recorder_key], context, value)
-        end
-    end
+struct Recorders{T}
+    contents::T
+    context::RecordContext
 end
-
-const default_recorder_builders = [check_point, swap_acceptance_pr]
 
 """
 $(TYPEDSIGNATURES)
@@ -52,15 +44,34 @@ To see the list of such functions names, see the
 list of "examples providing instances" in 
 the [`recorder`](@ref) documentation.
 """
-@provides recorders function create_recorders(recorder_builders = default_recorder_builders) 
+function Recorders(recorder_builders, context::RecordContext) 
     tuple_keys = Symbol[]
     tuple_values = Any[]
     for recorder_builder in recorder_builders
         push!(tuple_keys,  Symbol(current_recorder))
         push!(tuple_values, recorder_builder())
     end
-    return (; zip(tuple_keys, tuple_values)...)
+    tuple = (; _context = context, zip(tuple_keys, tuple_values)...)
+    return Recorders(tuple, context)
 end
+
+
+"""
+$TYPEDSIGNATURES
+
+If the [`recorders`](@ref) contains the given `recorder_key`, 
+send the `value` to the [`recorder`](@key) corresponding to the 
+`recorder_key`. Otherwise, do nothing.
+"""
+function record_if_requested!(recorders, recorder_key::Symbol, value)
+    if haskey(recorders.contents, recorder_key)
+        record!(recorders.contents[recorder_key], recorders.context, value)
+    end
+end
+
+const default_recorder_builders = [check_point, swap_acceptance_pr]
+
+
 
 """
 $TYPEDSIGNATURES
@@ -80,15 +91,15 @@ operations (e.g. most floating point ones).
 reduce_recorders!(replicas) = 
     all_reduce_deterministically(
         merge_recorders!, 
-        _recorders.(locals(replicas)), 
+        recorders_contents.(locals(replicas)), 
         entangler(replicas))
 
-function merge_recorders!(recorders1, recorders2)
-    shared_keys = keys(recorders1)
-    @assert shared_keys == keys(recorders2)
+function merge_recorders!(recorders_contents_1, recorders_contents_2)
+    shared_keys = keys(recorders_contents_1)
+    @assert shared_keys == keys(recorders_contents_2)
 
-    values1 = values(recorders1)
-    values2 = values(recorders2)
+    values1 = values(recorders_contents_1)
+    values2 = values(recorders_contents_2)
     merged_values = [combine!(values1[i], values2[i]) for i in eachindex(values1)]
     return (; zip(shared_keys, merged_values)...)
 end

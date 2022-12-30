@@ -39,14 +39,22 @@ See also [`recorders`](@ref).
     end
 end
 
-""" Average MH swap acceptance probabilities for each pairs of interacting chains. """
+""" 
+Average MH swap acceptance probabilities for each pairs 
+of interacting chains. 
+"""
 @provides recorder swap_acceptance_pr() = GroupBy(Tuple{Int, Int}, Mean())
 
-""" Snapshot saved to file to reproduce/restart intermediate computations. """
-@provides recorder check_point()        = CheckPointRecorder()
+""" 
+Snapshot saved to file to reproduce/restart intermediate 
+computations. 
+"""
+@provides recorder check_point() = CheckPointRecorder()
 
-""" Full index process stored in memory. """
-@provides recorder index_process()      = Dict{Int, Vector{Int}}()
+""" 
+Full index process stored in memory. 
+"""
+@provides recorder index_process() = Dict{Int, Vector{Int}}()
 
 
 
@@ -65,7 +73,7 @@ end
 """
 $TYPEDSIGNATURES
 
-Forwards to OnlineStats' `fit!`
+Forwards to OnlineStats' `fit!`.
 """
 record!(recorder::OnlineStat, ::RecordContext, value) = fit!(recorder, value)
 

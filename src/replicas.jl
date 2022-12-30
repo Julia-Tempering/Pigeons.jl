@@ -56,7 +56,7 @@ n_chains_global(replicas) = load(replicas).n_global_indices
 Determine how to initialize the states in the replicas. 
 Implementations include `Ref(my_state)`, to signal all replicas will 
 be initalized to `my_state`, or a `Vector(...)` for chain-specific 
-initializations.
+initializations. 
 """
 @informal state_initializer begin 
     """
@@ -69,9 +69,11 @@ end
 initialization(state_initializer::Ref, ::SplittableRandom, ::Int) = state_initializer[]
 # ... initialize to a value specific to each chain
 initialization(state_initializer::AbstractVector, ::SplittableRandom, replica_index::Int) = state_initializer[replica_index]
-# ... TODO: initialize from prior / other smart inits
+# ... TODO: initialize from prior / other smarter inits
 
-# ... initialize from a checkpoint 
+
+
+
 struct CheckpointInitializer
     checkpoint_folder::String
     round::Int
@@ -108,3 +110,5 @@ See also [`state_initializer`](@ref).
     recorders = [custom_recorders(recorder_keys) for i in eachindex(split_rngs)]
     return Replica.(states, 1:n_chains, split_rngs, recorders, 1:n_chains)
 end
+
+@provides replicas function create_replicas

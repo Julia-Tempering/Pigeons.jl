@@ -94,7 +94,7 @@ const rng = SplittableRandom(1)
 const keys = [:index_process]              # determines which statistics to keep
 
 function simple_distributed_deo(n_iters, log_potentials)
-    replicas = create_entangled_replicas(n_chains, init, rng, true, keys)
+    replicas = create_entangled_replicas(n_chains, init, rng, keys)
     for iteration in 1:n_iters
         # communication phase
         swap!(log_potentials, replicas, deo(n_chains, iteration))
