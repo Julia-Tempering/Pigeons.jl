@@ -1,7 +1,4 @@
-using Distributions
-using Random
-
-struct SS{T, W<:Float64, P<:Int, D<:Float64}
+struct SS{T, W, P, D}
     potential::T # -log(f(x))
     w::W # Initial slice size
     p::P # Slices are no larger than 2^p * w
@@ -14,7 +11,7 @@ SS(potential) = SS(potential, 1.0, 10, 1.0)
 
 Double the current slice.
 """
-function slice_double(h::SS, g, x_0::Vector{Float64}, z::Float64, c::Int)
+function slice_double(h::SS, g, x_0::Vector{T}, z, c::Int) where {T}
     U = rand(Uniform(0.0, 1.0))
     L = x_0[c] - h.w*U
     R = L + h.w
@@ -46,8 +43,8 @@ end
 
 Shrink the current slice.
 """
-function slice_shrink(h::SS, g, x_0::Vector{Float64}, z::Float64, L::Float64, 
-                      R::Float64, c::Int)
+function slice_shrink(h::SS, g, x_0::Vector{T}, z, L::T, 
+                      R::T, c::Int) where {T}
     Lbar = L
     Rbar = R
 
@@ -74,8 +71,8 @@ end
 
 Test whether to accept the current slice.
 """
-function slice_accept(h::SS, g, x_0::Vector{Float64}, x_1, z::Float64, L::Float64, 
-                      R::Float64, c::Int)
+function slice_accept(h::SS, g, x_0::Vector{T}, x_1, z, L::T, 
+                      R::T, c::Int) where {T}
     Lhat = L
     Rhat = R
     Lhatvec = copy(x_0)
@@ -115,7 +112,7 @@ end
 Slice sample `nsamps` given a starting vector  `x_0` and the struct `h` 
 that contains information about the log-density.
 """
-function slice_sample(h::SS, x_0::Vector{Float64}, nsamps::Int)
+function slice_sample(h::SS, x_0::Vector{T}, nsamps::Int) where {T}
     g(x) = -h.potential(x) # log(f(x))
     x = Vector{typeof(x_0)}(undef, nsamps + 1)
     x[1] = x_0
