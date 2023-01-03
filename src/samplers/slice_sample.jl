@@ -122,15 +122,15 @@ function slice_sample(h::SS, x_0::Vector{T}, n::Integer) where {T}
 
     for i in 2:(n+1)
         StatsBase.sample!(1:dim_x, C; replace = false) # Set of coordinates to update
-        x_1 = copy(x[i-1])
+        x_1 = x[i-1]
         g_x_0 = g(x_1)
         for c in C
             z = g_x_0 - rand(Exponential(1.0)) # log(y)
-            L, R = slice_double(h, g, x_1, z, c)
-            x_1[c] = slice_shrink(h, g, x_1, z, L, R, c)
+        #     L, R = slice_double(h, g, x_1, z, c)
+        #     x_1[c] = slice_shrink(h, g, x_1, z, L, R, c)
         end
-        x[i] = x_1
+        # x[i] = copy(x_1)
     end
-    x = x[2:end] # Remove x_0
-    return x
+    # x = x[2:end] # Remove x_0
+    # return x
 end
