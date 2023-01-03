@@ -5,8 +5,8 @@ others can be located in other processes/machines
 
 Implementations provided
 
-- [`EntangledReplicas`](@ref): using an MPI-based implementation
-- `Vector{Replica}`: for the single process case (above can handle that case, but the array based implementation is non-allocating)
+- [`EntangledReplicas`](@ref): an MPI-based implementation
+- `Vector{Replica}`: single-process case (above can handle that case, but the array based implementation is non-allocating)
 """
 @informal replicas begin
     """
@@ -71,55 +71,45 @@ initialization(state_initializer::Ref, ::SplittableRandom, ::Int) = state_initia
 initialization(state_initializer::AbstractVector, ::SplittableRandom, replica_index::Int) = state_initializer[replica_index]
 # ... TODO: initialize from prior / other smarter inits
 
-
-
-change stuff here...
-
-struct CheckpointInitializer
-    checkpoint_folder::String
-    round::Int
-    """
-    $TYPEDSIGNATURES 
-
-    A [`state_initializer`](@ref) based on a checkpoint folder. 
-    The checkpoint folder should contain `immutables.jls` as well 
-    as the subfolders `round=x` where `x` is the input `round`.
-    """
-    @provides state_initializer function CheckpointInitializer(checkpoint_folder, round::Int)
-        immutable_output = "$checkpoint_folder/immutables.jls"
-        deserialize_immutables(immutable_output)
-    end
-end
-
-initialization(
-    state_initializer::CheckpointInitializer, 
-    ::SplittableRandom, 
-    replica_index::Int) = deserialize("$(state_initializer.checkpoint_folder)/round=$(state_initializer.round)/replica=$replica_index.jls")
-
 """
 $TYPEDSIGNATURES
 Create [`replicas`](@ref) when distributed computing is not needed. 
 See also [`state_initializer`](@ref).
 """
-@provides replicas function create_vector_replicas(
-        n_chains::Int, 
-        rng::SplittableRandom, 
-        state_initializer, 
-        recorder_builders, 
-        shared)
-    my_global_indices = 1:n_chains
-    return _create_locals(my_global_indices, rng, state_initializer, recorder_builders, shared)
+@provides replicas function create_vector_replicas(shared::Shared, round_folder = nothing)
+    my_global_indices = 1:n_chains(shared, round_folder)
+    return _create_locals(my_global_indices, shared, round_folder)
 end
 
-function _create_locals(
-        my_global_indices, 
-        rng::SplittableRandom, 
-        state_initializer, 
-        recorder_builders, 
-        shared)
+@provides replicas create_replicas(shared::Shared, round_folder = nothing) = 
+    mpi_needed() ? 
+        create_entangled_replicas(shared, round_folder) :
+        create_vector_replicas(shared, round_folder)
+
+n_chains(shared, ::Nothing) = n_chains(shared)
+
+n_chains(shared, round_folder::String) = # count the number of files that match replica=x.jls in [round_folder]/checkpoint
+    count(
+        file -> match(r"replica=[0-9]+[.]jls", file), 
+        readdir(
+            round_folder / "checkpoint", 
+            sort = false))
+
+function _create_locals(my_global_indices, shared::Shared, round_folder::String)
+    locals = [deserialize(round_folder / "checkpoint/replica=$global_index.jls") for global_index in my_global_indices]
+    # we rely on having only one instance of the shared object, 
+    # so that iteration increments can be detected by recorders; 
+    # so we do a small surgery:
+    for replica in locals
+        replica.recorders = Recorders(replica.recorders.contents, shared)
+    end
+    return locals 
+end
+
+function _create_locals(my_global_indices, shared::Shared, ::Nothing)
     split_rngs = split_slice(my_global_indices, shared.inputs.rng)
-    states = [initialization(state_initializer, split_rngs[i], my_globals_indices[i]) for i in eachindex(split_rngs)]
-    recorders = [Recorders(recorder_builders, shared) for i in eachindex(split_rngs)]
+    states = [initialization(shared.state_initializer, split_rngs[i], my_globals_indices[i]) for i in eachindex(split_rngs)]
+    recorders = [Recorders(shared.recorder_builders, shared) for i in eachindex(split_rngs)]
     return Replicas.(
                 states, 
                 my_global_indices,  # <- chain indices initialized to replica indices

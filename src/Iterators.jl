@@ -6,7 +6,7 @@ sample statistics.
 Fields:
 $FIELDS
 """ 
-@kwdef mutable struct PT_Iterators
+@kwdef mutable struct Iterators
     """
     Index of the PT adaptation *round*, as defined in 
     [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
@@ -20,6 +20,8 @@ $FIELDS
     Round ``i`` typically performs ``2^i`` scans. 
     """
     scan::Int = 0
+
+    # TODO: store round timing
 end
 
 function next_round!(pt)

@@ -15,28 +15,40 @@ $FIELDS
     globals
 end
 
-const LAST_COMPLETED_ROUND = -1
-function PT(exec_folder, round = LAST_COMPLETED_ROUND)
-    round_folder = round_folder(exec_folder, round)
-    symlink_completed_rounds(exec_folder, round)
-    load_immutables(exec_folder)
-    replicas = create_replicas(round_folder)
-    shared_pt_info = create_shared_pt_info(round_folder)
-    return PT(replicas, shared_pt_info)
+"""
+$TYPEDSIGNATURES
+
+Create a [`PT`](@ref) struct from a saved 
+checkpoint. The path [`round_folder`] 
+should point to a folder with a name of the 
+form `round=x`. 
+"""
+function PT(round_folder::String)
+    symlink_completed_rounds(round_folder)
+    shared = deserialize_shared(round_folder) # <- should be done before replicas deserialization to load immutables
+    replicas = create_replicas(shared, round_folder)
+    return PT(replicas, shared)
 end
 
-function PT(inputs::PT_Inputs)
-    replicas = create_replicas(inputs)
-    etc
+function PT(inputs::Inputs)
+    shared = Shared(inputs)
+    replicas = create_replicas(shared)
+    return PT(replicas, shared)
 end
 
 run!(pt) = 
-    while next_round!(pt) # NB: not using for-loop to allow resume from checkpoint
+    while next_round!(pt) # NB: not using for-loop to allow resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders)
         report(pt)
         checkpoint(pt)
     end
+
+#= 
+    TODO: run some tests in the first few rounds? 
+    e.g. reloading checkpoint, etc
+    with an option to disable but done by default 
+=#
 
 function run_one_round!(pt)
     while next_scan!(pt)
@@ -47,32 +59,21 @@ function run_one_round!(pt)
 end
 
 function communicate!(pt)
-    swapper = create_pair_swapper(pt.shared_pt_info)
-    graph = create_swap_graph(pt.shared_pt_info)
+    swapper = create_pair_swapper(pt.shared)
+    graph = create_swap_graph(pt.shared)
     swap!(swapper, pt.replicas, graph)
 end
 
 function explore!(pt)
     @threads for replica in locals(pt.replicas)
-        if is_reference(replica, pt.shared_pt_info)
-            regenerate!(replica, shared_pt_info)
+        if is_reference(replica, pt.shared)
+            regenerate!(replica, pt.shared)
         else
-            step!(replica, shared_pt_info)
+            step!(replica, pt.shared)
         end
     end
 end
 
-
 function checkpoint(pt)
-    #= 
-
-    Need to decide: if resume check point, do we get a 
-    new exec folder? -> yes (complications with partially written folder, ec)
-
-    Check-pointing should be agnostic to MPI setup.
-
-    NOTE: due to file based recorders, much easier to 
-    implement across rounds than in the middle of a round.
     
-    =#
 end

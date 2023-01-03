@@ -17,3 +17,7 @@ function load_immutables(round_folder)
     parent_folder = dirname(round_folder)
     deserialize_immutables(parent_folder / "immutables.jls")
 end
+
+function load_shared(round_folder)
+    return deserialize(round_folder / "shared.jls")
+end

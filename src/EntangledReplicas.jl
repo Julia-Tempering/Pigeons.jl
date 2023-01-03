@@ -27,15 +27,11 @@ $TYPEDSIGNATURES
 Create distributed replicas. The argument `useMPI = false` is only for debugging purpose.
 See also [`state_initializer`](@ref). 
 """
-@provides replicas function create_entangled_replicas(
-        n_chains::Int, 
-        rng::SplittableRandom, 
-        state_initializer, 
-        recorder_builders, 
-        shared)
+@provides replicas function create_entangled_replicas(shared::Shared, round_folder = nothing)
+    n_chains = n_chains(shared, round_folder)
     entangler = Entangler(n_chains)
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)
-    locals = _create_locals(my_globals, rng, state_initializer, recorder_builders, shared)
+    locals = _create_locals(my_globals, shared, round_folder)
     return EntangledReplicas(locals, chain_to_replica_global_indices)
 end

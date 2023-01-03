@@ -74,6 +74,8 @@ mutable struct Entangler
     end
 end
 
+mpi_needed() = Entangler(2).load.n_processes > 1
+
 """
 $TYPEDSIGNATURES
 

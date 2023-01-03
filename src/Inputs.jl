@@ -4,4 +4,3 @@
     n_rounds::Int = 10
 end
 
-initial_n_chains(inputs::Inputs) = 10
