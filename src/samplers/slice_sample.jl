@@ -1,10 +1,18 @@
-struct SS{U, W, P, D}
+mutable struct SS{U, W, P, D, C, X}
     potential::U # -log(f(x))
     w::W # Initial slice size
     p::P # Slices are no larger than 2^p * w
     dim_fraction::D # Proportion of variables to update
+
+    # Private
+    C::C # temp
+    x_1::X # temp
+    Lvec::X # temp
+    Rvec::X # temp
+    x_1vec::X # temp
 end
-SS(potential) = SS(potential, 1.0, 10, 1.0)
+SS(potential) = SS(potential, 1.0, 10, 1.0, [0], [0.0], [0.0], [0.0])
+# TODO: proper initialization
 
 """
     slice_double(h, g, x_0, z, c)
@@ -12,29 +20,28 @@ SS(potential) = SS(potential, 1.0, 10, 1.0)
 Double the current slice.
 """
 function slice_double(h::SS, g, x_0::Vector{T}, z, c::Integer) where {T}
-    U = rand(Uniform(0.0, 1.0))
+    U = rand()
     L = x_0[c] - h.w*U
     R = L + h.w
     K = h.p
     
-    Lvec = copy(x_0)
-    Lvec[c] = L
-    Rvec = copy(x_0)
-    Rvec[c] = R
+    h.Lvec .= x_0
+    h.Lvec[c] = L
+    h.Rvec .= x_0
+    h.Rvec[c] = R
 
-    while (K > 0) && ((z < g(Lvec)) || (z < g(Rvec)))
-        V = rand(Uniform(0.0, 1.0))
+    while (K > 0) && ((z < g(h.Lvec)) || (z < g(h.Rvec)))
+        V = rand()
         if V <= 0.5
             L = L - (R - L)
         else
             R = R + (R - L)
         end
         K = K - 1
-        Lvec[c] = L
-        Rvec[c] = R
+        h.Lvec[c] = L
+        h.Rvec[c] = R
     end
-    return(L = L,
-           R = R)
+    return(; L, R)
 end
 
 
@@ -43,13 +50,12 @@ end
 
 Shrink the current slice.
 """
-function slice_shrink(h::SS, g, x_0::Vector{T}, z, L::T, 
-                      R::T, c::Integer) where {T}
+function slice_shrink(h::SS, g, x_0::Vector{T}, z, L::T, R::T, c::Integer) where {T}
     Lbar = L
     Rbar = R
 
     while true
-        U = rand(Uniform(0.0, 1.0))
+        U = rand()
         x_1 = Lbar + U * (Rbar - Lbar)
         x_1vec = copy(x_0)
         x_1vec[c] = x_1
@@ -117,20 +123,20 @@ function slice_sample(h::SS, x_0::Vector{T}, n::Integer) where {T}
     dim_x = length(x_0)
     x = [[0.0 for j in 1:dim_x] for i in 1:(n+1)]
     x[1] = x_0
-    C = zeros(Integer, Int64(ceil(dim_x * h.dim_fraction)))
-    x_1 = similar(x_0)
+    h.C = zeros(Integer, Int64(ceil(dim_x * h.dim_fraction)))
+    h.x_1 = similar(x_0)
 
     for i in 2:(n+1)
-        StatsBase.sample!(1:dim_x, C; replace = false) # Set of coordinates to update
-        x_1 = x[i-1]
-        g_x_0 = g(x_1)
-        for c in C
+        StatsBase.sample!(1:dim_x, h.C; replace = false) # coordinates to update
+        h.x_1 = x[i-1]
+        g_x_0 = g(h.x_1)
+        for c in h.C
             z = g_x_0 - rand(Exponential(1.0)) # log(y)
-            # L, R = slice_double(h, g, x_1, z, c)
-            # x_1[c] = slice_shrink(h, g, x_1, z, L, R, c)
+            L, R = slice_double(h, g, h.x_1, z, c)
+            h.x_1[c] = slice_shrink(h, g, h.x_1, z, L, R, c)
         end
-        x[i] .= x_1
+        x[i] .= h.x_1
     end
-    deleteat!(x, 1) # Remove x_0
+    deleteat!(x, 1) # remove x_0
     return x
 end
