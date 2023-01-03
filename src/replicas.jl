@@ -77,7 +77,7 @@ Create [`replicas`](@ref) when distributed computing is not needed.
 See also [`state_initializer`](@ref).
 """
 @provides replicas function create_vector_replicas(shared::Shared, round_folder = nothing)
-    my_global_indices = 1:n_chains(shared, round_folder)
+    my_global_indices = 1:shared.n_chains
     return _create_locals(my_global_indices, shared, round_folder)
 end
 
@@ -85,15 +85,6 @@ end
     mpi_needed() ? 
         create_entangled_replicas(shared, round_folder) :
         create_vector_replicas(shared, round_folder)
-
-n_chains(shared, ::Nothing) = n_chains(shared)
-
-n_chains(shared, round_folder::String) = # count the number of files that match replica=x.jls in [round_folder]/checkpoint
-    count(
-        file -> match(r"replica=[0-9]+[.]jls", file), 
-        readdir(
-            round_folder / "checkpoint", 
-            sort = false))
 
 function _create_locals(my_global_indices, shared::Shared, round_folder::String)
     locals = [deserialize(round_folder / "checkpoint/replica=$global_index.jls") for global_index in my_global_indices]
