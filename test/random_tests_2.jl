@@ -3,6 +3,7 @@ include("../src/Pigeons.jl")
 using .Pigeons
 using BenchmarkTools
 using Distributions
+using Random
 
 function main()
     potential(x) = -logpdf(Normal(0.0, 1.0), x[1])
@@ -10,4 +11,5 @@ function main()
     out = Pigeons.slice_sample(h, [0.0], 100)
 end
 
+Random.seed!(1023402)
 @btime main()
