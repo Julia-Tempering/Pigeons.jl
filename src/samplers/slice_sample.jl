@@ -5,11 +5,11 @@ mutable struct SS{U, W, P, D, C, X}
     dim_fraction::D # Proportion of variables to update
 
     # Private
-    C::C # temp
-    x_1::X # temp
-    Lvec::X # temp
-    Rvec::X # temp
-    x_1vec::X # temp
+    C::C
+    x_1::X
+    Lvec::X
+    Rvec::X
+    x_1vec::X
 end
 SS(potential) = SS(potential, 1.0, 10, 1.0, [0], [0.0], [0.0], [0.0], [0.0])
 # TODO: proper initialization
@@ -123,8 +123,8 @@ function slice_sample(h::SS, x_0::Vector{T}, n::Integer) where {T}
     dim_x = length(x_0)
     x = [[0.0 for j in 1:dim_x] for i in 1:(n+1)]
     x[1] = x_0
-    h.C = zeros(Integer, Int64(ceil(dim_x * h.dim_fraction)))
-    h.x_1 = similar(x_0)
+    h.C .= zeros(Integer, Int64(ceil(dim_x * h.dim_fraction)))
+    h.x_1 .= similar(x_0)
 
     for i in 2:(n+1)
         StatsBase.sample!(1:dim_x, h.C; replace = false) # coordinates to update

@@ -11,5 +11,4 @@ function main()
     out = Pigeons.slice_sample(h, [0.0], 100)
 end
 
-Random.seed!(1023402)
 @btime main()
