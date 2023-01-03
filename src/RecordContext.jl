@@ -1,3 +1,6 @@
+
+remove this.. using globals now
+
 """
 Passed to [`record!()`](@ref) to provide the following 
 context to the [`recorder`](@ref):

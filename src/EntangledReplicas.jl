@@ -29,15 +29,13 @@ See also [`state_initializer`](@ref).
 """
 @provides replicas function create_entangled_replicas(
         n_chains::Int, 
-        state_initializer, 
         rng::SplittableRandom, 
-        recorder_keys = Set{Symbol}())
-    entangler = Entangler(n_chains, parent_communicator = (useMPI ? COMM_WORLD : nothing))
+        state_initializer, 
+        recorder_builders, 
+        shared)
+    entangler = Entangler(n_chains)
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)
-    split_rngs = split_slice(my_globals, rng)
-    states = [initialization(state_initializer, split_rngs[i], my_globals[i]) for i in eachindex(split_rngs)]
-    recorders = [custom_recorders(recorder_keys) for i in eachindex(split_rngs)]
-    locals = Replica.(states, my_globals, split_rngs, recorders, my_globals)
+    locals = _create_locals(my_globals, rng, state_initializer, recorder_builders, shared)
     return EntangledReplicas(locals, chain_to_replica_global_indices)
 end

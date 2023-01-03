@@ -22,7 +22,7 @@ accessing statistic values.
 """
 struct Recorders{T}
     contents::T
-    context::RecordContext
+    shared::Shared
 end
 
 """
@@ -44,15 +44,15 @@ To see the list of such functions names, see the
 list of "examples providing instances" in 
 the [`recorder`](@ref) documentation.
 """
-function Recorders(recorder_builders, context::RecordContext) 
+function Recorders(recorder_builders, shared::Shared) 
     tuple_keys = Symbol[]
     tuple_values = Any[]
     for recorder_builder in recorder_builders
         push!(tuple_keys,  Symbol(current_recorder))
         push!(tuple_values, recorder_builder())
     end
-    tuple = (; _context = context, zip(tuple_keys, tuple_values)...)
-    return Recorders(tuple, context)
+    tuple = (; zip(tuple_keys, tuple_values)...)
+    return Recorders(tuple, shared)
 end
 
 

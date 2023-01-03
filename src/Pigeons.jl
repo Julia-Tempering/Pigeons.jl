@@ -45,6 +45,7 @@ using Serialization
 import Base./
 import Serialization.serialize
 import Serialization.deserialize
+import Base.@kwdef
 
 export NRPT, slice_sample, SS
 

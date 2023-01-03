@@ -1,41 +1,18 @@
-
-
-mutable struct PT_Iterators
-    """
-    Index of the PT adaptation *round*, as defined in 
-    [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-    """
-    round::Int 
-
-    """
-    Number of (exploration, communication) pairs performed 
-    so far, corresponds to ``n`` in 
-    [Algorithm 1 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-    Round ``i`` typically performs ``2^i`` scans. 
-    """
-    scan::Int
-end
-
-struct PT_Inputs{I}
-    inference_problem::I
-    rng::SplittableRandom
-end
-
 """
-All the storage involved in PT algorithms:
+Storage involved in PT algorithms:
 
 $FIELDS
 """
-struct PT{R, S}
+@concrete struct PT
     """
     The [`replicas`](@ref) held by this machine.
     """
-    replicas::R
+    replicas
 
     """
     Information shared and identical across all machines.
     """
-    shared::S
+    globals
 end
 
 const LAST_COMPLETED_ROUND = -1
@@ -44,16 +21,14 @@ function PT(exec_folder, round = LAST_COMPLETED_ROUND)
     symlink_completed_rounds(exec_folder, round)
     load_immutables(exec_folder)
     replicas = create_replicas(round_folder)
-    shared = create_shared(round_folder)
-    return PT(replicas, shared)
+    shared_pt_info = create_shared_pt_info(round_folder)
+    return PT(replicas, shared_pt_info)
 end
 
-function PT(inputs)
+function PT(inputs::PT_Inputs)
     replicas = create_replicas(inputs)
     etc
 end
-
-
 
 run!(pt) = 
     while next_round!(pt) # NB: not using for-loop to allow resume from checkpoint
@@ -72,17 +47,17 @@ function run_one_round!(pt)
 end
 
 function communicate!(pt)
-    swapper = create_pair_swapper(pt.shared)
-    graph = create_swap_graph(pt.shared)
+    swapper = create_pair_swapper(pt.shared_pt_info)
+    graph = create_swap_graph(pt.shared_pt_info)
     swap!(swapper, pt.replicas, graph)
 end
 
 function explore!(pt)
     @threads for replica in locals(pt.replicas)
-        if is_reference(replica, pt.shared)
-            regenerate!(replica, shared)
+        if is_reference(replica, pt.shared_pt_info)
+            regenerate!(replica, shared_pt_info)
         else
-            step!(replica, shared)
+            step!(replica, shared_pt_info)
         end
     end
 end

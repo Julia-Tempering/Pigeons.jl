@@ -73,6 +73,7 @@ initialization(state_initializer::AbstractVector, ::SplittableRandom, replica_in
 
 
 
+change stuff here...
 
 struct CheckpointInitializer
     checkpoint_folder::String
@@ -102,13 +103,26 @@ See also [`state_initializer`](@ref).
 """
 @provides replicas function create_vector_replicas(
         n_chains::Int, 
+        rng::SplittableRandom, 
         state_initializer, 
-        rng::SplittableRandom,
-        recorder_keys = Set{Symbol}())
-    split_rngs = split_slice(1:n_chains, rng)
-    states = [initialization(state_initializer, split_rngs[i], i) for i in eachindex(split_rngs)]
-    recorders = [custom_recorders(recorder_keys) for i in eachindex(split_rngs)]
-    return Replica.(states, 1:n_chains, split_rngs, recorders, 1:n_chains)
+        recorder_builders, 
+        shared)
+    my_global_indices = 1:n_chains
+    return _create_locals(my_global_indices, rng, state_initializer, recorder_builders, shared)
 end
 
-@provides replicas function create_replicas
+function _create_locals(
+        my_global_indices, 
+        rng::SplittableRandom, 
+        state_initializer, 
+        recorder_builders, 
+        shared)
+    split_rngs = split_slice(my_global_indices, shared.inputs.rng)
+    states = [initialization(state_initializer, split_rngs[i], my_globals_indices[i]) for i in eachindex(split_rngs)]
+    recorders = [Recorders(recorder_builders, shared) for i in eachindex(split_rngs)]
+    return Replicas.(
+                states, 
+                my_global_indices,  # <- chain indices initialized to replica indices
+                recorders, 
+                my_global_indices)  # <- replica indices
+end
