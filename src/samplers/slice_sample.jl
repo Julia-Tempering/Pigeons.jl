@@ -11,7 +11,7 @@ mutable struct SS{U, W, P, D, C, X}
     Rvec::X # temp
     x_1vec::X # temp
 end
-SS(potential) = SS(potential, 1.0, 10, 1.0, [0], [0.0], [0.0], [0.0])
+SS(potential) = SS(potential, 1.0, 10, 1.0, [0], [0.0], [0.0], [0.0], [0.0])
 # TODO: proper initialization
 
 """
@@ -57,9 +57,9 @@ function slice_shrink(h::SS, g, x_0::Vector{T}, z, L::T, R::T, c::Integer) where
     while true
         U = rand()
         x_1 = Lbar + U * (Rbar - Lbar)
-        x_1vec = copy(x_0)
-        x_1vec[c] = x_1
-        if (z < g(x_1vec)) && (slice_accept(h, g, x_0, x_1, z, L, R, c))
+        h.x_1vec .= x_0
+        h.x_1vec[c] = x_1
+        if (z < g(h.x_1vec)) && (slice_accept(h, g, x_0, x_1, z, L, R, c))
             return x_1
         end
         if x_1 < x_0[c]
@@ -81,10 +81,10 @@ function slice_accept(h::SS, g, x_0::Vector{T}, x_1, z, L::T,
                       R::T, c::Integer) where {T}
     Lhat = L
     Rhat = R
-    Lhatvec = copy(x_0)
-    Lhatvec[c] = L
-    Rhatvec = copy(x_0)
-    Rhatvec[c] = R
+    h.Lvec .= x_0
+    h.Lvec[c] = L
+    h.Rvec .= x_0
+    h.Rvec[c] = R
 
     D = false
     acceptable = true
@@ -97,13 +97,13 @@ function slice_accept(h::SS, g, x_0::Vector{T}, x_1, z, L::T,
         
         if x_1 < M
             Rhat = M
-            Rhatvec[c] = Rhat
+            h.Rvec[c] = Rhat
         else
             Lhat = M
-            Lhatvec[c] = Lhat
+            h.Lvec[c] = Lhat
         end
 
-        if D && (z >= g(Lhatvec)) && (z >= g(Rhatvec))
+        if D && (z >= g(h.Lvec)) && (z >= g(h.Rvec))
             acceptable = false
             return acceptable
         end
