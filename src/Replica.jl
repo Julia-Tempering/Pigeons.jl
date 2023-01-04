@@ -6,17 +6,27 @@ mutable struct Replica{S, T}
     """ Configuration in the state space. """
     state::S
 
-    """ The index of the distribution currently associated with this replica, modified during swaps. """
+    """ 
+    The index of the distribution currently associated 
+    with this replica, modified during swaps. 
+    """
     chain::Int  
 
-    """ Random operations involving this state should use only this random number generator. """        
+    """ 
+    Random operations involving this state should 
+    use only this random number generator. 
+    """        
     rng::SplittableRandom
 
-    """Records statistics. Each replica carries its own for thread safety/distribution, to be reduced to access."""
+    """
+    Records statistics. Each replica carries its own 
+    for thread safety/distribution; then they are 
+    reduced at end of each round.
+    """
     recorders::T   
     
     """A global id associated with this replica.""" 
-    replica_index::Int # we keep track of this for the sorted Vector implementation of replicas
+    replica_index::Int 
 end
 
 # useful for broadcasting, e.g., chain.(replica)

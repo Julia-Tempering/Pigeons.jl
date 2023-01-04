@@ -1,6 +1,8 @@
 """
 Informs [`swap!()`](@ref) about which chain will interact with which.
 
+These are instantiated by [`swap_graphs`](@ref). 
+
 Canonical example is the standard Odd and Even swap, extension point for e.g. 
 
 - parallel parallel tempering

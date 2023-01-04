@@ -65,7 +65,7 @@ send the `value` to the [`recorder`](@key) corresponding to the
 """
 function record_if_requested!(recorders, recorder_key::Symbol, value)
     if haskey(recorders.contents, recorder_key)
-        record!(recorders.contents[recorder_key], recorders.context, value)
+        record!(recorders.contents[recorder_key], recorders.shared, value)
     end
 end
 

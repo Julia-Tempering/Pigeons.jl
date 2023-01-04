@@ -12,7 +12,13 @@ $FIELDS
     """
     Information shared and identical across all machines.
     """
-    globals
+    shared
+end
+
+function PT(inputs::Inputs)
+    shared = Shared(inputs)
+    replicas = create_replicas(shared, create_state_initializer(inputs))
+    return PT(replicas, shared)
 end
 
 """
@@ -24,56 +30,30 @@ should point to a folder with a name of the
 form `round=x`. 
 """
 function PT(round_folder::String)
-    symlink_completed_rounds(round_folder)
+    symlink_completed_rounds_and_immutables(round_folder)
     shared = deserialize_shared(round_folder) # <- should be done before replicas deserialization to load immutables
-    replicas = create_replicas(shared, round_folder)
+    replicas = create_replicas(shared, FromCheckpoint(round_folder))
     return PT(replicas, shared)
-end
-
-function PT(inputs::Inputs)
-    shared = Shared(inputs)
-    replicas = create_replicas(shared)
-    return PT(replicas, shared)
-end
-
-run!(pt) = 
-    while next_round!(pt) # NB: not using for-loop to allow resuming from checkpoint
-        reduced_recorders = run_one_round!(pt)
-        pt = adapt(pt, reduced_recorders)
-        report(pt)
-        checkpoint(pt)
-    end
-
-#= 
-    TODO: run some tests in the first few rounds? 
-    e.g. reloading checkpoint, etc
-    with an option to disable but done by default 
-=#
-
-function run_one_round!(pt)
-    while next_scan!(pt)
-        communicate!(pt)
-        explore!(pt)
-    end
-    return reduce_recorders!(pt.replicas)
-end
-
-function communicate!(pt)
-    swapper = create_pair_swapper(pt.shared)
-    graph = create_swap_graph(pt.shared)
-    swap!(swapper, pt.replicas, graph)
-end
-
-function explore!(pt)
-    @threads for replica in locals(pt.replicas)
-        if is_reference(replica, pt.shared)
-            regenerate!(replica, pt.shared)
-        else
-            step!(replica, pt.shared)
-        end
-    end
 end
 
 function checkpoint(pt)
+    if load(pt.replicas).my_process_index == 1
+        # process #1 saves the shared state
+        serialize(round_folder(pt.iterators.round) / "shared.jls")
+        # process #1 saves immutables, but only during first round
+        if pt.iterators.round == 1 
+            serialize_immutables(exec_folder() / "immutables.jls")
+        end
+        #=
+        TODO: In first two rounds, save also for the second process,
+            and compare shared and immutables to make sure they 
+            respect their contracts. 
+        =#
+    end
     
+    # each process saves its replicas
+    for replica in locals(pt.replicas)
+        serialize(round_folder(pt.iterators.round) / "replica=$(replica.replica_index)")
+    end
 end
+

@@ -1,6 +1,3 @@
-# utils to organize file output
-
-
 """
 Generate a folder unique to this execution. 
 By default, the directory is a subfolder of 
@@ -32,7 +29,6 @@ function exec_folder()
     return exec_dir[]
 end
 const exec_dir::Ref{Union{Nothing,String}} = Ref{Union{Nothing,String}}(nothing)
-
 
 function _ensure_symlinked()
     rm("results/latest", force = true)

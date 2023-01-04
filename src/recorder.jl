@@ -10,10 +10,8 @@ See also [`recorders`](@ref).
     $(TYPEDSIGNATURES)
 
     Add `value` to the statistics accumulated by [`recorder`](@ref). 
-    See [`RecordContext`](@ref) for accessing iteration indices, 
-    output folders, etc.
     """
-    record!(recorder, context::RecordContext, value) = @abstract 
+    record!(recorder, shared::Shared, value) = @abstract 
 
     """
     $(TYPEDSIGNATURES)
@@ -56,8 +54,6 @@ Full index process stored in memory.
 """
 @provides recorder index_process() = Dict{Int, Vector{Int}}()
 
-
-
 function Base.empty!(x::Mean) 
     x.μ = zero(x.μ)
     x.n = zero(x.n)
@@ -75,7 +71,7 @@ $TYPEDSIGNATURES
 
 Forwards to OnlineStats' `fit!`.
 """
-record!(recorder::OnlineStat, ::RecordContext, value) = fit!(recorder, value)
+record!(recorder::OnlineStat, ::Shared, value) = fit!(recorder, value)
 
 """
 $TYPEDSIGNATURES
@@ -85,7 +81,7 @@ Given a `value`, a pair `(a, b)`, and a `Dict{K, Vector{V}}` backed
 append `b` to the vector corresponding to `a`, inserting an empty 
 vector into the dictionary first if needed.
 """
-function record!(recorder::Dict{K, Vector{V}}, ::RecordContext, value::Tuple{K, V}) where {K, V}
+function record!(recorder::Dict{K, Vector{V}}, ::Shared, value::Tuple{K, V}) where {K, V}
     a, b = value
     if !haskey(recorder, a)
         recorder[a] = Vector{V}()
@@ -93,24 +89,7 @@ function record!(recorder::Dict{K, Vector{V}}, ::RecordContext, value::Tuple{K, 
     push!(recorder[a], b)
 end
 
-"""
-A [`recorder`](@ref) storing a checkpoint in the filesystem. 
-"""
-struct CheckPointRecorder end
 
-combine!(cp::CheckPointRecorder, ::CheckPointRecorder) = cp
-Base.empty!(::CheckPointRecorder) = nothing
-
-function record!(::CheckPointRecorder, context::RecordContext, value::Replica)  
-    replica_output = output_file(context, "checkpoints/round=$(context.round)/replica=$(value.replica_index).jls")
-    serialize(replica_output, value)
-    if context.load.my_process_index == 1
-        immutable_output = output_file(context, "checkpoints/immutables.jls")
-        if !isfile(immutable_output)
-            serialize_immutables(immutable_output)
-        end
-    end
-end
 
 
 
