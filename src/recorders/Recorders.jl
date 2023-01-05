@@ -1,17 +1,8 @@
 """
-
-TODO: fix that doc
-
-A `NamedTuple` containing several [`recorder`](@ref)'s. 
+A container for several types of [`recorder`](@ref)'s. 
 Each recorder is responsible for a type of statistic to be 
 accumulated (e.g. one for swap accept prs, one for round trip 
-info; some are in-memory, some are on file).
-
-The keyset of the NamedTuple controls which types of 
-statistics to accumulate (we refer to each element in 
-this keyset as a `recorder_key`). By default, only those 
-with constant memory requirement are selected, the user 
-can select more expensive ones by enlarging that keyset.
+info; some are in-memory, some are on file). 
 
 During PT execution, each recorders object keep track of only the 
 statistics for one replica (for thread safety and/or 
@@ -19,9 +10,25 @@ distribution purpose).
 After a PT round, [`reduce_recorders!()`](@ref) is used to do 
 a [reduction](https://en.wikipedia.org/wiki/MapReduce) before 
 accessing statistic values. 
+
+Fields:
+$FIELDS
 """
 @concrete struct Recorders
+    """
+    A `NamedTuple` containing several [`recorder`](@ref)'s. 
+
+    The keyset of the NamedTuple controls which types of 
+    statistics to accumulate (we refer to each element in 
+    this keyset as a `recorder_key`). 
+    """
     contents
+
+    """
+    The [`Shared`](@ref) instance, passed to the 
+    [`recorder`](@ref)'s so that they can refer to 
+    round index, etc.
+    """
     shared
 end
 

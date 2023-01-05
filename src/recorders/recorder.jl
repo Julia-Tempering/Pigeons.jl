@@ -44,12 +44,6 @@ of interacting chains.
 @provides recorder swap_acceptance_pr() = GroupBy(Tuple{Int, Int}, Mean())
 
 """ 
-Snapshot saved to file to reproduce/restart intermediate 
-computations. 
-"""
-@provides recorder check_point() = CheckPointRecorder()
-
-""" 
 Full index process stored in memory. 
 """
 @provides recorder index_process() = Dict{Int, Vector{Int}}()

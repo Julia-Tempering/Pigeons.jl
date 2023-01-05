@@ -41,7 +41,7 @@ end
 function tempering(temperer::JRSSB_2021_Temperer)
     log_potentials = discretize(temperer.path, temperer.schedule)
     swap_graphs = deo()
-    return Tempering(log_ptentials, swap_graphs)
+    return Tempering(log_potentials, swap_graphs)
 end
 
 recorder_builders(::JRSSB_2021_Temperer) = [swap_acceptance_pr]

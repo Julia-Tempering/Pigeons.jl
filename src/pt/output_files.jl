@@ -1,9 +1,10 @@
 
 
-round_folder(round::Int, parent_folder = exec_folder()) = exec_folder / "round=$round"
+round_folder(round::Int, parent_folder = exec_folder()) = parent_folder / "round=$round"
 
-function symlink_completed_rounds(round_folder)
+function symlink_completed_rounds_and_immutables(round_folder)
     parent_folder = dirname(round_folder)
+    symlink(parent_folder / "immutables.jls", exec_folder() / "immutables.jls")
     folder_name = basename(round_folder)
     round_index = parse(Int, last(split(folder_name)))
     for r = 1:(round_index - 1)
@@ -13,11 +14,8 @@ function symlink_completed_rounds(round_folder)
     end
 end
 
-function load_immutables(round_folder)
+function deserialize_shared(round_folder)
     parent_folder = dirname(round_folder)
     deserialize_immutables(parent_folder / "immutables.jls")
-end
-
-function load_shared(round_folder)
     return deserialize(round_folder / "shared.jls")
 end

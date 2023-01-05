@@ -1,23 +1,5 @@
 module Pigeons
 
-#=
-TODO: right now we are exporting too much stuff,
-i.e. both mid-level and high-level interfaces.
-At some point should transition to either 
-only high-level or some kind of switch allowing 
-different exports based on MCMC-developer vs 
-Bayesian modeller profiles...
-
-We do want all these to be documented though 
-(and certainly not every single private one, so 
-keep it like that for now)
-
-Maybe build some macro(s) to control export granularity 
-    for e.g. internal dev, testing, etc (e.g. use https://github.com/hayesall/ExportPublic.jl)
-    with the default for most user still just 'using Pigeons'
-=#
-
-
 import SplittableRandoms: SplittableRandom, split
 
 import MPI: Comm, Allreduce, Comm_rank, 
@@ -41,6 +23,7 @@ using Plots
 using LinearAlgebra
 using SpecialFunctions
 using Serialization
+using ConcreteStructs
 
 import Base./
 import Serialization.serialize
@@ -49,39 +32,44 @@ import Base.@kwdef
 
 export NRPT, slice_sample, SS
 
-include("utils.jl")
+include("utils/misc.jl")
 export  split_slice,
-        mpi_test,
-        @informal, 
-        informal_doc,
-        slice_tuple
+        mpi_test
 
-include("Immutable.jl")
+include("utils/informal.jl")
+export  @informal,
+        informal_doc
+
+include("utils/exec_folder.jl")
+export  exec_folder
+
+include("utils/Immutable.jl")
 export  Immutable,
         serialize_immutables,
         deserialize_immutables
 
 
 ### Paths, discretization, log_potentials
-include("log_potential.jl")
-include("log_potentials.jl")
+include("log_potentials/log_potential.jl")
+include("log_potentials/log_potentials.jl")
 export log_unnormalized_ratio
 
-include("path.jl")
+include("paths/path.jl")
 export  interpolate
 
-include("discretize.jl")
-export  discretize,
-        Schedule
+include("schedules/Schedule.jl")
+export Schedule
 
-include("path_implementations.jl")
+#include("schedules/discretize.jl")
+#export  discretize
+
+include("paths/path_implementations.jl")
 export  LinearInterpolator,
         create_path,
         TranslatedNormalPath,
         ScaledPrecisionNormalPath,
         scaled_normal_example,
         analytic_cumulativebarrier
-
 
 ### Samplers
 include("samplers/samplers.jl")
@@ -97,7 +85,6 @@ include("restarts.jl")
 include("NRPT.jl")
 
 
-
 ### Low-level MPI utilities
 include("mpi_utils/LoadBalance.jl")
 export  my_global_indices,
@@ -111,7 +98,8 @@ export  Entangler,
         transmit,
         transmit!,
         reduce_deterministically,
-        all_reduce_deterministically
+        all_reduce_deterministically,
+        mpi_needed
 
 include("mpi_utils/PermutedDistributedArray.jl")
 export  PermutedDistributedArray,
@@ -122,19 +110,19 @@ include("mpi_utils/one_per_host.jl")
 export one_per_host
 
 ### Mid-level swap APIs
-include("Replica.jl")
+include("pt/Shared.jl")
+include("replicas/Replica.jl")
 export  Replica,
         chain,
         recorder
 
-include("pair_swapper.jl")
+include("swap/pair_swapper.jl")
 export swap_decision,
        swap_stat,
        record_swap_stats!,
        SwapStat
 
-
-include("replicas.jl")
+include("replicas/replicas.jl")
 export  swap!,
         locals,
         load,
@@ -142,35 +130,49 @@ export  swap!,
         create_vector_replicas,
         n_chains_global,
         initialization,
-        create_vector_replicas
-
-include("EntangledReplicas.jl")
-export  EntangledReplicas,
+        create_replicas,
+        FromCheckpoint,
         entangler,
+        set_shared
+
+include("replicas/EntangledReplicas.jl")
+export  EntangledReplicas,
         create_entangled_replicas
 
-include("swap_graph.jl")
-export deo
+include("swap/swap_graph.jl")
+include("swap/swap_graphs.jl") # TODO: exports?
 
-include("swap.jl")
+include("swap/swap.jl")
 export  swap!,
         index_process_plot
 
 ### Recorder are used to collect statistics
-include("RecordContext.jl")
-export RecordContext
 
-include("recorders.jl")
-export  record_if_requested!,
-        custom_recorders,
-        default_recorders,
-        expensive_recorders,
-        all_recorders,
+include("recorders/Recorders.jl")
+export  Recorders,
+        record_if_requested!,
         reduce_recorders!
 
-include("recorder.jl")
-export  default_recorders,
-        record!
+include("recorders/recorder.jl")
+export  record!,
+        combine!,
+        swap_acceptance_probability,
+        index_process
+
+include("pt/explorer.jl")
+include("pt/Inputs.jl")
+export Inputs
+
+include("pt/Iterators.jl")
+include("pt/output_files.jl")
+
+include("pt/PT.jl")
+export PT
+
+
+include("pt/Tempering.jl")
+include("pt/pt_algorithm.jl")
+export  run!
 
 include("summary.jl")
 

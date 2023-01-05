@@ -36,6 +36,8 @@ For example, we provide this behaviour for any `Vector` containing [`log_potenti
     This function should return ``\\log g`` evaluated at `state`.
     """
     log_unnormalized_ratio(log_potentials, numerator::Int, denominator::Int, state) = @abstract 
+
+    n_chains(log_potentials) = length(log_potentials)
 end
 
 

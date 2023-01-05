@@ -74,6 +74,11 @@ mutable struct Entangler
     end
 end
 
+"""
+$TYPEDSIGNATURES
+
+Detect if more than one MPI processes can be found. 
+"""
 mpi_needed() = Entangler(2).load.n_processes > 1
 
 """

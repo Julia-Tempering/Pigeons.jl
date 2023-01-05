@@ -132,7 +132,6 @@ function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partn
     end
 end
 
-
 function checked_partner_chain(swap_graph, my_chain::Int)::Int 
     result            = partner_chain(swap_graph, my_chain)
     @assert my_chain == partner_chain(swap_graph, result)
