@@ -1,7 +1,5 @@
 """
-    local_exploration(states, kernels, optimreference_round, modref_means, modref_stds, 
-        modref_covs, full_covariance, prior_sampler, n_explore)
-        chainacceptance = Vector{Int64}(undef, length(states))
+$TYPEDSIGNATURES
 
 Perform one local exploration move. `state` is the state from the **one** 
 previous scan, which is of size N+1[dim_x].
@@ -43,14 +41,12 @@ function local_exploration(states, kernels, optimreference_round, modref_means, 
         out = vcat(out_reference, out_other)
     end
 
-    return (
-        out             = out,
-        chainacceptance = chainacceptance)
+    return (; out, chainacceptance)
 end
 
 
 """
-    setkernels(potential, etas)
+$TYPEDSIGNATURES
 
 Set the local exploration kernels given the `potential` and the annealing 
 parameters, `etas`.

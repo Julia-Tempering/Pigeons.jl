@@ -18,7 +18,7 @@ end
 
 """
 $TYPEDSIGNATURES
-Create a [`Schedule`](@ref) with `n_chains` equally spaced grid points.
+Create a [`Schedule`](@ref) with `n_chains` at equally-spaced grid points.
 """
 function Schedule(n_chains::Int) 
     @assert n_chains ≥ 2
