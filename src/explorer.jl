@@ -1,9 +1,22 @@
 @informal explorer begin
     regenerate!(explorer, replica, shared) = @abstract
     step!(explorer, replica, shared) = @abstract 
+    adapt(explorer, reduced_recorders, shared) = @abstract
+    recorder_builders(explorer) = @abstract 
 end
 
-@provides explorer create_explorer(inference_problem) = @abstract 
-@provides explorer adapt(explorer, reduced_recorders, shared) = @abstract 
+find_log_potential(replica, shared) = shared.tempering.log_potentials[replica.chain]
 
-create_explorers(inputs) = create_explorers(inputs.inference_problem)
+@provides explorer create_explorer(inference_problem, inputs) = @abstract 
+
+create_explorer(inference_problem::ScaledPrecisionNormalPath, inputs) = ToyExplorer()
+
+struct ToyExplorer end
+
+step!(explorer::ToyExplorer, replica, shared) = regenerate!(explorer, replica, shared)
+adapt!(::ToyExplorer, _, _) = nothing 
+recorder_builders(::ToyExplorer) = [] 
+function regenerate!(explorer::ToyExplorer, replica, shared)
+    log_potential = find_log_potential(replica, shared) 
+    replica.state = rand(replica.rng, log_potential)
+end

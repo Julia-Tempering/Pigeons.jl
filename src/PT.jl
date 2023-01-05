@@ -48,6 +48,7 @@ function checkpoint(pt)
         TODO: In first two rounds, save also for the second process,
             and compare shared and immutables to make sure they 
             respect their contracts. 
+        .. or better(?), share hashes?
         =#
     end
     

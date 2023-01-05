@@ -7,14 +7,14 @@ See also [`recorders`](@ref).
 """
 @informal recorder begin
     """
-    $(TYPEDSIGNATURES)
+    $TYPEDSIGNATURES
 
     Add `value` to the statistics accumulated by [`recorder`](@ref). 
     """
     record!(recorder, shared::Shared, value) = @abstract 
 
     """
-    $(TYPEDSIGNATURES)
+    $TYPEDSIGNATURES
 
     Combine the two provided [`recorder`](@ref) objects, and then 
     "dispose" of the two input arguments. 

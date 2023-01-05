@@ -2,6 +2,7 @@
     inference_problem::I
     rng::SplittableRandom = SplittableRandom(1)
     n_rounds::Int = 10
-    n_chains::Int = 10 # TODO: make Union{Nothing,..}, adapt it
+    min_n_chains::Int = 10
+    recorder_builders::Vector{Function} = Function[]
 end
 

@@ -16,6 +16,8 @@ struct Schedule{T}
     end
 end
 
+n_chains(schedule::Schedule) = length(schedule.grids)
+
 """
 $TYPEDSIGNATURES
 Create a [`Schedule`](@ref) with `n_chains` equally spaced grid points.

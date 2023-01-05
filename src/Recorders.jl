@@ -20,9 +20,9 @@ After a PT round, [`reduce_recorders!()`](@ref) is used to do
 a [reduction](https://en.wikipedia.org/wiki/MapReduce) before 
 accessing statistic values. 
 """
-struct Recorders{T}
-    contents::T
-    shared::Shared
+@concrete struct Recorders
+    contents
+    shared
 end
 
 """
@@ -44,17 +44,24 @@ To see the list of such functions names, see the
 list of "examples providing instances" in 
 the [`recorder`](@ref) documentation.
 """
-function Recorders(recorder_builders, shared::Shared) 
+function Recorders(shared::Shared) 
     tuple_keys = Symbol[]
     tuple_values = Any[]
-    for recorder_builder in recorder_builders
-        push!(tuple_keys,  Symbol(current_recorder))
+    for recorder_builder in recorder_builders(shared)
+        push!(tuple_keys,   Symbol(current_recorder))
         push!(tuple_values, recorder_builder())
     end
     tuple = (; zip(tuple_keys, tuple_values)...)
     return Recorders(tuple, shared)
 end
 
+function recorder_builders(shared::Shared)
+    result = Set{Function}()
+    union!(result, recorder_builders(shared.explorer))
+    union!(result, recorder_builders(shared.tempering))
+    union!(result, shared.inputs.recorder_builders)
+    return result
+end
 
 """
 $TYPEDSIGNATURES
