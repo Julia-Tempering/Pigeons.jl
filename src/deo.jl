@@ -1,7 +1,5 @@
 """
-    deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ, 
-        nscan, N, resolution, optimreference_round, modref_means, modref_stds, modref_covs, 
-        full_covariance, prior_sampler, n_explore)
+$TYPEDSIGNATURES
 
 Deterministic even-odd parallel tempering (DEO/NRPT).
 
@@ -73,29 +71,17 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
     RoundTrip = roundtrip(reduce(hcat, indices)')
     roundtriprate = RoundTrip/nscan
     chain_acceptance_rate = chainacceptance/nscan
-
-    return (
-        states              = states[2:end], # First state is from the previous round
-        energies            = energies[2:end], 
-        indices             = indices[2:end], 
-        lifts               = lifts[2:end],
-        Rejection           = Rejection,
-        localbarrier        = localbarrier,
-        globalbarrier       = globalbarrier,
-        norm_constant = norm_constant,
-        schedule_update      = schedule,
-        RoundTrip           = RoundTrip,
-        roundtriprate       = roundtriprate,
-        chain_acceptance_rate = chain_acceptance_rate,
-        etas                = etas
-)
+    states = states[2:end], # First state is from the previous round
+    energies = energies[2:end], 
+    indices = indices[2:end], 
+    lifts = lifts[2:end],
+    return (; states, energies, indices, lifts, Rejection, localbarrier, globalbarrier, norm_constant,
+        schedule_update, RoundTrip, roundtriprate, chain_acceptance_rate, etas)
 end
 
 
 """
-    deoscan(potential, state, index, lift, etas, n, N, kernels, 
-        optimreference_round, modref_means, modref_stds, modref_covs, full_covariance, 
-        prior_sampler, n_explore) 
+$TYPEDSIGNATURES
 
 Perform one DEO scan (local exploration + communication). Arguments are 
 similar to those for `deo()`. Note that `state` is the state from the **one** previous 
