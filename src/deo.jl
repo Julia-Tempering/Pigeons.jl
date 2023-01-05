@@ -72,11 +72,9 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
     roundtriprate = RoundTrip/nscan
     chain_acceptance_rate = chainacceptance/nscan
     states = states[2:end], # First state is from the previous round
-    energies = energies[2:end]
-    indices = indices[2:end]
-    lifts = lifts[2:end]
-    schedule_update = schedule
-    
+    energies = energies[2:end], 
+    indices = indices[2:end], 
+    lifts = lifts[2:end],
     return (; states, energies, indices, lifts, Rejection, localbarrier, globalbarrier, norm_constant,
         schedule_update, RoundTrip, roundtriprate, chain_acceptance_rate, etas)
 end
