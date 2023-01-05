@@ -32,6 +32,6 @@ and analyzed in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1
 """
 @provides swap_graphs deo() = DEO()
 
-create_swap_graph(::DEO, shared) = iseven(shared.iterators.round) ? even(shared.n_chains) : odd(shared.n_chains)
+create_swap_graph(::DEO, shared) = iseven(shared.iterators.round) ? even(shared.inputs.n_chains) : odd(shared.inputs.n_chains)
 reference_chains(::DEO, shared) = Set(1)
-target_chains(::DEO, shared) = Set(shared.n_chains)
+target_chains(::DEO, shared) = Set(shared.inputs.n_chains)

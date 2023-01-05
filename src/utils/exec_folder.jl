@@ -28,7 +28,7 @@ function exec_folder()
     end
     return exec_dir[]
 end
-const exec_dir::Ref{Union{Nothing,String}} = Ref{Union{Nothing,String}}(nothing)
+const exec_dir = Ref{Union{Nothing,String}}(nothing)
 
 function _ensure_symlinked()
     rm("results/latest", force = true)

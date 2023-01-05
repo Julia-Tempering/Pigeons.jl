@@ -7,11 +7,11 @@ import Base.Threads.@threads
 
 
 function test_recorder(replicas, n_iters::Int)
-    n_chains = n_chains_global(replicas)
+    n = n_chains(replicas)
     path = TranslatedNormalPath(2.0)
-    discretization = discretize(path, Schedule(n_chains))
+    discretization = discretize(path, Schedule(n))
     for iteration in 1:n_iters
-        swap!(discretization, replicas, deo(n_chains, iteration))
+        swap!(discretization, replicas, deo(n, iteration))
         
         @threads for replica in locals(replicas)
             dist = discretization[replica.chain]

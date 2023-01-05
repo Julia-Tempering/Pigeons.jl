@@ -17,10 +17,6 @@ $FIELDS
 @concrete struct Recorders
     """
     A `NamedTuple` containing several [`recorder`](@ref)'s. 
-
-    The keyset of the NamedTuple controls which types of 
-    statistics to accumulate (we refer to each element in 
-    this keyset as a `recorder_key`). 
     """
     contents
 
@@ -35,27 +31,13 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Create a [`recorders`](@ref), which is 
-implemented using A `NamedTuple`.
-
-TODO FIX THIS DOC
-
-where
-the keys are given by `recorder_keys`, an iterable 
-of `Symbol`'s, and the values are obtained by 
-calling a function with a function name given by the 
-recorder key. Each such function should create a 
-fresh [`recorder`](@ref) object.
-
-To see the list of such functions names, see the 
-list of "examples providing instances" in 
-the [`recorder`](@ref) documentation.
+Create a [`Recorders`](@ref). 
 """
 function Recorders(shared::Shared) 
     tuple_keys = Symbol[]
     tuple_values = Any[]
     for recorder_builder in recorder_builders(shared)
-        push!(tuple_keys,   Symbol(current_recorder))
+        push!(tuple_keys,   Symbol(recorder_builder))
         push!(tuple_values, recorder_builder())
     end
     tuple = (; zip(tuple_keys, tuple_values)...)
@@ -65,7 +47,7 @@ end
 function recorder_builders(shared::Shared)
     result = Set{Function}()
     union!(result, recorder_builders(shared.explorer))
-    union!(result, recorder_builders(shared.tempering))
+    union!(result, recorder_builders(shared.temperer))
     union!(result, shared.inputs.recorder_builders)
     return result
 end
@@ -82,10 +64,6 @@ function record_if_requested!(recorders, recorder_key::Symbol, value)
         record!(recorders.contents[recorder_key], recorders.shared, value)
     end
 end
-
-const default_recorder_builders = [check_point, swap_acceptance_pr]
-
-
 
 """
 $TYPEDSIGNATURES
@@ -106,7 +84,8 @@ reduce_recorders!(replicas) =
     all_reduce_deterministically(
         merge_recorders!, 
         recorders_contents.(locals(replicas)), 
-        entangler(replicas))
+        entangler(replicas)) 
+
 
 function merge_recorders!(recorders_contents_1, recorders_contents_2)
     shared_keys = keys(recorders_contents_1)

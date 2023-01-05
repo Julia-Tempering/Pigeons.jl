@@ -25,17 +25,16 @@ $FIELDS
 end
 
 function next_round!(pt)
-    globals = pt.globals
-    iterators = globals.iterators
-    # TODO: options in pt.globals.inputs based on TE-based mcse 
+    shared = pt.shared
+    iterators = shared.iterators
     iterators.round += 1 
-    return iterators.round ≤ inputs.n_rounds
+    return iterators.round ≤ shared.inputs.n_rounds
 end
 
 function next_scan!(pt)
     # TODO: collect timing information on process=1
-    globals = pt.globals 
-    iterators = globals.iterators
+    shared = pt.shared
+    iterators = shared.iterators
     iterators.scan += 1
     if iterators.scan ≤ 2^iterators.round 
         return true

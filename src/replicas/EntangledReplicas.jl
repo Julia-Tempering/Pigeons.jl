@@ -3,11 +3,11 @@ An implementation of [`replicas`](@ref) for distributed PT.
 Contains:
 $FIELDS
 """
-struct EntangledReplicas{R} # implements the informal interface in replica.jl
+@concrete struct EntangledReplicas # implements the informal interface in replica.jl
     """
     The subset of replicas hosted in this process
     """
-    locals::Vector{R}
+    locals
     
     """
     A specialized distributed array that 
@@ -29,7 +29,7 @@ Create distributed replicas.
 See [`create_replicas`](@ref).
 """
 @provides replicas function create_entangled_replicas(shared::Shared, source)
-    n_chains = shared.n_chains 
+    n_chains = shared.inputs.n_chains
     entangler = Entangler(n_chains)
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)

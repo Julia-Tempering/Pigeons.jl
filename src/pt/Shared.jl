@@ -13,8 +13,8 @@ end
 
 function Shared(inputs)
     iterators = Iterators() 
-    tempering = create_tempering(inputs)
-    explorer = create_explorer(inputs, tempering) 
-    return Shared(inputs, iterators, tempering, explorer)
+    temperer = create_temperer(inputs)
+    explorer = create_explorer(inputs) 
+    return Shared(inputs, iterators, temperer, explorer)
 end
 

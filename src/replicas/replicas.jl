@@ -46,13 +46,6 @@ communicator(replicas::Vector) = nothing
 entangler(replicas::Vector) = Entangler(length(replicas); parent_communicator = nothing, verbose = false)
 
 """
-$TYPEDSIGNATURES
-Given a [`replicas`](@ref), return the total number of chains across all processes.
-"""
-n_chains_global(replicas) = load(replicas).n_global_indices
-
-
-"""
 Determine how to initialize the states in the replicas. 
 Implementations include `Ref(my_state)`, to signal all replicas will 
 be initalized to `my_state`, or a `Vector(...)` for chain-specific 
@@ -73,7 +66,7 @@ initialization(state_initializer::AbstractVector, ::SplittableRandom, replica_in
 
 # Closely related but distinct to a state_initializer:
 """
-To flag [`create_replicas`](@ref) and related methods that replicas 
+Flag [`create_replicas`](@ref) (and related functions) that replicas 
 should be loaded from a checkpoint. Fields:
 $FIELDS
 """
@@ -102,7 +95,7 @@ See also [`state_initializer`](@ref).
 See [`create_replicas`](@ref).
 """
 @provides replicas function create_vector_replicas(shared::Shared, source)
-    my_global_indices = 1:shared.n_chains
+    my_global_indices = 1:shared.inputs.n_chains
     return _create_locals(my_global_indices, shared, source)
 end
 
@@ -135,11 +128,12 @@ set_shared(replicas, shared) = set_shared(locals(replicas), shared)
 
 function _create_locals(my_global_indices, shared::Shared, state_initializer)
     split_rngs = split_slice(my_global_indices, shared.inputs.rng)
-    states = [initialization(shared.state_initializer, split_rngs[i], my_globals_indices[i]) for i in eachindex(split_rngs)]
-    recorders = [Recorders(shared.recorder_builders, shared) for i in eachindex(split_rngs)]
-    return Replicas.(
+    states = [initialization(state_initializer, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
+    recorders = [Recorders(shared) for i in eachindex(split_rngs)]
+    return Replica.(
                 states, 
                 my_global_indices,  # <- chain indices initialized to replica indices
+                split_rngs,
                 recorders, 
                 my_global_indices)  # <- replica indices
 end

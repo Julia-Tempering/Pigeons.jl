@@ -29,6 +29,8 @@ import Base./
 import Serialization.serialize
 import Serialization.deserialize
 import Base.@kwdef
+import Base.Threads.@threads
+
 
 export NRPT, slice_sample, SS
 
@@ -60,8 +62,8 @@ export  interpolate
 include("schedules/Schedule.jl")
 export Schedule
 
-#include("schedules/discretize.jl")
-#export  discretize
+include("schedules/discretize.jl")
+export  discretize
 
 include("paths/path_implementations.jl")
 export  LinearInterpolator,
@@ -83,7 +85,6 @@ include("deo.jl")
 include("exploration.jl")
 include("restarts.jl")
 include("NRPT.jl")
-
 
 ### Low-level MPI utilities
 include("mpi_utils/LoadBalance.jl")
@@ -126,9 +127,8 @@ include("replicas/replicas.jl")
 export  swap!,
         locals,
         load,
-        n_chains_global,
+        n_chains,
         create_vector_replicas,
-        n_chains_global,
         initialization,
         create_replicas,
         FromCheckpoint,
@@ -169,7 +169,6 @@ include("pt/output_files.jl")
 include("pt/PT.jl")
 export PT
 
-
 include("pt/Tempering.jl")
 include("pt/pt_algorithm.jl")
 export  run!
@@ -187,4 +186,8 @@ using Revise
 Pkg.activate(".")
 using Pigeons
 
+in = Inputs(inference_problem = Pigeons.ScaledPrecisionNormalPath(1))
+pt = PT(in)
+
 """
+

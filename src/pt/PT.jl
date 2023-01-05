@@ -17,7 +17,8 @@ end
 
 function PT(inputs::Inputs)
     shared = Shared(inputs)
-    replicas = create_replicas(shared, create_state_initializer(inputs))
+    state_init = create_state_initializer(inputs.inference_problem, inputs)
+    replicas = create_replicas(shared, state_init)
     return PT(replicas, shared)
 end
 
@@ -35,6 +36,8 @@ function PT(round_folder::String)
     replicas = create_replicas(shared, FromCheckpoint(round_folder))
     return PT(replicas, shared)
 end
+
+
 
 function checkpoint(pt)
     if load(pt.replicas).my_process_index == 1

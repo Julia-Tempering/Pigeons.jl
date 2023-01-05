@@ -18,7 +18,7 @@ return a [`path`](@ref) interpolating between the two.
 By default, the `interpolator` is a `LinearInterpolator`, i.e. 
 standard annealing.
 """
-@provides path create_path(ref, target, interpolator = LinearInterpolator()) = Path(ref, target, interpolator)
+@provides path create_path(ref, target, interpolator = LinearInterpolator()) = InterpolatingPath(ref, target, interpolator)
 
 struct InterpolatingPath{LP1,LP2,I} # LP = log_potential type, i.e. lp isa LP => supports lp(point)
     ref::LP1

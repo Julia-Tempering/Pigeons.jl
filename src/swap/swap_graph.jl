@@ -25,7 +25,7 @@ end
 odd(n_chains::Int) =  OddEven(false, n_chains)
 even(n_chains::Int) = OddEven(true, n_chains)
 
-n_chains(swap_graph::OddEven) = 
+n_chains(swap_graph::OddEven) = swap_graph.n_chains
 function partner_chain(swap_graph::OddEven, chain::Int)
     @assert 1 ≤ chain ≤ swap_graph.n_chains
     direction = (iseven(chain) == swap_graph.even ? 1 : -1)
