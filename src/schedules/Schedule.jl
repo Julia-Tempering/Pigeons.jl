@@ -2,17 +2,17 @@
 A partition of [0, 1] encoded by monotonically increasing grid points 
 starting at zero and ending at one.
 """
-struct Schedule{T}
+struct Schedule
     """Monotone increasing with end points at zero and one."""
-    grids::T 
+    grids::Vector{Float64} 
     """
     $TYPEDSIGNATURES
     """
-    function Schedule(grids::T) where {T}
+    function Schedule(grids) 
         @assert issorted(grids)
         @assert first(grids) == 0.0
         @assert last(grids) == 1.0
-        new{T}(grids)
+        new(convert(Vector{Float64}, grids))
     end
 end
 

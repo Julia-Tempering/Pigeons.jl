@@ -42,9 +42,9 @@ end
 function checkpoint(pt)
     if load(pt.replicas).my_process_index == 1
         # process #1 saves the shared state
-        serialize(round_folder(pt.iterators.round) / "shared.jls")
+        serialize(round_folder(pt.shared.iterators.round) / "shared.jls", pt.shared)
         # process #1 saves immutables, but only during first round
-        if pt.iterators.round == 1 
+        if pt.shared.iterators.round == 1 
             serialize_immutables(exec_folder() / "immutables.jls")
         end
         #=
@@ -57,7 +57,7 @@ function checkpoint(pt)
     
     # each process saves its replicas
     for replica in locals(pt.replicas)
-        serialize(round_folder(pt.iterators.round) / "replica=$(replica.replica_index)")
+        serialize(round_folder(pt.shared.iterators.round) / "replica=$(replica.replica_index).jls", replica)
     end
 end
 

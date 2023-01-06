@@ -39,7 +39,6 @@ function next_scan!(pt)
     if iterators.scan ≤ 2^iterators.round 
         return true
     else # this round is over, prepare to start new round:
-        iterators.round = 0
         iterators.scan = 0
         return false
     end

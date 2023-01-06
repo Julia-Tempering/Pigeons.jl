@@ -1,6 +1,6 @@
 
 
-round_folder(round::Int, parent_folder = exec_folder()) = parent_folder / "round=$round"
+round_folder(round::Int, parent_folder = exec_folder()) = mkpath(parent_folder / "round=$round")
 
 function symlink_completed_rounds_and_immutables(round_folder)
     parent_folder = dirname(round_folder)

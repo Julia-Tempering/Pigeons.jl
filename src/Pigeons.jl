@@ -169,7 +169,7 @@ include("pt/output_files.jl")
 include("pt/PT.jl")
 export PT
 
-include("pt/Tempering.jl")
+include("pt/tempering.jl")
 include("pt/pt_algorithm.jl")
 export  run!
 

@@ -15,24 +15,25 @@ report(pt, reduced_recorders) = nothing # TODO
 =#
 
 function run_one_round!(pt)
+    println(pt.shared.iterators)
     while next_scan!(pt)
-        tempering = create_tempering(pt.shared.temperer)
-        communicate!(pt, tempering)
-        explore!(pt, tempering)
+        communicate!(pt)
+        explore!(pt)
     end
     return reduce_recorders!(pt.replicas)
 end
 
-function communicate!(pt, tempering)
+function communicate!(pt)
+    tempering = pt.shared.tempering
     swapper = create_pair_swapper(tempering, pt.shared)
     graph = create_swap_graph(tempering.swap_graphs, pt.shared)
     swap!(swapper, pt.replicas, graph)
 end
 
-function explore!(pt, tempering)
+function explore!(pt)
     explorer = pt.shared.explorer
     @threads for replica in locals(pt.replicas)
-        if is_reference(replica.chain, pt.shared, tempering)
+        if is_reference(replica.chain, pt.shared)
             regenerate!(explorer, replica, pt.shared)
         else
             step!(explorer, replica, pt.shared)
@@ -49,5 +50,5 @@ function adapt(pt, reduced_recorders)
     return PT(updated_replicas, updated_shared)
 end
 
-is_reference(chain, shared, tempering) = 
-    chain in reference_chains(tempering.swap_graphs, shared)
+is_reference(chain, shared) = 
+    chain in reference_chains(shared.tempering.swap_graphs, shared)

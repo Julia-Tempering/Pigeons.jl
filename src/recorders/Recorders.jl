@@ -46,8 +46,8 @@ end
 
 function recorder_builders(shared::Shared)
     result = Set{Function}()
-    union!(result, recorder_builders(shared.explorer))
-    union!(result, recorder_builders(shared.temperer))
+    union!(result, explorer_recorder_builders(shared.explorer))
+    union!(result, tempering_recorder_builders(shared.tempering))
     union!(result, shared.inputs.recorder_builders)
     return result
 end

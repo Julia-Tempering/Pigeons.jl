@@ -7,14 +7,14 @@ Only one instance maintained per MPI process.
 @concrete struct Shared
     inputs
     iterators
-    temperer
+    tempering
     explorer
 end
 
 function Shared(inputs)
     iterators = Iterators() 
-    temperer = create_temperer(inputs)
+    tempering = create_tempering(inputs)
     explorer = create_explorer(inputs) 
-    return Shared(inputs, iterators, temperer, explorer)
+    return Shared(inputs, iterators, tempering, explorer)
 end
 

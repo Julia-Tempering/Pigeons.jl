@@ -116,7 +116,7 @@ so we do a small surgery injecting the input shared object into the recorders:
 
 """
 function set_shared(replicas::Vector, shared)
-    for replica in locals
+    for replica in replicas
         replica.recorders = Recorders(replica.recorders.contents, shared)
     end
 end

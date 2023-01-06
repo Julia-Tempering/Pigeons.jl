@@ -30,7 +30,13 @@ function exec_folder()
 end
 const exec_dir = Ref{Union{Nothing,String}}(nothing)
 
+"""
+Create a subfolder of the [`exec_folder()`](@ref).
+"""
+exec_subfolder(relative_path) = mkpath(exec_folder() / relative_path)
+
 function _ensure_symlinked()
     rm("results/latest", force = true)
-    symlink(exec_dir[], "results/latest", dir_target = true)
+    exec_dir_name = basename(exec_dir[])
+    symlink("all" / exec_dir_name, "results/latest")
 end
