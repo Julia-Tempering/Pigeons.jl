@@ -48,7 +48,6 @@ Compute an estimate of the log normalizing constant given a vector of
 `energies` and the corresponding annealing `schedule`.
 """
 function lognormalizingconstant(energies, schedule)
-    n, N = size(energies)
     Δβ = schedule[2:end] .- schedule[1:end-1]
     μ = mean(energies, dims = 1)[2:end]
     sum(Δβ.*μ)
@@ -109,7 +108,7 @@ macro weighted(w, x)
     :($(esc(w)) == 0.0 ? 0.0 : $(esc(w)) * $(esc(x)))
 end
 
-# helpers to automate documention generation
+# helpers to automate documentation generation
 
 mutable struct InformalInterfaceSpec
     name::Symbol

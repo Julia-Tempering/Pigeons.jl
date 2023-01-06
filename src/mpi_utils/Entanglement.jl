@@ -2,13 +2,13 @@
 Assume all the MPI processes linked by this communicator 
 will all call the *key operations* listed below the same number of times 
 in their lifetime, at logically related occasions (e.g. a set 
-number of times per iterations for algorithms running the 
+number of times per iteration for algorithms running the 
 same number of iterations).
 We call these 'occasions' a micro-iteration.
 
 This datastructure keeps track internally of appropriate unique 
 tags to coordinate the communication between MPI processes 
-without having to do any explicit synchnonization. 
+without having to do any explicit synchronization. 
 
 This struct contains:
 
@@ -18,7 +18,7 @@ The *key operations* supported:
 
 - [`transmit()`](@ref) and [`transmit!()`](@ref): encapsulates 
     pairwise communications in which each MPI process is holding  
-    a `Vector`, the elements of which is to be permuted across the processes.
+    a `Vector`, the elements of which are to be permuted across the processes.
 - [`all_reduce_deterministically`](@ref) and [`reduce_deterministically`](@ref), 
     to perform MPI collective reduction while maintaining the 
     Parallelism Invariance property.
@@ -49,7 +49,7 @@ mutable struct Entangler
     If `parent_communicator` is `nothing`, then assume there is only 
     one machine (self) and bypass MPI.
     """
-    function Entangler(n_global_indices::Int; parent_communicator::Union{Comm,Nothing} = COMM_WORLD, verbose::Bool=true)
+    function Entangler(n_global_indices::Int; parent_communicator::Union{Comm,Nothing} = COMM_WORLD, verbose::Bool = true)
         if parent_communicator === nothing
             # do everything locally (no network comm)
             comm = nothing
@@ -107,7 +107,7 @@ See Entangler's comments regarding the requirement that all machines call transm
 same number of times and at logically related intervals. 
 
 Additionally, at each micro-iteration, we assume that 
-`{to_global_indices_p : p ranges over the difference processes}` forms a partition of 
+`{to_global_indices_p : p ranges over the different processes}` forms a partition of 
 `{1, ..., e.load.n_global_indices}`
 If ran in single-process mode, this 'partition property' is checked; 
 if ran in multi-process, opportunistic checks will be made, namely when several entries in `to_global_indices` 
