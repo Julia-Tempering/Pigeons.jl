@@ -1,6 +1,5 @@
 """
 $TYPEDSIGNATURES
-
 Single process, non-allocating `swap!` implementation. 
 """
 function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
@@ -9,7 +8,7 @@ function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
     for my_chain in eachindex(replicas)
         my_replica = replicas[my_chain]
         partner_chain = checked_partner_chain(swap_graph, my_chain)
-        if partner_chain >= my_chain
+        if partner_chain >= my_chain # ensures that the swap is only done once per pair
             partner_replica = replicas[partner_chain]
             @assert partner_replica.chain == partner_chain
             my_swap_stat      = swap_stat(pair_swapper, my_replica, partner_chain)

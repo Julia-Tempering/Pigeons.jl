@@ -1,6 +1,5 @@
 """
-    roundtrip(indices_matrix; cumulative)
-
+$TYPEDSIGNATURES
 Compute the number of round trips for a given index process trajectory. 
 `indices_matrix` is a matrix containing information about the index process.
 `cumulative` indicates whether we should store the output as a vector containing 
@@ -49,8 +48,7 @@ end
 
 
 """
-    restarts(indices_matrix; cumulative)
-
+$TYPEDSIGNATURES
 Compute the number of restarts for a given index process trajectory. 
 Otherwise, it is the same as `roundtrip()`.
 """

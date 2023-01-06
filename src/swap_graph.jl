@@ -3,7 +3,7 @@ Informs [`swap!()`](@ref) about which chain will interact with which.
 
 Canonical example is the standard Odd and Even swap, extension point for e.g. 
 
-- parallel parallel tempering
+- parallel parallel tempering,
 - variational methods with more than 2 legs,
 - PT algorithms dealing with more than one target simultaneously for the purpose of model selection. 
 """
@@ -17,15 +17,14 @@ Canonical example is the standard Odd and Even swap, extension point for e.g.
 
     """
     $TYPEDSIGNATURES
-    Given a [`swap_graph`](@ref), return the set of chain(s) targetting the distribution of interest. 
+    Given a [`swap_graph`](@ref), return the set of chain(s) targeting a reference distribution.
+    These are typically tractable in the sense that we can sample i.i.d. from them. 
     """
     reference_chains(swap_graph) = @abstract 
 
     """
     $TYPEDSIGNATURES
-    Given a [`swap_graph`](@ref), return the set of chain(s) targetting the reference distribution.
-    These are typically tractable in the sense that we can sample 
-    i.i.d. from them. 
+    Given a [`swap_graph`](@ref), return the set of chain(s) targeting a distribution of interest. 
     """
     target_chains(swap_graph) = @abstract
 end

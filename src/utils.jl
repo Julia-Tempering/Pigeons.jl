@@ -1,6 +1,5 @@
 """
-    winsorized_mean(x; α)
-
+$TYPEDSIGNATURES
 Compute the winsorized mean from an input `x`, which is assumed to be a vector of vectors. 
 `α` denotes the percentage of observations to winsorize at the bottom and the top 
 so that we use 1 - 2α observations and winsorize the rest.
@@ -21,8 +20,7 @@ end
 
 
 """
-    winsorized_std(x; α)
-
+$TYPEDSIGNATURES
 Compute the winsorized standard deviation. The parameters are the same 
 as those for `winsorized_mean()`.
 """
@@ -45,8 +43,7 @@ end
 
 
 """
-    lognormalizingconstant(energies, schedule)
-
+$TYPEDSIGNATURES
 Compute an estimate of the log normalizing constant given a vector of 
 `energies` and the corresponding annealing `schedule`.
 """
@@ -59,8 +56,7 @@ end
 
 
 """
-    computeetas(ϕ, β)
-
+$TYPEDSIGNATURES
 Compute the `etas` matrix given `ϕ`, which is an Array(K - 1, 2) containing 
 knot parameters, and `β`, a vector of `N`+1 schedules. For linear paths, 
 the function returns an (N+1)x2 matrix with entries 1-β in the first column 
@@ -84,7 +80,6 @@ end
 
 """
 $TYPEDSIGNATURES
-
 From one splittable random object, one can conceptualize an infinite list of splittable random objects. 
 Return a slice from this infinite list.
 """

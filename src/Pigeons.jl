@@ -156,8 +156,6 @@ include("recorder.jl")
 export  default_recorders,
         record!
 
-include("summary.jl")
-
 end # End module
 
 """

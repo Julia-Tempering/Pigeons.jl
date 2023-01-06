@@ -1,12 +1,12 @@
 """
 Stores the process' replicas. 
 Since we provide MPI implementations, do not assume that this will contain all the replicas, as 
-others can be located in other processes/machines
+others can be located in other processes/machines.
 
 Implementations provided
 
 - [`EntangledReplicas`](@ref): using an MPI-based implementation
-- `Vector{Replica}`: for the single process case (above can handle that case, but the array based implementation is non-allocating)
+- `Vector{Replica}`: for the single process case (above can handle that case, but the array-based implementation is non-allocating)
 """
 @informal replicas begin
     """
@@ -19,7 +19,7 @@ Implementations provided
     swap!(pair_swapper, replicas, swap_graph) = @abstract 
     """
     $(TYPEDSIGNATURES)
-    Return the replica's that are stored in this machine
+    Return the replicas that are stored in this machine
     """
     locals(replicas) = @abstract 
     """

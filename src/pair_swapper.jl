@@ -37,7 +37,7 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     - A uniform number to coordinate the swap decision.
 
     This can be extended by dispatching on other `pair_swapper` types, with the 
-    constraint that the returned sufficient statistics should satisfies `isbitstype()`.
+    constraint that the returned sufficient statistics should satisfy `isbitstype()`.
     """
     function swap_stat(pair_swapper, replica::Replica, partner_chain::Int) 
         log_potentials = pair_swapper
