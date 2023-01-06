@@ -80,8 +80,7 @@ $TYPEDSIGNATURES
 
 Perform a reduction across all the replicas' individual recorders, 
 using  [`combine()`](@ref) on each individual [`recorder`](@ref)
-held. 
-Returns a [`recorders`](@ref) with all the information merged. 
+held. Returns a [`recorders`](@ref) with all the information merged. 
 
 Since this uses [`all_reduce_deterministically`](@ref), the output is 
 identical, no matter how many MPI processes are used, even when 

@@ -89,7 +89,7 @@ From one splittable random object, one can conceptualize an infinite list of spl
 Return a slice from this infinite list.
 """
 function split_slice(
-        slice::UnitRange, # NB: assumes slice is contiguous, i.e. don't duck-type UnitRate
+        slice::UnitRange, # NB: assumes slice is contiguous, i.e. don't duck-type UnitRange
         rng)
     @assert slice[1] ≥ 1
     # todo: could be done more efficiently with a tree but low priority
