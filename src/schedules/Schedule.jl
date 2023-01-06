@@ -3,8 +3,11 @@ A partition of [0, 1] encoded by monotonically increasing grid points
 starting at zero and ending at one.
 """
 struct Schedule
-    """Monotone increasing with end points at zero and one."""
-    grids::Vector{Float64} 
+    """
+    Monotone increasing Vector with end points at zero and one.
+    """
+    grids::Vector{Float64} # NB: we avoid type param here (see * below)
+    
     """
     $TYPEDSIGNATURES
     """
@@ -12,6 +15,8 @@ struct Schedule
         @assert issorted(grids)
         @assert first(grids) == 0.0
         @assert last(grids) == 1.0
+        # (*) we get passed UnitRange in first iter, but when using 
+        # set_shared() this causes type incompatibility
         new(convert(Vector{Float64}, grids))
     end
 end

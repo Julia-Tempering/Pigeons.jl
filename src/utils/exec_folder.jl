@@ -1,5 +1,5 @@
 """
-Generate a folder unique to this execution. 
+Return a folder which is unique to this execution (process). 
 By default, the directory is a subfolder of 
 results/all/[unique_name] where the unique_name is 
 based on the current time 
@@ -20,23 +20,41 @@ called `results/latest``
 """
 function exec_folder()
     if exec_dir[] === nothing
-        exec_dir[] = haskey(ENV, "EXEC_DIR") ? 
-            ENV["EXEC_DIR"] :
-            "results/all/$(DateTime(now()))-$(randstring(8))"
-        mkpath(exec_dir[])
-        _ensure_symlinked()
+        next_exec_folder()
     end
     return exec_dir[]
 end
 const exec_dir = Ref{Union{Nothing,String}}(nothing)
+const used_env = Ref(false)
+
+"""
+Force the creation of a new global exec_dir. 
+"""
+function next_exec_folder()
+    exec_dir[] = if haskey(ENV, "EXEC_DIR") && !used_env[]
+        used_env[] = true
+        ENV["EXEC_DIR"]
+    else
+        formatted_time = Dates.format(now(), dateformat"yyyy-mm-dd-HH-MM-SS")
+        "results/all/$formatted_time-$(randstring(8))"
+    end
+    mkpath(exec_dir[])
+    _ensure_symlinked(exec_dir[])
+    return exec_dir[]
+end
 
 """
 Create a subfolder of the [`exec_folder()`](@ref).
 """
 exec_subfolder(relative_path) = mkpath(exec_folder() / relative_path)
 
-function _ensure_symlinked()
+function _ensure_symlinked(exec)
     rm("results/latest", force = true)
-    exec_dir_name = basename(exec_dir[])
-    symlink("all" / exec_dir_name, "results/latest")
+    symlink_with_relative_paths(exec, "results/latest")
+end
+
+function symlink_with_relative_paths(target::AbstractString, link::AbstractString)
+    relative_to = dirname(link)
+    relative_path = relpath(target, relative_to)
+    symlink(relative_path, link)
 end

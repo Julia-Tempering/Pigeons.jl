@@ -1,4 +1,4 @@
-@kwdef struct Inputs{I}
+@kwdef mutable struct Inputs{I}
     inference_problem::I
     rng::SplittableRandom = SplittableRandom(1)
     n_rounds::Int = 10

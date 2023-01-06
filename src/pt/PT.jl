@@ -26,23 +26,24 @@ end
 $TYPEDSIGNATURES
 
 Create a [`PT`](@ref) struct from a saved 
-checkpoint. The path [`round_folder`] 
-should point to a folder with a name of the 
-form `round=x`. 
+checkpoint. The path [`checkpoint_folder`] 
+should point to a folder with the name 
+`checkpoint` found under 
+`results/all/[exec_folder]/round=x`.
 """
-function PT(round_folder::String)
-    symlink_completed_rounds_and_immutables(round_folder)
-    shared = deserialize_shared(round_folder) # <- should be done before replicas deserialization to load immutables
-    replicas = create_replicas(shared, FromCheckpoint(round_folder))
+function PT(checkpoint_folder::String)
+    symlink_completed_rounds_and_immutables(checkpoint_folder)
+    shared = deserialize_shared(checkpoint_folder) # <- should be done before replicas deserialization to load immutables
+    replicas = create_replicas(shared, FromCheckpoint(checkpoint_folder))
     return PT(replicas, shared)
 end
 
-
-
 function checkpoint(pt)
+    round = pt.shared.iterators.round
+    checkpoint_folder = exec_subfolder("round=$round/checkpoint")
     if load(pt.replicas).my_process_index == 1
         # process #1 saves the shared state
-        serialize(round_folder(pt.shared.iterators.round) / "shared.jls", pt.shared)
+        serialize(checkpoint_folder / "shared.jls", pt.shared)
         # process #1 saves immutables, but only during first round
         if pt.shared.iterators.round == 1 
             serialize_immutables(exec_folder() / "immutables.jls")
@@ -57,7 +58,7 @@ function checkpoint(pt)
     
     # each process saves its replicas
     for replica in locals(pt.replicas)
-        serialize(round_folder(pt.shared.iterators.round) / "replica=$(replica.replica_index).jls", replica)
+        serialize(checkpoint_folder / "replica=$(replica.replica_index).jls", replica)
     end
 end
 

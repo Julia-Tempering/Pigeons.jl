@@ -71,7 +71,7 @@ should be loaded from a checkpoint. Fields:
 $FIELDS
 """
 struct FromCheckpoint 
-    round_folder::String 
+    checkpoint_folder::String 
 end
 
 """
@@ -96,11 +96,13 @@ See [`create_replicas`](@ref).
 """
 @provides replicas function create_vector_replicas(shared::Shared, source)
     my_global_indices = 1:shared.inputs.n_chains
-    return _create_locals(my_global_indices, shared, source)
+    result = _create_locals(my_global_indices, shared, source)
+    sort_replicas(result) # <- needed when deserializing
+    return result
 end
 
 function _create_locals(my_global_indices, shared::Shared, source::FromCheckpoint)
-    locals = [deserialize(source.round_folder / "checkpoint/replica=$global_index.jls") for global_index in my_global_indices]
+    locals = [deserialize(source.checkpoint_folder / "replica=$global_index.jls") for global_index in my_global_indices]
     set_shared(locals, shared)
     return locals 
 end
