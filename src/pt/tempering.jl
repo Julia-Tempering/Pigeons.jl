@@ -29,12 +29,12 @@ end
 
 @provides temperer function NonReversiblePT(inputs::Inputs)
     n_chains = inputs.n_chains
-    path = create_path(inputs.inference_problem, inputs)
+    path = create_path(inputs.target, inputs)
     initial_schedule = equally_spaced_schedule(n_chains)
     return NonReversiblePT(path, initial_schedule)
 end
 
-create_path(inference_problem::ScaledPrecisionNormalPath, inputs::Inputs) = inference_problem
+create_path(target::ScaledPrecisionNormalPath, inputs::Inputs) = target
 
 function adapt_tempering(tempering::NonReversiblePT, reduced_recorders)
     path = tempering.path 

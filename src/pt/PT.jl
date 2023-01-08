@@ -13,16 +13,18 @@ $FIELDS
     Information shared and identical across all machines.
     """
     shared
+
+    exec_folder
 end
 
 function PT(inputs::Inputs)
     shared = Shared(inputs)
     state_init = create_state_initializer(inputs.target, inputs)
     replicas = create_replicas(shared, state_init)
-    return PT(replicas, shared)
+    return PT(replicas, shared, next_exec_folder())
 end
 
-in_one_process(task, pt) = 
-    if load(pt.replicas).my_process_index 
+only_one_process(task, pt) = 
+    if load(pt.replicas).my_process_index == 1
         task() 
     end

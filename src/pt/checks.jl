@@ -1,37 +1,41 @@
 function preflight_checks(pt)
-    if pt.inputs.checked_round > 0 && !pt.inputs.checkpoint
+    if pt.shared.inputs.checked_round > 0 && !pt.shared.inputs.checkpoint
         throw(ArgumentError("activate checkpoint when performing checks"))
     end
 
 end
 
 function run_checks(pt)
-    if pt.iterators.round != pt.shared.inputs.checked_round
+    if pt.shared.iterators.round != pt.shared.inputs.checked_round
         return 
     end
 
     only_one_process(pt) do
-        check_serialization(pt) # immutables are immutable, etc
+        #check_serialization(pt) # immutables are immutable, etc
         check_against_serial(pt)
     end
 end
 
 function check_against_serial(pt)
     round = pt.shared.iterators.round
-    parallel_checkpoint = pt.shared.exec_folder / "round=$round/checkpoint"
+    parallel_checkpoint = pt.exec_folder / "round=$round/checkpoint"
     
     # run a serial copy
+    println("TODO: start in new process")
+    serial_pt_inputs = deepcopy(pt.shared.inputs)
+    serial_pt_inputs.n_rounds = round 
+    serial_pt_inputs.checked_round = 0 # <- otherwise infinity loop
     serial_pt_result = pigeons(
-        Resume(
-            checkpoint_folder = parallel_checkpoint, 
-            n_rounds = round), 
-        ToNewProcess(n_threads = 1))
+        serial_pt_inputs
+        #    , 
+        #ToNewProcess(n_threads = 1)
+        )
     serial_checkpoint = serial_pt_result.exec_folder / "round=$round/checkpoint"
 
     # compare the serialized files
     compare_checkpoints(parallel_checkpoint, serial_checkpoint)
     compare_files(
-        pt.shared.exec_folder / "immutables.jls", 
+        pt.exec_folder / "immutables.jls", 
         serial_pt_result.exec_folder / "immutables.jls")
 end
 
@@ -42,4 +46,17 @@ compare_checkpoints(checkpoint_folder1, checkpoint_folder2) =
         end
     end
 
-compare_files(file1, file2) = checksum(file1) == checksum(file2)
+function compare_files(file1, file2) 
+    if checksum(file1) == checksum(file2)
+        return 
+    else
+        error(
+            """
+            detected non-reproducibility: $file1 != $file2: 
+                 first: $(deserialize(file1))
+                second: $(deserialize(file2))
+            """
+        )
+
+    end
+end

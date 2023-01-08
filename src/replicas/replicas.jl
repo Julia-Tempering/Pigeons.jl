@@ -129,7 +129,8 @@ $TYPEDSIGNATURES
 set_shared(replicas, shared) = set_shared(locals(replicas), shared)
 
 function _create_locals(my_global_indices, shared::Shared, state_initializer)
-    split_rngs = split_slice(my_global_indices, shared.inputs.rng)
+    master_rng = SplittableRandom(shared.inputs.seed)
+    split_rngs = split_slice(my_global_indices, master_rng)
     states = [initialization(state_initializer, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
     recorders = [Recorders(shared) for i in eachindex(split_rngs)]
     return Replica.(

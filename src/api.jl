@@ -8,8 +8,9 @@ struct Result{T}
 end
 
 @informal pigeons_output begin # ?
-    # either PT or Result{PT}
+    # field: exec_folder
 end
+
 
 # TODO ommitting rounds; support extra_rounds 
 Resume(pt::PT, from_round::Int, to_round::Int) = TODO() 
@@ -30,14 +31,14 @@ pigeons(; submission = InCurrentProcess(), args...) =
 pigeons(pt_arguments) = pigeons(pt_arguments, InCurrentProcess())
 
 function pigeons(inputs::Inputs, ::InCurrentProcess) 
-    pt = PT(pt_arguments)
+    pt = PT(inputs)
     run!(pt)
     return pt
 end
 
 function pigeons(resume::Resume, ::InCurrentProcess)
     pt = PT(resume.checkpoint_folder)
-    pt.shared.inputs = resume.n_rounds 
+    pt.shared.inputs.n_rounds = resume.n_rounds 
     run!(pt)
     return pt 
 end
@@ -53,6 +54,8 @@ end
 
 function pigeons(pt_arguments, new_process::ToNewProcess)
     # run in child process, controlling the # of threads
+
+    # useful: stuff in mpi_test
 
     # for now, just load Pigeons, eventually, detect & save which 
     # modules should be loaded via 

@@ -167,7 +167,7 @@ include("pt/Iterators.jl")
 include("pt/output_files.jl")
 
 include("pt/PT.jl")
-export PT
+export PT, only_one_process
 
 include("pt/tempering.jl")
 include("pt/pt_algorithm.jl")
@@ -178,6 +178,8 @@ include("pt/checkpoint.jl")
 include("summary.jl")
 
 include("api.jl")
+export pigeons
+include("pt/checks.jl")
 
 end # End module
 
