@@ -7,14 +7,14 @@ end
 
 find_log_potential(replica, shared) = shared.tempering.log_potentials[replica.chain]
 
-@provides explorer create_explorer(inputs) = create_explorer(inputs.inference_problem, inputs) 
+@provides explorer create_explorer(inputs) = create_explorer(inputs.target, inputs) 
 
 # toy implementation for testing
 struct ToyExplorer end
 
-create_state_initializer(inference_problem::ScaledPrecisionNormalPath, inputs) = Ref(zeros(inference_problem.dim))
+create_state_initializer(target::ScaledPrecisionNormalPath, inputs) = Ref(zeros(target.dim))
 
-create_explorer(inference_problem::ScaledPrecisionNormalPath, inputs) = ToyExplorer()
+create_explorer(target::ScaledPrecisionNormalPath, inputs) = ToyExplorer()
 
 step!(explorer::ToyExplorer, replica, shared) = regenerate!(explorer, replica, shared)
 adapt_explorer(explorer::ToyExplorer, _, _) = explorer 

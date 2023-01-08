@@ -7,9 +7,9 @@ end
 
 find_log_potential(replica, shared) = shared.tempering.log_potentials[replica.chain]
 
-@provides explorer create_explorer(inputs::Inputs) = create_explorer(inputs.inference_problem) 
+@provides explorer create_explorer(inputs::Inputs) = create_explorer(inputs.target) 
 
-create_explorer(inference_problem::ScaledPrecisionNormalPath) = ToyExplorer()
+create_explorer(target::ScaledPrecisionNormalPath) = ToyExplorer()
 
 struct ToyExplorer end
 

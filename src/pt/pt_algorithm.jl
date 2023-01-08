@@ -1,10 +1,13 @@
-run!(pt) = 
+function run!(pt) 
+    preflight_checks(pt)
     while next_round!(pt) # NB: not using for-loop to allow resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders)
         report(pt, reduced_recorders)
-        checkpoint(pt)
+        write_checkpoint(pt, reduced_recorders) 
+        run_checks(pt)
     end
+end
 
 report(pt, reduced_recorders) = nothing # TODO
 
@@ -15,7 +18,6 @@ report(pt, reduced_recorders) = nothing # TODO
 =#
 
 function run_one_round!(pt)
-    println(pt.shared.iterators)
     while next_scan!(pt)
         communicate!(pt)
         explore!(pt)
@@ -44,7 +46,12 @@ end
 function adapt(pt, reduced_recorders)
     updated_tempering = adapt_tempering(pt.shared.tempering, reduced_recorders)
     updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, updated_tempering)
-    updated_shared = Shared(pt.shared.inputs, pt.shared.iterators, updated_tempering, updated_explorer)
+    updated_shared = Shared(
+        pt.shared.inputs, 
+        pt.shared.iterators, 
+        updated_tempering, 
+        updated_explorer,
+        pt.shared.exec_folder)
     updated_replicas = pt.replicas # TODO: adapt too? e.g. assign to closest from previous, leveraging checkpoints?
     set_shared(updated_replicas, updated_shared)
     return PT(updated_replicas, updated_shared)

@@ -116,4 +116,12 @@ macro weighted(w, x)
     :($(esc(w)) == 0.0 ? 0.0 : $(esc(w)) * $(esc(x)))
 end
 
-
+function checksum(filename, blocksize=16384)
+    crc = zero(UInt32)
+    open(filename, "r") do f
+        while !eof(f)
+            crc = crc32c(read(f, blocksize), crc)
+        end
+    end
+    return crc
+end

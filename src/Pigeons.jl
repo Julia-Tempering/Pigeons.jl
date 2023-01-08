@@ -30,7 +30,7 @@ import Serialization.serialize
 import Serialization.deserialize
 import Base.@kwdef
 import Base.Threads.@threads
-
+import CRC32c.crc32c
 
 export NRPT, slice_sample, SS
 
@@ -43,7 +43,7 @@ export  @informal,
         informal_doc
 
 include("utils/exec_folder.jl")
-export  exec_folder
+export  next_exec_folder
 
 include("utils/Immutable.jl")
 export  Immutable,
@@ -173,7 +173,11 @@ include("pt/tempering.jl")
 include("pt/pt_algorithm.jl")
 export  run!
 
+include("pt/checkpoint.jl")
+
 include("summary.jl")
+
+include("api.jl")
 
 end # End module
 
@@ -186,7 +190,7 @@ using Revise
 Pkg.activate(".")
 using Pigeons
 
-in = Inputs(inference_problem = Pigeons.ScaledPrecisionNormalPath(1))
+in = Inputs(target = Pigeons.ScaledPrecisionNormalPath(1))
 pt = PT(in)
 
 """
