@@ -28,7 +28,7 @@ function PT(inputs::Inputs)
 end
 
 Base.show(io::IO, pt::PT) = 
-    print(io, "PT(exec_folder = $(pt.exec_folder), n_MPI_processes = $(load(pt.replicas).n_processes))")
+    print(io, "PT(\"$(pt.exec_folder)/round=$(pt.shared.iterators.round)/checkpoint\")")
 
 only_one_process(task, pt) = 
     if load(pt.replicas).my_process_index == 1

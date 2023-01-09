@@ -22,7 +22,7 @@ create_pair_swapper(tempering, shared::Shared) = tempering.log_potentials
 end
 
 Base.show(io::IO, nrpt::NonReversiblePT) = 
-    print(io, "NonReversiblePT($(nrpt.schedule))")
+    print(io, "NonReversiblePT($(nrpt.path), $(nrpt.schedule))")
 
 
 @provides tempering function NonReversiblePT(path, schedule)

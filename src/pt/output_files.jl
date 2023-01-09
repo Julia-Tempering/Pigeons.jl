@@ -19,5 +19,5 @@ function deserialize_shared_and_inputs(checkpoint_folder)
     exec_folder = (dirname ∘ dirname)(checkpoint_folder)
     deserialize_immutables(exec_folder / "immutables.jls")
     return  deserialize(checkpoint_folder / "shared.jls"), 
-            deserialize(checkpoint_folder / "Inputs.jls")
+            deserialize(exec_folder / "Inputs.jls")
 end

@@ -26,8 +26,12 @@ end
 
 function next_round!(pt)
     iterators = pt.shared.iterators
-    iterators.round += 1 
-    return iterators.round ≤ pt.inputs.n_rounds
+    if iterators.round + 1 ≤ pt.inputs.n_rounds
+        iterators.round += 1 
+        return true
+    else 
+        return false
+    end
 end
 
 function next_scan!(pt)
