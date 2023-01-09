@@ -15,8 +15,8 @@ struct Schedule
         @assert issorted(grids)
         @assert first(grids) == 0.0
         @assert last(grids) == 1.0
-        # (*) we get passed UnitRange in first iter, but when using 
-        # set_shared() this causes type incompatibility
+        # (*) we get passed UnitRange in first iter, and so this 
+        # woudl cause type incompatibility if we didn't convert
         new(convert(Vector{Float64}, grids))
     end
 end

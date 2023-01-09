@@ -85,16 +85,16 @@ operations (e.g. most floating point ones).
 reduce_recorders!(replicas) = 
     all_reduce_deterministically(
         merge_recorders!, 
-        recorders_contents.(locals(replicas)), 
+        _recorders.(locals(replicas)), 
         entangler(replicas)) 
 
 
-function merge_recorders!(recorders_contents_1, recorders_contents_2)
-    shared_keys = keys(recorders_contents_1)
-    @assert shared_keys == keys(recorders_contents_2)
+function merge_recorders!(recorders1, recorders2)
+    shared_keys = keys(recorders1)
+    @assert shared_keys == keys(recorders2)
 
-    values1 = values(recorders_contents_1)
-    values2 = values(recorders_contents_2)
+    values1 = values(recorders1)
+    values2 = values(recorders2)
     merged_values = [combine!(values1[i], values2[i]) for i in eachindex(values1)]
     return (; zip(shared_keys, merged_values)...)
 end

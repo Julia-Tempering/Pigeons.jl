@@ -24,6 +24,7 @@ using LinearAlgebra
 using SpecialFunctions
 using Serialization
 using ConcreteStructs
+using Random 
 
 import Base./
 import Serialization.serialize
@@ -158,8 +159,7 @@ export  swap!,
         initialization,
         create_replicas,
         FromCheckpoint,
-        entangler,
-        set_shared
+        entangler
 
 export  EntangledReplicas,
         create_entangled_replicas
