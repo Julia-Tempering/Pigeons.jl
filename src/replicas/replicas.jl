@@ -82,10 +82,10 @@ Argument `source` is either a [`state_initializer`](@ref) to create
 fresh [`replicas`](@ref), or [`FromCheckpoint`](@ref) to load from 
 a saved checkpoint.
 """
-@provides replicas create_replicas(shared::Shared, source) = 
+@provides replicas create_replicas(inputs::Inputs, shared::Shared, source) = 
     mpi_needed() ? 
-        create_entangled_replicas(shared, source) :
-        create_vector_replicas(shared, source)
+        create_entangled_replicas(inputs, shared, source) :
+        create_vector_replicas(inputs, shared, source)
 
 """
 $TYPEDSIGNATURES
@@ -94,45 +94,22 @@ See also [`state_initializer`](@ref).
 
 See [`create_replicas`](@ref).
 """
-@provides replicas function create_vector_replicas(shared::Shared, source)
+@provides replicas function create_vector_replicas(inputs::Inputs, shared::Shared, source)
     my_global_indices = 1:shared.inputs.n_chains
-    result = _create_locals(my_global_indices, shared, source)
+    result = _create_locals(my_global_indices, inputs, shared, source)
     sort_replicas(result) # <- needed when deserializing
     return result
 end
 
-function _create_locals(my_global_indices, shared::Shared, source::FromCheckpoint)
-    locals = [deserialize(source.checkpoint_folder / "replica=$global_index.jls") for global_index in my_global_indices]
-    set_shared(locals, shared)
-    return locals 
+function _create_locals(my_global_indices, ::Inputs, ::Shared, source::FromCheckpoint)
+    return [deserialize(source.checkpoint_folder / "replica=$global_index.jls") for global_index in my_global_indices]
 end
 
-"""
-$TYPEDSIGNATURES
-
-We rely on having only one instance of the shared object, 
-so that iteration increments can be detected by recorders.
-
-Call this function to ensure this assumption holds: 
-so we do a small surgery injecting the input shared object into the recorders:
-
-"""
-function set_shared(replicas::Vector, shared)
-    for replica in replicas
-        replica.recorders = Recorders(replica.recorders.contents, shared)
-    end
-end
-
-"""
-$TYPEDSIGNATURES
-"""
-set_shared(replicas, shared) = set_shared(locals(replicas), shared)
-
-function _create_locals(my_global_indices, shared::Shared, state_initializer)
+function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, state_initializer)
     master_rng = SplittableRandom(shared.inputs.seed)
     split_rngs = split_slice(my_global_indices, master_rng)
     states = [initialization(state_initializer, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
-    recorders = [Recorders(shared) for i in eachindex(split_rngs)]
+    recorders = [create_recorders(inputs, shared) for i in eachindex(split_rngs)]
     return Replica.(
                 states, 
                 my_global_indices,  # <- chain indices initialized to replica indices

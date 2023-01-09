@@ -11,7 +11,7 @@ See also [`recorders`](@ref).
 
     Add `value` to the statistics accumulated by [`recorder`](@ref). 
     """
-    record!(recorder, shared::Shared, value) = @abstract 
+    record!(recorder, value) = @abstract 
 
     """
     $TYPEDSIGNATURES
@@ -65,7 +65,7 @@ $TYPEDSIGNATURES
 
 Forwards to OnlineStats' `fit!`.
 """
-record!(recorder::OnlineStat, ::Shared, value) = fit!(recorder, value)
+record!(recorder::OnlineStat, value) = fit!(recorder, value)
 
 """
 $TYPEDSIGNATURES
@@ -75,16 +75,10 @@ Given a `value`, a pair `(a, b)`, and a `Dict{K, Vector{V}}` backed
 append `b` to the vector corresponding to `a`, inserting an empty 
 vector into the dictionary first if needed.
 """
-function record!(recorder::Dict{K, Vector{V}}, ::Shared, value::Tuple{K, V}) where {K, V}
+function record!(recorder::Dict{K, Vector{V}}, value::Tuple{K, V}) where {K, V}
     a, b = value
     if !haskey(recorder, a)
         recorder[a] = Vector{V}()
     end
     push!(recorder[a], b)
 end
-
-
-
-
-
-

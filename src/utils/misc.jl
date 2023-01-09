@@ -125,3 +125,49 @@ function checksum(filename, blocksize=16384)
     end
     return crc
 end
+
+function sort_includes(main)
+    source_files = String[]
+    for (dir, sub_dir, files) in walkdir("src")
+        for file in files
+            if endswith(file, ".jl") && file != main
+                push!(source_files, "$dir/$file") 
+            end
+        end
+    end
+    indexer = Indexer(source_files)
+
+    graph = SimpleDiGraph(length(indexer.i2t)) 
+    for file1 in source_files
+        index1 = indexer.t2i[file1]
+        for file2 in source_files
+            index2 = indexer.t2i[file2]
+            name = replace(basename(file2), ".jl" => "")
+            if (name[1] == '@' || isuppercase(name[1])) && file1 != file2
+                contents = read(file1, String)
+                if contains(contents, name)
+                    add_edge!(graph, index2, index1)
+                end
+            end
+        end
+    end
+
+    loops = Graphs.simplecycles_hawick_james(graph)
+    for loop in loops
+        if length(loop) > 1
+            println("loop:")
+            for i in loop 
+                println("  $(indexer.i2t[i])") 
+            end
+        end
+    end
+
+    println(loops)
+
+    sorted = Graphs.topological_sort_by_dfs(graph)
+
+    for index in sorted 
+        path = replace(indexer.i2t[index], "src/" => "")
+        println("include(\"$path\")")
+    end
+end

@@ -32,42 +32,80 @@ import Base.@kwdef
 import Base.Threads.@threads
 import CRC32c.crc32c
 
+include("utils/exec_folder.jl")
+include("utils/Indexer.jl")
+include("utils/misc.jl")
+include("utils/Immutable.jl")
+include("utils/@informal.jl")
+include("swap/swap_graphs.jl")
+include("schedules/Schedule.jl")
+include("schedules/discretize.jl")
+include("samplers/slice_sample.jl")
+include("samplers/samplers.jl")
+include("samplers/hmc.jl")
+include("pt/checks.jl")
+include("pt/Iterators.jl")
+include("pt/Shared.jl")
+include("pt/Inputs.jl")
+include("pt/output_files.jl")
+include("pt/PT.jl")
+include("swap/swap_graph.jl")
+include("replicas/Replica.jl")
+include("swap/pair_swapper.jl")
+include("recorders/recorders.jl")
+include("recorders/recorder.jl")
+include("pt/pt_algorithm.jl")
+include("pt/checkpoint.jl")
+include("paths/path.jl")
+include("paths/TranslatedNormalPath.jl")
+include("paths/ScaledPrecisionNormalPath.jl")
+include("pt/tempering.jl")
+include("pt/explorer.jl")
+include("paths/InterpolatingPath.jl")
+include("mpi_utils/one_per_host.jl")
+include("mpi_utils/LoadBalance.jl")
+include("mpi_utils/PermutedDistributedArray.jl")
+include("replicas/EntangledReplicas.jl")
+include("swap/swap.jl")
+include("replicas/replicas.jl")
+include("mpi_utils/Entanglement.jl")
+include("log_potentials/log_potentials.jl")
+include("log_potentials/log_potential.jl")
+include("summary.jl")
+include("restarts.jl")
+include("exploration.jl")
+include("api.jl")
+include("adaptation.jl")
+include("acceptance.jl")
+include("NRPT.jl")
+include("deo.jl")
+
 export NRPT, slice_sample, SS
 
-include("utils/Indexer.jl")
 
-include("utils/misc.jl")
 export  split_slice,
         mpi_test
 
-include("utils/informal.jl")
 export  @informal,
         informal_doc
 
-include("utils/exec_folder.jl")
 export  next_exec_folder
 
-include("utils/Immutable.jl")
 export  Immutable,
         serialize_immutables,
         deserialize_immutables
 
 
 ### Paths, discretization, log_potentials
-include("log_potentials/log_potential.jl")
-include("log_potentials/log_potentials.jl")
+
 export log_unnormalized_ratio
 
-include("paths/path.jl")
 export  interpolate
 
-include("schedules/Schedule.jl")
 export Schedule
 
-include("schedules/discretize.jl")
 export  discretize
 
-include("paths/path_implementations.jl")
 export  LinearInterpolator,
         create_path,
         TranslatedNormalPath,
@@ -76,27 +114,18 @@ export  LinearInterpolator,
         analytic_cumulativebarrier
 
 ### Samplers
-include("samplers/samplers.jl")
 
 ### NRPT
-include("acceptance.jl")
-include("adaptation.jl")
+
 export communicationbarrier
 
-include("deo.jl")
-include("exploration.jl")
-include("restarts.jl")
-include("NRPT.jl")
-
 ### Low-level MPI utilities
-include("mpi_utils/LoadBalance.jl")
 export  my_global_indices,
         find_process,
         find_local_index,
         find_global_index,
         my_load
 
-include("mpi_utils/Entanglement.jl")
 export  Entangler,
         transmit,
         transmit!,
@@ -104,28 +133,23 @@ export  Entangler,
         all_reduce_deterministically,
         mpi_needed
 
-include("mpi_utils/PermutedDistributedArray.jl")
 export  PermutedDistributedArray,
         permuted_get,
         permuted_set!
 
-include("mpi_utils/one_per_host.jl")
 export one_per_host
 
 ### Mid-level swap APIs
-include("pt/Shared.jl")
-include("replicas/Replica.jl")
+
 export  Replica,
         chain,
         recorder
 
-include("swap/pair_swapper.jl")
 export swap_decision,
        swap_stat,
        record_swap_stats!,
        SwapStat
 
-include("replicas/replicas.jl")
 export  swap!,
         locals,
         load,
@@ -137,50 +161,32 @@ export  swap!,
         entangler,
         set_shared
 
-include("replicas/EntangledReplicas.jl")
 export  EntangledReplicas,
         create_entangled_replicas
 
-include("swap/swap_graph.jl")
-include("swap/swap_graphs.jl") # TODO: exports?
-
-include("swap/swap.jl")
 export  swap!,
         index_process_plot
 
 ### Recorder are used to collect statistics
 
-include("recorders/recorders.jl")
 export  record_if_requested!,
         reduce_recorders!
 
-include("recorders/recorder.jl")
 export  record!,
         combine!,
         swap_acceptance_probability,
         index_process
 
-include("pt/explorer.jl")
-include("pt/Inputs.jl")
 export Inputs
 
-include("pt/Iterators.jl")
-include("pt/output_files.jl")
-
-include("pt/PT.jl")
 export PT, only_one_process
 
-include("pt/tempering.jl")
-include("pt/pt_algorithm.jl")
 export  run!
 
-include("pt/checkpoint.jl")
-
-include("summary.jl")
-
-include("api.jl")
 export pigeons
-include("pt/checks.jl")
+
+
+
 
 end # End module
 

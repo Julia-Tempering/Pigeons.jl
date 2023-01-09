@@ -1,12 +1,12 @@
 function preflight_checks(pt)
-    if pt.shared.inputs.checked_round > 0 && !pt.shared.inputs.checkpoint
+    if pt.inputs.checked_round > 0 && !pt.inputs.checkpoint
         throw(ArgumentError("activate checkpoint when performing checks"))
     end
 
 end
 
 function run_checks(pt)
-    if pt.shared.iterators.round != pt.shared.inputs.checked_round
+    if pt.shared.iterators.round != pt.inputs.checked_round
         return 
     end
 
@@ -22,7 +22,7 @@ function check_against_serial(pt)
     
     # run a serial copy
     println("TODO: start in new process")
-    serial_pt_inputs = deepcopy(pt.shared.inputs)
+    serial_pt_inputs = deepcopy(pt.inputs)
     serial_pt_inputs.n_rounds = round 
     serial_pt_inputs.checked_round = 0 # <- otherwise infinity loop
     serial_pt_result = pigeons(

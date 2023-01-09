@@ -29,9 +29,18 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Create a [`Recorders`](@ref). 
+Create a [`recorders`](@ref) from an [`Inputs`](@ref) and [`Shared`](@ref).
 """
-function Recorders(recorder_builders) 
+@provides recorders create_recorders(inputs::Inputs, shared::Shared) =
+    create_recorders(recorder_builders(inputs, shared)) 
+
+"""
+$(TYPEDSIGNATURES)
+
+Create a [`recorders`](@ref) from an iterable with element 
+type [`recorder_builder`](@ref).
+"""
+@provides recorders function create_recorders(recorder_builders) 
     tuple_keys = Symbol[]
     tuple_values = Any[]
     for recorder_builder in recorder_builders(shared)
@@ -42,11 +51,17 @@ function Recorders(recorder_builders)
     return recorders
 end
 
-function recorder_builders(shared::Shared)
+"""
+A function such that calling it returns a fresh 
+[`recorder`](@ref).
+"""
+@informal recorder_builder begin end
+
+function recorder_builders(inputs::Inputs, shared::Shared)
     result = Set{Function}()
     union!(result, explorer_recorder_builders(shared.explorer))
     union!(result, tempering_recorder_builders(shared.tempering))
-    union!(result, shared.inputs.recorder_builders)
+    union!(result, inputs.recorder_builders)
     return result
 end
 

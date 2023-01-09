@@ -4,6 +4,9 @@ Storage involved in PT algorithms:
 $FIELDS
 """
 @concrete struct PT
+
+    inputs
+
     """
     The [`replicas`](@ref) held by this machine.
     """
@@ -20,7 +23,7 @@ end
 function PT(inputs::Inputs)
     shared = Shared(inputs)
     state_init = create_state_initializer(inputs.target, inputs)
-    replicas = create_replicas(shared, state_init)
+    replicas = create_replicas(inputs, shared, state_init)
     return PT(replicas, shared, next_exec_folder())
 end
 

@@ -38,7 +38,7 @@ end
 
 function pigeons(resume::Resume, ::InCurrentProcess)
     pt = PT(resume.checkpoint_folder)
-    pt.shared.inputs.n_rounds = resume.n_rounds 
+    pt.inputs.n_rounds = resume.n_rounds 
     run!(pt)
     return pt 
 end
