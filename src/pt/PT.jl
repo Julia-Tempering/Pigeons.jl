@@ -24,7 +24,7 @@ function PT(inputs::Inputs)
     shared = Shared(inputs)
     state_init = create_state_initializer(inputs.target, inputs)
     replicas = create_replicas(inputs, shared, state_init)
-    return PT(replicas, shared, next_exec_folder())
+    return PT(inputs, replicas, shared, next_exec_folder())
 end
 
 only_one_process(task, pt) = 

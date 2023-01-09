@@ -43,7 +43,7 @@ type [`recorder_builder`](@ref).
 @provides recorders function create_recorders(recorder_builders) 
     tuple_keys = Symbol[]
     tuple_values = Any[]
-    for recorder_builder in recorder_builders(shared)
+    for recorder_builder in recorder_builders
         push!(tuple_keys,   Symbol(recorder_builder))
         push!(tuple_values, recorder_builder())
     end

@@ -32,4 +32,4 @@ end
 # useful for broadcasting, e.g., chain.(replica)
 chain(r::Replica) = r.chain 
 state(r::Replica) = r.state
-recorders_contents(r::Replica) = r.recorders.contents
+_recorders(r::Replica) = r.recorders

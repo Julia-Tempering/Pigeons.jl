@@ -28,8 +28,8 @@ Create distributed replicas.
 
 See [`create_replicas`](@ref).
 """
-@provides replicas function create_entangled_replicas(shared::Shared, source)
-    n_chains = shared.inputs.n_chains
+@provides replicas function create_entangled_replicas(inputs::Inputs, shared::Shared, source)
+    n_chains = inputs.n_chains
     entangler = Entangler(n_chains)
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)

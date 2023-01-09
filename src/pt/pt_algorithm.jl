@@ -47,7 +47,6 @@ function adapt(pt, reduced_recorders)
     updated_tempering = adapt_tempering(pt.shared.tempering, reduced_recorders)
     updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, updated_tempering)
     updated_shared = Shared(
-        pt.shared.inputs, 
         pt.shared.iterators, 
         updated_tempering, 
         updated_explorer)

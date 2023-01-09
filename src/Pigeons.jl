@@ -32,6 +32,7 @@ import Base.@kwdef
 import Base.Threads.@threads
 import CRC32c.crc32c
 
+# include()'s generated using: sort_includes("Pigeons.jl")
 include("utils/exec_folder.jl")
 include("utils/Indexer.jl")
 include("utils/misc.jl")
@@ -40,9 +41,8 @@ include("utils/@informal.jl")
 include("swap/swap_graphs.jl")
 include("schedules/Schedule.jl")
 include("schedules/discretize.jl")
-include("samplers/slice_sample.jl")
-include("samplers/samplers.jl")
 include("samplers/hmc.jl")
+include("samplers/SpliceSampler.jl")
 include("pt/checks.jl")
 include("pt/Iterators.jl")
 include("pt/Shared.jl")
@@ -64,11 +64,11 @@ include("pt/explorer.jl")
 include("paths/InterpolatingPath.jl")
 include("mpi_utils/one_per_host.jl")
 include("mpi_utils/LoadBalance.jl")
+include("mpi_utils/Entangler.jl")
 include("mpi_utils/PermutedDistributedArray.jl")
 include("replicas/EntangledReplicas.jl")
 include("swap/swap.jl")
 include("replicas/replicas.jl")
-include("mpi_utils/Entanglement.jl")
 include("log_potentials/log_potentials.jl")
 include("log_potentials/log_potential.jl")
 include("summary.jl")
@@ -80,7 +80,7 @@ include("acceptance.jl")
 include("NRPT.jl")
 include("deo.jl")
 
-export NRPT, slice_sample, SS
+export NRPT, slice_sample, SliceSampler
 
 
 export  split_slice,

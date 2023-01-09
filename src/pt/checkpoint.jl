@@ -11,7 +11,7 @@ function PT(checkpoint_folder::String)
     fresh_exec_folder = next_exec_folder() 
     checkpoint_symlinks(checkpoint_folder, fresh_exec_folder)
     shared, inputs = deserialize_shared_and_inputs(checkpoint_folder) # <- NB: done before replicas deserialization to load immutables
-    replicas = create_replicas(shared, FromCheckpoint(checkpoint_folder))
+    replicas = create_replicas(inputs, shared, FromCheckpoint(checkpoint_folder))
     return PT(inputs, replicas, shared, fresh_exec_folder)
 end
 

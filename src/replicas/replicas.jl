@@ -95,7 +95,7 @@ See also [`state_initializer`](@ref).
 See [`create_replicas`](@ref).
 """
 @provides replicas function create_vector_replicas(inputs::Inputs, shared::Shared, source)
-    my_global_indices = 1:shared.inputs.n_chains
+    my_global_indices = 1:inputs.n_chains
     result = _create_locals(my_global_indices, inputs, shared, source)
     sort_replicas(result) # <- needed when deserializing
     return result
@@ -106,7 +106,7 @@ function _create_locals(my_global_indices, ::Inputs, ::Shared, source::FromCheck
 end
 
 function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, state_initializer)
-    master_rng = SplittableRandom(shared.inputs.seed)
+    master_rng = SplittableRandom(inputs.seed)
     split_rngs = split_slice(my_global_indices, master_rng)
     states = [initialization(state_initializer, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
     recorders = [create_recorders(inputs, shared) for i in eachindex(split_rngs)]

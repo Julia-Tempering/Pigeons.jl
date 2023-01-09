@@ -25,16 +25,15 @@ $FIELDS
 end
 
 function next_round!(pt)
-    shared = pt.shared
-    iterators = shared.iterators
+    iterators = pt.shared.iterators
     iterators.round += 1 
-    return iterators.round ≤ shared.inputs.n_rounds
+    return iterators.round ≤ pt.inputs.n_rounds
 end
 
 function next_scan!(pt)
     # TODO: collect timing information on process=1
     shared = pt.shared
-    iterators = shared.iterators
+    iterators = pt.shared.iterators
     iterators.scan += 1
     if iterators.scan ≤ 2^iterators.round 
         return true
