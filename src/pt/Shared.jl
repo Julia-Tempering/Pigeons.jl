@@ -4,7 +4,7 @@ a round of distributed parallel tempering.
 
 Only one instance maintained per MPI process. 
 """
-@concrete mutable struct Shared
+@concrete struct Shared
     iterators
     tempering
     explorer

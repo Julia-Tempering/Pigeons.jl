@@ -50,6 +50,7 @@ function pigeons(pt_arguments, mpi_submission::ToMPI)
     # generate script; calls pigeons()
     # do job submission
     # return the exec_folder
+    error("TODO")
 end
 
 function pigeons(pt_arguments, new_process::ToNewProcess)
@@ -61,6 +62,7 @@ function pigeons(pt_arguments, new_process::ToNewProcess)
     # modules should be loaded via 
     #    https://stackoverflow.com/questions/25575406/list-of-loaded-imported-packages-in-julia
     #    see filter((x) -> typeof(eval(x)) <:  Module && x ≠ :Main, names(Main,imported=true))
+    error("TODO")
 end
 
 

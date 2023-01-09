@@ -21,6 +21,10 @@ create_pair_swapper(tempering, shared::Shared) = tempering.log_potentials
     swap_graphs
 end
 
+Base.show(io::IO, nrpt::NonReversiblePT) = 
+    print(io, "NonReversiblePT($(nrpt.schedule))")
+
+
 @provides tempering function NonReversiblePT(path, schedule)
     log_potentials = discretize(path, schedule)
     swap_graphs = deo()
