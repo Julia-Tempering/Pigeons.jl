@@ -1,15 +1,13 @@
 function run!(pt) 
     preflight_checks(pt)
-    while pt.shared.iterators.round ≤ pt.inputs.n_rounds # NB: not using for-loop to allow resuming from checkpoint
+    while next_round!(pt) # NB: not using for-loop to allow resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders)
         report(pt, reduced_recorders)
-
-        # increment round just before checkpoint to have correctly resume checkpoints
-        pt.shared.iterators.round += 1
         write_checkpoint(pt, reduced_recorders) 
         run_checks(pt)
     end
+    return nothing 
 end
 
 report(pt, reduced_recorders) = nothing # TODO

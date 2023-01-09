@@ -20,8 +20,7 @@ function write_checkpoint(pt, reduced_recorders)
         return 
     end
 
-    checkpoint_folder = mkpath(pt.exec_folder / "round=$(pt.shared.iterators.round - 1)/checkpoint")
-    
+    checkpoint_folder = mkpath(pt.exec_folder / "round=$(pt.shared.iterators.round)/checkpoint")    
     only_one_process(pt) do
         serialize(checkpoint_folder / "shared.jls", pt.shared)
         serialize(checkpoint_folder / "reduced_recorders.jls", reduced_recorders)
