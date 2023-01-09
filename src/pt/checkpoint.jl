@@ -27,7 +27,7 @@ function write_checkpoint(pt, reduced_recorders)
         serialize(checkpoint_folder / "reduced_recorders.jls", reduced_recorders)
         # only need to save Inputs & immutables at first round
         if pt.shared.iterators.round == 1 
-            serialize(checkpoint_folder / "Inputs.jls", pt.inputs)
+            serialize(pt.exec_folder / "Inputs.jls", pt.inputs)
             serialize_immutables(pt.exec_folder / "immutables.jls")
         end
     end
