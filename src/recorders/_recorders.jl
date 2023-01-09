@@ -1,5 +1,5 @@
 """
-A container for several types of [`recorder`](@ref)'s. 
+A `NamedTuple` containing several [`recorder`](@ref)'s. 
 Each recorder is responsible for a type of statistic to be 
 accumulated (e.g. one for swap accept prs, one for round trip 
 info; some are in-memory, some are on file). 
@@ -10,22 +10,20 @@ distribution purpose).
 After a PT round, [`reduce_recorders!()`](@ref) is used to do 
 a [reduction](https://en.wikipedia.org/wiki/MapReduce) before 
 accessing statistic values. 
-
-Fields:
-$FIELDS
 """
-@concrete struct Recorders
+@informal recorders begin 
     """
-    A `NamedTuple` containing several [`recorder`](@ref)'s. 
-    """
-    contents
+    $TYPEDSIGNATURES
 
+    If the [`recorders`](@ref) contains the given `recorder_key`, 
+    send the `value` to the [`recorder`](@key) corresponding to the 
+    `recorder_key`. Otherwise, do nothing.
     """
-    The [`Shared`](@ref) instance, passed to the 
-    [`recorder`](@ref)'s so that they can refer to 
-    round index, etc.
-    """
-    shared
+    function record_if_requested!(recorders, recorder_key::Symbol, value)
+        if haskey(recorders, recorder_key)
+            record!(recorders[recorder_key], value)
+        end
+    end
 end
 
 """
@@ -33,15 +31,15 @@ $(TYPEDSIGNATURES)
 
 Create a [`Recorders`](@ref). 
 """
-function Recorders(shared::Shared) 
+function Recorders(recorder_builders) 
     tuple_keys = Symbol[]
     tuple_values = Any[]
     for recorder_builder in recorder_builders(shared)
         push!(tuple_keys,   Symbol(recorder_builder))
         push!(tuple_values, recorder_builder())
     end
-    tuple = (; zip(tuple_keys, tuple_values)...)
-    return Recorders(tuple, shared)
+    recorders = (; zip(tuple_keys, tuple_values)...)
+    return recorders
 end
 
 function recorder_builders(shared::Shared)
@@ -52,18 +50,7 @@ function recorder_builders(shared::Shared)
     return result
 end
 
-"""
-$TYPEDSIGNATURES
 
-If the [`recorders`](@ref) contains the given `recorder_key`, 
-send the `value` to the [`recorder`](@key) corresponding to the 
-`recorder_key`. Otherwise, do nothing.
-"""
-function record_if_requested!(recorders, recorder_key::Symbol, value)
-    if haskey(recorders.contents, recorder_key)
-        record!(recorders.contents[recorder_key], recorders.shared, value)
-    end
-end
 
 """
 $TYPEDSIGNATURES
