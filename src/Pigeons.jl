@@ -34,6 +34,8 @@ import CRC32c.crc32c
 
 export NRPT, slice_sample, SS
 
+include("utils/Indexer.jl")
+
 include("utils/misc.jl")
 export  split_slice,
         mpi_test
@@ -148,9 +150,8 @@ export  swap!,
 
 ### Recorder are used to collect statistics
 
-include("recorders/Recorders.jl")
-export  Recorders,
-        record_if_requested!,
+include("recorders/recorders.jl")
+export  record_if_requested!,
         reduce_recorders!
 
 include("recorders/recorder.jl")
@@ -191,9 +192,6 @@ using Pkg
 using Revise
 Pkg.activate(".")
 using Pigeons
-
-in = Inputs(target = Pigeons.ScaledPrecisionNormalPath(1))
-pt = PT(in)
 
 """
 
