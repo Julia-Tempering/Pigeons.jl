@@ -1,19 +1,21 @@
-struct Immutable{K, T}
+struct Immutable{T}
+    hash::UInt
     data::T
     # private constructor - do not use directly
-    function Immutable(key::Type, data::T, lookup::Bool) where {T}
+    function Immutable(data::T, lookup::Bool) where {T}
+        key = hash(data)
         if !lookup
-            return new{key, T}(data)
+            return new{T}(key, data)
         end
         if haskey(immutables, key) 
-            @assert immutables[key] == data "Violation of singleton property"
+            @assert immutables[key] == data "Type $T should have consistent == and hash"
         end
         immutables[key] = data
-        return new{key, T}(data)
+        return new{T}(key, data)
     end
 end
 
-Immutable(key::Type, data::T) where {T} = Immutable(key, data, true)
+
 
 """
 $TYPEDSIGNATURES
@@ -26,10 +28,10 @@ copies of the large immutable data, which is space-inefficient.
 
 To work around this space-inefficiency, `Immutable` can be used as follows: 
 
-1. Enclose large data inside a `Immutable`. Use `key` to 
-    distinguish between different data objects if needed. 
+1. Enclose large immutable data inside a `Immutable`. 
+    Assume the type of data has well defined hash and ==.
     Internally, we maintain an internal, global Dict indexed 
-    by `Val{key}` storing the data. This global Dict is 
+    by hash(data) storing the data. This global Dict is 
     called `immutables`.
 2. Use `Serialization.serialize` as usual. Internally, we 
     dispatch serialization of `Immutable` is modified to skip 
@@ -44,18 +46,11 @@ To work around this space-inefficiency, `Immutable` can be used as follows:
     dispatch deserialization so that the data is retreived 
     from `immutable`.
 """
-Immutable(key, data::T) where {T} = Immutable(Val{key}, data)
+Immutable(data) = Immutable(data, true)
 
-"""
-$TYPEDSIGNATURES
 
-Use the Type of `data` as a default key.
 
-TODO: use hash() instead?
-"""
-Immutable(data::T) where {T} = Immutable(T, data) 
-
-const immutables = Dict{Type, Any}()
+const immutables = Dict{UInt, Any}()
 
 """
 $TYPEDSIGNATURES 
@@ -76,12 +71,14 @@ function deserialize_immutables(filename::AbstractString)
     merge!(immutables, deserialize(filename))
 end
 
-function Serialization.serialize(s::AbstractSerializer, instance::Immutable{K, T}) where {K, T}
+function Serialization.serialize(s::AbstractSerializer, instance::Immutable{T}) where {T}
     Serialization.writetag(s.io, Serialization.OBJECT_TAG)
-    Serialization.serialize(s, Immutable{K, T})
+    Serialization.serialize(s, Immutable{T})
+    Serialization.serialize(s, instance.hash)
 end
 
-function Serialization.deserialize(s::AbstractSerializer, type::Type{Immutable{K, T}}) where {K, T}
-    @assert haskey(immutables, K) "Make sure to call deserialize_immutables(...) before rest of deserialization"
-    return Immutable(K, immutables[K], false)
+function Serialization.deserialize(s::AbstractSerializer, type::Type{Immutable{T}}) where {T}
+    key = Serialization.deserialize(s)
+    @assert haskey(immutables, key) "Make sure to call deserialize_immutables(...) before rest of deserialization"
+    return Immutable(immutables[key], false)
 end
