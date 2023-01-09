@@ -97,7 +97,7 @@ See [`create_replicas`](@ref).
 @provides replicas function create_vector_replicas(inputs::Inputs, shared::Shared, source)
     my_global_indices = 1:inputs.n_chains
     result = _create_locals(my_global_indices, inputs, shared, source)
-    sort_replicas(result) # <- needed when deserializing
+    sort_replicas!(result) # <- needed when deserializing
     return result
 end
 

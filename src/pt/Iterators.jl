@@ -11,27 +11,18 @@ $FIELDS
     Index of the Parallel Tempering adaptation *round*, as defined in 
     [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
     """
-    round::Int = 0
+    round::Int = 1
 
     """
     Number of (exploration, communication) pairs performed 
     so far, corresponds to ``n`` in 
     [Algorithm 1 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
     Round ``i`` typically performs ``2^i`` scans. 
+    Set to zero when run_one_round!() is not yet started. 
     """
     scan::Int = 0
 
     # TODO: store round timing
-end
-
-function next_round!(pt)
-    iterators = pt.shared.iterators
-    if iterators.round + 1 ≤ pt.inputs.n_rounds
-        iterators.round += 1 
-        return true
-    else 
-        return false
-    end
 end
 
 function next_scan!(pt)

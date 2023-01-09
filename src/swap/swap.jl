@@ -23,10 +23,10 @@ function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
         end
     end
     # re-sort
-    sort_replicas(replicas)
+    sort_replicas!(replicas)
 end
 
-function sort_replicas(replicas)
+function sort_replicas!(replicas)
     for my_chain in eachindex(replicas)
         my_replica = replicas[my_chain]
         if my_replica.chain != my_chain
