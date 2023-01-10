@@ -1,15 +1,3 @@
-"""
-Also assume the presence of the following fields:
-- [`log_potentials`](@ref)
-- [`swap_graphs`](@ref)
-"""
-@informal tempering begin
-    adapt_tempering(tempering, reduced_recorders) = @abstract
-    tempering_recorder_builders(tempering) = @abstract 
-end
-
-create_pair_swapper(tempering, shared::Shared) = tempering.log_potentials
-
 # Example: JRSSB (2021) scheme
 
 @provides tempering create_tempering(inputs::Inputs) = NonReversiblePT(inputs)
@@ -38,7 +26,6 @@ end
     return NonReversiblePT(path, initial_schedule)
 end
 
-create_path(target::ScaledPrecisionNormalPath, inputs::Inputs) = target
 
 function adapt_tempering(tempering::NonReversiblePT, reduced_recorders)
     path = tempering.path 

@@ -112,7 +112,7 @@ MPI process, and read-write during each
 round, while [`Shared`](@ref) is identical in all MPI processes, read only during a round, and updated only between 
 rounds. 
 
-To orchestrate the creation of [`PT`](@ref) structs, [`Inputs`](@ref) is used. Inputs fully determine the execution of a 
+To orchestrate the creation of [`PT`](@ref) structs, [`Inputs`](@ref) is used. Inputs fully determines the execution of a 
 PT algorithm (target distribution, random seed, etc). 
 
 
@@ -120,19 +120,44 @@ PT algorithm (target distribution, random seed, etc).
 
 Two steps are needed to collect statistics from the execution of a PT algorithm: 
 
-- We specify which statistics to collect using the `keys` argument (by 
-    default, statistics that can be computed in constant memory only are included, 
+- Specifying which statistics to collect using one or several [`recorder_builder`](@ref) 
+    (e.g. by 
+    default, only some statistics that can be computed in constant memory  are included, 
     those that have growing memory consumption, e.g. tracking the full 
     index process as done here, need to be explicitly specified in advance).
-- Using [`reduce_recorders!()`](@ref) to compile the statistics collected 
-    by the different replicas.
+- Then at the end of [`run_one_round!()`](@ref), [`reduce_recorders!()`](@ref)
+    is called to compile the statistics collected  by the different replicas.
     
 An object responsible for accumulating all different types of statistics for 
 one replica is called a  [`recorders`](@ref). An object accumulating one 
 type of statistic for one replica is a [`recorder`](@ref). 
-Each replica has a single recorders to ensure thread safety (as illustrated above 
-by the use of a parallel local exploration phase using `@thread`) and to enable distributed 
+Each replica has a single recorders to ensure thread safety (e.g., see 
+the use of a parallel local exploration phase using `@thread` in [`explore!()`](@ref)) and to enable distributed 
 computing. 
+
+#### Using a built-in [`recorder`](@ref) 
+
+To see the list of built-in implementations of [`recorder`](@ref), see the section "Examples of functions.." at [`recorder`](@ref). 
+
+To specify you want to use one [`recorder`](@ref), specify it in the Vector 
+argument `recorder_builders` in [`Inputs`](@ref). For example, to signal you want 
+to save the full index process, use:
+```
+input = Inputs(target = Pigeons.ScaledPrecisionNormalPath(1), recorder_builders = [index_process])
+pigeons(input)
+```
+You can then access the index process via `pt.reduced_recorders.index_process`. 
+
+
+#### Creating your own [`recorder`](@ref)
+
+The following pieces are needed
+
+- Pick or create a struct `MyStruct` that will hold the information. 
+- Implement all the methods in the section "Contract" of [`recorder`](@ref) making sure to type the recorder argument as `recorder::MyStruct`. Some examples are in the same source file as [`recorder`](@ref).   
+- Create a [`recorder_builder`](@ref) which is simply a function such 
+that when called with zero argument, creates your desired type, i.e. 
+`MyStruct`. The name of this function will define the name of your [`recorder`](@ref).
 
 
 ## Adaptation and schedule update

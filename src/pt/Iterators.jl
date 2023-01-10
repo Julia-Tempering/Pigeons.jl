@@ -38,7 +38,6 @@ end
 
 function next_scan!(pt)
     # TODO: collect timing information on process=1
-    shared = pt.shared
     iterators = pt.shared.iterators
     iterators.scan += 1
     if iterators.scan ≤ 2^iterators.round 

@@ -1,5 +1,6 @@
 """
-Specification of a local exploration strategy. 
+Orchestrate the [` explore!()`](@ref) phase 
+of Parallel Tempering. 
 """
 @informal explorer begin
     """
@@ -33,6 +34,8 @@ Specification of a local exploration strategy.
     """
     $SIGNATURES
 
+    Called between successive rounds ([`run_one_round!`](@ref)). 
+    
     Given an [`explorer`](@ref), reduced [`recorders`](@ref) 
     and [`Shared`](@ref) return an updated [`explorer`](@ref).
     """
@@ -46,7 +49,18 @@ Specification of a local exploration strategy.
     Return `[]` if none are needed. 
     """
     explorer_recorder_builders(explorer) = @abstract 
+
+    """
+    $SIGNATURES
+
+    Return a [`state_initializer`](@ref) used to populate 
+    the states at the beginning of the first round of 
+    Parallel Tempering. 
+    """
+    create_state_initializer(explorer) = @abstract 
 end
+
+
 
 """
 $SIGNATURES 

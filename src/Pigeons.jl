@@ -43,27 +43,29 @@ include("utils/misc.jl")
 include("utils/Immutable.jl")
 include("utils/@informal.jl")
 include("swap/swap_graphs.jl")
+include("swap/DEO.jl")
 include("schedules/Schedule.jl")
 include("schedules/discretize.jl")
 include("samplers/hmc.jl")
 include("samplers/SpliceSampler.jl")
 include("pt/output_files.jl")
-include("pt/checks.jl")
 include("pt/Iterators.jl")
-include("pt/Shared.jl")
 include("pt/Inputs.jl")
+include("pt/Shared.jl")
 include("pt/PT.jl")
+include("tempering/NonReversiblePT.jl")
 include("swap/swap_graph.jl")
 include("replicas/Replica.jl")
 include("swap/pair_swapper.jl")
 include("recorders/recorders.jl")
 include("recorders/recorder.jl")
 include("pt/pt_algorithm.jl")
+include("pt/checks.jl")
 include("pt/checkpoint.jl")
 include("paths/path.jl")
 include("paths/TranslatedNormalPath.jl")
 include("paths/ScaledPrecisionNormalPath.jl")
-include("pt/tempering.jl")
+include("tempering/tempering.jl")
 include("paths/InterpolatingPath.jl")
 include("mpi_utils/one_per_host.jl")
 include("mpi_utils/LoadBalance.jl")
@@ -85,112 +87,9 @@ include("acceptance.jl")
 include("NRPT.jl")
 include("deo.jl")
 
-export NRPT, slice_sample, SliceSampler
-
-
-export  split_slice,
-        mpi_test
-
-export  @informal,
-        informal_doc
-
-export  next_exec_folder
-
-export  Immutable,
-        serialize_immutables,
-        deserialize_immutables
-
-
-### Paths, discretization, log_potentials
-
-export log_unnormalized_ratio
-
-export  interpolate
-
-export Schedule
-
-export  discretize
-
-export  LinearInterpolator,
-        create_path,
-        TranslatedNormalPath,
-        ScaledPrecisionNormalPath,
-        scaled_normal_example,
-        analytic_cumulativebarrier
-
-### Samplers
-
-### NRPT
-
-export communicationbarrier
-
-### Low-level MPI utilities
-export  my_global_indices,
-        find_process,
-        find_local_index,
-        find_global_index,
-        my_load
-
-export  Entangler,
-        transmit,
-        transmit!,
-        reduce_deterministically,
-        all_reduce_deterministically,
-        mpi_needed
-
-export  PermutedDistributedArray,
-        permuted_get,
-        permuted_set!
-
-export one_per_host
-
-### Mid-level swap APIs
-
-export  Replica,
-        chain,
-        recorder
-
-export swap_decision,
-       swap_stat,
-       record_swap_stats!,
-       SwapStat
-
-export  swap!,
-        locals,
-        load,
-        n_chains,
-        create_vector_replicas,
-        initialization,
-        create_replicas,
-        FromCheckpoint,
-        entangler
-
-export  EntangledReplicas,
-        create_entangled_replicas
-
-export  swap!,
-        index_process_plot
-
-### Recorder are used to collect statistics
-
-export  record_if_requested!,
-        reduce_recorders!
-
-export  record!,
-        combine!,
-        swap_acceptance_probability,
-        index_process
-
-export Inputs
-
-export PT, only_one_process
-
-export  run
-
-export pigeons
-
-
-
+export pigeons, Inputs, PT, 
+    Resume, Result, 
+    ToNewProcess, ToMPI
 
 end # End module
 
