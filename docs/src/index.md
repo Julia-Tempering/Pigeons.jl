@@ -78,19 +78,43 @@ Then, run PT (locally on one process, but using multi-threading) using:
 pt = pigeons(inputs)
 ```
 
-This runs PT on a 100-dimensional MVN toy example. 
+This runs PT on a 100-dimensional MVN toy example, and 
+returns a [`PT`](@ref) struct containing the results of 
+this run (more later on how to access information inside 
+a PT struct).
 
-Since this is the most common operation in this package, creating inputs and running PT can be done in one line as:
+Since the above two julia lines are the most common operation in this package, creating inputs and running PT can be done in one line as:
 
 ```@example example
 pt = pigeons(target = toy_mvn_normal(100))
 ```
 
+where the `args...` passed to `pigeons` are forwarded 
+to [`Inputs`](@ref).
+
 ### Loading and resuming a checkpoint
+
+By default, PT will automatically write a "checkpoint" periodically 
+to ensure that not more than half of the work is lost in 
+the event of e.g. a server failure. 
+See [`write_checkpoint`](@ref) for details of how this 
+is accomplished in a way compatible to both the single-machine 
+and MPI contexts. 
+Each checkpoint is located in 
+`results/all/[unique directory]/round=[x]/checkpoint`, 
+with the latest run in `results/latest/[unique directory]/round=[x]/checkpoint`. 
+
+Checkpoints are also useful when an MPI-distributed PT has been 
+ran, and the user wants to load the full set of 
+results in one interactive session. 
+
+To load a checkpoint, create a [`PT`](@ref) struct by passing in the path string to the checkpoint folder. 
+
 
 !!! warning "TODO"
 
-    Work in progress: show an example.
+    Example (need latest_round() or something like that)
+    How to disable checkpoint. Rerunning with increasing number of rounds, etc.
 
 
 ### Automatic correctness checks for parallel/distributed implementations
