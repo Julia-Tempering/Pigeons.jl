@@ -65,7 +65,7 @@ single_process_load(n_global_indices) = LoadBalance(1, 1, n_global_indices)
 
 """
 $SIGNATURES
-The slice of `lb.global_indices` this process is reponsible of.
+The slice of `lb.global_indices` this process is reponsible for.
 """
 function my_global_indices(lb::LoadBalance)
     start = my_first_global_idx(lb)
@@ -108,8 +108,8 @@ function find_global_index(lb::LoadBalance, local_idx::Int)::Int
 end
 
 """
-$SIGNATURES
-Return the number of indices (task) this process is responsible of. 
+$TYPEDSIGNATURES
+Return the number of indices (task) this process is responsible for. 
 """
 my_load(lb::LoadBalance)::Int = basic_load(lb) + (lb.my_process_index ≤ n_extras(lb) ? 1 : 0)
 

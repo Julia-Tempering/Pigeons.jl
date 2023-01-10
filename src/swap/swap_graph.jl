@@ -5,7 +5,7 @@ These are instantiated by [`swap_graphs`](@ref).
 
 Canonical example is the standard Odd and Even swap. Extension point for e.g. 
 
-- parallel parallel tempering
+- parallel parallel tempering,
 - variational methods with more than 2 legs,
 - PT algorithms dealing with more than one target simultaneously for the purpose of model selection. 
 """

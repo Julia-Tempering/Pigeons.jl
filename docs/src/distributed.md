@@ -78,8 +78,11 @@ Let us start with a high-level picture of the distributed PT algorithm.
 
 The high-level code is the function [`run()`](@ref) which is identical to the single-machine algorithm. 
 
-The difference between the single-process and distributed PT algorithms 
-lay in the behaviours of [`swap!`](@ref) (this difference is triggered by multiple dispatch 
+Notice the code is almost identical to the single-machine algorithm [presented earlier](pt.html#Basic-PT-algorithm) with the only difference being [`create_vector_replicas`](@ref) is 
+replaced by [`create_entangled_replicas`](@ref). Also, as promised the 
+output is identical despite a vastly different swap logic. 
+Indeed, beyond the superficial syntactic similarities between the single process and 
+distributed code, the behaviour of [`swap!`](@ref) is quite different (this is triggered by multiple dispatch 
 detecting the different types for 
 `replica` in fully serial versus distributed). 
 
@@ -171,6 +174,6 @@ in turn calls [`all_reduce_deterministically()`](@ref) with the appropriate
 merging operations. See [`reduce_recorders!()`](@ref) and 
 [`all_reduce_deterministically()`](@ref) for more information on how 
 our implementation preserves Parallelism Invariance, while maintaining the logarithmic runtime of binary-tree based 
-collective operations (more precisely, `all_reduce_deterministically()` runs in time ``\log(N)`` 
-when each machine holds a single chain).
+collective operations. (More precisely, `all_reduce_deterministically()` runs in time ``\log(N)`` 
+when each machine holds a single chain.)
 

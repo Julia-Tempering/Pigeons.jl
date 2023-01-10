@@ -19,8 +19,7 @@ This is done in two steps:
 - Given these statistics for the two chains, [`swap_decision()`](@ref) then perform the swap.
 
 The rationale for breaking this down into two steps is that in a distributed swap context, [`swap!()`](@ref) will
-take care of transmitting the sufficient 
-statistics over the network if necessary.
+take care of transmitting the sufficient statistics over the network if necessary.
 
 The function [`record_swap_stats!()`](@ref) is used to record information about swapping, 
 in particular mean swap acceptance probabilities.
@@ -32,13 +31,13 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     """
     $SIGNATURES
     
-    By default, two sufficient statistics are computed and stored in [`SwapStat`](@ref) struct:
+    By default, two sufficient statistics are computed and stored in the [`SwapStat`](@ref) struct:
 
     - The result of calling [`log_unnormalized_ratio()`](@ref) on [`pair_swapper`](@ref)
     - A uniform number to coordinate the swap decision.
 
     This can be extended by dispatching on other `pair_swapper` types, with the 
-    constraint that the returned sufficient statistics should satisfies `isbitstype()`.
+    constraint that the returned sufficient statistics should satisfy `isbitstype()`.
     """
     function swap_stat(pair_swapper, replica::Replica, partner_chain::Int) 
         log_potentials = pair_swapper
@@ -92,7 +91,7 @@ end
 swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
 
 """
-For testing/benchmarking purpose, a simple 
+For testing/benchmarking purposes, a simple 
 [`pair_swapper`](@ref) where all swaps have equal 
 acceptance probability. 
 
