@@ -8,14 +8,14 @@ struct Result{T}
     exec_folder::String 
 end
 
-@informal pigeons_output begin # ?
+#@informal pigeons_output begin # ?
     # field: exec_folder
-end
+#end
 
 
 # TODO ommitting rounds; support extra_rounds 
-Resume(pt::PT, from_round::Int, to_round::Int) = TODO() 
-Resume(result::Result, from_round::Int, to_round::Int) = TODO()
+#Resume(pt::PT, from_round::Int, to_round::Int) = TODO() 
+#Resume(result::Result, from_round::Int, to_round::Int) = TODO()
 
 abstract type Submission end 
 struct InCurrentProcess <: Submission end 

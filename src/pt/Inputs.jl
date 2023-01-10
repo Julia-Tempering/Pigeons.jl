@@ -1,7 +1,8 @@
 """
-Used to create Parallel Tempering algorithms. 
+A [`Base.@kwdef`](https://github.com/JuliaLang/julia/blob/79ceb8dbeab1b5a47c6bd664214616c19607ffab/base/util.jl#L514) struct 
+used to create Parallel Tempering algorithms. 
 
-Fields:
+Fields (see source file for default values):
 $FIELDS
 """
 @kwdef mutable struct Inputs{I}

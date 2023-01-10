@@ -142,11 +142,15 @@ To see the list of built-in implementations of [`recorder`](@ref), see the secti
 To specify you want to use one [`recorder`](@ref), specify it in the Vector 
 argument `recorder_builders` in [`Inputs`](@ref). For example, to signal you want 
 to save the full index process, use:
+```@example recorders
+using Pigeons
+
+pt = pigeons(target = toy_mvn_normal(1), recorder_builders = [index_process])
 ```
-input = Inputs(target = Pigeons.ScaledPrecisionNormalPath(1), recorder_builders = [index_process])
-pigeons(input)
+You can then access the index process via 
+```@example recorders
+pt.reduced_recorders.index_process
 ```
-You can then access the index process via `pt.reduced_recorders.index_process`. 
 
 
 #### Creating your own [`recorder`](@ref)

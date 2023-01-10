@@ -19,7 +19,7 @@ distributed over hundreds or thousands of MPI-communicating machines.
 
 We describe here the class of problems that can be approached using Pigeons.
 
-Let ``\pi(x)`` denote a probability density. 
+Let ``\pi(x)`` denote a probability density called the **target**. 
 In many problems, e.g. in Bayesian statistics, the density $\pi$ is typically 
 known only up to a normalization constant, 
 ```math
@@ -58,10 +58,46 @@ Pigeons shines in the following scenarios:
 
 ## Example
 
+### Running PT
+
+Specify the target distribution and, optionally, 
+parameters like random seed, etc by creating an 
+[`Inputs`](@ref):
+
+```@example example
+using Pigeons
+
+inputs = Inputs(target = toy_mvn_normal(100))
+```
+
+See [`Inputs`](@ref) for more options. 
+
+Then, run PT (locally on one process, but using multi-threading) using:
+
+```@example example
+pt = pigeons(inputs)
+```
+
+This runs PT on a 100-dimensional MVN toy example. 
+
+Since this is the most common operation in this package, creating inputs and running PT can be done in one line as:
+
+```@example example
+pt = pigeons(target = toy_mvn_normal(100))
+```
+
+### Loading and resuming a checkpoint
+
 !!! warning "TODO"
 
-    Later on, once we have interfaces with some PPLs, write some user-facing examples, 
-    showing the key capabilities.
+    Work in progress: show an example.
+
+
+### Automatic correctness checks for parallel/distributed implementations
+
+!!! warning "TODO"
+
+    Work in progress: show an example.
 
 
 ## Specification of general models

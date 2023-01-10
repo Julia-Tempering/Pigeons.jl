@@ -90,7 +90,8 @@ include("deo.jl")
 export pigeons, Inputs, PT, 
     Resume, Result, 
     ToNewProcess, ToMPI,
-    ScaledPrecisionNormalPath
+    toy_mvn_normal,
+    index_process, swap_acceptance_pr
 
 end # End module
 

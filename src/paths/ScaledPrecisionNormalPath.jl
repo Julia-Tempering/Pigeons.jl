@@ -13,9 +13,10 @@ end
 """
 $SIGNATURES
 
-Toy path for testing: see section I.4.1 in Syed et al 2021. 
+Toy Multivariate Normal (MVN) path of distributions for testing: 
+see section I.4.1 in Syed et al 2021. 
 """
-@provides path ScaledPrecisionNormalPath(dim::Int) = ScaledPrecisionNormalPath(1.0, 10.0, dim) 
+@provides path toy_mvn_normal(dim::Int) = ScaledPrecisionNormalPath(1.0, 10.0, dim) 
 precision(path::ScaledPrecisionNormalPath, beta) = (1.0 - beta) * path.precision0 + beta * path.precision1
 interpolate(path::ScaledPrecisionNormalPath, beta) = MultivariateNormal(zeros(path.dim), Matrix(I, path.dim, path.dim) / precision(path, beta))
 
