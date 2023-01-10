@@ -56,10 +56,10 @@ Set the local exploration kernels given the `potential` and the annealing
 parameters, `etas`.
 """
 function setkernels(potential, etas)
-    kernels = Vector{SS}(undef, size(etas)[1])
+    kernels = Vector{SliceSampler}(undef, size(etas)[1])
     for i in 1:size(etas)[1]
         loglik = (x) -> potential(x, etas[i, :]) # Neg. log *density* (*not* the log-likelihood!)
-        kernels[i] = SS(loglik) # Use slice sampling defaults
+        kernels[i] = SliceSampler(loglik) # Use slice sampling defaults
     end
     return kernels
 end

@@ -49,7 +49,7 @@ struct LoadBalance
     """
     n_global_indices::Int
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     """
     function LoadBalance(my_process_index::Int, n_processes::Int, n_global_indices::Int)
         @assert 1 ≤ my_process_index ≤ n_processes ≤ n_global_indices
@@ -58,13 +58,13 @@ struct LoadBalance
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 A load balance with only one process.
 """
 single_process_load(n_global_indices) = LoadBalance(1, 1, n_global_indices)
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 The slice of `lb.global_indices` this process is reponsible for.
 """
 function my_global_indices(lb::LoadBalance)
@@ -73,7 +73,7 @@ function my_global_indices(lb::LoadBalance)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Find the process id (1-indexed) responsible for the given `global_idx`. 
 """
 function find_process(lb::LoadBalance, global_idx::Int)::Int
@@ -87,7 +87,7 @@ function find_process(lb::LoadBalance, global_idx::Int)::Int
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Find the local index corresponding to the given `global_index`. 
 Assumes the given `global_index` is one of this process'. 
 """
@@ -99,7 +99,7 @@ function find_local_index(lb::LoadBalance, global_idx::Int)::Int
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Find the global index corresponding to the given `local_index`. 
 """
 function find_global_index(lb::LoadBalance, local_idx::Int)::Int

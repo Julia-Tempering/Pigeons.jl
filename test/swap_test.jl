@@ -30,7 +30,7 @@ function test_swap(replicas, n_iters::Int, accept_pr::Float64)
     timing_stats = Series(Mean(), Variance())
 
     for iteration in 1:n_iters
-        t = @elapsed swap!(swapper, replicas, deo(n_chains_global(replicas), iteration))
+        t = @elapsed swap!(swapper, replicas, deo(n_chains(replicas), iteration))
     
         if iteration > n_iters / 2
             fit!(timing_stats, t)
@@ -50,7 +50,7 @@ end
 function test_swap(n_chains::Int, n_iters::Int, accept_pr::Float64, useMPI::Bool)
     rng = SplittableRandom(1) 
     if useMPI
-        test_swap(create_entangled_replicas(n_chains, 1:n_chains, rng, true), n_iters, accept_pr)
+        test_swap(create_entangled_replicas(n_chains, 1:n_chains, rng), n_iters, accept_pr)
     else
         test_swap(   create_vector_replicas(n_chains, 1:n_chains, rng), n_iters, accept_pr)
     end

@@ -39,7 +39,7 @@ function deo(potential, initial_state, initial_index, initial_lift, schedule, ϕ
     lifts = Vector{typeof(initial_lift)}(undef, nscan + 1)
     lifts[1] = initial_lift
 
-    kernels = Vector{SS}(undef, size(etas)[1])
+    kernels = Vector{SliceSampler}(undef, size(etas)[1])
     kernels = setkernels(potential, etas)
 
     chainacceptance = zeros(N+1)

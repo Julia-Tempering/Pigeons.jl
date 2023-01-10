@@ -45,7 +45,7 @@ struct PermutedDistributedArray{T}
     entangler::Entangler
 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     """
     function PermutedDistributedArray(my_initial_value::AbstractVector{T}, entangler::Entangler) where T
         @assert length(my_initial_value) == my_load(entangler.load)
@@ -55,7 +55,7 @@ struct PermutedDistributedArray{T}
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Retreive the values for the given `indices`, using MPI communication when needed. 
 
@@ -76,7 +76,7 @@ function permuted_get(p::PermutedDistributedArray{T}, indices::AbstractVector{In
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Set the values for the given `indices` to the given `new_values`, using MPI communication when needed. 
 

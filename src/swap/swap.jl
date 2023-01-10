@@ -1,5 +1,6 @@
 """
-$TYPEDSIGNATURES
+$SIGNATURES
+
 Single process, non-allocating `swap!` implementation. 
 """
 function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
@@ -21,18 +22,24 @@ function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
             end
         end
     end
-    # re-sort
+    # "re-sort": do not need to sort from scratch, just need swaps
+    resort_replicas!(replicas)
+end
+
+function resort_replicas!(replicas)
     for my_chain in eachindex(replicas)
         my_replica = replicas[my_chain]
         if my_replica.chain != my_chain
             partner_chain = my_replica.chain
             partner_replica = replicas[partner_chain]
-            @assert partner_replica.chain == my_chain
             replicas[my_chain]      = partner_replica
             replicas[partner_chain] = my_replica
         end
     end
 end
+
+# when reloading the vector-backed replicas from checkpoint, need to sort from scratch
+sort_replicas!(replicas) = sort!(replicas, by = r -> r.chain)
 
 function sorted(replicas) 
     for i in eachindex(replicas)
@@ -44,7 +51,7 @@ function sorted(replicas)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Entangled MPI `swap!` implementation.
 
@@ -95,7 +102,7 @@ function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Given a [`recorders`](@ref), create an index process plot.
 """
@@ -130,7 +137,6 @@ function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partn
         r.chain = partner_chain # NB: other "half" of the swap performed by partner
     end
 end
-
 
 function checked_partner_chain(swap_graph, my_chain::Int)::Int 
     result            = partner_chain(swap_graph, my_chain)

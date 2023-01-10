@@ -1,23 +1,5 @@
 module Pigeons
 
-#=
-TODO: right now we are exporting too much stuff,
-i.e. both mid-level and high-level interfaces.
-At some point should transition to either 
-only high-level or some kind of switch allowing 
-different exports based on MCMC-developer vs 
-Bayesian modeller profiles...
-
-We do want all these to be documented though 
-(and certainly not every single private one, so 
-keep it like that for now)
-
-Maybe build some macro(s) to control export granularity 
-    for e.g. internal dev, testing, etc (e.g. use https://github.com/hayesall/ExportPublic.jl)
-    with the default for most user still just 'using Pigeons'
-=#
-
-
 import SplittableRandoms: SplittableRandom, split
 
 import MPI: Comm, Allreduce, Comm_rank, 
@@ -27,7 +9,6 @@ import MPI: Comm, Allreduce, Comm_rank,
             RequestSet, mpiexec, Allreduce, 
             Allgather, Comm_split, isend, recv,
             bcast
-
             
 using Base: Forward
 using Distributions
@@ -41,120 +22,76 @@ using DocStringExtensions
 using Plots
 using LinearAlgebra
 using SpecialFunctions
+using Serialization
+using ConcreteStructs
+using Random 
+using Graphs
 
-export NRPT, slice_sample, SS
+import Base./
+import Serialization.serialize
+import Serialization.deserialize
+import Base.@kwdef
+import Base.show 
+import Base.print 
+import Base.Threads.@threads
+import CRC32c.crc32c
 
-include("utils.jl")
-export  split_slice,
-        mpi_test,
-        @informal, 
-        informal_doc
-
-### Paths, discretization, log_potentials
-include("log_potential.jl")
-include("log_potentials.jl")
-export log_unnormalized_ratio
-
-include("path.jl")
-export  interpolate
-
-include("discretize.jl")
-export  discretize,
-        Schedule
-
-include("path_implementations.jl")
-export  LinearInterpolator,
-        create_path,
-        TranslatedNormalPath,
-        ScaledPrecisionNormalPath,
-        scaled_normal_example,
-        analytic_cumulativebarrier
-
-
-### Samplers
-include("samplers/samplers.jl")
-
-### NRPT
-include("acceptance.jl")
-include("adaptation.jl")
-export communicationbarrier
-
-include("deo.jl")
-include("exploration.jl")
-include("restarts.jl")
-include("NRPT.jl")
-
-
-
-### Low-level MPI utilities
-include("mpi_utils/LoadBalance.jl")
-export  my_global_indices,
-        find_process,
-        find_local_index,
-        find_global_index,
-        my_load
-
-include("mpi_utils/Entanglement.jl")
-export  Entangler,
-        transmit,
-        transmit!,
-        reduce_deterministically,
-        all_reduce_deterministically
-
-include("mpi_utils/PermutedDistributedArray.jl")
-export  PermutedDistributedArray,
-        permuted_get,
-        permuted_set!
-
+# include()'s generated using: sort_includes("Pigeons.jl")
+include("utils/exec_folder.jl")
+include("utils/Indexer.jl")
+include("utils/misc.jl")
+include("utils/Immutable.jl")
+include("utils/@informal.jl")
+include("swap/DEO.jl")
+include("schedules/Schedule.jl")
+include("schedules/discretize.jl")
+include("samplers/hmc.jl")
+include("samplers/SpliceSampler.jl")
+include("pt/output_files.jl")
+include("pt/Iterators.jl")
+include("pt/Inputs.jl")
+include("pt/Shared.jl")
+include("swap/swap_graphs.jl")
+include("pt/PT.jl")
+include("tempering/NonReversiblePT.jl")
+include("tempering/tempering.jl")
+include("swap/swap_graph.jl")
+include("replicas/Replica.jl")
+include("swap/pair_swapper.jl")
+include("recorders/recorders.jl")
+include("recorders/recorder.jl")
+include("pt/pt_algorithm.jl")
+include("pt/checks.jl")
+include("pt/checkpoint.jl")
+include("paths/TranslatedNormalPath.jl")
+include("paths/ScaledPrecisionNormalPath.jl")
+include("paths/path.jl")
+include("paths/InterpolatingPath.jl")
 include("mpi_utils/one_per_host.jl")
-export one_per_host
+include("mpi_utils/LoadBalance.jl")
+include("mpi_utils/Entangler.jl")
+include("mpi_utils/PermutedDistributedArray.jl")
+include("replicas/EntangledReplicas.jl")
+include("swap/swap.jl")
+include("replicas/replicas.jl")
+include("log_potentials/log_potentials.jl")
+include("log_potentials/log_potential.jl")
+include("explorers/explorer.jl")
+include("explorers/ToyExplorer.jl")
+include("summary.jl")
+include("restarts.jl")
+include("exploration.jl")
+include("api.jl")
+include("adaptation.jl")
+include("acceptance.jl")
+include("NRPT.jl")
+include("deo.jl")
 
-### Mid-level swap APIs
-include("Replica.jl")
-export  Replica,
-        chain,
-        recorder
-
-include("pair_swapper.jl")
-export swap_decision,
-       swap_stat,
-       record_swap_stats!,
-       SwapStat
-
-
-include("replicas.jl")
-export  swap!,
-        locals,
-        load,
-        n_chains_global,
-        create_vector_replicas,
-        n_chains_global,
-        initialization,
-        create_vector_replicas
-
-include("EntangledReplicas.jl")
-export  EntangledReplicas,
-        entangler,
-        create_entangled_replicas
-
-include("swap_graph.jl")
-export deo
-
-include("swap.jl")
-export  swap!,
-        index_process_plot
-
-### Recorder are used to collect statistics
-include("recorders.jl")
-export  recorder_keys,
-        record_if_requested!,
-        custom_recorders,
-        default_recorders,
-        reduced_recorders
-
-include("recorder.jl")
-export  default_recorders,
-        record!
+export pigeons, Inputs, PT, 
+    Resume, Result, 
+    ToNewProcess, ToMPI,
+    toy_mvn_normal,
+    index_process, swap_acceptance_pr
 
 end # End module
 
@@ -168,3 +105,4 @@ Pkg.activate(".")
 using Pigeons
 
 """
+

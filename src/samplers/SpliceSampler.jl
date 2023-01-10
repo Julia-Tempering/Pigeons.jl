@@ -1,4 +1,4 @@
-mutable struct SS{U, W, P, D, C, X}
+mutable struct SliceSampler{U, W, P, D, C, X}
     potential::U # -log(f(x))
     w::W # Initial slice size
     p::P # Slices are no larger than 2^p * w
@@ -11,7 +11,7 @@ mutable struct SS{U, W, P, D, C, X}
     Rvec::X
     x_1vec::X
 end
-SS(potential) = SS(potential, 1.0, 10, 1.0, [0], [0.0], [0.0], [0.0], [0.0])
+SliceSampler(potential) = SliceSampler(potential, 1.0, 10, 1.0, [0], [0.0], [0.0], [0.0], [0.0])
 # TODO: proper initialization
 
 """
@@ -19,7 +19,7 @@ SS(potential) = SS(potential, 1.0, 10, 1.0, [0], [0.0], [0.0], [0.0], [0.0])
 
 Double the current slice.
 """
-function slice_double(h::SS, g, x_0::Vector{T}, z, c::Integer) where {T}
+function slice_double(h::SliceSampler, g, x_0::Vector{T}, z, c::Integer) where {T}
     U = rand()
     L = x_0[c] - h.w*U
     R = L + h.w
@@ -50,7 +50,7 @@ end
 
 Shrink the current slice.
 """
-function slice_shrink(h::SS, g, x_0::Vector{T}, z, L::T, R::T, c::Integer) where {T}
+function slice_shrink(h::SliceSampler, g, x_0::Vector{T}, z, L::T, R::T, c::Integer) where {T}
     Lbar = L
     Rbar = R
 
@@ -73,11 +73,11 @@ end
 
 
 """
-    slice_accept(h::SS, g, x_0, x_1, z, L, R, c)
+    slice_accept(h::SliceSampler, g, x_0, x_1, z, L, R, c)
 
 Test whether to accept the current slice.
 """
-function slice_accept(h::SS, g, x_0::Vector{T}, x_1, z, L::T, 
+function slice_accept(h::SliceSampler, g, x_0::Vector{T}, x_1, z, L::T, 
                       R::T, c::Integer) where {T}
     Lhat = L
     Rhat = R
@@ -113,12 +113,12 @@ end
 
 
 """
-    slice_sample(h::SS, x_0::Vector{Float64}, n::Int)
+    slice_sample(h::SliceSampler, x_0::Vector{Float64}, n::Int)
 
 Slice sample `n` points given a starting vector  `x_0` and the struct `h` 
 that contains information about the log-density.
 """
-function slice_sample(h::SS, x_0::Vector{T}, n::Integer) where {T}
+function slice_sample(h::SliceSampler, x_0::Vector{T}, n::Integer) where {T}
     g(x) = -h.potential(x) # log(f(x))
     dim_x = length(x_0)
     x = [[0.0 for j in 1:dim_x] for i in 1:(n+1)]

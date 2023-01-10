@@ -44,6 +44,7 @@ end
     end
 end
 
+
 function test_split_slice()
     # test disjoint random streams
     set = Set{Float64}()
@@ -67,6 +68,10 @@ end
 
 @testset "split_test" begin
     test_split_slice()
+end
+
+@testset "Serialize" begin
+    mpi_test(1, "serialization_test.jl")
 end
 
 
