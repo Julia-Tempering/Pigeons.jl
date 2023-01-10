@@ -23,10 +23,17 @@ $FIELDS
     shared
 
     """
-    Path to a directory shared by all MPI processes, 
+    Either a path to a directory shared by all MPI processes, 
+    which is used to save information to disk (checkpoints, samples etc);
     or nothing if a completely in-memory algorithm is used. 
     """
     exec_folder::Union{String, Nothing}
+    
+    """
+    [`recorders`](@ref) from the last round, or empty 
+    [`recorders`](@ref). 
+    """
+    reduced_recorders
 end
 
 """
@@ -36,7 +43,7 @@ function PT(inputs::Inputs)
     shared = Shared(inputs)
     state_init = create_state_initializer(inputs.target, inputs)
     replicas = create_replicas(inputs, shared, state_init)
-    return PT(inputs, replicas, shared, next_exec_folder())
+    return PT(inputs, replicas, shared, next_exec_folder(), create_recorders(inputs, shared))
 end
 
 Base.show(io::IO, pt::PT) = # contract: should give valid julia expression creating an equivalent object

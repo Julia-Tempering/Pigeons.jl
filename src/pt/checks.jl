@@ -2,9 +2,18 @@ function preflight_checks(pt)
     if pt.inputs.checked_round > 0 && !pt.inputs.checkpoint
         throw(ArgumentError("activate checkpoint when performing checks"))
     end
-
+    if pt.inputs.checked_round < 0 || pt.inputs.checked_round > pt.inputs.n_rounds 
+        throw(ArgumentError("set checked_round between 0 and n_rounds inclusively"))
+    end
 end
 
+"""
+Perform checks to detect software defects. 
+Unable via field `checked_round` in [`Inputs`](@ref)
+Currently the following checks are implemented:
+
+- [`check_against_serial()`](@ref)
+"""
 function run_checks(pt)
     if pt.shared.iterators.round != pt.inputs.checked_round
         return 
@@ -16,6 +25,11 @@ function run_checks(pt)
     end
 end
 
+""" 
+Run a separate, fully serial version of the PT algorithm, 
+and compare the checkpoint files to ensure the two 
+produce exactly the same output.
+"""
 function check_against_serial(pt)
     round = pt.shared.iterators.round
     parallel_checkpoint = pt.exec_folder / "round=$round/checkpoint"

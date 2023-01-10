@@ -30,16 +30,12 @@ pigeons(; submission = InCurrentProcess(), args...) =
 
 pigeons(pt_arguments) = pigeons(pt_arguments, InCurrentProcess())
 
-function pigeons(inputs::Inputs, ::InCurrentProcess) 
-    pt = PT(inputs)
-    run!(pt)
-    return pt
-end
+pigeons(inputs::Inputs, ::InCurrentProcess) = run(PT(inputs))
 
 function pigeons(resume::Resume, ::InCurrentProcess)
     pt = PT(resume.checkpoint_folder)
     pt.inputs.n_rounds = resume.n_rounds 
-    run!(pt)
+    run(pt)
     return pt 
 end
 

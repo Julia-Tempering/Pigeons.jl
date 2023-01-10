@@ -1,4 +1,4 @@
-function run!(pt) 
+function run(pt) 
     preflight_checks(pt)
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
@@ -7,7 +7,7 @@ function run!(pt)
         write_checkpoint(pt, reduced_recorders) 
         run_checks(pt)
     end
-    return nothing 
+    return pt 
 end
 
 report(pt, reduced_recorders) = nothing # TODO
@@ -80,7 +80,7 @@ function adapt(pt, reduced_recorders)
         updated_tempering, 
         updated_explorer)
     updated_replicas = pt.replicas # TODO: adapt too? e.g. assign to closest from previous, leveraging checkpoints?
-    return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder)
+    return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder, reduced_recorders)
 end
 
 is_reference(chain, shared) = 

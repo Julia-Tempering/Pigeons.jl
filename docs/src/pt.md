@@ -112,6 +112,9 @@ MPI process, and read-write during each
 round, while [`Shared`](@ref) is identical in all MPI processes, read only during a round, and updated only between 
 rounds. 
 
+To orchestrate the creation of [`PT`](@ref) structs, [`Inputs`](@ref) is used. Inputs fully determine the execution of a 
+PT algorithm (target distribution, random seed, etc). 
+
 
 ### Collecting statistics: [`recorder`](@ref) and [`recorders`](@ref)
 
