@@ -1,5 +1,5 @@
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Single process, non-allocating `swap!` implementation. 
 """
@@ -51,7 +51,7 @@ function sorted(replicas)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Entangled MPI `swap!` implementation.
 
@@ -102,7 +102,7 @@ function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Given a [`recorders`](@ref), create an index process plot.
 """

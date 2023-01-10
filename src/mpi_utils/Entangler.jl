@@ -75,14 +75,14 @@ mutable struct Entangler
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Detect if more than one MPI processes can be found. 
 """ 
 mpi_needed() = Entangler(2, verbose = false).load.n_processes > 1
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 The same as [`transmit!()`](@ref) but instead of writing the result to an input argument, provide the result 
 as a returned `Vector`. 
@@ -95,7 +95,7 @@ end
 
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Use MPI point-to-point communication to 
 permute the contents of `source_data` across MPI processes, writing the permuted data into 
@@ -172,7 +172,7 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Perform a binary [reduction](https://en.wikipedia.org/wiki/MapReduce) of the 
 `source_data`, using MPI when needed. 
@@ -261,7 +261,7 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Same as [`reduce_deterministically()`](@ref) except that the result at the root of the 
 tree is then broadcast to all machines so that the output of `all_reduce_deterministically()` 

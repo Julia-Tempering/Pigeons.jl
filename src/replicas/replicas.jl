@@ -10,7 +10,7 @@ Implementations provided
 """
 @informal replicas begin
     """
-    $(TYPEDSIGNATURES)
+    $(SIGNATURES)
     For each pair of chains encoded in [`swap_graph`](@ref), use 
     [`pair_swapper`](@ref) to decide if the pair will swap or not, 
     and write the changes in-place into [`replicas`](@ref) (i.e. exchanging 
@@ -18,22 +18,22 @@ Implementations provided
     """
     swap!(pair_swapper, replicas, swap_graph) = @abstract 
     """
-    $(TYPEDSIGNATURES)
+    $(SIGNATURES)
     Return the replica's that are stored in this machine
     """
     locals(replicas) = @abstract 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     Return the [`replicas`](@ref)'s [`LoadBalance`](@ref) (possibly [`single_process_load`](@ref))
     """
     load(replicas) = @abstract
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     Return the [`replicas`](@ref)'s `MPI.Comm` or `nothing` if no MPI needed
     """
     communicator(replicas) = @abstract 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     Return the [`replicas`](@ref)'s [`Entangler`](@ref) (possibly a no-communication Entangler if a single process is involved)
     """
     entangler(replicas) = @abstract 
@@ -53,7 +53,7 @@ initializations.
 """
 @informal state_initializer begin 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     Determine [`state_initializer`](@ref)'s initialization for the given `replica_index`.
     """
     initialization(state_initializer, rng::SplittableRandom, replica_index::Int) = @abstract
@@ -75,7 +75,7 @@ struct FromCheckpoint
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Create [`replicas`](@ref), detecting automatically if MPI is needed. 
 
 Argument `source` is either a [`state_initializer`](@ref) to create 
@@ -88,7 +88,7 @@ a saved checkpoint.
         create_vector_replicas(inputs, shared, source)
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Create [`replicas`](@ref) when distributed computing is not needed. 
 See also [`state_initializer`](@ref).
 

@@ -11,7 +11,7 @@ struct ScaledPrecisionNormalPath
     dim::Int
 end
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Toy path for testing: see section I.4.1 in Syed et al 2021. 
 """
@@ -20,7 +20,7 @@ precision(path::ScaledPrecisionNormalPath, beta) = (1.0 - beta) * path.precision
 interpolate(path::ScaledPrecisionNormalPath, beta) = MultivariateNormal(zeros(path.dim), Matrix(I, path.dim, path.dim) / precision(path, beta))
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Toy path for testing: see section I.4.1 in Syed et al 2021. 
 """
@@ -30,7 +30,7 @@ function scaled_normal_example(n_chains, dim)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Known cumulative barrier used for testing, 
 from [Predescu et al., 2003](https://aip.scitation.org/doi/10.1063/1.1644093).

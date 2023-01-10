@@ -18,7 +18,7 @@ end
 
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Consider a situation where a distributed system serializes its state,  
 and part of the state contains large immutable data.
@@ -53,7 +53,7 @@ Immutable(data) = Immutable(data, true)
 const immutables = Dict{UInt, Any}()
 
 """
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 See [`Immutable()`](@ref).
 """
@@ -62,7 +62,7 @@ function serialize_immutables(filename::AbstractString)
 end
 
 """
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 See [`Immutable()`](@ref).
 """

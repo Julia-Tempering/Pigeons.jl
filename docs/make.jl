@@ -1,6 +1,6 @@
 using Pigeons
 using Documenter
-using DocStringExtensions
+using DocStringExtensions 
 
 DocMeta.setdocmeta!(Pigeons, :DocTestSetup, :(using Pigeons); recursive=true)
 

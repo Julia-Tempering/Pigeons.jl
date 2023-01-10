@@ -6,7 +6,7 @@ The main use of this interface is to pass it to [`discretize()`](@ref).
 """
 @informal path begin
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     Returns the [`log_potential`](@ref) at point `beta` in the [`path`](@ref)
     """
     interpolate(path, beta) = @abstract

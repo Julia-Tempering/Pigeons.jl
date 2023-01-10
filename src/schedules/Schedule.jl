@@ -9,7 +9,7 @@ struct Schedule
     grids::Vector{Float64} # NB: we avoid type param here (see * below)
     
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     """
     function Schedule(grids) 
         @assert issorted(grids)
@@ -24,7 +24,7 @@ end
 n_chains(schedule::Schedule) = length(schedule.grids)
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Create a [`Schedule`](@ref) with `n_chains` equally spaced grid points.
 """
 function equally_spaced_schedule(n_chains::Int) 
@@ -35,7 +35,7 @@ function equally_spaced_schedule(n_chains::Int)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Create a [`Schedule`](@ref) with `n_chains` grid points computed using Algorithm 2 in 
 Syed et al, 2021. 
 """

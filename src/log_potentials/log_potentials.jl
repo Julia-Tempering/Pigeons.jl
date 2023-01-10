@@ -1,5 +1,5 @@
 """
-$(TYPEDSIGNATURES)
+$(SIGNATURES)
 Assumes the input `log_potentials` is a vector where each element is a [`log_potential`](@ref).
 
 This default implementation is sufficient in most cases, but in less standard scenarios,
@@ -20,7 +20,7 @@ For example, we provide this behaviour for any `Vector` containing [`log_potenti
 """
 @informal log_potentials begin
     """
-    $(TYPEDSIGNATURES)
+    $(SIGNATURES)
     The argument `numerator` selects one distribution ``\\pi_i`` from the collection [`log_potentials`](@ref), 
     and similarly `denominator` selects ``\\pi_j``.
     Let ``x`` denote the input `state`.

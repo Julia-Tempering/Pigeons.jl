@@ -3,7 +3,7 @@ Specification of a local exploration strategy.
 """
 @informal explorer begin
     """
-    $TYPEDSIGNATURES 
+    $SIGNATURES 
 
     Perform i.i.d. sampling on the given [`replica`](@ref). 
     This is only called when the replica is visiting a 
@@ -17,7 +17,7 @@ Specification of a local exploration strategy.
     regenerate!(explorer, replica, shared) = @abstract
 
     """
-    $TYPEDSIGNATURES 
+    $SIGNATURES 
 
     Perform a transition on the given [`replica`](@ref) 
     invariant with respect to the distribution of the 
@@ -31,7 +31,7 @@ Specification of a local exploration strategy.
     step!(explorer, replica, shared) = @abstract 
 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
 
     Given an [`explorer`](@ref), reduced [`recorders`](@ref) 
     and [`Shared`](@ref) return an updated [`explorer`](@ref).
@@ -39,7 +39,7 @@ Specification of a local exploration strategy.
     adapt_explorer(explorer, reduced_recorders, shared) = @abstract
     
     """ 
-    $TYPEDSIGNATURES
+    $SIGNATURES
 
     What information is needed to perform [`adapt_explorer`](@ref)?
     Answer this by specifying an iterator containing [`recorder_builder`](@ref)'s. 
@@ -49,7 +49,7 @@ Specification of a local exploration strategy.
 end
 
 """
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 Find the [`log_potential`](@ref) for the chain 
 the replica is at, based on the [`Shared`](@ref) object.  
@@ -57,7 +57,7 @@ the replica is at, based on the [`Shared`](@ref) object.
 find_log_potential(replica, shared) = shared.tempering.log_potentials[replica.chain]
 
 """ 
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 Given an [`Inputs`](@ref) object, dispatch on 
 `create_explorer(inputs.target, inputs)` to construct the 

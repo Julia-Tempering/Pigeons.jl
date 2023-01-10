@@ -1,5 +1,5 @@
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Update the annealing schedule. Given the cumulative communication barrier function
 in `cumulativebarrier`, find the optimal schedule of size `N`+1.
@@ -21,7 +21,7 @@ end
 
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Compute the local communication barrier and cumulative barrier functions from the 
 `rejection` rates and the current annealing `schedule`. The estimation of the barriers 

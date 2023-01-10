@@ -11,7 +11,7 @@ Canonical example is the standard Odd and Even swap. Extension point for e.g.
 """
 @informal swap_graph begin
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     For a given [`swap_graph`](@ref) and input `chain` index, what chain will it interact with at the current iteration?
     Convention: if a chain is not interacting, return its index.
     """

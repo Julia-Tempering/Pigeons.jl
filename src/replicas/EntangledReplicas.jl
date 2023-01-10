@@ -23,7 +23,7 @@ locals(r::EntangledReplicas) = r.locals
 communicator(r::EntangledReplicas) = entangler(r).communicator
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Create distributed replicas. 
 
 See [`create_replicas`](@ref).

@@ -30,7 +30,7 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
 """
 @informal pair_swapper begin
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     
     By default, two sufficient statistics are computed and stored in [`SwapStat`](@ref) struct:
 
@@ -48,7 +48,7 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     end
 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
 
     Given a [`pair_swapper`](@ref), a [`recorders`](@ref), the provided chain indices, and 
     the sufficient statistics computed by [`swap_stat()`](@ref), record statistics. 
@@ -70,7 +70,7 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     end
 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
 
     Given a [`pair_swapper`](@ref), a [`recorders`](@ref), the provided chain indices, and 
     the sufficient statistics computed by [`swap_stat()`](@ref), make a swap decision.
@@ -104,20 +104,20 @@ struct TestSwapper
     constant_swap_accept_pr::Float64
 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     """
     @provides pair_swapper TestSwapper(constant_swap_accept_pr) = new(constant_swap_accept_pr)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 See [`TestSwapper`](@ref).
 """
 swap_stat(swapper::TestSwapper, replica::Replica, partner_chain::Int)::Float64 = rand(replica.rng)
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 See [`TestSwapper`](@ref).
 """
@@ -127,7 +127,7 @@ function swap_decision(swapper::TestSwapper, chain1::Int, stat1::Float64, chain2
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 See [`TestSwapper`](@ref).
 """

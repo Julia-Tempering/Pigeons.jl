@@ -59,7 +59,7 @@ end
 const informal_file_name = ".interfaces"
 
 """
-$(TYPEDSIGNATURES)
+$(SIGNATURES)
 Generate informal interface documentation, e.g.: 
 ```
 makedocs(;
@@ -97,7 +97,7 @@ function informal_link(name)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Provides a `Set{Expr}` containing all the providers of the 
 given name in the given module. 

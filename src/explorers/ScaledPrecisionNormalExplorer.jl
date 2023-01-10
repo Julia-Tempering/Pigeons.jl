@@ -5,7 +5,7 @@ i.i.d. sampling via `rand(rng, log_potential)`.
 struct ScaledPrecisionNormalExplorer end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 """
 @provides explorer create_explorer(target::ScaledPrecisionNormalPath, inputs) = ScaledPrecisionNormalExplorer()
 create_state_initializer(target::ScaledPrecisionNormalPath, inputs) = Ref(zeros(target.dim))

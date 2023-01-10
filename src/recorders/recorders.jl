@@ -13,7 +13,7 @@ accessing statistic values.
 """
 @informal recorders begin 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
 
     If the [`recorders`](@ref) contains the given `recorder_key`, 
     send the `value` to the [`recorder`](@key) corresponding to the 
@@ -27,7 +27,7 @@ accessing statistic values.
 end
 
 """
-$(TYPEDSIGNATURES)
+$(SIGNATURES)
 
 Create a [`recorders`](@ref) from an [`Inputs`](@ref) and [`Shared`](@ref).
 """
@@ -35,7 +35,7 @@ Create a [`recorders`](@ref) from an [`Inputs`](@ref) and [`Shared`](@ref).
     create_recorders(recorder_builders(inputs, shared)) 
 
 """
-$(TYPEDSIGNATURES)
+$(SIGNATURES)
 
 Create a [`recorders`](@ref) from an iterable with element 
 type [`recorder_builder`](@ref).
@@ -68,7 +68,7 @@ end
 
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Perform a reduction across all the replicas' individual recorders, 
 using [`combine!()`](@ref) on each individual [`recorder`](@ref)

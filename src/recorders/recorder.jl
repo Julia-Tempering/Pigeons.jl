@@ -7,14 +7,14 @@ See also [`recorders`](@ref).
 """
 @informal recorder begin
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
 
     Add `value` to the statistics accumulated by [`recorder`](@ref). 
     """
     record!(recorder, value) = @abstract 
 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
 
     Combine the two provided [`recorder`](@ref) objects, and then 
     "dispose" of the two input arguments. 
@@ -61,14 +61,14 @@ function Base.empty!(x::GroupBy)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Forwards to OnlineStats' `fit!`.
 """
 record!(recorder::OnlineStat, value) = fit!(recorder, value)
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Given a `value`, a pair `(a, b)`, and a `Dict{K, Vector{V}}` backed 
 [`recorder`](@ref), 

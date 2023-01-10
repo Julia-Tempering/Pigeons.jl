@@ -10,7 +10,7 @@ function interpolate(::LinearInterpolator, ref_log_potential, target_log_potenti
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Given a reference [`log_potential`](@ref) and a target [`log_potential`](@ref), 
 return a [`path`](@ref) interpolating between the two. 

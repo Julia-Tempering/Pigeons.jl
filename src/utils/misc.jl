@@ -83,7 +83,7 @@ function computeetas(ϕ, β)
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 From one splittable random object, one can conceptualize an infinite list of splittable random objects. 
 Return a slice from this infinite list.
@@ -128,7 +128,7 @@ macro weighted(w, x)
 end
 
 """ 
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Given a filename path, compute a `crc32c()` checksum 
 in constant memory. 
@@ -144,7 +144,7 @@ function checksum(filename::AbstractString, blocksize=16384)
 end
 
 """
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 Heuristic to partially automate the process 
 of sorting `include()`'s. 

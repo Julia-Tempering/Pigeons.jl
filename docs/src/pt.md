@@ -90,51 +90,32 @@ swaps are performed using the function [`swap!()`](@ref). See the documentation 
 more information.
 
 
-## Basic PT algorithm
+## PT algorithm
 
-Here is a simplified example of how Algorithm 1 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
-can be implemented in Pigeons. (This example is for pedagogy and/or those interested in extending 
-the library. Users of the library should instead follow higher-level instructions in [the user guide page](index.html).)
+A generalized version of Algorithm 1 ("one round of PT") in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
+is implemented in Pigeons in [`run_one_round!()`](@ref), 
+while the complete algorithm ("several adaptive rounds"), 
+[Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464), 
+has a generalized implementation in [`run!()](@ref). 
 
-```@example simple_algos
-using Pigeons
-using SplittableRandoms
-using Plots
-import Base.Threads.@threads
+In the following we discuss different facets of these algorithms.
 
-const n_chains = 20
 
-# initialize sequence of distributions
-const dim = 8
-const normal_log_potentials = scaled_normal_example(n_chains, dim)
+### Storage in PT algorithms
 
-# initialize replicas
-const init = Ref(zeros(dim))               # initialize all states to zero
-const rng = SplittableRandom(1)            # specialized rng (see Distributed PT page)
-const keys = [:index_process]              # determines which statistics to keep
+The information stored in the execution of [`run!()](@ref) 
+is grouped in the struct [`PT`](@ref). 
+The key fields are one pointing to a [`replicas`](@ref) and 
+one to a [`Shared`](@ref). 
+Briefly, [`replicas`](@ref) will store information distinct in each 
+MPI process, and read-write during each 
+round, while [`Shared`](@ref) is identical in all MPI processes, read only during a round, and updated only between 
+rounds. 
 
-function simple_deo(n_iters, log_potentials)
-    replicas = create_vector_replicas(n_chains, init, rng, keys)
-    for iteration in 1:n_iters
-        # communication phase
-        swap!(log_potentials, replicas, deo(n_chains, iteration))
-        # toy local exploration (in this toy e.g. we can do iid for all chains)
-        @threads for replica in locals(replicas)
-            distribution = log_potentials[replica.chain]
-            replica.state = rand(replica.rng, distribution)
-        end
-    end
-    return reduce_recorders!(replicas)
-end
 
-deo_result = simple_deo(100, normal_log_potentials)
-p = index_process_plot(deo_result)
-savefig(p, "index_process.svg"); nothing # hide
-```
+### Collecting statistics: [`recorder`](@ref) and [`recorders`](@ref)
 
-![](index_process.svg)
-
-The code above illustrates the two steps needed to collect statistics from the execution of a PT algorithm: 
+Two steps are needed to collect statistics from the execution of a PT algorithm: 
 
 - We specify which statistics to collect using the `keys` argument (by 
     default, statistics that can be computed in constant memory only are included, 

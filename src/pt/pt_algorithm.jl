@@ -13,7 +13,7 @@ end
 report(pt, reduced_recorders) = nothing # TODO
 
 """
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 From a [`PT`](@ref) object, run one round of 
 a generalized version of Algorithm 1 in 
@@ -37,7 +37,7 @@ function run_one_round!(pt)
 end
 
 """
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 Use [`create_pair_swapper()`](@ref) and 
 [`create_swap_graph`](@ref) to construct the 
@@ -51,7 +51,7 @@ function communicate!(pt)
 end
 
 """
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 Call [`regenerate!`](@ref) or [`step!()`](@ref) on 
 each chain (depending if it is a reference or not 

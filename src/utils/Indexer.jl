@@ -17,7 +17,7 @@ struct Indexer{T}
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 """
 function Indexer(i2t::AbstractVector{T}) where {T}
     t2i = Dict{T, Int}()

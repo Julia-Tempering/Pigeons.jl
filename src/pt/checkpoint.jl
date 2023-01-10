@@ -1,5 +1,5 @@
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 
 Create a [`PT`](@ref) struct from a saved 
 checkpoint. The path [`checkpoint_folder`] 

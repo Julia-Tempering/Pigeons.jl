@@ -4,18 +4,18 @@ iteration.
 """
 @informal swap_graphs begin
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     """
     create_swap_graph(swap_graphs, shared) = @abstract
 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     Given a [`swap_graphs`](@ref), return the set of chain(s) targetting the distribution of interest. 
     """
     reference_chains(swap_graphs, shared) = @abstract 
 
     """
-    $TYPEDSIGNATURES
+    $SIGNATURES
     Given a [`swap_graphs`](@ref), return the set of chain(s) targetting the reference distribution.
     These are typically tractable in the sense that we can sample 
     i.i.d. from them. 
@@ -26,7 +26,7 @@ end
 struct DEO end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Implements the Deterministic Even Odd (DEO) scheme proposed in [Okabe, 2001](https://www.sciencedirect.com/science/article/pii/S0009261401000550)
 and analyzed in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
 """
