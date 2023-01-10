@@ -26,7 +26,7 @@ function write_checkpoint(pt, reduced_recorders)
         serialize(checkpoint_folder / "reduced_recorders.jls", reduced_recorders)
         # only need to save Inputs & immutables at first round
         if pt.shared.iterators.round == 1 
-            serialize(pt.exec_folder / "Inputs.jls", pt.inputs)
+            serialize(pt.exec_folder / "inputs.jls", pt.inputs)
             serialize_immutables(pt.exec_folder / "immutables.jls")
         end
     end
@@ -43,8 +43,8 @@ function checkpoint_symlinks(input_checkpoint_folder, fresh_exec_folder, round_i
         input_exec_folder / "immutables.jls", 
         fresh_exec_folder / "immutables.jls")
     symlink_with_relative_paths(
-            input_exec_folder / "Inputs.jls", 
-            fresh_exec_folder / "Inputs.jls")
+            input_exec_folder / "inputs.jls", 
+            fresh_exec_folder / "inputs.jls")
     round_folder_name = (basename ∘ dirname)(input_checkpoint_folder)
     for r = 1:round_index
         target = input_exec_folder / "round=$r"
@@ -57,5 +57,5 @@ function deserialize_shared_and_inputs(checkpoint_folder)
     exec_folder = (dirname ∘ dirname)(checkpoint_folder)
     deserialize_immutables(exec_folder / "immutables.jls")
     return  deserialize(checkpoint_folder / "shared.jls"), 
-            deserialize(exec_folder / "Inputs.jls")
+            deserialize(exec_folder / "inputs.jls")
 end
