@@ -57,7 +57,7 @@ of Parallel Tempering.
     the states at the beginning of the first round of 
     Parallel Tempering. 
     """
-    create_state_initializer(explorer) = @abstract 
+    create_state_initializer(target) = @abstract 
 end
 
 

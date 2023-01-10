@@ -146,12 +146,19 @@ end
 """
 $SIGNATURES 
 
-Heuristic to partially automate the process 
-of sorting `include()`'s. 
+Heuristic to automate the process 
+of sorting `include()`'s.
+ 
+Topological sorting of the source files under src 
+(excluding `main`) is attempted, if successful, print the 
+include string to copy and paste to the main file, otherwise, 
+print the detected loops. 
+
+Internally, this function will:
 
 1. Construct a graph where the vertices are the .jl files 
-    under src, excluding the provided `main` file where the module is 
-    defined and the includes will sit in.
+    under src, excluding the provided `main` file (i.e. where the module is 
+    defined and the includes will sit in).
 2. Each file starting with a capital letter is assumed to 
     contain a struct with the same name as the file after 
     removal of the .jl suffix. Similarly, files starting 
@@ -159,9 +166,9 @@ of sorting `include()`'s.
     obtained name.
 3. Each source file is inspected to see if the above struct and 
     macro strings are detected. This defines edges in the graph.
-4. Topological sorting is attempted, if successful, print the 
-    include string to copy paste to the main file, otherwise, 
-    print the loops. 
+    (known limitation: this includes spurious edges when e.g. 
+    the string occurs in a comment).
+
 """
 function sort_includes(main)
     source_files = String[]

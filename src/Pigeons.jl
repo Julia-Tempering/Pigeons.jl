@@ -77,7 +77,7 @@ include("replicas/replicas.jl")
 include("log_potentials/log_potentials.jl")
 include("log_potentials/log_potential.jl")
 include("explorers/explorer.jl")
-include("explorers/ScaledPrecisionNormalExplorer.jl")
+include("explorers/ToyExplorer.jl")
 include("summary.jl")
 include("restarts.jl")
 include("exploration.jl")
@@ -89,7 +89,8 @@ include("deo.jl")
 
 export pigeons, Inputs, PT, 
     Resume, Result, 
-    ToNewProcess, ToMPI
+    ToNewProcess, ToMPI,
+    ScaledPrecisionNormalPath
 
 end # End module
 

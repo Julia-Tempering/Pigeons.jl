@@ -27,7 +27,7 @@ end
 @concrete struct ToMPI end
 
 pigeons(; submission = InCurrentProcess(), args...) = 
-    pigeons(Inputs(args...), submission)
+    pigeons(Inputs(; args...), submission)
 
 pigeons(pt_arguments) = pigeons(pt_arguments, InCurrentProcess())
 
