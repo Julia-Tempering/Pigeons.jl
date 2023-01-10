@@ -15,7 +15,6 @@ linking it with some key parts of the code base.
     [user guide](index.html). 
 
 
-
 ## PT augmented state space, replicas
 
 Let ``X_n`` denote a Markov chain on state space ``\mathscr{X}`` with stationary distribution
@@ -34,7 +33,7 @@ is implemented via [`EntangledReplicas`](@ref), which stores the parts of
 required to communicate with the other machines. 
 
 Internally, PT operates on a discrete set of distributions, 
-``\pi_1, \pi_2, \dots \pi_N``, where ``N`` can be obtained using [`n_chains_global()`](@ref). 
+``\pi_1, \pi_2, \dots \pi_N``, where ``N`` can be obtained using [`n_chains()`](@ref). 
 We use the terminology chain to refer to an index ``i`` of ``\pi_i``.
 Typically, ``\pi_N`` coincides with the distribution of interest ``\pi`` (called the "target"), while 
 ``\pi_1`` is a tractable approximation that will help PT efficiently explore the 
@@ -47,6 +46,7 @@ As a result, subsetting each sample to its component corresponding to ``\pi_N = 
 and applying an integrable function ``f`` to each, will lead under weak assumptions 
 to Monte Carlo averages that converge to the expectation of interest ``E[f(X)]`` for 
 ``X \sim \pi``.
+
 
 ## Outline of local exploration and communication
 
@@ -95,14 +95,14 @@ A generalized version of Algorithm 1 ("one round of PT") in [Syed et al., 2021](
 is implemented in Pigeons in [`run_one_round!()`](@ref), 
 while the complete algorithm ("several adaptive rounds"), 
 [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464), 
-has a generalized implementation in [`run!()](@ref). 
+has a generalized implementation in [`run()](@ref). 
 
 In the following we discuss different facets of these (meta-)algorithms.
 
 
 ### Storage in PT algorithms
 
-The information stored in the execution of [`run!()](@ref) 
+The information stored in the execution of [`run()](@ref) 
 is grouped in the struct [`PT`](@ref). 
 The key fields are one pointing to a [`replicas`](@ref) and 
 one to a [`Shared`](@ref). 
@@ -133,6 +133,7 @@ type of statistic for one replica is a [`recorder`](@ref).
 Each replica has a single recorders to ensure thread safety (e.g., see 
 the use of a parallel local exploration phase using `@thread` in [`explore!()`](@ref)) and to enable distributed 
 computing. 
+
 
 #### Using a built-in [`recorder`](@ref) 
 

@@ -1,5 +1,5 @@
 """
-Orchestrate the [`communication!()`](@ref) phase 
+Orchestrate the [`communicate!()`](@ref) phase 
 of Parallel Tempering. 
 
 In addition to the methods in the contract below, 
@@ -42,6 +42,6 @@ end
 """
 $SIGNATURES 
 
-Build the [`tempering`](@ref) need for [`communication!()`](@ref). 
+Build the [`tempering`](@ref) need for [`communicate!()`](@ref). 
 """
 @provides tempering create_tempering(inputs::Inputs) = NonReversiblePT(inputs)

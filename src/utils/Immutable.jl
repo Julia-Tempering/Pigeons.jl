@@ -16,7 +16,6 @@ struct Immutable{T}
 end
 
 
-
 """
 $SIGNATURES
 
@@ -47,8 +46,6 @@ To work around this space-inefficiency, `Immutable` can be used as follows:
     from `immutable`.
 """
 Immutable(data) = Immutable(data, true)
-
-
 
 const immutables = Dict{UInt, Any}()
 

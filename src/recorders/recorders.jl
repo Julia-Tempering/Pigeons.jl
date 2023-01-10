@@ -16,7 +16,7 @@ accessing statistic values.
     $SIGNATURES
 
     If the [`recorders`](@ref) contains the given `recorder_key`, 
-    send the `value` to the [`recorder`](@key) corresponding to the 
+    send the `value` to the [`recorder`](@ref) corresponding to the 
     `recorder_key`. Otherwise, do nothing.
     """
     function record_if_requested!(recorders, recorder_key::Symbol, value)

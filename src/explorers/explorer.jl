@@ -6,7 +6,7 @@ of Parallel Tempering.
     """
     $SIGNATURES 
 
-    Perform i.i.d. sampling on the given [`replica`](@ref). 
+    Perform i.i.d. sampling on the given [`Replica`](@ref). 
     This is only called when the replica is visiting a 
     reference chain. 
 
@@ -20,7 +20,7 @@ of Parallel Tempering.
     """
     $SIGNATURES 
 
-    Perform a transition on the given [`replica`](@ref) 
+    Perform a transition on the given [`Replica`](@ref) 
     invariant with respect to the distribution of the 
     replica's chain. 
 

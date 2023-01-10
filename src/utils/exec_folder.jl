@@ -13,11 +13,6 @@ function next_exec_folder()
     return result
 end
 
-"""
-Create a subfolder of the [`exec_folder()`](@ref).
-"""
-exec_subfolder(relative_path) = mkpath(exec_folder() / relative_path)
-
 function _ensure_symlinked(exec)
     rm("results/latest", force = true)
     symlink_with_relative_paths(exec, "results/latest")

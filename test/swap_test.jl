@@ -30,7 +30,7 @@ function test_swap(replicas, n_iters::Int, accept_pr::Float64)
     timing_stats = Series(Mean(), Variance())
 
     for iteration in 1:n_iters
-        t = @elapsed swap!(swapper, replicas, deo(n_chains_global(replicas), iteration))
+        t = @elapsed swap!(swapper, replicas, deo(n_chains(replicas), iteration))
     
         if iteration > n_iters / 2
             fit!(timing_stats, t)
