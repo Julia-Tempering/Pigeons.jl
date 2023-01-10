@@ -15,5 +15,14 @@ in Distributions.jl.
     
 end
 
-# Example:
+""" 
+$SIGNATURES 
+
+Given a target (a [`log_potential`](@ref)) and the inputs, 
+create a suitable reference distribution. The return type 
+should conform [`log_potential`](@ref). 
+""" 
+@provides log_potential create_reference(target, inputs::Inputs) = @abstract 
+
+# Toy example:
 (d::Distribution)(x) = logpdf(d, x) 

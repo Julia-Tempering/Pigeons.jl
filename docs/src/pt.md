@@ -48,7 +48,7 @@ and applying an integrable function ``f`` to each, will lead under weak assumpti
 to Monte Carlo averages that converge to the expectation of interest ``E[f(X)]`` for 
 ``X \sim \pi``.
 
-## Local exploration and communication
+## Outline of local exploration and communication
 
 PT alternates between two phases, each ``\boldsymbol{\pi}``-invariant: the local 
 exploration phase and the communication phase. Informally, the first phase attempts to achieve 
@@ -64,12 +64,9 @@ where ``i`` is given by `Replica.chain`. Often, `Replica.chain` corresponds to
 an annealing parameter ``\beta_i`` but this need not be the case (see 
 e.g. [Baragatti et al., 2011](https://arxiv.org/abs/1108.3423)).
 The kernel can either modify `Replica.state` in-place, or modify the 
-`Replica`'s `state` field.
+`Replica`'s `state` field. The key interface controlling local exploration, [`explorer`](@ref), is 
+described in more detail below. 
 
-!!! warning "TODO"
-
-    More details about local exploration once the architecture of that 
-    part of the code is more fleshed out...
 
 ### Communication
 
@@ -86,11 +83,13 @@ in constrast to the naive implementation which would transmit states over the ne
 See [Distributed PT](distributed.html) for more information on our distributed implementation.
 
 Both in distributed and single process mode, 
-swaps are performed using the function [`swap!()`](@ref). See the documentation there for
-more information.
+swaps are performed using the function [`swap!()`](@ref). 
+
+The key interface controlling communication, [`tempering`](@ref), is 
+described in more detail below. 
 
 
-## PT algorithm
+## A tour of the PT meta-algorithm
 
 A generalized version of Algorithm 1 ("one round of PT") in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
 is implemented in Pigeons in [`run_one_round!()`](@ref), 
@@ -98,7 +97,7 @@ while the complete algorithm ("several adaptive rounds"),
 [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464), 
 has a generalized implementation in [`run!()](@ref). 
 
-In the following we discuss different facets of these algorithms.
+In the following we discuss different facets of these (meta-)algorithms.
 
 
 ### Storage in PT algorithms
@@ -153,104 +152,41 @@ You can then access the index process via `pt.reduced_recorders.index_process`.
 
 The following pieces are needed
 
-- Pick or create a struct `MyStruct` that will hold the information. 
-- Implement all the methods in the section "Contract" of [`recorder`](@ref) making sure to type the recorder argument as `recorder::MyStruct`. Some examples are in the same source file as [`recorder`](@ref).   
-- Create a [`recorder_builder`](@ref) which is simply a function such 
+1. Pick or create a struct `MyStruct` that will hold the information. 
+2. Implement all the methods in the section "Contract" of [`recorder`](@ref) making sure to type the recorder argument as `recorder::MyStruct`. Some examples are in the same source file as [`recorder`](@ref) and/or in the same directory as `recorder.jl`.   
+3. Create a [`recorder_builder`](@ref) which is simply a function such 
 that when called with zero argument, creates your desired type, i.e. 
 `MyStruct`. The name of this function will define the name of your [`recorder`](@ref).
 
 
-## Adaptation and schedule update
+### Local [`explorer`](@ref)
 
-PT requires as input a discrete set of probability distribution, i.e. [`log_potentials`](@ref). 
-How can those be automatically computed from just knowing the reference and target 
-distributions?
-This section outlines this process.
+Typical target distributions are expected to take care of building 
+their own explorers, so most users are not expected to have to 
+write their own. But for non-standard target it is useful to be 
+able to do so. 
 
-The starting point is a [`path`](@ref) object, which is a continuum of distributions. 
-A [`path`](@ref) is typically obtained via [`create_path()`](@ref). 
-We can also get a toy example consisting of normal distributions with varying 
-precision parameters via [`scaled_normal_example()`](@ref), which is what we 
-will use here.
+Building a new explorer is done as follows: first, suppose you are planning to use a non-standard target of type `MyTargetType`
 
-We now move to a simplified version of Algorithms 2 and 3 in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
-(again for pedagogy and/or those interested in extending the library), which are 
-algorithms for adaptively discretizing a continuum of distributions.
+1. Pick or create a struct `MyExplorerStruct` that may contain adaptation 
+    information such as step sizes for HMC or proposal bandwidth. 
+    Note that explorers will need to explore not only the target 
+    distribution ``\pi`` but also the intermediate ones ``\pi_i``.
+2. Implement all the methods in the section "Contract" of [`explorer`](@ref) making sure to type the explorer argument as `explorer::MyExplorerStruct`. Some examples are in the same directory as the source file of [`explorer`](@ref).  
+3. Define a method `create_explorer(target::MyTargetType, inputs)` which 
+    should return a fresh `MyExplorerStruct` instance. 
 
-The algorithm starts with a simple initial discretization.
-Here it is one where each grid is equally spaced, being built using [`Schedule()`](@ref)
-and [`discretize()`](@ref):
+One explorer struct will be shared by all threads, so it should be 
+read-only during execution of `run_one_round!()`. 
+It can be adapted between rounds. 
 
-```@example simple_algos
-# continues from the above
-path = ScaledPrecisionNormalPath(dim)
-schedule = Schedule(n_chains)
-log_potentials = discretize(path, schedule)
-nothing # hide
-```
 
-we then run one *round* of Algorithm 1, and use its output to 
-compute an initial estimate of the communication barriers as defined 
-in [Section 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
-and implemented in [`communicationbarrier()`](@ref).
+### Tempering 
 
-```@example simple_algos
-# continues from the above
-deo_result = simple_deo(100, log_potentials)
-barriers = communicationbarrier(deo_result, schedule)
-plot(barriers.cumulativebarrier, legend = false)
-xlims!(0, 1)
-savefig("barrier.svg") # hide
-barriers.globalbarrier
-```
+Customizing [`communicate!()`](@ref) follows the same general steps as custom explorers, i.e.:
 
-![](barrier.svg)
+1. Pick or create a struct `MyTemperingStruct` that may contain adaptation 
+    information such as schedule optimization. 
+2. Implement all the methods in the section "Contract" of [`tempering`](@ref) making sure to type the tempering argument as `tempering::MyTemperingStruct`. For example, see [`NonReversiblePT`](@ref). 
+3. Initial construction of the tempering is done via  [`create_tempering()`](@ref).
 
-We can then create a new schedule from the cumulative communication barrier 
-by following [Algorithm 2 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
-and implemented in [`Schedule()`](@ref). 
-Finally, following [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) 
-we can iterate this process by performing several rounds of PT, each with increasing budget:
-
-```@example simple_algos
-# continues from the above
-
-function adapt(schedule, n_iters)
-    log_potentials = discretize(path, schedule)
-    deo_result = simple_deo(n_iters, log_potentials)
-    barriers = communicationbarrier(deo_result, schedule)
-    plot!(barriers.cumulativebarrier)
-    xlims!(0, 1)
-    return (Schedule(n_chains, barriers.cumulativebarrier), barriers)
-end
-
-function nrpt(schedule)
-    n_iters = 2
-    for round_index in 1:10
-        schedule, barriers = adapt(schedule, n_iters)
-        n_iters *= 2
-    end
-    return barriers
-end
-
-plot()
-barriers = nrpt(schedule)
-
-savefig("barriers.svg"); nothing # hide
-```
-
-![](barriers.svg)
-
-The simple normal model we are using has a [known closed-form expression](https://aip.scitation.org/doi/10.1063/1.1644093) 
-for the cumulative barrier. We can use this closed-form expression to check the 
-accuracy of our PT-derived approximation:
-
-```@example simple_algos
-# continues from the above
-analytic = analytic_cumulativebarrier(path)
-plot([analytic, barriers.cumulativebarrier], labels = ["analytic" "estimate"])
-xlims!(0, 1)
-savefig("compare-barriers.svg"); nothing # hide
-```
-
-![](compare-barriers.svg)

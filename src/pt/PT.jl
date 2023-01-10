@@ -41,7 +41,7 @@ $SIGNATURES
 """
 function PT(inputs::Inputs)
     shared = Shared(inputs)
-    state_init = create_state_initializer(inputs.target, inputs)
+    state_init = create_state_initializer(shared.explorer)
     replicas = create_replicas(inputs, shared, state_init)
     return PT(inputs, replicas, shared, next_exec_folder(), create_recorders(inputs, shared))
 end

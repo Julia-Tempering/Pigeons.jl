@@ -45,7 +45,3 @@ $SIGNATURES
 Build the [`tempering`](@ref) need for [`communication!()`](@ref). 
 """
 @provides tempering create_tempering(inputs::Inputs) = NonReversiblePT(inputs)
-
-
-create_path(target::ScaledPrecisionNormalPath, inputs::Inputs) = target
-

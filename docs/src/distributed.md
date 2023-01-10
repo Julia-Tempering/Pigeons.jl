@@ -74,51 +74,12 @@ the two above issues while maintaining the same asymptotic runtime complexity.
 
 ## Overview of the algorithm
 
-Let us start with a high-level picture of the basic distributed PT algorithm:
+Let us start with a high-level picture of the distributed PT algorithm. 
 
-```@example simple_distributed_algos
-using Pigeons
-using SplittableRandoms
-using Plots
-import Base.Threads.@threads
+The high-level code is the function [`run()`](@ref) which is identical to the single-machine algorithm. 
 
-const n_chains = 20
-
-# initialize sequence of distributions
-const dim = 8
-const normal_log_potentials = scaled_normal_example(n_chains, dim)
-
-# initialize replicas
-const init = Ref(zeros(dim))               # initialize all states to zero
-const rng = SplittableRandom(1)            
-const keys = [:index_process]              # determines which statistics to keep
-
-function simple_distributed_deo(n_iters, log_potentials)
-    replicas = create_entangled_replicas(n_chains, init, rng, keys)
-    for iteration in 1:n_iters
-        # communication phase
-        swap!(log_potentials, replicas, deo(n_chains, iteration))
-        # toy local exploration (in this toy e.g. we can do iid for all chains)
-        @threads for replica in locals(replicas)
-            distribution = log_potentials[replica.chain]
-            replica.state = rand(replica.rng, distribution)
-        end
-    end
-    return reduce_recorders!(replicas)
-end
-
-deo_result = simple_distributed_deo(100, normal_log_potentials)
-p = index_process_plot(deo_result)
-savefig(p, "index_process_dist.svg"); nothing # hide
-```
-
-![](index_process_dist.svg)
-
-Notice the code is almost identical to the single-machine algorithm [presented earlier](pt.html#Basic-PT-algorithm) with the only difference being [`create_vector_replicas`](@ref) is 
-replaced by [`create_entangled_replicas`](@ref). Also, as promised the 
-output is identical despite a vastly different swap logic. 
-Indeed, beyond the superficial syntactic similarities between the single process and 
-distributed code, the behavious of [`swap!`](@ref) is quite different (this is triggered by multiple dispatch 
+The difference between the single-process and distributed PT algorithms 
+lay in the behaviours of [`swap!`](@ref) (this difference is triggered by multiple dispatch 
 detecting the different types for 
 `replica` in fully serial versus distributed). 
 
@@ -173,7 +134,7 @@ get the random number generators for the slice of replicas held in a given MPI p
 
 ## Distributed replicas
 
-Calling [`create_entangled_replicas`](@ref) will produce a fresh [`EntangledReplicas`](@ref), 
+Calling [`create_entangled_replicas()`](@ref) will produce a fresh [`EntangledReplicas`](@ref), 
 taking care of distributed random seed splitting internally. 
 An `EntangledReplicas` contains the list of replicas that are local to the machine, in addition
 to three data structures allowing distributed communication: 
