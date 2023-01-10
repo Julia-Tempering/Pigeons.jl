@@ -25,6 +25,7 @@ using SpecialFunctions
 using Serialization
 using ConcreteStructs
 using Random 
+using Graphs
 
 import Base./
 import Serialization.serialize
@@ -46,6 +47,7 @@ include("schedules/Schedule.jl")
 include("schedules/discretize.jl")
 include("samplers/hmc.jl")
 include("samplers/SpliceSampler.jl")
+include("pt/output_files.jl")
 include("pt/checks.jl")
 include("pt/Iterators.jl")
 include("pt/Shared.jl")
@@ -62,7 +64,6 @@ include("paths/path.jl")
 include("paths/TranslatedNormalPath.jl")
 include("paths/ScaledPrecisionNormalPath.jl")
 include("pt/tempering.jl")
-include("explorers/explorer.jl")
 include("paths/InterpolatingPath.jl")
 include("mpi_utils/one_per_host.jl")
 include("mpi_utils/LoadBalance.jl")
@@ -73,6 +74,8 @@ include("swap/swap.jl")
 include("replicas/replicas.jl")
 include("log_potentials/log_potentials.jl")
 include("log_potentials/log_potential.jl")
+include("explorers/explorer.jl")
+include("explorers/ScaledPrecisionNormalExplorer.jl")
 include("summary.jl")
 include("restarts.jl")
 include("exploration.jl")

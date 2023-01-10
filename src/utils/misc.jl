@@ -100,6 +100,12 @@ function split_slice(
     return [split(rng) for i in slice]
 end
 
+"""
+    my_fct() = @abstract()
+
+Define an abstract function (i.e. which gives an error message if calling it 
+is attempted). 
+"""
 macro abstract() quote error("Attempted to call an abstract function.") end end
 
 function mpi_test(n_processes::Int, test_file::String; options = [])
@@ -111,12 +117,23 @@ end
 
 /(s1::AbstractString, s2::AbstractString) = s1 * "/" * s2
 
-# Compute w*x, but if w==0.0, do not evaluate x and just return 0.0
+
+"""
+    @weighted(w, x) 
+
+Compute w*x, but if w==0.0, do not evaluate x and just return 0.0
+"""
 macro weighted(w, x) 
     :($(esc(w)) == 0.0 ? 0.0 : $(esc(w)) * $(esc(x)))
 end
 
-function checksum(filename, blocksize=16384)
+""" 
+$TYPEDSIGNATURES
+
+Given a filename path, compute a `crc32c()` checksum 
+in constant memory. 
+"""
+function checksum(filename::AbstractString, blocksize=16384)
     crc = zero(UInt32)
     open(filename, "r") do f
         while !eof(f)
@@ -126,6 +143,26 @@ function checksum(filename, blocksize=16384)
     return crc
 end
 
+"""
+$TYPEDSIGNATURES 
+
+Heuristic to partially automate the process 
+of sorting `include()`'s. 
+
+1. Construct a graph where the vertices are the .jl files 
+    under src, excluding the provided `main` file where the module is 
+    defined and the includes will sit in.
+2. Each file starting with a capital letter is assumed to 
+    contain a struct with the same name as the file after 
+    removal of the .jl suffix. Similarly, files starting 
+    with `@` are assumed to contain a macro with the similarly 
+    obtained name.
+3. Each source file is inspected to see if the above struct and 
+    macro strings are detected. This defines edges in the graph.
+4. Topological sorting is attempted, if successful, print the 
+    include string to copy paste to the main file, otherwise, 
+    print the loops. 
+"""
 function sort_includes(main)
     source_files = String[]
     for (dir, sub_dir, files) in walkdir("src")
@@ -152,22 +189,22 @@ function sort_includes(main)
         end
     end
 
-    loops = Graphs.simplecycles_hawick_james(graph)
-    for loop in loops
-        if length(loop) > 1
-            println("loop:")
-            for i in loop 
-                println("  $(indexer.i2t[i])") 
+    try 
+        sorted = Graphs.topological_sort_by_dfs(graph)
+
+        for index in sorted 
+            path = replace(indexer.i2t[index], "src/" => "")
+            println("include(\"$path\")")
+        end
+    catch e
+        loops = Graphs.simplecycles_hawick_james(graph)
+        for loop in loops
+            if length(loop) > 1
+                println("loop:")
+                for i in loop 
+                    println("  $(indexer.i2t[i])") 
+                end
             end
         end
-    end
-
-    println(loops)
-
-    sorted = Graphs.topological_sort_by_dfs(graph)
-
-    for index in sorted 
-        path = replace(indexer.i2t[index], "src/" => "")
-        println("include(\"$path\")")
     end
 end

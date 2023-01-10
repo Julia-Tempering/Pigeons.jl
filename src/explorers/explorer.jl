@@ -1,5 +1,5 @@
 """
-Specification of a local exploration kernel. 
+Specification of a local exploration strategy. 
 """
 @informal explorer begin
     """
@@ -30,7 +30,21 @@ Specification of a local exploration kernel.
     """
     step!(explorer, replica, shared) = @abstract 
 
+    """
+    $TYPEDSIGNATURES
+
+    Given an [`explorer`](@ref), reduced [`recorders`](@ref) 
+    and [`Shared`](@ref) return an updated [`explorer`](@ref).
+    """
     adapt_explorer(explorer, reduced_recorders, shared) = @abstract
+    
+    """ 
+    $TYPEDSIGNATURES
+
+    What information is needed to perform [`adapt_explorer`](@ref)?
+    Answer this by specifying an iterator containing [`recorder_builder`](@ref)'s. 
+    Return `[]` if none are needed. 
+    """
     explorer_recorder_builders(explorer) = @abstract 
 end
 
@@ -50,18 +64,3 @@ Given an [`Inputs`](@ref) object, dispatch on
 explorer associated with the input target distribution.
 """
 @provides explorer create_explorer(inputs) = create_explorer(inputs.target, inputs) 
-
-# toy implementation for testing
-struct ToyExplorer end
-
-create_state_initializer(target::ScaledPrecisionNormalPath, inputs) = Ref(zeros(target.dim))
-
-create_explorer(target::ScaledPrecisionNormalPath, inputs) = ToyExplorer()
-
-step!(explorer::ToyExplorer, replica, shared) = regenerate!(explorer, replica, shared)
-adapt_explorer(explorer::ToyExplorer, _, _) = explorer 
-explorer_recorder_builders(::ToyExplorer) = [] 
-function regenerate!(explorer::ToyExplorer, replica, shared)
-    log_potential = find_log_potential(replica, shared) 
-    replica.state = rand(replica.rng, log_potential)
-end
