@@ -104,7 +104,7 @@ given name in the given module.
 """
 function providers(mod::Module, name::Symbol)
     key = "$mod.$name"
-    return haskey(providers_dict, key) ? providers[key] : Set{Expr}()
+    return haskey(providers_dict, key) ? providers_dict[key] : Set{Expr}()
 end
 
 function informal_doc(name::Symbol, interface::InformalInterfaceSpec, mod::Module)

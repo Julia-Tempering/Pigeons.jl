@@ -1,6 +1,6 @@
 function run!(pt) 
     preflight_checks(pt)
-    while next_round!(pt) # NB: not using for-loop to allow resuming from checkpoint
+    while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders)
         report(pt, reduced_recorders)
@@ -12,6 +12,22 @@ end
 
 report(pt, reduced_recorders) = nothing # TODO
 
+"""
+$TYPEDSIGNATURES 
+
+From a [`PT`](@ref) object, run one round of 
+a generalized version of Algorithm 1 in 
+[Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
+
+Alternates between [`communicate!()`](@ref), 
+which consists of any pairwise communicating 
+moves and [`explore!()`], which consists in 
+moves independ to each chain. 
+
+Concrete specification of how to communicate and 
+explore are specified by the field of type [`Shared`](@ref) 
+contained in the provided [`PT`](@ref). 
+"""
 function run_one_round!(pt)
     while next_scan!(pt)
         communicate!(pt)
@@ -20,6 +36,13 @@ function run_one_round!(pt)
     return reduce_recorders!(pt.replicas)
 end
 
+"""
+$TYPEDSIGNATURES 
+
+Use [`create_pair_swapper()`](@ref) and 
+[`create_swap_graph`](@ref) to construct the 
+inputs needed for [`swap!`](@ref).
+"""
 function communicate!(pt)
     tempering = pt.shared.tempering
     swapper = create_pair_swapper(tempering, pt.shared)
@@ -27,6 +50,17 @@ function communicate!(pt)
     swap!(swapper, pt.replicas, graph)
 end
 
+"""
+$TYPEDSIGNATURES 
+
+Call [`regenerate!`](@ref) or [`step!()`](@ref) on 
+each chain (depending if it is a reference or not 
+respectively). 
+
+Uses `@threads` to parallelize across threads. 
+This is safe by the contract described in 
+[`regenerate!`](@ref) and [`step!()`](@ref).
+"""
 function explore!(pt)
     explorer = pt.shared.explorer
     @threads for replica in locals(pt.replicas)
