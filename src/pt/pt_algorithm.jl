@@ -1,9 +1,15 @@
 """
 $SIGNATURES 
 
+Run (a generalization of) Parallel Tempering. 
 
+This will call several rounds of [`run_one_round!()`](@ref), 
+performing adaptation between each round via [`adapt()`](@ref).
+
+Will also call [`report()`](@ref), [`write_checkpoint()`](@ref), 
+and [`run_checks()`](@ref) between rounds. 
 """
-function run(pt) 
+function run(pt::PT) 
     preflight_checks(pt)
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
@@ -15,6 +21,11 @@ function run(pt)
     return pt 
 end
 
+"""
+$SIGNATURES 
+
+Report summary information on the progress of [`run()`](@ref).
+"""
 report(pt, reduced_recorders) = nothing # TODO
 
 """
@@ -77,6 +88,12 @@ function explore!(pt)
     end
 end
 
+"""
+$SIGNATURES 
+
+Call [`adapt_tempering()`](@ref) followed by 
+[`adapt_explorer`](@ref).
+"""
 function adapt(pt, reduced_recorders)
     updated_tempering = adapt_tempering(pt.shared.tempering, reduced_recorders)
     updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, updated_tempering)

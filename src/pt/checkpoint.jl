@@ -6,6 +6,16 @@ checkpoint. The path [`checkpoint_folder`]
 should point to a folder with the name 
 `checkpoint` found under 
 `results/all/[exec_folder]/round=x`.
+
+The checkpoint carries all the information stored in 
+a [`PT`](@ref) struct. It is possible for an MPI-based 
+execution to load a checkpoint written by a single-process 
+execution and vice versa.
+
+A new unique folder will be created with symlinks to 
+the source one, so that e.g. running more rounds of 
+PT will results in a new space-efficient checkpoint 
+containing all the information for the new run.
 """
 function PT(checkpoint_folder::String) 
     fresh_exec_folder = next_exec_folder() 
@@ -21,6 +31,22 @@ function PT(checkpoint_folder::String)
     return PT(inputs, replicas, shared, fresh_exec_folder, reduced_recorders)
 end
 
+""" 
+$SIGNATURES 
+
+If `pt.inputs.checkpoint == true`, save a checkpoint under 
+`[pt.exec_folder]/[unique directory]/round=[x]/checkpoint`. 
+
+By default, `pt.exec_folder` is `results/all/[unique directory]`.
+
+In an MPI context, only one of the MPI processes will write the [`Shared`](@ref) 
+and reduced [`recorders`](@ref) data. Moreover, only one MPI process will 
+write once at the first round the [`Inputs`](@ref) data. 
+
+In cases where the sampled model contains large immutable data, consider using 
+[`Immutable()`](@ref) to save disk space (Immutables will be written only by 
+one MPI process at the first round). 
+"""
 function write_checkpoint(pt, reduced_recorders)
     if !pt.inputs.checkpoint 
         return 
