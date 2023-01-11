@@ -1,25 +1,43 @@
-mutable struct SliceSampler{U, W, P, D, C, X}
+"""
+Slice sampler based on [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full)
+Implements the methods [`step!()`](@ref), ... TODO
+"""
+@kwdef mutable struct SliceSampler{U, W, P, D, C, X}
     potential::U # -log(f(x))
-    w::W # Initial slice size
-    p::P # Slices are no larger than 2^p * w
-    dim_fraction::D # Proportion of variables to update
+    w::W = 1.0 # initial slice size
+    p::P = 10 # slices are no larger than 2^p * w
+    dim_fraction::D = 1.0 # proportion of variables to update
 
     # Private
-    C::C
-    x_1::X
-    Lvec::X
-    Rvec::X
-    x_1vec::X
+    C::C = [0]
+    x_1::X = [0.0]
+    Lvec::X = [0.0]
+    Rvec::X = [0.0]
+    x_1vec::X = [0.0]
 end
-SliceSampler(potential) = SliceSampler(potential, 1.0, 10, 1.0, [0], [0.0], [0.0], [0.0], [0.0])
-# TODO: proper initialization
+
 
 """
-    slice_double(h, g, x_0, z, c)
+$SIGNATURES 
+"""
+@provides explorer create_explorer(target, inputs) = ToyExplorer()
+create_state_initializer(target::ScaledPrecisionNormalPath) = Ref(zeros(target.dim))
+step!(explorer::ToyExplorer, replica, shared) = regenerate!(explorer, replica, shared)
+adapt_explorer(explorer::ToyExplorer, _, _) = explorer 
+explorer_recorder_builders(::ToyExplorer) = [] 
+function regenerate!(explorer::ToyExplorer, replica, shared)
+    log_potential = find_log_potential(replica, shared) 
+    replica.state = rand(replica.rng, log_potential)
+end
 
+
+
+
+"""
+$SIGNATURES
 Double the current slice.
 """
-function slice_double(h::SliceSampler, g, x_0::Vector{T}, z, c::Integer) where {T}
+function slice_double(h::SliceSampler, x_0::Vector{T}, z, c::Integer) where {T}
     U = rand()
     L = x_0[c] - h.w*U
     R = L + h.w
@@ -30,7 +48,7 @@ function slice_double(h::SliceSampler, g, x_0::Vector{T}, z, c::Integer) where {
     h.Rvec .= x_0
     h.Rvec[c] = R
 
-    while (K > 0) && ((z < g(h.Lvec)) || (z < g(h.Rvec)))
+    while (K > 0) && ((z < -h.potential(h.Lvec)) || (z < -h.potential(h.Rvec)))
         V = rand()
         if V <= 0.5
             L = L - (R - L)
@@ -46,11 +64,10 @@ end
 
 
 """
-    slice_shrink(h, g, x_0, z, L, R, c)
-
+$SIGNATURES
 Shrink the current slice.
 """
-function slice_shrink(h::SliceSampler, g, x_0::Vector{T}, z, L::T, R::T, c::Integer) where {T}
+function slice_shrink(h::SliceSampler, x_0::Vector{T}, z, L::T, R::T, c::Integer) where {T}
     Lbar = L
     Rbar = R
 
@@ -59,7 +76,7 @@ function slice_shrink(h::SliceSampler, g, x_0::Vector{T}, z, L::T, R::T, c::Inte
         x_1 = Lbar + U * (Rbar - Lbar)
         h.x_1vec .= x_0
         h.x_1vec[c] = x_1
-        if (z < g(h.x_1vec)) && (slice_accept(h, g, x_0, x_1, z, L, R, c))
+        if (z < -h.potential(h.x_1vec)) && (slice_accept(h, x_0, x_1, z, L, R, c))
             return x_1
         end
         if x_1 < x_0[c]
@@ -73,11 +90,10 @@ end
 
 
 """
-    slice_accept(h::SliceSampler, g, x_0, x_1, z, L, R, c)
-
+$SIGNATURES
 Test whether to accept the current slice.
 """
-function slice_accept(h::SliceSampler, g, x_0::Vector{T}, x_1, z, L::T, 
+function slice_accept(h::SliceSampler, x_0::Vector{T}, x_1, z, L::T, 
                       R::T, c::Integer) where {T}
     Lhat = L
     Rhat = R
@@ -103,7 +119,7 @@ function slice_accept(h::SliceSampler, g, x_0::Vector{T}, x_1, z, L::T,
             h.Lvec[c] = Lhat
         end
 
-        if D && (z >= g(h.Lvec)) && (z >= g(h.Rvec))
+        if D && (z >= -h.potential(h.Lvec)) && (z >= -h.potential(h.Rvec))
             acceptable = false
             return acceptable
         end
@@ -113,13 +129,11 @@ end
 
 
 """
-    slice_sample(h::SliceSampler, x_0::Vector{Float64}, n::Int)
-
+$SIGNATURES
 Slice sample `n` points given a starting vector  `x_0` and the struct `h` 
 that contains information about the log-density.
 """
 function slice_sample(h::SliceSampler, x_0::Vector{T}, n::Integer) where {T}
-    g(x) = -h.potential(x) # log(f(x))
     dim_x = length(x_0)
     x = [[0.0 for j in 1:dim_x] for i in 1:(n+1)]
     x[1] = x_0
@@ -129,11 +143,11 @@ function slice_sample(h::SliceSampler, x_0::Vector{T}, n::Integer) where {T}
     for i in 2:(n+1)
         StatsBase.sample!(1:dim_x, h.C; replace = false) # coordinates to update
         h.x_1 = x[i-1]
-        g_x_0 = g(h.x_1)
+        g_x_0 = -h.potential(h.x_1)
         for c in h.C
             z = g_x_0 - rand(Exponential(1.0)) # log(y)
-            L, R = slice_double(h, g, h.x_1, z, c)
-            h.x_1[c] = slice_shrink(h, g, h.x_1, z, L, R, c)
+            L, R = slice_double(h, h.x_1, z, c)
+            h.x_1[c] = slice_shrink(h, h.x_1, z, L, R, c)
         end
         x[i] .= h.x_1
     end
