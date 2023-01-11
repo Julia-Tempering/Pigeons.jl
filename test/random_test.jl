@@ -1,6 +1,10 @@
-"""
-Slice sampler based on [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
-"""
+# DELETE THIS FILE LATER!
+using ConcreteStructs
+using Base: @kwdef
+using Distributions 
+using StatsBase
+using BenchmarkTools
+
 @kwdef @concrete mutable struct SliceSampler
     w = 1.0 # initial slice size
     p = 10 # slices are no larger than 2^p * w
@@ -17,15 +21,6 @@ end
 # TODO: proper initialization
 
 
-"""
-$SIGNATURES 
-"""
-@provides explorer create_explorer(target, inputs) = SliceSampler() # TODO
-create_state_initializer(target) = Ref(zeros(target)) # TODO
-adapt_explorer(explorer::SliceSampler, _, _) = explorer 
-explorer_recorder_builders(::SliceSampler) = [] 
-regenerate!(explorer::SliceSampler, replica, shared) = @abstract
-
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
     replica.state .= slice_sample(explorer, replica, log_potential)
@@ -33,7 +28,6 @@ end
 
 
 """
-$SIGNATURES
 Slice sample one point.
 """
 function slice_sample(h::SliceSampler, replica, log_potential)
@@ -54,7 +48,6 @@ end
 
 
 """
-$SIGNATURES
 Double the current slice.
 """
 function slice_double(h::SliceSampler, x_0, z, c::Integer, log_potential)
@@ -78,15 +71,12 @@ function slice_double(h::SliceSampler, x_0, z, c::Integer, log_potential)
             h.Rvec[c] = R
         end
         K = K - 1
-        
-        
     end
     return(; L, R)
 end
 
 
 """
-$SIGNATURES
 Shrink the current slice.
 """
 function slice_shrink(h::SliceSampler, x_0, z, L, R, c::Int, log_potential)
@@ -112,7 +102,6 @@ end
 
 
 """
-$SIGNATURES
 Test whether to accept the current slice.
 """
 function slice_accept(h::SliceSampler, x_0, x_1, z, L, R, c::Int, log_potential)
@@ -147,3 +136,25 @@ function slice_accept(h::SliceSampler, x_0, x_1, z, L, R, c::Int, log_potential)
     end
     return acceptable
 end
+
+
+# Start test
+mutable struct MyStruct
+    state
+end
+
+
+function main()
+    log_potential = (x) -> -logpdf(Normal(0.0, 1.0), x[1])
+    replica = MyStruct([0.3])
+    explorer = SliceSampler()
+    # println(replica.state)
+    for i in 1:100
+        replica.state .= slice_sample(explorer, replica, log_potential)
+        # println(replica.state)
+    end
+end
+
+# main()
+
+
