@@ -23,27 +23,29 @@ end
 
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
-    replica.state .= slice_sample(explorer, replica, log_potential)
+    explorer.C .= zeros(Int, Int64(ceil(length(replica.state) * explorer.dim_fraction)))
+    slice_sample!(explorer, replica, log_potential)
 end
 
 
 """
 Slice sample one point.
 """
-function slice_sample(h::SliceSampler, replica, log_potential)
+function slice_sample!(h::SliceSampler, replica, log_potential)
     h.x_0 .= replica.state
     dim_x = length(h.x_0)
-    h.C .= zeros(Int, Int64(ceil(dim_x * h.dim_fraction)))
     h.x_1 .= h.x_0
     g_x_0 = -log_potential(h.x_0)
 
     StatsBase.sample!(1:dim_x, h.C; replace = false) # coordinates to update
     for c in h.C # update each coordinate
         z = g_x_0 - rand(Exponential(1.0)) # log(y)
-        L, R = slice_double(h, h.x_1, z, c, log_potential)
+        # L, R = slice_double(h, h.x_1, z, c, log_potential)
+        L = -10
+        R = 10
         h.x_1[c] = slice_shrink(h, h.x_1, z, L, R, c, log_potential)
     end
-    return h.x_1
+    replica.state .= h.x_1
 end
 
 
@@ -150,11 +152,11 @@ function main()
     explorer = SliceSampler()
     # println(replica.state)
     for i in 1:100
-        replica.state .= slice_sample(explorer, replica, log_potential)
+        slice_sample!(explorer, replica, log_potential)
         # println(replica.state)
     end
 end
 
-# main()
+@btime main()
 
 

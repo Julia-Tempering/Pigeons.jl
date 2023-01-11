@@ -28,6 +28,7 @@ regenerate!(explorer::SliceSampler, replica, shared) = @abstract
 
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
+    explorer.C .= zeros(Int, Int64(ceil(length(replica.state) * explorer.dim_fraction))) # TODO: remove this allocation
     replica.state .= slice_sample(explorer, replica, log_potential)
 end
 
@@ -39,7 +40,6 @@ Slice sample one point.
 function slice_sample(h::SliceSampler, replica, log_potential)
     h.x_0 .= replica.state
     dim_x = length(h.x_0)
-    h.C .= zeros(Int, Int64(ceil(dim_x * h.dim_fraction)))
     h.x_1 .= h.x_0
     g_x_0 = -log_potential(h.x_0)
 
