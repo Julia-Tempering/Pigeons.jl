@@ -36,6 +36,8 @@ import Base.print
 import Base.Threads.@threads
 import CRC32c.crc32c
 
+import DynamicPPL
+
 # include()'s generated using: sort_includes("Pigeons.jl")
 include("utils/exec_folder.jl")
 include("utils/Indexer.jl")

@@ -43,6 +43,9 @@ The probability distribution of interest.
 
     Create a [`path`](@ref), by default linking the given [`target`](@ref) to 
     the refence provided by [`create_reference_log_potential()`](@ref).
+
+    For this default to work, the target should conform both 
+    [`target`](@ref) and [`log_potential`](@ref).
     """ 
     @provides path create_path(target, inputs::Inputs) = 
         InterpolatingPath(

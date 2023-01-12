@@ -1,11 +1,11 @@
 using Turing
 using Random
 
-using Distributions
-using FillArrays
+
 
 using LinearAlgebra
 
+rng = MersenneTwister(1)
 
 # Unconditioned coinflip model with `N` observations.
 @model function coinflip(; N::Int)
