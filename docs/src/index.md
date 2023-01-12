@@ -67,7 +67,7 @@ parameters like random seed, etc by creating an
 ```@example example
 using Pigeons
 
-inputs = Inputs(target = toy_mvn_normal(100))
+inputs = Inputs(target = toy_mvn_target(100))
 ```
 
 See [`Inputs`](@ref) for more options. 

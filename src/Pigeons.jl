@@ -78,6 +78,7 @@ include("log_potentials/log_potentials.jl")
 include("log_potentials/log_potential.jl")
 include("explorers/explorer.jl")
 include("explorers/ToyExplorer.jl")
+include("targets/toy_mvn_target.jl")
 include("restarts.jl")
 include("exploration.jl")
 include("api.jl")
@@ -89,7 +90,7 @@ include("deo.jl")
 export pigeons, Inputs, PT, 
     Resume, Result, 
     ToNewProcess, ToMPI,
-    toy_mvn_normal,
+    toy_mvn_target,
     index_process, swap_acceptance_pr
 
 end # End module

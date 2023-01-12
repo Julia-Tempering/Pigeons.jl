@@ -80,8 +80,9 @@ This is safe by the contract described in
 function explore!(pt)
     explorer = pt.shared.explorer
     @threads for replica in locals(pt.replicas)
+        log_potential = find_log_potential(replica, pt.shared)
         if is_reference(replica.chain, pt.shared)
-            sample_iid!(explorer, replica, pt.shared)
+            sample_iid!(log_potential, replica)
         else
             step!(explorer, replica, pt.shared)
         end
