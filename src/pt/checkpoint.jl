@@ -17,7 +17,7 @@ the source one, so that e.g. running more rounds of
 PT will results in a new space-efficient checkpoint 
 containing all the information for the new run.
 """
-function PT(exec_folder::String, round = latest_checkpoint_folder(exec_folder)) 
+function PT(exec_folder::AbstractString, round = latest_checkpoint_folder(exec_folder)) 
     if round ≤ 0
         error("no checkpoint is finished yet for $exec_folder")
     end
@@ -39,6 +39,7 @@ function PT(exec_folder::String, round = latest_checkpoint_folder(exec_folder))
     return PT(inputs, replicas, shared, fresh_exec_folder, reduced_recorders)
 end
 
+"""$SIGNATURES"""
 function latest_checkpoint_folder(exec_folder)
     inputs = deserialize("$exec_folder/inputs.jls")
     for r in reverse(1:inputs.n_rounds)
@@ -50,7 +51,14 @@ function latest_checkpoint_folder(exec_folder)
     return 0
 end
 
-function is_finished(checkpoint_folder::String, inputs)    
+"""
+$SIGNATURES 
+
+Is the provided path to a checkpoint folder complete? 
+I.e. check in the .signal subfolder that all MPI processes have 
+signaled that they are done.
+"""
+function is_finished(checkpoint_folder::AbstractString, inputs)    
     signal_folder = "$checkpoint_folder/.signal"
     if !isdir(signal_folder)
         return false
@@ -99,7 +107,7 @@ function write_checkpoint(pt, reduced_recorders)
     for replica in locals(pt.replicas)
         serialize("$checkpoint_folder/replica=$(replica.replica_index).jls", replica)
     end
-    # signal that we are done (do not merge these loops)
+    # signal that we are done (do not merge this loop with the one above!)
     for replica in locals(pt.replicas)
         signal_folder = mkpath("$checkpoint_folder/.signal")
         touch("$signal_folder/finished_replica=$(replica.replica_index)")
@@ -114,7 +122,6 @@ function checkpoint_symlinks(input_checkpoint_folder, fresh_exec_folder, round_i
     symlink_with_relative_paths(
             "$input_exec_folder/inputs.jls", 
             "$fresh_exec_folder/inputs.jls")
-    round_folder_name = (basename ∘ dirname)(input_checkpoint_folder)
     for r = 1:round_index
         target = "$input_exec_folder/round=$r"
         link = "$fresh_exec_folder/round=$r"
