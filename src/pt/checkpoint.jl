@@ -17,21 +17,25 @@ the source one, so that e.g. running more rounds of
 PT will results in a new space-efficient checkpoint 
 containing all the information for the new run.
 """
-function PT(exec_folder::AbstractString, round = latest_checkpoint_folder(exec_folder)) 
-    if round ≤ 0
-        error("no checkpoint is finished yet for $exec_folder")
+function PT(source_exec_folder::AbstractString; 
+            round = latest_checkpoint_folder(source_exec_folder),
+            fresh_exec_folder = use_auto_exec_folder)  
+    if round == 0
+        error("no checkpoint is available yet for $source_exec_folder")
+    elseif round < 0
+        throw(ArgumentError("round should be positive"))
     end
     
-    if exec_folder == "results/latest"
-        exec_folder = "results/$(readlink(exec_folder))"
+    if source_exec_folder == "results/latest"
+        source_exec_folder = "results/$(readlink(source_exec_folder))"
     end 
 
-    fresh_exec_folder = next_exec_folder() 
+    fresh_exec_folder = pt_exec_folder(inputs, fresh_exec_folder)
     
-    checkpoint_folder = "$exec_folder/round=$round/checkpoint"
-    deserialize_immutables("$exec_folder/immutables.jls")
+    checkpoint_folder = "$source_exec_folder/round=$round/checkpoint"
+    deserialize_immutables("$source_exec_folder/immutables.jls")
     shared = deserialize("$checkpoint_folder/shared.jls") 
-    inputs = deserialize("$exec_folder/inputs.jls")
+    inputs = deserialize("$source_exec_folder/inputs.jls")
     reduced_recorders = deserialize("$checkpoint_folder/reduced_recorders.jls")
     
     checkpoint_symlinks(checkpoint_folder, fresh_exec_folder, shared.iterators.round)
@@ -100,7 +104,9 @@ function write_checkpoint(pt, reduced_recorders)
         # only need to save Inputs & immutables at first round
         if pt.shared.iterators.round == 1 
             serialize("$(pt.exec_folder)/inputs.jls", pt.inputs)
-            serialize_immutables("$(pt.exec_folder)/immutables.jls")
+            if !isfile("$(pt.exec_folder)/immutables.jls") # if running via submission, this is written for us 
+                serialize_immutables("$(pt.exec_folder)/immutables.jls")
+            end
         end
     end
     # each process saves its replicas

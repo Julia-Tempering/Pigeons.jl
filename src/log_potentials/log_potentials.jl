@@ -1,5 +1,3 @@
-
-
 """
 An encoding of a discrete set of probability distributions, where only the un-normalized 
 probability density functions are known. 

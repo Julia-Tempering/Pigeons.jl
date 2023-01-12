@@ -39,13 +39,24 @@ end
 """
 $SIGNATURES
 """
-function PT(inputs::Inputs)
+function PT(inputs::Inputs; exec_folder = use_auto_exec_folder)
     shared = Shared(inputs)
     state_init = create_state_initializer(inputs.target, inputs)
     replicas = create_replicas(inputs, shared, state_init)
-    exec_folder = inputs.checkpoint ? next_exec_folder() : nothing
+    exec_folder = pt_exec_folder(inputs, exec_folder)
     return PT(inputs, replicas, shared, exec_folder, create_recorders(inputs, shared))
 end
+
+pt_exec_folder(inputs, specified_exec_folder) = 
+    if inputs.checkpoint
+        if specified_exec_folder == use_auto_exec_folder
+            next_exec_folder()
+        else
+            specified_exec_folder
+        end
+    else
+        nothing 
+    end
 
 Base.show(io::IO, pt::PT) = # contract: should give valid julia expression creating an equivalent object
     if pt.shared.iterators.round == 0
