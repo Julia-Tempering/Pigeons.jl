@@ -69,19 +69,19 @@ end
 """
 $SIGNATURES 
 
-Call [`regenerate!`](@ref) or [`step!()`](@ref) on 
+Call [`sample_iid!`](@ref) or [`step!()`](@ref) on 
 each chain (depending if it is a reference or not 
 respectively). 
 
 Uses `@threads` to parallelize across threads. 
 This is safe by the contract described in 
-[`regenerate!`](@ref) and [`step!()`](@ref).
+[`sample_iid!`](@ref) and [`step!()`](@ref).
 """
 function explore!(pt)
     explorer = pt.shared.explorer
     @threads for replica in locals(pt.replicas)
         if is_reference(replica.chain, pt.shared)
-            regenerate!(explorer, replica, pt.shared)
+            sample_iid!(explorer, replica, pt.shared)
         else
             step!(explorer, replica, pt.shared)
         end
