@@ -1,20 +1,12 @@
 """
-Slice sampler based on [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
+Slice sampler based on
+[Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
 """
 @kwdef @concrete mutable struct SliceSampler
     w = 1.0 # initial slice size
     p = 10 # slices are no larger than 2^p * w
     dim_fraction = 1.0 # proportion of variables to update
-    
-    # Private (store information to avoid allocations)
-    x_0 = [0.0]
-    C = [0]
-    x_1 = [0.0]
-    Lvec = [0.0]
-    Rvec = [0.0]
-    x_1vec = [0.0]
 end
-# TODO: proper initialization
 
 
 """
@@ -24,12 +16,11 @@ $SIGNATURES
 create_state_initializer(target) = Ref(zeros(target)) # TODO
 adapt_explorer(explorer::SliceSampler, _, _) = explorer 
 explorer_recorder_builders(::SliceSampler) = [] 
-regenerate!(explorer::SliceSampler, replica, shared) = @abstract
+regenerate!(explorer::SliceSampler, replica, shared) = @abstract # TODO or remove
 
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
-    explorer.C .= zeros(Int, Int64(ceil(length(replica.state) * explorer.dim_fraction))) # TODO: remove this allocation
-    replica.state .= slice_sample(explorer, replica, log_potential)
+    slice_sample!(explorer, replica.state, log_potential)
 end
 
 
@@ -37,19 +28,14 @@ end
 $SIGNATURES
 Slice sample one point.
 """
-function slice_sample(h::SliceSampler, replica, log_potential)
-    h.x_0 .= replica.state
-    dim_x = length(h.x_0)
-    h.x_1 .= h.x_0
-    g_x_0 = -log_potential(h.x_0)
-
-    StatsBase.sample!(1:dim_x, h.C; replace = false) # coordinates to update
-    for c in h.C # update each coordinate
-        z = g_x_0 - rand(Exponential(1.0)) # log(y)
-        L, R = slice_double(h, h.x_1, z, c, log_potential)
-        h.x_1[c] = slice_shrink(h, h.x_1, z, L, R, c, log_potential)
+function slice_sample!(h::SliceSampler, state, log_potential)
+    dim_x = length(state)
+    g_x0 = -log_potential(state) # TODO: is it mathematically correct to keep the vertical draw of the loop?
+    for c in 1:dim_x # update *every* coordinate (change this later!)
+        z = g_x0 - rand(Exponential(1.0)) # log(vertical draw)
+        L, R = slice_double(h, state, z, c, log_potential)
+        state[c] = slice_shrink(h, state, z, L, R, c, log_potential)
     end
-    return h.x_1
 end
 
 
@@ -57,30 +43,32 @@ end
 $SIGNATURES
 Double the current slice.
 """
-function slice_double(h::SliceSampler, x_0, z, c::Integer, log_potential)
+function slice_double(h::SliceSampler, state, z, c::Integer, log_potential)
+    old_position = state[c] # store old position (trick to avoid memory allocation)
     U = rand()
-    L = x_0[c] - h.w*U
+    L = state[c] - h.w*U # new left endpoint
     R = L + h.w
     K = h.p
     
-    h.Lvec .= x_0
-    h.Lvec[c] = L
-    h.Rvec .= x_0
-    h.Rvec[c] = R
-    
-    while (K > 0) && ((z < -log_potential(h.Lvec)) || (z < -log_potential(h.Rvec)))
-        V = rand()
+    state[c] = L
+    neg_potent_L = -log_potential(state) # store the negative log potential
+    state[c] = R
+    neg_potent_R = -log_potential(state)
+
+    while (K > 0) && ((z < neg_potent_L) || (z < neg_potent_R))
+        V = rand()        
         if V <= 0.5
             L = L - (R - L)
-            h.Lvec[c] = L
+            state[c] = L
+            neg_potent_L = -log_potential(state) # store the new neg log potential
         else
             R = R + (R - L)
-            h.Rvec[c] = R
+            state[c] = R
+            neg_potent_R = -log_potential(state)
         end
         K = K - 1
-        
-        
     end
+    state[c] = old_position # return the state back to where it was before
     return(; L, R)
 end
 
@@ -89,25 +77,27 @@ end
 $SIGNATURES
 Shrink the current slice.
 """
-function slice_shrink(h::SliceSampler, x_0, z, L, R, c::Int, log_potential)
+function slice_shrink(h::SliceSampler, state, z, L, R, c::Int, log_potential)
+    old_position = state[c]
     Lbar = L
     Rbar = R
-    
+
     while true
         U = rand()
-        x_1 = Lbar + U * (Rbar - Lbar)
-        h.x_1vec .= x_0
-        h.x_1vec[c] = x_1
-        if (z < -log_potential(h.x_1vec)) && (slice_accept(h, x_0, x_1, z, L, R, c, log_potential))
-            return x_1
+        new_position = Lbar + U * (Rbar - Lbar)
+        state[c] = new_position 
+        consider = (z < -log_potential(state))
+        state[c] = old_position
+        if (consider) && (slice_accept(h, state, new_position, z, L, R, c, log_potential))
+            return new_position
         end
-        if x_1 < x_0[c]
-            Lbar = x_1
+        if new_position < state[c]
+            Lbar = new_position
         else
-            Rbar = x_1
+            Rbar = new_position
         end
     end
-    return x_1
+    return new_position
 end
 
 
@@ -115,35 +105,40 @@ end
 $SIGNATURES
 Test whether to accept the current slice.
 """
-function slice_accept(h::SliceSampler, x_0, x_1, z, L, R, c::Int, log_potential)
+function slice_accept(h::SliceSampler, state, new_position, z, L, R, c::Int, log_potential)
+    old_position = state[c]
     Lhat = L
     Rhat = R
-    h.Lvec .= x_0
-    h.Lvec[c] = L
-    h.Rvec .= x_0
-    h.Rvec[c] = R
+
+    state[c] = L # trick to avoid memory allocation
+    neg_potent_L = -log_potential(state)
+    state[c] = R 
+    neg_potent_R = -log_potential(state)
     
     D = false
     acceptable = true
     
     while Rhat - Lhat > 1.1 * h.w
         M = (Lhat + Rhat)/2.0
-        if ((x_0[c] < M) && (x_1 >= M)) || ((x_0[c] >= M) && (x_1 < M))
+        if ((old_position < M) && (new_position >= M)) || ((old_position >= M) && (new_position < M))
             D = true
         end
         
-        if x_1 < M
+        if new_position < M
             Rhat = M
-            h.Rvec[c] = Rhat
+            state[c] = Rhat
+            neg_potent_R = -log_potential(state)
         else
             Lhat = M
-            h.Lvec[c] = Lhat
+            state[c] = Lhat
+            neg_potent_L = -log_potential(state)
         end
         
-        if D && (z >= -log_potential(h.Lvec)) && (z >= -log_potential(h.Rvec))
-            acceptable = false
-            return acceptable
+        if (D && (z >= neg_potent_L) && (z >= neg_potent_R))
+            state[c] = old_position 
+            return false
         end
     end
+    state[c] = old_position
     return acceptable
 end
