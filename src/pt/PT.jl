@@ -23,7 +23,7 @@ $FIELDS
     shared
 
     """
-    Either a path to a directory shared by all MPI processes, 
+    Either a path to a folder shared by all MPI processes, 
     which is used to save information to disk (checkpoints, samples etc);
     or nothing if a completely in-memory algorithm is used. 
     """
@@ -43,13 +43,19 @@ function PT(inputs::Inputs)
     shared = Shared(inputs)
     state_init = create_state_initializer(inputs.target, inputs)
     replicas = create_replicas(inputs, shared, state_init)
-    return PT(inputs, replicas, shared, next_exec_folder(), create_recorders(inputs, shared))
+    exec_folder = inputs.checkpoint ? next_exec_folder() : nothing
+    return PT(inputs, replicas, shared, exec_folder, create_recorders(inputs, shared))
 end
 
 Base.show(io::IO, pt::PT) = # contract: should give valid julia expression creating an equivalent object
-    pt.shared.iterators.round == 0 ?
-        print(io, "PT($(pt.inputs))") :
-        print(io, "PT(\"$(pt.exec_folder)/round=$(pt.shared.iterators.round)/checkpoint\")")
+    if pt.shared.iterators.round == 0
+        print(io, "PT($(pt.inputs))")
+    elseif !pt.inputs.checkpoint 
+        print(io, "PT($(pt.inputs), $(pt.replicas), $(pt.shared), nothing, $(pt.reduced_recorders)")
+    else
+        print(io, "PT(\"$(pt.exec_folder)\")")
+    end
+
 
 """
 $SIGNATURES 

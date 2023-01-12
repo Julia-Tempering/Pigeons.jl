@@ -10,7 +10,7 @@ $FIELDS
     """
     Index of the Parallel Tempering adaptation *round*, as defined in 
     [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-    Set to zero when when run() not yet started.
+    Set to zero when when pigeons() not yet started.
     """
     round::Int = 0
 

@@ -32,7 +32,7 @@ export SSH_PUB_KEY_PATH=/path/to/user/.ssh/id_rsa.pub
 
 From log-in node:
 
-- Clone into a shared directory in a MPI cluster 
+- Clone into a shared folder in a MPI cluster 
 - Inside the cloned repo, call `./mpi-setup` 
-- To launch a job, type `./mpi-run -h` to see an example and documentation. **Note:** you may need to run first with a single node to avoid Julia compilation crashing due to concurrent access to the .julia directory. 
+- To launch a job, type `./mpi-run -h` to see an example and documentation. **Note:** you may need to run first with a single node to avoid Julia compilation crashing due to concurrent access to the .julia folder. 
 - To monitor the job, type `./mpi-watch`

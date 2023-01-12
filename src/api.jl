@@ -31,12 +31,12 @@ pigeons(; submission = InCurrentProcess(), args...) =
 
 pigeons(pt_arguments) = pigeons(pt_arguments, InCurrentProcess())
 
-pigeons(inputs::Inputs, ::InCurrentProcess) = run(PT(inputs))
+pigeons(inputs::Inputs, ::InCurrentProcess) = pigeons(PT(inputs))
 
 function pigeons(resume::Resume, ::InCurrentProcess)
     pt = PT(resume.checkpoint_folder)
     pt.inputs.n_rounds = resume.n_rounds 
-    run(pt)
+    pigeons(pt)
     return pt 
 end
 
@@ -62,4 +62,7 @@ function pigeons(pt_arguments, new_process::ToNewProcess)
     error("TODO")
 end
 
-
+function pigeons(pt::PT, n_extra_rounds) 
+    pt.inputs.n_rounds += n_extra_rounds
+    pigeons(pt)
+end

@@ -76,7 +76,7 @@ the two above issues while maintaining the same asymptotic runtime complexity.
 
 Let us start with a high-level picture of the distributed PT algorithm. 
 
-The high-level code is the function [`run()`](@ref) which is identical to the single-machine algorithm. 
+The high-level code is the function [`pigeons()`](@ref) which is identical to the single-machine algorithm. 
 
 Notice the code is almost identical to the single-machine algorithm [presented earlier](pt.html#Basic-PT-algorithm) with the only difference being [`create_vector_replicas`](@ref) is 
 replaced by [`create_entangled_replicas`](@ref). Also, as promised the 

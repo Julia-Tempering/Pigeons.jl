@@ -17,10 +17,18 @@ the source one, so that e.g. running more rounds of
 PT will results in a new space-efficient checkpoint 
 containing all the information for the new run.
 """
-function PT(checkpoint_folder::String) 
+function PT(exec_folder::String, round = latest_checkpoint_folder(exec_folder)) 
+    if round ≤ 0
+        error("no checkpoint is finished yet for $exec_folder")
+    end
+    
+    if exec_folder == "results/latest"
+        exec_folder = "results/$(readlink(exec_folder))"
+    end 
+
     fresh_exec_folder = next_exec_folder() 
     
-    exec_folder = (dirname ∘ dirname)(checkpoint_folder)
+    checkpoint_folder = "$exec_folder/round=$round/checkpoint"
     deserialize_immutables("$exec_folder/immutables.jls")
     shared = deserialize("$checkpoint_folder/shared.jls") 
     inputs = deserialize("$exec_folder/inputs.jls")
@@ -31,15 +39,41 @@ function PT(checkpoint_folder::String)
     return PT(inputs, replicas, shared, fresh_exec_folder, reduced_recorders)
 end
 
+function latest_checkpoint_folder(exec_folder)
+    inputs = deserialize("$exec_folder/inputs.jls")
+    for r in reverse(1:inputs.n_rounds)
+        checkpoint_folder = "$exec_folder/round=$r/checkpoint"
+        if is_finished(checkpoint_folder, inputs)
+            return r
+        end
+    end
+    return 0
+end
+
+function is_finished(checkpoint_folder::String, inputs)    
+    signal_folder = "$checkpoint_folder/.signal"
+    if !isdir(signal_folder)
+        return false
+    end
+    n_complete = 0 
+    for file in readdir(signal_folder)
+        if startswith(file, "finished_replica")
+            n_complete += 1
+        end
+    end
+    return n_complete == inputs.n_chains
+end
+
 """ 
 $SIGNATURES 
 
 If `pt.inputs.checkpoint == true`, save a checkpoint under 
-`[pt.exec_folder]/[unique directory]/round=[x]/checkpoint`. 
+`[pt.exec_folder]/[unique folder]/round=[x]/checkpoint`. 
 
-By default, `pt.exec_folder` is `results/all/[unique directory]`.
+By default, `pt.exec_folder` is `results/all/[unique folder]`.
 
-In an MPI context, only one of the MPI processes will write the [`Shared`](@ref) 
+In an MPI context, each MPI process will write its local replicas, 
+while only one of the MPI processes will write the [`Shared`](@ref) 
 and reduced [`recorders`](@ref) data. Moreover, only one MPI process will 
 write once at the first round the [`Inputs`](@ref) data. 
 
@@ -67,7 +101,8 @@ function write_checkpoint(pt, reduced_recorders)
     end
     # signal that we are done (do not merge these loops)
     for replica in locals(pt.replicas)
-        #touch()
+        signal_folder = mkpath("$checkpoint_folder/.signal")
+        touch("$signal_folder/finished_replica=$(replica.replica_index)")
     end
 end
 

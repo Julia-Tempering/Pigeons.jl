@@ -102,7 +102,7 @@ See [`create_replicas`](@ref).
 end
 
 function _create_locals(my_global_indices, ::Inputs, ::Shared, source::FromCheckpoint)
-    return [deserialize(source.checkpoint_folder / "replica=$global_index.jls") for global_index in my_global_indices]
+    return [deserialize("$(source.checkpoint_folder)/replica=$global_index.jls") for global_index in my_global_indices]
 end
 
 function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, state_initializer)

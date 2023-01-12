@@ -47,11 +47,10 @@ The probability distribution of interest.
     For this default to work, the target should conform both 
     [`target`](@ref) and [`log_potential`](@ref).
     """ 
-    @provides path create_path(target, inputs::Inputs) = 
+    create_path(target, inputs::Inputs) =  
         InterpolatingPath(
             create_reference_log_potential(target, inputs), 
             target)
-
 end
 
 sample_iid!(reference_log_potential::InterpolatedLogPotential, replica) = 

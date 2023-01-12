@@ -95,14 +95,14 @@ A generalized version of Algorithm 1 ("one round of PT") in [Syed et al., 2021](
 is implemented in Pigeons in [`run_one_round!()`](@ref), 
 while the complete algorithm ("several adaptive rounds"), 
 [Algorithm 4 of Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464), 
-has a generalized implementation in [`run()](@ref). 
+has a generalized implementation in [`pigeons()`](@ref). 
 
 In the following we discuss different facets of these (meta-)algorithms.
 
 
 ### Storage in PT algorithms
 
-The information stored in the execution of [`run()](@ref) 
+The information stored in the execution of [`pigeons()`](@ref) 
 is grouped in the struct [`PT`](@ref). 
 The key fields are one pointing to a [`replicas`](@ref) and 
 one to a [`Shared`](@ref). 
@@ -145,7 +145,7 @@ to save the full index process, use:
 ```@example recorders
 using Pigeons
 
-pt = pigeons(target = toy_mvn_normal(1), recorder_builders = [index_process])
+pt = pigeons(target = toy_mvn_target(1), recorder_builders = [index_process])
 ```
 You can then access the index process via 
 ```@example recorders
@@ -158,7 +158,7 @@ pt.reduced_recorders.index_process
 The following pieces are needed
 
 1. Pick or create a struct `MyStruct` that will hold the information. 
-2. Implement all the methods in the section "Contract" of [`recorder`](@ref) making sure to type the recorder argument as `recorder::MyStruct`. Some examples are in the same source file as [`recorder`](@ref) and/or in the same directory as `recorder.jl`.   
+2. Implement all the methods in the section "Contract" of [`recorder`](@ref) making sure to type the recorder argument as `recorder::MyStruct`. Some examples are in the same source file as [`recorder`](@ref) and/or in the same folder as `recorder.jl`.   
 3. Create a [`recorder_builder`](@ref) which is simply a function such 
 that when called with zero argument, creates your desired type, i.e. 
 `MyStruct`. The name of this function will define the name of your [`recorder`](@ref).
@@ -177,7 +177,7 @@ Building a new explorer is done as follows: first, suppose you are planning to u
     information such as step sizes for HMC or proposal bandwidth. 
     Note that explorers will need to explore not only the target 
     distribution ``\pi`` but also the intermediate ones ``\pi_i``.
-2. Implement all the methods in the section "Contract" of [`explorer`](@ref) making sure to type the explorer argument as `explorer::MyExplorerStruct`. Some examples are in the same directory as the source file of [`explorer`](@ref).  
+2. Implement all the methods in the section "Contract" of [`explorer`](@ref) making sure to type the explorer argument as `explorer::MyExplorerStruct`. Some examples are in the same folder as the source file of [`explorer`](@ref).  
 3. Define a method `create_explorer(target::MyTargetType, inputs)` which 
     should return a fresh `MyExplorerStruct` instance. 
 

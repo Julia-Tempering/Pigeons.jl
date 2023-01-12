@@ -9,7 +9,7 @@ performing adaptation between each round via [`adapt()`](@ref).
 Will also call [`report()`](@ref), [`write_checkpoint()`](@ref), 
 and [`run_checks()`](@ref) between rounds. 
 """
-function run(pt::PT) 
+function pigeons(pt::PT) 
     preflight_checks(pt)
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
@@ -24,7 +24,7 @@ end
 """
 $SIGNATURES 
 
-Report summary information on the progress of [`run()`](@ref).
+Report summary information on the progress of [`pigeons()`](@ref).
 """
 report(pt, reduced_recorders) = nothing # TODO
 

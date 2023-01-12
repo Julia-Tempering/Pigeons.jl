@@ -10,6 +10,9 @@ function (log_potential::TuringLogPotential)(vi)
         loglikelihood(log_potential.model, vi)
 end
 
+"""
+$SIGNATURES 
+"""
 @provides target TuringLogPotential(model::DynamicPPL.Model) = 
     TuringLogPotential(model, false)
 
