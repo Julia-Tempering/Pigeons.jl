@@ -4,6 +4,3 @@ struct InCurrentProcess <: Submission end
 
 
 
-@kwdef struct ToMPI 
-
-end

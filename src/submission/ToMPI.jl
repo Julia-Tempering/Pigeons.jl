@@ -1,3 +1,4 @@
+@kwdef struct ToMPI end
 
 function pigeons(pt_arguments, mpi_submission::ToMPI)
     # if pt_arguments is a Resume, use it to populate mpi_configuration

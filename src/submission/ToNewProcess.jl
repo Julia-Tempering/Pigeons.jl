@@ -14,13 +14,14 @@ function pigeons(pt_arguments, new_process::ToNewProcess)
     error("TODO")
 end
 
-begin submission_julia_file(
+function submission_julia_file(
         exec_folder::AbstractString, 
         path_to_serialized_pt_arguments::AbstractString, 
         path_to_serialized_immutables::AbstractString,
-        modules::Set{Module}) 
+        modules = Set{Module}()) 
     modules = copy(modules)
     push!(modules, Serialization)
+    push!(modules, Pigeons)
     return 
         """
         $(join(
@@ -28,8 +29,11 @@ begin submission_julia_file(
             "\n"
         ))
 
-        Pigeons.deserialize_immutables(\"$(path_to_serialized_immutables)\")
-        pt_arguments = deserialize
+        Pigeons.deserialize_immutables(\"$path_to_serialized_immutables\")
+        pt_arguments = deserialize(\"$path_to_serialized_pt_arguments\")
+        pigeons()
         """
 end
 
+
+# MacroTools.striplines(cc)
