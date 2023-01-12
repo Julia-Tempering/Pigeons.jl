@@ -115,8 +115,6 @@ function mpi_test(n_processes::Int, test_file::String; options = [])
     end
 end
 
-/(s1::AbstractString, s2::AbstractString) = s1 * "/" * s2
-
 
 """
     @weighted(w, x) 

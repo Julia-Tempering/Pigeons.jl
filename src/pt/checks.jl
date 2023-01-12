@@ -32,7 +32,7 @@ produce exactly the same output.
 """
 function check_against_serial(pt)
     round = pt.shared.iterators.round
-    parallel_checkpoint = pt.exec_folder / "round=$round/checkpoint"
+    parallel_checkpoint = "$(pt.exec_folder)/round=$round/checkpoint"
     
     # run a serial copy
     println("TODO: start in new process")
@@ -44,19 +44,19 @@ function check_against_serial(pt)
         #    , 
         #ToNewProcess(n_threads = 1)
         )
-    serial_checkpoint = serial_pt_result.exec_folder / "round=$round/checkpoint"
+    serial_checkpoint = "$(serial_pt_result.exec_folder)/round=$round/checkpoint"
 
     # compare the serialized files
     compare_checkpoints(parallel_checkpoint, serial_checkpoint)
     compare_files(
-        pt.exec_folder / "immutables.jls", 
-        serial_pt_result.exec_folder / "immutables.jls")
+        "$(pt.exec_folder)/immutables.jls", 
+        "$(serial_pt_result.exec_folder)/immutables.jls")
 end
 
 compare_checkpoints(checkpoint_folder1, checkpoint_folder2) = 
     for file in readdir(checkpoint_folder1)
         if endswith(file, ".jls")
-            compare_files(checkpoint_folder1 / file, checkpoint_folder2 / file)
+            compare_files("$checkpoint_folder1/$file", "$checkpoint_folder2/$file")
         end
     end
 
