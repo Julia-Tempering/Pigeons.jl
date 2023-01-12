@@ -1,22 +1,8 @@
 """
-Orchestrate the [` explore!()`](@ref) phase 
+Orchestrate the [`explore!()`](@ref) phase 
 of Parallel Tempering. 
 """
 @informal explorer begin
-    """
-    $SIGNATURES 
-
-    Perform i.i.d. sampling on the given [`Replica`](@ref). 
-    This is only called when the replica is visiting a 
-    reference chain. 
-
-    The input [`explorer`](@ref) and [`Shared`](@ref) should only 
-    be read, not written to. 
-
-    See also [`find_log_potential`](@ref). 
-    """
-    regenerate!(explorer, replica, shared) = @abstract
-
     """
     $SIGNATURES 
 
@@ -49,18 +35,7 @@ of Parallel Tempering.
     Return `[]` if none are needed. 
     """
     explorer_recorder_builders(explorer) = @abstract 
-
-    """
-    $SIGNATURES
-
-    Return a [`state_initializer`](@ref) used to populate 
-    the states at the beginning of the first round of 
-    Parallel Tempering. 
-    """
-    create_state_initializer(target) = @abstract 
 end
-
-
 
 """
 $SIGNATURES 

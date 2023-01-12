@@ -35,3 +35,11 @@ function analytic_cumulativebarrier(path::ScaledPrecisionNormalPath)
     end
     return cumulativebarrier
 end
+
+""" 
+$SIGNATURES 
+
+In this case, the target is already a [`path`](@ref), so return it. 
+"""
+create_path(target::ScaledPrecisionNormalPath, inputs::Inputs) = target
+
