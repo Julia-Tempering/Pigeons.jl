@@ -9,7 +9,8 @@ $FIELDS
 @kwdef struct ChildProcess <: Submission  
     """
     The number of threads to provide in the 
-    child julia process.
+    child julia process, the same as the current 
+    process by default.
     """
     n_threads::Int = Threads.nthreads()
 
@@ -72,12 +73,10 @@ function launch_cmd(pt_arguments, exec_folder, extra_modules, n_threads::Int, si
     project_folder = dirname(Base.current_project())
     julia_bin = Base.julia_cmd()
     script_path = launch_script(pt_arguments, exec_folder, extra_modules, silence_mpi)
-    julia_cmd = 
-        `$julia_bin 
+    return `$julia_bin 
             --project=$project_folder 
             --threads=$n_threads 
             $script_path`
-    return julia_cmd
 end
 
 function launch_script(pt_arguments, exec_folder, extra_modules, silence_mpi)

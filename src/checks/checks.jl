@@ -56,10 +56,15 @@ compare_checkpoints(checkpoint_folder1, checkpoint_folder2) =
     end
 
 function compare_files_checksums(file1, file2) 
-    #_compare_files_reproducibility(file1, file2)
+    
     if checksum(file1) == checksum(file2)
         return 
     else
+        try # TODO: clean up / make _compare_files_reproducibility more robust
+            _compare_files_reproducibility(file1, file2)
+        catch e 
+            println("Warn: $e")
+        end
         error(
             """
             detected non-reproducibility: $file1 != $file2: 

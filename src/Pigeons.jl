@@ -27,6 +27,8 @@ using ConcreteStructs
 using Random 
 using Graphs
 using DataStructures
+using Preferences
+using MPIPreferences
 
 import Serialization.serialize
 import Serialization.deserialize
