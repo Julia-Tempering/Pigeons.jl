@@ -53,7 +53,8 @@ function pigeons(pt_arguments, new_process::ToNewProcess)
         pt_arguments,
         exec_folder,
         new_process.extra_modules,
-        new_process.n_threads
+        new_process.n_threads,
+        new_process.n_local_mpi_processes == 1
     )
     if new_process.n_local_mpi_processes == 1
         run(julia_cmd, wait = new_process.wait)
@@ -67,10 +68,10 @@ function pigeons(pt_arguments, new_process::ToNewProcess)
     return Result{PT}(exec_folder)
 end
 
-function launch_cmd(pt_arguments, exec_folder, extra_modules, n_threads)
+function launch_cmd(pt_arguments, exec_folder, extra_modules, n_threads::Int, silence_mpi::Bool)
     project_folder = dirname(Base.current_project())
     julia_bin = Base.julia_cmd()
-    script_path = launch_script(pt_arguments, exec_folder, extra_modules)
+    script_path = launch_script(pt_arguments, exec_folder, extra_modules, silence_mpi)
     julia_cmd = 
         `$julia_bin 
             --project=$project_folder 
@@ -79,7 +80,7 @@ function launch_cmd(pt_arguments, exec_folder, extra_modules, n_threads)
     return julia_cmd
 end
 
-function launch_script(pt_arguments, exec_folder, extra_modules)
+function launch_script(pt_arguments, exec_folder, extra_modules, silence_mpi)
     path_to_serialized_pt_arguments = "$exec_folder/.pt_argument.jls"
     path_to_serialized_immutables = "$exec_folder/immutables.jls"
 
@@ -91,7 +92,8 @@ function launch_script(pt_arguments, exec_folder, extra_modules)
         exec_folder, 
         path_to_serialized_pt_arguments, 
         path_to_serialized_immutables,
-        extra_modules) 
+        extra_modules,
+        silence_mpi) 
     script_path = "$exec_folder/.launch_script.jl"
     write(script_path, code)
     return script_path
@@ -101,7 +103,8 @@ function launch_code(
         exec_folder::AbstractString, 
         path_to_serialized_pt_arguments::AbstractString, 
         path_to_serialized_immutables::AbstractString,
-        extra_modules) 
+        extra_modules,
+        silence_mpi) 
     modules = copy(extra_modules)
     push!(modules, Serialization)
     push!(modules, Pigeons)
@@ -111,10 +114,16 @@ function launch_code(
                 m -> "using $m", 
                 unique(modules)), 
             "\n")
+    # when running check_against_serial(), the 
+    # child process still detect it is under MPI, so 
+    # we need to force it to ignore that
+    silence_code = silence_mpi ? "Pigeons.silence_mpi[] = true" : ""
     # Might be better with quote? 
     # But prototype quote-based syntax seemed more messy..
     """
     $usings
+
+    $silence_code
 
     Pigeons.deserialize_immutables("$path_to_serialized_immutables")
     pt_arguments = deserialize("$path_to_serialized_pt_arguments")
