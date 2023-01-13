@@ -45,12 +45,15 @@ end
 
 """$SIGNATURES"""
 function latest_checkpoint_folder(exec_folder)
-    inputs = deserialize("$exec_folder/inputs.jls")
-    for r in reverse(1:inputs.n_rounds)
-        checkpoint_folder = "$exec_folder/round=$r/checkpoint"
-        if is_finished(checkpoint_folder, inputs)
-            return r
+    try
+        inputs = deserialize("$exec_folder/inputs.jls")
+        for r in reverse(1:inputs.n_rounds)
+            checkpoint_folder = "$exec_folder/round=$r/checkpoint"
+            if is_finished(checkpoint_folder, inputs)
+                return r
+            end
         end
+    catch e 
     end
     return 0
 end

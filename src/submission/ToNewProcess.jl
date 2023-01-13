@@ -22,6 +22,23 @@ $FIELDS
     # modules should be loaded? E.g. could use 
     #    https://stackoverflow.com/questions/25575406/list-of-loaded-imported-packages-in-julia
     #    see filter((x) -> typeof(eval(x)) <:  Module && x ≠ :Main, names(Main,imported=true))
+
+    """
+    If greater than one, run the code locally 
+    over MPI using that many MPI processes. 
+    In most cases, this is useful only for debugging purpose, 
+    as multi-threading should typically perform 
+    better. This could also potentially be useful if using a 
+    third-party target distribution which somehow 
+    does not support multi-threading. 
+    """
+    n_local_mpi_processes = 1
+
+    """
+    If wait is false, the process runs asynchronously.
+    When wait is false, the process' I/O streams are directed to devnull.
+    """
+    wait = true
 end 
 
 """
@@ -31,15 +48,35 @@ Run Parallel Tempering in a new process.
 See [`ToNewProcess`](@ref).
 """
 function pigeons(pt_arguments, new_process::ToNewProcess)
-    project_folder = dirname(Base.current_project())
     exec_folder = next_exec_folder() 
-    julia_cmd = Base.julia_cmd()
-    script_path = launch_script(pt_arguments, exec_folder, new_process.extra_modules)
-    run(`$julia_cmd 
-            --project=$project_folder 
-            --threads $(new_process.n_threads) 
-            $script_path`)
+    julia_cmd = launch_cmd(
+        pt_arguments,
+        exec_folder,
+        new_process.extra_modules,
+        new_process.n_threads
+    )
+    if new_process.n_local_mpi_processes == 1
+        run(julia_cmd, wait = new_process.wait)
+    else
+        mpiexec() do exe
+            mpi_cmd = `$exe -n $(new_process.n_local_mpi_processes)`
+            cmd = Cmd([mpi_cmd.exec; julia_cmd.exec])
+            run(cmd, wait = new_process.wait)
+        end
+    end
     return Result{PT}(exec_folder)
+end
+
+function launch_cmd(pt_arguments, exec_folder, extra_modules, n_threads)
+    project_folder = dirname(Base.current_project())
+    julia_bin = Base.julia_cmd()
+    script_path = launch_script(pt_arguments, exec_folder, extra_modules)
+    julia_cmd = 
+        `$julia_bin 
+            --project=$project_folder 
+            --threads=$n_threads 
+            $script_path`
+    return julia_cmd
 end
 
 function launch_script(pt_arguments, exec_folder, extra_modules)
