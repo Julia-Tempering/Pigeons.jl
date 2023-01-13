@@ -32,6 +32,7 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential)
     dim_x = length(state)
     g_x0 = -log_potential(state) # TODO: is it correct to keep the vertical draw out of the loop?
     for c in 1:dim_x # update *every* coordinate (TODO: change this later!)
+        # pointer = Ref(state, c)
         z = g_x0 - rand(Exponential(1.0)) # log(vertical draw)
         L, R = slice_double(h, state, z, c, log_potential)
         state[c] = slice_shrink(h, state, z, L, R, c, log_potential)

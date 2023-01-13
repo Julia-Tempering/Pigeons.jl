@@ -27,6 +27,7 @@ Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 SplittableRandoms = "8efc31e9-3fb0-4277-b18c-5a3d5d07abad"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 
 [compat]
 julia = "1.6"
