@@ -35,7 +35,7 @@ function reproduces(r::Reproducibility, o1::Vector{T}, o2::Vector{T}) where {T}
     end
 end
 
-function reproduces(r::Reproducibility, o1::Dict, o2::Dict) where {T}
+function reproduces(r::Reproducibility, o1::Dict, o2::Dict)
     if keys(o1) != keys(o2)
         add_violation(r, o1, o2)
     else
