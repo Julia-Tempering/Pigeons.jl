@@ -7,11 +7,12 @@ h = Pigeons.SliceSampler()
 state = [0.3]
 
 function main()
-    # println(state)
+    println(state)
     for i in 1:100
         Pigeons.slice_sample!(h, state, log_potential)
-        # println(state)
+        println(state)
     end
 end
 
-@btime main()
+main()
+# @btime main()
