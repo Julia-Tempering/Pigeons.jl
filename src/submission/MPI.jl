@@ -56,14 +56,14 @@ function pigeons(pt_arguments, mpi_submission::MPI)
 
     # generate qsub script
     # do job submission & record the submission id
-    cmd = mpi_submission_cmd(exec_folder, mpi_submission)
+    cmd = mpi_submission_cmd(exec_folder, mpi_submission, julia_cmd)
     run(cmd)
     return Result{PT}(exec_folder)
 end
 
 # todo: abstract out to other submission systems
-function mpi_submission_cmd(exec_folder, mpi_submission::MPI) 
-    submission_script = mpi_submission_script(exec_folder)
+function mpi_submission_cmd(exec_folder, mpi_submission::MPI, julia_cmd) 
+    submission_script = mpi_submission_script(exec_folder, mpi_submission, julia_cmd)
     return `qsub $submission_script`
 end
 
@@ -75,7 +75,6 @@ function setup_mpi(allocation_code::String)
     @set_preferences!(
         "allocation_code" => allocation_code
     )
-    @info("MPI is setup; restart your Julia session for this change to take effect")
 end
 
 function mpi_submission_script(exec_folder, mpi_submission::MPI)
