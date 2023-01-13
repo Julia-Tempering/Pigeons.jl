@@ -1,3 +1,10 @@
+using Distributions 
+using ConcreteStructs
+using DynamicPPL
+using BenchmarkTools
+
+import Base: @kwdef 
+
 """
 Slice sampler based on
 [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
@@ -9,25 +16,7 @@ Slice sampler based on
 end
 
 
-"""
-$SIGNATURES 
-"""
-@provides explorer create_explorer(target, inputs) = SliceSampler() # TODO
-create_state_initializer(target) = Ref(zeros(target)) # TODO
-adapt_explorer(explorer::SliceSampler, _, _) = explorer 
-explorer_recorder_builders(::SliceSampler) = [] 
-regenerate!(explorer::SliceSampler, replica, shared) = @abstract # TODO or remove
 
-function step!(explorer::SliceSampler, replica, shared)
-    log_potential = find_log_potential(replica, shared)
-    slice_sample!(explorer, replica.state, log_potential)
-end
-
-
-"""
-$SIGNATURES
-Slice sample one point.
-"""
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential)
     dim_x = length(state)
     g_x0 = -log_potential(state) # TODO: is it correct to keep the vertical draw out of the loop?
@@ -51,10 +40,6 @@ function slice_sample!(h::SliceSampler, state::TypedVarInfo, log_potential)
 end
 
 
-"""
-$SIGNATURES
-Double the current slice.
-"""
 function slice_double(h::SliceSampler, state, z, c::Integer, log_potential)
     old_position = state[c] # store old position (trick to avoid memory allocation)
     U = rand()
@@ -85,10 +70,6 @@ function slice_double(h::SliceSampler, state, z, c::Integer, log_potential)
 end
 
 
-"""
-$SIGNATURES
-Shrink the current slice.
-"""
 function slice_shrink(h::SliceSampler, state, z, L, R, c::Int, log_potential)
     old_position = state[c]
     Lbar = L
@@ -113,10 +94,6 @@ function slice_shrink(h::SliceSampler, state, z, L, R, c::Int, log_potential)
 end
 
 
-"""
-$SIGNATURES
-Test whether to accept the current slice.
-"""
 function slice_accept(h::SliceSampler, state, new_position, z, L, R, c::Int, log_potential)
     old_position = state[c]
     Lhat = L
@@ -154,3 +131,20 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, c::Int, log
     state[c] = old_position
     return acceptable
 end
+
+
+
+h = SliceSampler()
+log_potential = (x) -> -logpdf(Normal(0.0, 1.0), x[1])
+include("../src/pt/turing_test.jl")
+# println(vi.metadata[1].vals)
+
+function main()
+    for i in 1:100
+        slice_sample!(h, vi, log_potential)
+        # println(vi.metadata[1].vals)
+    end
+end
+
+@btime main()
+
