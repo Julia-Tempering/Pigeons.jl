@@ -99,4 +99,4 @@ vi.metadata.p.vals[1] = -2
 println("logprior: $(logprior(model, vi))")
 println("loglikelihood: $(loglikelihood(model, vi))")
 
-DPPL.invlink!(vi, tm.spl)
+# DynamicPPL.invlink!(vi, tm.spl)
