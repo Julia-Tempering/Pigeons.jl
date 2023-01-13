@@ -38,15 +38,16 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential)
     end
 end
 
-function slice_sample!(h::SliceSampler, state::TypedVarInfo, log_potential)
-    dim_x = length(keys(state.metadata))
-    g_x0 = -log_potential(state) # TODO: is it mathematically correct to keep the vertical draw of the loop?
-    for c in 1:dim_x # update *every* coordinate (change this later!)
-        z = g_x0 - rand(Exponential(1.0)) # log(vertical draw)
-        L, R = slice_double(h, state, z, c, log_potential)
-        state[c] = slice_shrink(h, state, z, L, R, c, log_potential)
-    end
-end
+# function slice_sample!(h::SliceSampler, state::TypedVarInfo, log_potential)
+#     dim_x = length(keys(state.metadata))
+#     # convert state to vector.....
+#     g_x0 = -log_potential(state) # TODO: is it mathematically correct to keep the vertical draw of the loop?
+#     for c in 1:dim_x # update *every* coordinate (change this later!)
+#         z = g_x0 - rand(Exponential(1.0)) # log(vertical draw)
+#         L, R = slice_double(h, state, z, c, log_potential)
+#         state[c] = slice_shrink(h, state, z, L, R, c, log_potential)
+#     end
+# end
 
 
 """
