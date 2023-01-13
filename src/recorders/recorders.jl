@@ -82,12 +82,20 @@ identical, no matter how many MPI processes are used, even when
 the reduction involves only approximately associative [`combine!()`](@ref)
 operations (e.g. most floating point ones).
 """
-reduce_recorders!(replicas) = 
+reduce_recorders!(replicas::EntangledReplicas) = _reduce_recorders!(replicas)
+
+function reduce_recorders!(replicas::Vector)
+    sort!(replicas, by = r -> r.replica_index)
+    result = _reduce_recorders!(replicas)
+    sort_replicas!(replicas)
+    return result
+end
+
+_reduce_recorders!(replicas) = 
     all_reduce_deterministically(
         merge_recorders!, 
         _recorders.(locals(replicas)), 
         entangler(replicas)) 
-
 
 function merge_recorders!(recorders1, recorders2)
     shared_keys = keys(recorders1)
