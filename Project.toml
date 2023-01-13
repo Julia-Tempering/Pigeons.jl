@@ -1,11 +1,10 @@
 name = "Pigeons"
 uuid = "0eb8d820-af6a-4919-95ae-11206f830c31"
-authors = ["Paul Tiede <ptiede91@gmail.com>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, and contributors"]
+authors = ["Alexandre Bouchard-Côté, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Paul Tiede <ptiede91@gmail.com>, Trevor Campbell, Miguel Biron-Lattes, Saifuddin Syed"]
 version = "0.1.0"
 
 [deps]
 ArgMacros = "dbc42088-9de8-42a0-8ec8-2cd114e1ea3e"
-BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CRC32c = "8bf52ea8-c179-5cab-976a-9e18b702a9bc"
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
