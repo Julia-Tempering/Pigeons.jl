@@ -119,10 +119,11 @@ end
 """
     @weighted(w, x) 
 
-Compute w*x, but if w==0.0, do not evaluate x and just return 0.0
+Compute `w*x`, but if `w==0.0`, do not evaluate `x` and just return `w` (i.e. zero).
+Useful when x is computationally costly.
 """
 macro weighted(w, x) 
-    :($(esc(w)) == 0.0 ? 0.0 : $(esc(w)) * $(esc(x)))
+    :($(esc(w)) == zero($(esc(w))) ? $(esc(w)) : $(esc(w)) * $(esc(x)))
 end
 
 """ 

@@ -33,6 +33,6 @@ See [`create_replicas`](@ref).
     entangler = Entangler(n_chains)
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)
-    locals = _create_locals(my_globals, shared, source)
+    locals = _create_locals(my_globals, inputs, shared, source)
     return EntangledReplicas(locals, chain_to_replica_global_indices)
 end

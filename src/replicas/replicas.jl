@@ -83,7 +83,7 @@ fresh [`replicas`](@ref), or [`FromCheckpoint`](@ref) to load from
 a saved checkpoint.
 """
 @provides replicas create_replicas(inputs::Inputs, shared::Shared, source) = 
-    mpi_needed() ? 
+    mpi_active() ? 
         create_entangled_replicas(inputs, shared, source) :
         create_vector_replicas(inputs, shared, source)
 

@@ -30,7 +30,7 @@ function PT(source_exec_folder::AbstractString;
         source_exec_folder = "results/$(readlink(source_exec_folder))"
     end 
 
-    fresh_exec_folder = pt_exec_folder(inputs, fresh_exec_folder)
+    fresh_exec_folder = pt_exec_folder(true, fresh_exec_folder)
     
     checkpoint_folder = "$source_exec_folder/round=$round/checkpoint"
     deserialize_immutables("$source_exec_folder/immutables.jls")
@@ -45,12 +45,15 @@ end
 
 """$SIGNATURES"""
 function latest_checkpoint_folder(exec_folder)
-    inputs = deserialize("$exec_folder/inputs.jls")
-    for r in reverse(1:inputs.n_rounds)
-        checkpoint_folder = "$exec_folder/round=$r/checkpoint"
-        if is_finished(checkpoint_folder, inputs)
-            return r
+    try
+        inputs = deserialize("$exec_folder/inputs.jls")
+        for r in reverse(1:inputs.n_rounds)
+            checkpoint_folder = "$exec_folder/round=$r/checkpoint"
+            if is_finished(checkpoint_folder, inputs)
+                return r
+            end
         end
+    catch e 
     end
     return 0
 end
@@ -98,22 +101,31 @@ function write_checkpoint(pt, reduced_recorders)
         return 
     end
     checkpoint_folder = mkpath("$(pt.exec_folder)/round=$(pt.shared.iterators.round)/checkpoint")    
+    
+    # beginning of serialization episode
+    start_serialization()
+
+    # each process saves its replicas
+    for replica in locals(pt.replicas)
+        serialize("$checkpoint_folder/replica=$(replica.replica_index).jls", replica)
+    end
+    
     only_one_process(pt) do
         serialize("$checkpoint_folder/shared.jls", pt.shared)
         serialize("$checkpoint_folder/reduced_recorders.jls", reduced_recorders)
         # only need to save Inputs & immutables at first round
         if pt.shared.iterators.round == 1 
             serialize("$(pt.exec_folder)/inputs.jls", pt.inputs)
+            # this needs to be last!
             if !isfile("$(pt.exec_folder)/immutables.jls") # if running via submission, this is written for us 
                 serialize_immutables("$(pt.exec_folder)/immutables.jls")
             end
         end
     end
-    # each process saves its replicas
-    for replica in locals(pt.replicas)
-        serialize("$checkpoint_folder/replica=$(replica.replica_index).jls", replica)
-    end
-    # signal that we are done (do not merge this loop with the one above!)
+
+    end_serialization()
+
+    # signal that we are done
     for replica in locals(pt.replicas)
         signal_folder = mkpath("$checkpoint_folder/.signal")
         touch("$signal_folder/finished_replica=$(replica.replica_index)")

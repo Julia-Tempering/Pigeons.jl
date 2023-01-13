@@ -43,12 +43,12 @@ function PT(inputs::Inputs; exec_folder = use_auto_exec_folder)
     shared = Shared(inputs)
     state_init = create_state_initializer(inputs.target, inputs)
     replicas = create_replicas(inputs, shared, state_init)
-    exec_folder = pt_exec_folder(inputs, exec_folder)
+    exec_folder = pt_exec_folder(inputs.checkpoint, exec_folder)
     return PT(inputs, replicas, shared, exec_folder, create_recorders(inputs, shared))
 end
 
-pt_exec_folder(inputs, specified_exec_folder) = 
-    if inputs.checkpoint
+pt_exec_folder(use_checkpoint, specified_exec_folder) = 
+    if use_checkpoint
         if specified_exec_folder == use_auto_exec_folder
             next_exec_folder()
         else
