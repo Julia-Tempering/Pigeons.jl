@@ -102,8 +102,7 @@ function write_checkpoint(pt, reduced_recorders)
     end
     checkpoint_folder = mkpath("$(pt.exec_folder)/round=$(pt.shared.iterators.round)/checkpoint")    
     
-    # beginning of serialization episode
-    start_serialization()
+    flush_immutables!()
 
     # each process saves its replicas
     for replica in locals(pt.replicas)
@@ -122,8 +121,6 @@ function write_checkpoint(pt, reduced_recorders)
             end
         end
     end
-
-    end_serialization()
 
     # signal that we are done
     for replica in locals(pt.replicas)

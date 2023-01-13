@@ -84,7 +84,7 @@ function launch_script(pt_arguments, exec_folder, extra_modules, silence_mpi)
     path_to_serialized_pt_arguments = "$exec_folder/.pt_argument.jls"
     path_to_serialized_immutables = "$exec_folder/immutables.jls"
 
-    start_serialization()
+    flush_immutables!()
     serialize(path_to_serialized_pt_arguments, pt_arguments)
     serialize_immutables(path_to_serialized_immutables)
 

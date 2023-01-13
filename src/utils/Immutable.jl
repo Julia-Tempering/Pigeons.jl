@@ -36,7 +36,7 @@ Details of how serialization/deserialization is performed:
     Internally, we maintain an internal, global Dict indexed 
     by hash(data) storing the data. This global Dict is 
     called `immutables`.
-2.  Start an episode of serialization using start_serialization()
+2.  Use flush_immutable() to clear the global immutable state
 3. Use `Serialization.serialize` as usual. Internally, we 
     dispatch serialization of `Immutable` is modified to skip 
     the field containing the data.
@@ -53,24 +53,14 @@ Details of how serialization/deserialization is performed:
 Immutable(data) = Immutable(data, true)
 
 const immutables = Dict{UInt, Any}()
-const serialization_started = Ref(false)
 
 """
 $SIGNATURES 
 
 See [`Immutable()`](@ref).
 """
-function start_serialization()
-    if serialization_started[]
-        error()
-    else
-        empty!(immutables)
-        serialization_started[] = true
-    end
-end
-
-function end_serialization()
-    serialization_started[] = false
+function flush_immutables!()
+    empty!(immutables)
 end
 
 """
@@ -79,12 +69,7 @@ $SIGNATURES
 See [`Immutable()`](@ref).
 """
 function serialize_immutables(filename::AbstractString)
-    if !serialization_started[]
-        error("call start_serialization()")
-    end
     serialize(filename, immutables)
-    empty!(immutables)
-    serialization_started[] = false
 end
 
 """
@@ -93,16 +78,11 @@ $SIGNATURES
 See [`Immutable()`](@ref).
 """
 function deserialize_immutables(filename::AbstractString)
-    if !isempty(immutables)
-        error()
-    end
+    empty!(immutables)
     merge!(immutables, deserialize(filename))
 end
 
 function Serialization.serialize(s::AbstractSerializer, instance::Immutable{T}) where {T}
-    if !serialization_started[]
-        error("call start_serialization()")
-    end
     Serialization.writetag(s.io, Serialization.OBJECT_TAG)
     Serialization.serialize(s, Immutable{T})
     Serialization.serialize(s, instance.hash)
