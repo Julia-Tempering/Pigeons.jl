@@ -131,3 +131,20 @@ $SIGNATURES
 See [`TestSwapper`](@ref).
 """
 record_swap_stats!(swapper::TestSwapper, recorder, chain1::Int, stat1, chain2::Int, stat2) = nothing
+
+
+# toy target based on TestSwapper
+
+create_state_initializer(target::TestSwapper, ::Inputs) = Ref(nothing)
+
+create_explorer(::TestSwapper, ::Inputs) = nothing 
+    step!(::Nothing, replica, shared) = nothing
+    adapt_explorer(::Nothing, _, _) = nothing 
+    explorer_recorder_builders(::Nothing) = [] 
+
+sample_iid!(::TestSwapper, replica) = nothing
+
+create_path(testSwapper::TestSwapper, ::Inputs) = testSwapper
+    interpolate(testSwapper::TestSwapper, beta) = testSwapper
+
+create_pair_swapper(tempering, target::TestSwapper) = target
