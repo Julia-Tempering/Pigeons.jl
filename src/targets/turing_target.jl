@@ -27,5 +27,5 @@ create_reference_log_potential(target::TuringLogPotential, ::Inputs) =
     TuringLogPotential(target.model, true)
 
 function sample_iid!(log_potential::TuringLogPotential, replica) 
-    replica.state = initialization(log_potential, replica.rng)
+    replica.state = initialization(log_potential, replica.rng, replica.replica_index)
 end
