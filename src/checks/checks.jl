@@ -43,26 +43,20 @@ function check_against_serial(pt)
 
     # compare the serialized files
     compare_checkpoints(parallel_checkpoint, serial_checkpoint)
-    # compare_files_reproducibility(
-    #     "$(pt.exec_folder)/immutables.jls", 
-    #     "$(serial_pt_result.exec_folder)/immutables.jls")
+    compare_files_checksums(
+        "$(pt.exec_folder)/immutables.jls", 
+        "$(serial_pt_result.exec_folder)/immutables.jls")
 end
 
 compare_checkpoints(checkpoint_folder1, checkpoint_folder2) = 
     for file in readdir(checkpoint_folder1)
         if endswith(file, ".jls")
-            compare_files_reproducibility("$checkpoint_folder1/$file", "$checkpoint_folder2/$file")
+            compare_files_checksums("$checkpoint_folder1/$file", "$checkpoint_folder2/$file")
         end
     end
 
-function compare_files_reproducibility(file1, file2)
-    o1 = deserialize(file1)
-    o2 = deserialize(file2)
-    r = reproduces(o1, o2)
-    println("$file1: $r")
-end
-
 function compare_files_checksums(file1, file2) 
+    #_compare_files_reproducibility(file1, file2)
     if checksum(file1) == checksum(file2)
         return 
     else
@@ -75,4 +69,12 @@ function compare_files_checksums(file1, file2)
         )
 
     end
+end
+
+# experimental tool to help identify root cause of violation of Parallelism Invariance
+function _compare_files_reproducibility(file1, file2)
+    o1 = deserialize(file1)
+    o2 = deserialize(file2)
+    r = reproduces(o1, o2)
+    println("$file1: $r")
 end
