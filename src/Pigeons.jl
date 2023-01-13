@@ -26,6 +26,7 @@ using Serialization
 using ConcreteStructs
 using Random 
 using Graphs
+using DataStructures
 
 import Serialization.serialize
 import Serialization.deserialize
