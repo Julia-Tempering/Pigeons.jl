@@ -1,6 +1,8 @@
-@kwdef struct ToMPI end
+@kwdef struct MPI <: Submission
 
-function pigeons(pt_arguments, mpi_submission::ToMPI)
+end
+
+function pigeons(pt_arguments, mpi_submission::MPI)
     # if pt_arguments is a Resume, use it to populate mpi_configuration
     # serialize pt_arguments
     # generate exec_folder

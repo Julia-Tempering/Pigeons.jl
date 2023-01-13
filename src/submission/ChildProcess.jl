@@ -6,7 +6,7 @@ Fields:
 
 $FIELDS
 """
-@kwdef struct ToNewProcess <: Submission  
+@kwdef struct ChildProcess <: Submission  
     """
     The number of threads to provide in the 
     child julia process.
@@ -45,9 +45,9 @@ end
 $SIGNATURES 
 
 Run Parallel Tempering in a new process. 
-See [`ToNewProcess`](@ref).
+See [`ChildProcess`](@ref).
 """
-function pigeons(pt_arguments, new_process::ToNewProcess)
+function pigeons(pt_arguments, new_process::ChildProcess)
     exec_folder = next_exec_folder() 
     julia_cmd = launch_cmd(
         pt_arguments,

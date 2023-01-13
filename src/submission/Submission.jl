@@ -1,5 +1,5 @@
 """ 
-Specifies how to run a job.
+Specifies where to submit a task.
 """
 abstract type Submission end 
 
@@ -7,4 +7,4 @@ abstract type Submission end
 Flag to ask to run a function within the 
 current process. 
 """
-struct InCurrentProcess <: Submission end 
+struct ThisProcess <: Submission end 
