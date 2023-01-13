@@ -38,7 +38,7 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential)
     end
 end
 
-function slice_sample!(h::SliceSampler, state::TypedVarInfo, log_potential)
+function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential)
     dim_x = length(keys(state.metadata))
     state_vector = [0.0 for _ in 1:dim_x] # TODO: remove allocation!
     for c in 1:dim_x
