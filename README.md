@@ -10,7 +10,8 @@ Distributed Non-Reversible Parallel Tempering
 
 :warning: **Warning** <br>
 This package is currently under development. The user interface may change substantially prior to the first stable release.
-For the most up-to-date documentation, please view (TODO: insert link to documentation).
+Please view our documentation for the most up-to-date description. Additionally, the implementation of parallel tempering
+with a variational reference will be available in the very near future.
 
 ## Install
 
