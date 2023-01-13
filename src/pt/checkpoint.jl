@@ -30,7 +30,7 @@ function PT(source_exec_folder::AbstractString;
         source_exec_folder = "results/$(readlink(source_exec_folder))"
     end 
 
-    fresh_exec_folder = pt_exec_folder(inputs, fresh_exec_folder)
+    fresh_exec_folder = pt_exec_folder(true, fresh_exec_folder)
     
     checkpoint_folder = "$source_exec_folder/round=$round/checkpoint"
     deserialize_immutables("$source_exec_folder/immutables.jls")
@@ -119,6 +119,8 @@ function write_checkpoint(pt, reduced_recorders)
             end
         end
     end
+
+    end_serialization()
 
     # signal that we are done
     for replica in locals(pt.replicas)

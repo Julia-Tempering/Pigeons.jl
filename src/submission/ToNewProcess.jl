@@ -24,6 +24,12 @@ $FIELDS
     #    see filter((x) -> typeof(eval(x)) <:  Module && x ≠ :Main, names(Main,imported=true))
 end 
 
+"""
+$SIGNATURES 
+
+Run Parallel Tempering in a new process. 
+See [`ToNewProcess`](@ref).
+"""
 function pigeons(pt_arguments, new_process::ToNewProcess)
     project_folder = dirname(Base.current_project())
     exec_folder = next_exec_folder() 
@@ -33,7 +39,7 @@ function pigeons(pt_arguments, new_process::ToNewProcess)
             --project=$project_folder 
             --threads $(new_process.n_threads) 
             $script_path`)
-    return Result(exec_folder)
+    return Result{PT}(exec_folder)
 end
 
 function launch_script(pt_arguments, exec_folder, extra_modules)
@@ -59,7 +65,7 @@ function launch_code(
         path_to_serialized_pt_arguments::AbstractString, 
         path_to_serialized_immutables::AbstractString,
         extra_modules) 
-    modules = copy(modules)
+    modules = copy(extra_modules)
     push!(modules, Serialization)
     push!(modules, Pigeons)
     usings = 

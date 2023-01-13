@@ -61,12 +61,16 @@ $SIGNATURES
 See [`Immutable()`](@ref).
 """
 function start_serialization()
-    if serialization_started
+    if serialization_started[]
         error()
     else
         empty!(immutables)
         serialization_started[] = true
     end
+end
+
+function end_serialization()
+    serialization_started[] = false
 end
 
 """
@@ -75,9 +79,12 @@ $SIGNATURES
 See [`Immutable()`](@ref).
 """
 function serialize_immutables(filename::AbstractString)
+    if !serialization_started[]
+        error("call start_serialization()")
+    end
     serialize(filename, immutables)
-    serialization_started[] = false
     empty!(immutables)
+    serialization_started[] = false
 end
 
 """

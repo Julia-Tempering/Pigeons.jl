@@ -45,7 +45,8 @@ export pigeons, Inputs, PT,
     Resume, Result, 
     ToNewProcess, ToMPI,
     toy_mvn_target,
-    index_process, swap_acceptance_pr
+    index_process, swap_acceptance_pr, 
+    load
 
 end # End module
 
