@@ -3,6 +3,7 @@
 *.jl.mem
 /Manifest.toml
 /docs/build/
+/docs/Manifest.toml
 .vscode/settings.json
 build
 .interfaces.md
