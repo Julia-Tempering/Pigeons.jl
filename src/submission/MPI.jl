@@ -6,7 +6,6 @@ These packages are actually unrelated despite similar names.
 In most contexts both 1 and 2 are needed for an ergonomic UI. 
 =#
 
-
 """ 
 Flag to run on MPI.
 Before using, you have to call once [`setup_mpi`](@ref).
@@ -40,36 +39,23 @@ $FIELDS
     Extra Julia `Module`s needed by the child 
     process. 
     """
-    extra_modules::Vector{Module} = []
-end
-
-"""
-$SIGNATURES 
-
-- `allocation_code` is used to submit the job
-- `environment_modules`, run `module avail` in the terminal to see what is available on your HPC. 
-"""
-function setup_mpi(; 
-        allocation_code::String, 
-        environment_modules::Vector{String}
-    )
-    @set_preferences!(
-        "allocation_code" => allocation_code,
-        "environment_modules" => environment_modules
-    )
-    MPIPreferences.use_system_binary() # must be put after ours because this throws error about the need to restart
+    extra_julia_modules::Vector{Module} = []
 end
 
 """
 $SIGNATURES
 """
 function pigeons(pt_arguments, mpi_submission::MPI)
+    if !is_mpi_setup()
+        error("call setup_mpi(..) first")
+    end
+
     exec_folder = next_exec_folder() 
 
     julia_cmd = launch_cmd(
         pt_arguments,
         exec_folder,
-        mpi_submission.extra_modules,
+        mpi_submission.extra_julia_modules,
         mpi_submission.n_threads,
         false
     )
@@ -101,22 +87,17 @@ function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     # TODO: move some more things over from mpi-run
     info_folder = "$exec_folder/info"
     julia_cmd_str = join(julia_cmd, " ")
-    modules_str = join(
-        map(
-            mod_env_str -> "module load $mod_env_str",
-            @load_preference("environment_modules")),
-        "\n"
-    )
+    mpi_settings = load_mpi_settings()
     code = """
     #!/bin/bash
     #PBS -l $(resource_string(mpi_submission))
 
-    #PBS -A $(@load_preference("allocation_code"))
+    #PBS -A $(mpi_settings.allocation_code)
     #PBS -N $(basename(exec_folder))
     #PBS -o $info_folder/stdout.txt
     #PBS -e $info_folder/stderr.txt
     cd \$PBS_O_WORKDIR
-    $modules_str
+    $(modules_string(mpi_settings))
     mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
