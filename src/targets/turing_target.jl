@@ -3,23 +3,14 @@ struct TuringLogPotential
     only_prior::Bool
 end
 
-function (log_potential::TuringLogPotential)(vi)
-    # transform_back = false
-    # if DynamicPPL.istrans(vi, DynamicPPL._getvns(vi, DynamicPPL.SampleFromPrior())[1]) # check if already transformed into unconstrained space
-    #     DynamicPPL.invlink!!(vi, log_potential.model) # transform back to constrained space
-    #     transform_back = true # transform it back after log_potential evaluation
-    # end
-    log_prior = DynamicPPL.logprior(log_potential.model, vi)
+(log_potential::TuringLogPotential)(vi) = 
     if log_potential.only_prior
-        out = log_prior
-    else
-        out = log_prior + loglikelihood(log_potential.model, vi)
+        DynamicPPL.logprior(log_potential.model, vi)
+    else  
+        # Bug fix: avoiding now to break into prior and likelihood 
+        #          calls, as it would add the log Jacobian twice.
+        DynamicPPL.logjoint(log_potential.model, vi)
     end
-    # if transform_back 
-    #     DynamicPPL.link!(vi, DynamicPPL.SampleFromPrior()) # transform to unconstrained space
-    # end
-    return out
-end
 
 """
 $SIGNATURES 
