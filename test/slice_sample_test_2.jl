@@ -1,7 +1,7 @@
 using Distributions 
 using ConcreteStructs
 using DynamicPPL
-using BenchmarkTools
+# using BenchmarkTools
 using Pigeons
 
 h = Pigeons.SliceSampler()

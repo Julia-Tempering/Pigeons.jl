@@ -71,7 +71,7 @@ end
 function flip_model()
     p_true = 0.5;
 
-    N = 100;
+    N = 1; # was 100
 
     data = rand(Bernoulli(p_true), N);
 
@@ -96,8 +96,8 @@ DynamicPPL.link!(vi, DynamicPPL.SampleFromPrior())
 println("logprior: $(logprior(model, vi))")
 println("loglikelihood: $(loglikelihood(model, vi))")
 
-vi.metadata.p.vals[1] = -2
-println("logprior: $(logprior(model, vi))")
-println("loglikelihood: $(loglikelihood(model, vi))")
+# vi.metadata.p.vals[1] = -2
+# println("logprior: $(logprior(model, vi))")
+# println("loglikelihood: $(loglikelihood(model, vi))")
 
-DynamicPPL.invlink!!(vi, model)
+# DynamicPPL.invlink!!(vi, model)
