@@ -20,7 +20,7 @@ regenerate!(explorer::SliceSampler, replica, shared) = @abstract # TODO or remov
 
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
-    slice_sample!(explorer, replica.state, log_potential)
+    slice_sample!(explorer, replica.state, log_potential, replica.rng)
 end
 
 
@@ -28,15 +28,15 @@ end
 $SIGNATURES
 Slice sample one point.
 """
-function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential)
+function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, rng)
     g_x0 = -log_potential(state) # TODO: is it correct to keep the vertical draw out of the loop?
     for c in 1:length(state) # update *every* coordinate (TODO: change this later!)
         pointer = Ref(state, c)
-        slice_sample_coord!(h, state, pointer, log_potential, g_x0)
+        slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
     end
 end
 
-function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential)
+function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, rng)
     transform_back = false
     if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
         DynamicPPL.link!(state, DynamicPPL.SampleFromPrior()) # transform to unconstrained space
@@ -46,7 +46,7 @@ function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_pote
     for i in 1:length(keys(state.metadata))
         for c in 1:length(state.metadata[i].vals)
             pointer = Ref(state.metadata[i].vals, c)
-            slice_sample_coord!(h, state, pointer, log_potential, g_x0)
+            slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
         end
     end
     if transform_back
@@ -54,10 +54,10 @@ function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_pote
     end
 end
 
-function slice_sample_coord!(h, state, pointer, log_potential, g_x0)
-    z = g_x0 - rand(Exponential(1.0)) # log(vertical draw)
-    L, R = slice_double(h, state, z, pointer, log_potential)
-    pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential)
+function slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
+    z = g_x0 - rand(rng, Exponential(1.0)) # log(vertical draw)
+    L, R = slice_double(h, state, z, pointer, log_potential, rng)
+    pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, rng)
 end
 
 
@@ -65,9 +65,9 @@ end
 $SIGNATURES
 Double the current slice.
 """
-function slice_double(h::SliceSampler, state, z, pointer, log_potential)
+function slice_double(h::SliceSampler, state, z, pointer, log_potential, rng)
     old_position = pointer[] # store old position (trick to avoid memory allocation)
-    U = rand()
+    U = rand(rng)
     L = old_position - h.w*U # new left endpoint
     R = L + h.w
     K = h.p
@@ -99,13 +99,13 @@ end
 $SIGNATURES
 Shrink the current slice.
 """
-function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential)
+function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, rng)
     old_position = pointer[]
     Lbar = L
     Rbar = R
 
     while true
-        U = rand()
+        U = rand(rng)
         new_position = Lbar + U * (Rbar - Lbar)
         pointer[] = new_position 
         consider = (z < -log_potential(state))
