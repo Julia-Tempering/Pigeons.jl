@@ -216,11 +216,6 @@ will steeply degrade (in contrast to threads, for which performance degrades
 much more gracefully when the number of threads exceeds the number of cores). 
 
 
-**warning on not exceeding # cores**
-
-It is generall 
-
-
 ### Running MPI on a cluster
 
 
