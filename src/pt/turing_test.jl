@@ -26,7 +26,7 @@ coinflip(y::AbstractVector{<:Real}) = coinflip(; N=length(y)) | (; y)
 @model function gaussian_mixture_model(x)
     # Draw the parameters for each of the K=2 clusters from a standard normal distribution.
     K = 2
-    μ ~ MvNormal(Zeros(K), I)
+    μ ~ MvNormal(zeros(K), I)
 
     # Draw the weights for the K clusters from a Dirichlet distribution with parameters αₖ = 1.
     w ~ Dirichlet(K, 1.0)
@@ -38,7 +38,7 @@ coinflip(y::AbstractVector{<:Real}) = coinflip(; N=length(y)) | (; y)
 
     # Construct multivariate normal distributions of each cluster.
     D, N = size(x)
-    distribution_clusters = [MvNormal(Fill(μₖ, D), I) for μₖ in μ]
+    distribution_clusters = [MvNormal(fill(μₖ, D), I) for μₖ in μ]
 
     # Draw assignments for each datum and generate it from the multivariate normal distribution.
     k = Vector{Int}(undef, N)
@@ -59,7 +59,7 @@ function mix_model()
     # Define Gaussian mixture model.
     w = [0.5, 0.5]
     μ = [-3.5, 0.5]
-    mixturemodel = MixtureModel([MvNormal(Fill(μₖ, 2), I) for μₖ in μ], w)
+    mixturemodel = MixtureModel([MvNormal(fill(μₖ, 2), I) for μₖ in μ], w)
 
     # We draw the data points.
     N = 60
@@ -86,6 +86,7 @@ end
 
 
 model = flip_model() # mix_model() #
+# model = mix_model() # mix_model() #
 
 
 vi = DynamicPPL.VarInfo(rng, model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
@@ -96,9 +97,7 @@ println("logprior: $(logprior(model, vi))")
 println("loglikelihood: $(loglikelihood(model, vi))")
 
 vi.metadata.p.vals[1] = -2
-
 println("logprior: $(logprior(model, vi))")
 println("loglikelihood: $(loglikelihood(model, vi))")
 
-# DPPL.invlink!(vi, tm.spl)
-# DynamicPPL.invlink!(vi, tm.spl)
+DynamicPPL.invlink!!(vi, model)
