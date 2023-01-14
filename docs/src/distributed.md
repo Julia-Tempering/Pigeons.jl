@@ -7,8 +7,8 @@ CurrentModule = Pigeons
 ## Introduction
 
 Pigeons provides an implementation of Distributed PT based on [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464), 
-Algorithm 5. This page describes the challenges of implementing this distributed, 
-parallelized, and randomized algorithm and how we address these challenges.
+Algorithm 5. This page describes our strategies for addressing the challenges of implementing this distributed, 
+parallelized, and randomized algorithm.
 
 !!! note
 

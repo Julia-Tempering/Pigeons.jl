@@ -69,6 +69,15 @@ Pigeons shines in the following scenarios:
 
 ## Example
 
+### Installing `Pigeons`
+
+1. If you have not done so, install [Julia](https://julialang.org/downloads/). So far, we have tested the code on Julia 1.8.x.
+2. Install `Pigeons` using
+
+```
+using Pkg; Pkg.add(url = "https://github.com/Julia-Tempering/Pigeons.jl")
+```
+
 ### Running PT
 
 Specify the target distribution and, optionally, 
@@ -129,7 +138,10 @@ pt_from_checkpoint = PT("results/latest")
 
 Another use case is you may want to run more iterations 
 of an analysis done in the past. For example, to do two 
-extra rounds on the above PT algorithm run:
+extra *rounds* on the above PT algorithm run 
+(a round is an iteration in the 
+outer loop of our adaptive PT algorithm, see [Parallel Tempering (PT)](pt.html) for 
+more details):
 
 ```@example example
 pt_from_checkpoint.inputs.n_rounds += 2
@@ -140,16 +152,52 @@ You can also disable checkpoints when you create the
 [`Inputs`](@ref) struct or when passing the input 
 options directly into [`pigeons()`](@ref)
 
-```
+```@example example
 pigeons(target = toy_mvn_target(100), checkpoint = false);
 ```
 
 
 ### Automatic correctness checks for parallel/distributed implementations
 
-!!! warning "TODO"
+It is notoriously difficult to implement correct parallel/distributed algorithms. 
+One strategy we use to address this is to guarantee that the code will output 
+precisely the same output no matter how many threads/machines are used. 
+We describe how this is done under the hood in the page [Distributed PT](distributed.html). 
 
-    Work in progress: show an example.
+In practice, how is this useful? Let us say you developed a new target and you would like
+to make sure that it works correctly in a multi-threaded environment. To do so, you can 
+just add a flag to indicate to "check" one of the PT rounds as follows:
+
+```@example example
+pigeons(target = toy_mvn_target(100), checked_round = 3)
+```
+
+The above line does the following: the PT algorithm will pause at the end of round 3, spawn 
+a separate process with only one thread in it, run 3 rounds of PT with the same 
+[`Inputs`](@ref) object in it, and verify that the checkpoints of the single-threaded run 
+is identical to  
+the one that ran in the main process. If not, an error will be raised with some 
+information on where the discrepancy comes from. 
+
+Did the code above actually used many threads? This depends on the value of
+`Threads.nthreads()`. Julia currently does not allow you to change this value at 
+runtime, so for convenience we provide the following way to run the job in a 
+child process with a set number of Julia threads:
+
+```@example example
+pigeons(target = toy_mvn_target(100), checked_round = 3, on = ChildProcess(n_threads = 4))
+```
+
+In this case, since the model is built-in, it runs successfully as expected. But what 
+if you had a third-party target distribution that is not multi-threaded friendly? I.e. it may write in global variables or 
+other non-thread safe construct. Then you can still probably use it over MPI, as described 
+in the next two sections
+
+
+### Running MPI locally
+
+
+### Running MPI on a cluster
 
 
 ## Specification of general models
