@@ -29,8 +29,8 @@ $SIGNATURES
 Slice sample one point.
 """
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, rng)
-    g_x0 = -log_potential(state) # TODO: is it correct to keep the vertical draw out of the loop?
-    for c in 1:length(state) # update *every* coordinate (TODO: change this later!)
+    for c in 1:length(state) # update *every* coordinate
+        g_x0 = log_potential(state)
         pointer = Ref(state, c)
         slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
     end
@@ -42,9 +42,9 @@ function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_pote
         DynamicPPL.link!(state, DynamicPPL.SampleFromPrior()) # transform to unconstrained space
         transform_back = true # transform it back after log_potential evaluation
     end
-    g_x0 = -log_potential(state)
-    for i in 1:length(keys(state.metadata))
+    for i in 1:length(state.metadata)
         for c in 1:length(state.metadata[i].vals)
+            g_x0 = log_potential(state)
             pointer = Ref(state.metadata[i].vals, c)
             slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
         end
@@ -73,20 +73,20 @@ function slice_double(h::SliceSampler, state, z, pointer, log_potential, rng)
     K = h.p
     
     pointer[] = L
-    neg_potent_L = -log_potential(state) # store the negative log potential
+    neg_potent_L = log_potential(state) # store the negative log potential
     pointer[] = R
-    neg_potent_R = -log_potential(state)
+    neg_potent_R = log_potential(state)
 
     while (K > 0) && ((z < neg_potent_L) || (z < neg_potent_R))
         V = rand(rng)        
         if V <= 0.5
             L = L - (R - L)
             pointer[] = L
-            neg_potent_L = -log_potential(state) # store the new neg log potential
+            neg_potent_L = log_potential(state) # store the new neg log potential
         else
             R = R + (R - L)
             pointer[] = R
-            neg_potent_R = -log_potential(state)
+            neg_potent_R = log_potential(state)
         end
         K = K - 1
     end
@@ -108,7 +108,7 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
         U = rand(rng)
         new_position = Lbar + U * (Rbar - Lbar)
         pointer[] = new_position 
-        consider = (z < -log_potential(state))
+        consider = (z < log_potential(state))
         pointer[] = old_position
         if (consider) && (slice_accept(h, state, new_position, z, L, R, pointer, log_potential))
             return new_position
@@ -133,9 +133,9 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, pointer, lo
     Rhat = R
 
     pointer[] = L # trick to avoid memory allocation
-    neg_potent_L = -log_potential(state)
+    neg_potent_L = log_potential(state)
     pointer[] = R 
-    neg_potent_R = -log_potential(state)
+    neg_potent_R = log_potential(state)
     
     D = false
     acceptable = true
@@ -149,11 +149,11 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, pointer, lo
         if new_position < M
             Rhat = M
             pointer[] = Rhat
-            neg_potent_R = -log_potential(state)
+            neg_potent_R = log_potential(state)
         else
             Lhat = M
             pointer[] = Lhat
-            neg_potent_L = -log_potential(state)
+            neg_potent_L = log_potential(state)
         end
         
         if (D && (z >= neg_potent_L) && (z >= neg_potent_R))

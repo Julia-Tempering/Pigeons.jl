@@ -71,11 +71,11 @@ end
 function flip_model()
     p_true = 0.5;
 
-    N = 1; # was 100
+    N = 100; # was 100
 
     data = rand(Bernoulli(p_true), N);
 
-    return coinflip(data)
+    return coinflip(data) # was coinflip(data)
 end
 
 
