@@ -49,7 +49,8 @@ export pigeons, Inputs, PT,
     ChildProcess, MPI,
     toy_mvn_target,
     index_process, swap_acceptance_pr, 
-    load
+    load,
+    setup_mpi
 
 end # End module
 

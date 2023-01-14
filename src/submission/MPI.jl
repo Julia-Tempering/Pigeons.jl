@@ -70,7 +70,7 @@ end
 resource_string(m::MPI) = 
     "walltime=$(m.walltime),select=$(m.n_mpi_processes):ncpus=$(m.n_threads):mpiprocs=$(m.n_threads):mem=$(m.memory)"
 
-function setup_mpi(allocation_code::String)
+function setup_mpi(; allocation_code::String)
     MPIPreferences.use_system_binary()
     @set_preferences!(
         "allocation_code" => allocation_code
