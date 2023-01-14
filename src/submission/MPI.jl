@@ -53,12 +53,11 @@ function setup_mpi(;
         allocation_code::String, 
         environment_modules::Vector{String}
     )
-    MPIPreferences.use_system_binary()
-    set_preferences!(Pigeons,
+    @set_preferences!(
         "allocation_code" => allocation_code,
-	    "environment_modules" => environment_modules,
-	    force=true
+        "environment_modules" => environment_modules
     )
+    MPIPreferences.use_system_binary() # must be put after ours because this throws error about the need to restart
 end
 
 """
