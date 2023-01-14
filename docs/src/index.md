@@ -178,6 +178,10 @@ a separate process with only one thread in it, run 3 rounds of PT with the same
 is identical to  
 the one that ran in the main process. If not, an error will be raised with some 
 information on where the discrepancy comes from. 
+Try to pick the checked round to be small enough that it does not dominate the running time 
+(since it runs in single-threaded, single-process mode), but big enough to achieve 
+the same code coverage as the full algorithm. Setting it to zero (or omitting the argument), 
+disable this functionality.
 
 Did the code above actually used many threads? This depends on the value of
 `Threads.nthreads()`. Julia currently does not allow you to change this value at 
@@ -190,11 +194,31 @@ pigeons(target = toy_mvn_target(100), checked_round = 3, on = ChildProcess(n_thr
 
 In this case, since the model is built-in, it runs successfully as expected. But what 
 if you had a third-party target distribution that is not multi-threaded friendly? I.e. it may write in global variables or 
-other non-thread safe construct. Then you can still probably use it over MPI, as described 
-in the next two sections
+other non-thread safe construct. Then you can still probably use your thread-naive target over MPI *processes*, as described 
+in the next two sections.
 
 
 ### Running MPI locally
+
+To run MPI locally on one machine, using 4 MPI processes and 1 thread per process use:
+
+```@example example
+pigeons(
+    target = toy_mvn_target(100), 
+    checked_round = 3, 
+    on = ChildProcess(
+            n_local_mpi_processes = 4,
+            n_threads = 1))
+```
+
+Note that if `n_local_mpi_processes` exceeds the number of cores, performance 
+will steeply degrade (in contrast to threads, for which performance degrades 
+much more gracefully when the number of threads exceeds the number of cores). 
+
+
+**warning on not exceeding # cores**
+
+It is generall 
 
 
 ### Running MPI on a cluster

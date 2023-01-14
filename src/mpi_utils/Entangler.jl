@@ -56,15 +56,15 @@ mutable struct Entangler
             my_process_index = 1
             n_processes = 1
             if verbose
-                println("Entangler initialized 1 process (without MPI)")
+                println("Entangler initialized 1 process (without MPI); $(Threads.nthreads())")
             end
         else
-            Init() # MPI.Init()
+            Init() 
             comm = Comm_dup(parent_communicator)
             my_process_index = Comm_rank(comm) + 1
             n_processes = Comm_size(comm)
             if verbose && my_process_index == 1
-                println("Entangler initialized $n_processes MPI processes")
+                println("Entangler initialized $n_processes MPI processes; $(Threads.nthreads()) threads per process")
             end
         end
   
@@ -82,7 +82,13 @@ $SIGNATURES
 
 Detect if more than one MPI processes can be found. 
 """ 
-mpi_active() = silence_mpi[] ? false : Entangler(2, verbose = false).load.n_processes > 1
+mpi_active() =  
+    if silence_mpi[] 
+        false
+    else 
+        Init()
+        Comm_size(COMM_WORLD) > 1
+    end
 
 """
 $SIGNATURES

@@ -73,7 +73,7 @@ function launch_cmd(pt_arguments, exec_folder, extra_julia_modules, n_threads::I
     julia_bin = Base.julia_cmd()
     script_path = launch_script(pt_arguments, exec_folder, extra_julia_modules, silence_mpi)
     return `$julia_bin 
-            --project  
+            --project   
             --threads=$n_threads 
             $script_path`
 end
