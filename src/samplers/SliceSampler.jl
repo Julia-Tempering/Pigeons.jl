@@ -29,8 +29,8 @@ $SIGNATURES
 Slice sample one point.
 """
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, rng)
-    g_x0 = log_potential(state) # TODO: is it correct to keep the vertical draw out of the loop?
-    for c in 1:length(state) # update *every* coordinate (TODO: change this later!)
+    for c in 1:length(state) # update *every* coordinate
+        g_x0 = log_potential(state)
         pointer = Ref(state, c)
         slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
     end
@@ -42,9 +42,9 @@ function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_pote
         DynamicPPL.link!(state, DynamicPPL.SampleFromPrior()) # transform to unconstrained space
         transform_back = true # transform it back after log_potential evaluation
     end
-    g_x0 = log_potential(state)
-    for i in 1:length(keys(state.metadata))
+    for i in 1:length(state.metadata)
         for c in 1:length(state.metadata[i].vals)
+            g_x0 = log_potential(state)
             pointer = Ref(state.metadata[i].vals, c)
             slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
         end
