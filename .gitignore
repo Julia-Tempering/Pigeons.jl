@@ -11,3 +11,4 @@ machines.txt
 results
 .includes_bu.jl
 empty.jl
+LocalPreferences.toml
