@@ -46,8 +46,8 @@ end
 """
 $SIGNATURES 
 
-- allocation_code is used to submit the job
-- environment_modules, see `module avail` in the terminal to see what is available on your HPC. 
+- `allocation_code` is used to submit the job
+- `environment_modules`, run `module avail` in the terminal to see what is available on your HPC. 
 """
 function setup_mpi(; 
         allocation_code::String, 
