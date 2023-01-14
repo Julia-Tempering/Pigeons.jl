@@ -83,7 +83,7 @@ fresh [`replicas`](@ref), or [`FromCheckpoint`](@ref) to load from
 a saved checkpoint.
 """
 @provides replicas create_replicas(inputs::Inputs, shared::Shared, source) = 
-    mpi_needed() ? 
+    mpi_active() ? 
         create_entangled_replicas(inputs, shared, source) :
         create_vector_replicas(inputs, shared, source)
 
@@ -102,7 +102,7 @@ See [`create_replicas`](@ref).
 end
 
 function _create_locals(my_global_indices, ::Inputs, ::Shared, source::FromCheckpoint)
-    return [deserialize(source.checkpoint_folder / "replica=$global_index.jls") for global_index in my_global_indices]
+    return [deserialize("$(source.checkpoint_folder)/replica=$global_index.jls") for global_index in my_global_indices]
 end
 
 function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, state_initializer)

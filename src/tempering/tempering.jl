@@ -36,7 +36,7 @@ we also assume the presence of the following fields:
     If ommitted, by default will return the standard Metropolis-Hastings 
     accept-reject. 
     """
-    create_pair_swapper(tempering, shared::Shared) = tempering.log_potentials
+    create_pair_swapper(tempering, target) = tempering.log_potentials
 end
 
 """

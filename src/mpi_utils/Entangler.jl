@@ -74,12 +74,15 @@ mutable struct Entangler
     end
 end
 
+# use this to force mpi_active() to return false
+const silence_mpi = Ref(false)
+
 """
 $SIGNATURES
 
 Detect if more than one MPI processes can be found. 
 """ 
-mpi_needed() = Entangler(2, verbose = false).load.n_processes > 1
+mpi_active() = silence_mpi[] ? false : Entangler(2, verbose = false).load.n_processes > 1
 
 """
 $SIGNATURES

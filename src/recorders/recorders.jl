@@ -71,30 +71,45 @@ end
 $SIGNATURES
 
 Perform a reduction across all the replicas' individual recorders, 
-using [`combine!()`](@ref) on each individual [`recorder`](@ref)
-held. 
+using [`merge()`](@ref) on each individual [`recorder`](@ref)
+held.
 Returns a [`recorders`](@ref) with all the information merged. 
 
-Will reset the replicas' recorders at the same time. 
+Will reset the replicas' recorders at the same time using [`empty!()`](@ref).
 
 Since this uses [`all_reduce_deterministically`](@ref), the output is 
 identical, no matter how many MPI processes are used, even when 
-the reduction involves only approximately associative [`combine!()`](@ref)
+the reduction involves only approximately associative [`merge()`](@ref)
 operations (e.g. most floating point ones).
 """
-reduce_recorders!(replicas) = 
-    all_reduce_deterministically(
-        merge_recorders!, 
+reduce_recorders!(replicas::EntangledReplicas) = _reduce_recorders!(replicas)
+
+function reduce_recorders!(replicas::Vector)
+    sort!(replicas, by = r -> r.replica_index)
+    result = _reduce_recorders!(replicas)
+    sort_replicas!(replicas)
+    return result
+end
+
+function _reduce_recorders!(replicas)
+    result = all_reduce_deterministically(
+        merge_recorders, 
         _recorders.(locals(replicas)), 
         entangler(replicas)) 
+    for replica in locals(replicas)
+        for recorder in values(replica.recorders)
+            empty!(recorder)
+        end
+    end
+    return result
+end
 
-
-function merge_recorders!(recorders1, recorders2)
+function merge_recorders(recorders1, recorders2)
     shared_keys = keys(recorders1)
     @assert shared_keys == keys(recorders2)
 
     values1 = values(recorders1)
     values2 = values(recorders2)
-    merged_values = [combine!(values1[i], values2[i]) for i in eachindex(values1)]
+    merged_values = [merge(values1[i], values2[i]) for i in eachindex(values1)]
     return (; zip(shared_keys, merged_values)...)
 end

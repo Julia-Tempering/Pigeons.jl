@@ -16,7 +16,7 @@ $SIGNATURES
 Toy Multivariate Normal (MVN) path of distributions for testing: 
 see section I.4.1 in Syed et al 2021. 
 """
-@provides path toy_mvn_normal(dim::Int) = ScaledPrecisionNormalPath(1.0, 10.0, dim) 
+@provides path ScaledPrecisionNormalPath(dim::Int) = ScaledPrecisionNormalPath(1.0, 10.0, dim) 
 precision(path::ScaledPrecisionNormalPath, beta) = (1.0 - beta) * path.precision0 + beta * path.precision1
 interpolate(path::ScaledPrecisionNormalPath, beta) = MultivariateNormal(zeros(path.dim), Matrix(I, path.dim, path.dim) / precision(path, beta))
 
@@ -35,3 +35,11 @@ function analytic_cumulativebarrier(path::ScaledPrecisionNormalPath)
     end
     return cumulativebarrier
 end
+
+""" 
+$SIGNATURES 
+
+In this case, the target is already a [`path`](@ref), so return it. 
+"""
+create_path(target::ScaledPrecisionNormalPath, inputs::Inputs) = target
+

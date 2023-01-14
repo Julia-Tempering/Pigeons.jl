@@ -6,10 +6,10 @@ Run (a generalization of) Parallel Tempering.
 This will call several rounds of [`run_one_round!()`](@ref), 
 performing adaptation between each round via [`adapt()`](@ref).
 
-Will also call [`report()`](@ref), [`write_checkpoint()`](@ref), 
+This will also call [`report()`](@ref), [`write_checkpoint()`](@ref), 
 and [`run_checks()`](@ref) between rounds. 
 """
-function run(pt::PT) 
+function pigeons(pt::PT) 
     preflight_checks(pt)
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
@@ -24,7 +24,7 @@ end
 """
 $SIGNATURES 
 
-Report summary information on the progress of [`run()`](@ref).
+Report summary information on the progress of [`pigeons()`](@ref).
 """
 report(pt, reduced_recorders) = nothing # TODO
 
@@ -61,7 +61,7 @@ inputs needed for [`swap!`](@ref).
 """
 function communicate!(pt)
     tempering = pt.shared.tempering
-    swapper = create_pair_swapper(tempering, pt.shared)
+    swapper = create_pair_swapper(tempering, pt.inputs.target)
     graph = create_swap_graph(tempering.swap_graphs, pt.shared)
     swap!(swapper, pt.replicas, graph)
 end
@@ -69,19 +69,20 @@ end
 """
 $SIGNATURES 
 
-Call [`regenerate!`](@ref) or [`step!()`](@ref) on 
+Call [`sample_iid!`](@ref) or [`step!()`](@ref) on 
 each chain (depending if it is a reference or not 
 respectively). 
 
 Uses `@threads` to parallelize across threads. 
 This is safe by the contract described in 
-[`regenerate!`](@ref) and [`step!()`](@ref).
+[`sample_iid!`](@ref) and [`step!()`](@ref).
 """
 function explore!(pt)
     explorer = pt.shared.explorer
     @threads for replica in locals(pt.replicas)
+        log_potential = find_log_potential(replica, pt.shared)
         if is_reference(replica.chain, pt.shared)
-            regenerate!(explorer, replica, pt.shared)
+            sample_iid!(log_potential, replica)
         else
             step!(explorer, replica, pt.shared)
         end

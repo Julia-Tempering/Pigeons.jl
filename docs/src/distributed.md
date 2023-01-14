@@ -59,8 +59,8 @@ false negatives due to statistical error.
 
 Two factors tend to cause violations of Parallelism Invariance: 
 
-- Thread-local random number generators (which is unfortunately the default approach to parallel
-    random number generators in many languages [including Julia](https://docs.julialang.org/en/v1/stdlib/Random/#Random.seed!)).
+- Global or thread-local random number generators (which are unfortunately widespread approaches to parallel
+    random number generators in many languages).
 - [Non-associativity of floating point operations](https://en.wikipedia.org/wiki/Associative_property#:~:text=non%2Dassociative%20magmas.-,Nonassociativity%20of%20floating%20point%20calculation,sized%20values%20are%20joined%20together). As a result, when several workers 
     perform [Distributed reduction](https://en.wikipedia.org/wiki/MapReduce) of 
     floating point values, the output of this reduction will be slightly different. 
@@ -76,7 +76,7 @@ the two above issues while maintaining the same asymptotic runtime complexity.
 
 Let us start with a high-level picture of the distributed PT algorithm. 
 
-The high-level code is the function [`run()`](@ref) which is identical to the single-machine algorithm. 
+The high-level code is the function [`pigeons()`](@ref) which is identical to the single-machine algorithm. 
 
 Notice the code is almost identical to the single-machine algorithm [presented earlier](pt.html#Basic-PT-algorithm) with the only difference being [`create_vector_replicas`](@ref) is 
 replaced by [`create_entangled_replicas`](@ref). Also, as promised the 
@@ -93,8 +93,7 @@ our distributed PT algorithm.
 ## Splittable random streams
 
 The first building block is a splittable random stream. 
-To motivate splittable random streams, consider the following example to illustrate 
-how [thread-local random number generators](https://docs.julialang.org/en/v1/stdlib/Random/#Random.seed!) break Parallelism Invariance:
+To motivate splittable random streams, consider the following example violating Parallelism Invariance:
 
 ```@example break_pi
 using Pigeons

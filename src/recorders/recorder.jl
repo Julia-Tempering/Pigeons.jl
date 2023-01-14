@@ -3,6 +3,11 @@ Accumulate a specific type of statistic, for example
 by keeping constant size sufficient statistics 
 (via `OnlineStat`, which conforms this interface), 
 storing samples to a file, etc. 
+
+In addition to the contract below, a recorder should support 
+- `Base.merge()`
+- `Base.empty!()`
+
 See also [`recorders`](@ref).
 """
 @informal recorder begin
@@ -12,29 +17,6 @@ See also [`recorders`](@ref).
     Add `value` to the statistics accumulated by [`recorder`](@ref). 
     """
     record!(recorder, value) = @abstract 
-
-    """
-    $SIGNATURES
-
-    Combine the two provided [`recorder`](@ref) objects, and then 
-    "dispose" of the two input arguments. 
-
-    At a high-level, we dispose to avoid the same statistic being 
-    counted twice. 
-
-    More precisely, for an in-memory recorder, we "empty!" the input arguments to 
-    ensure, e.g., that in the next PT round we start collecting statistics 
-    from scratch. For file-based recorders, disposing means erasing 
-    intermediate files that are no longer needed. 
-
-    By default, call `Base.merge()` followed by `Base.empty!()`
-    """
-    function combine!(recorder1, recorder2) 
-        result = merge(recorder1, recorder2)
-        empty!(recorder1)
-        empty!(recorder2)
-        return result
-    end
 end
 
 """ 

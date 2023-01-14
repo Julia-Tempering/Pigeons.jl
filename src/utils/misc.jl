@@ -115,16 +115,15 @@ function mpi_test(n_processes::Int, test_file::String; options = [])
     end
 end
 
-/(s1::AbstractString, s2::AbstractString) = s1 * "/" * s2
-
 
 """
     @weighted(w, x) 
 
-Compute w*x, but if w==0.0, do not evaluate x and just return 0.0
+Compute `w*x`, but if `w==0.0`, do not evaluate `x` and just return `w` (i.e. zero).
+Useful when x is computationally costly.
 """
 macro weighted(w, x) 
-    :($(esc(w)) == 0.0 ? 0.0 : $(esc(w)) * $(esc(x)))
+    :($(esc(w)) == zero($(esc(w))) ? $(esc(w)) : $(esc(w)) * $(esc(x)))
 end
 
 """ 
@@ -170,11 +169,30 @@ Internally, this function will:
     the string occurs in a comment).
 
 """
+function sort_includes!(main)
+    sorted = sort_includes(main)
+    if isfile("src/includes.jl")
+        mv("src/includes.jl", "src/.includes_bu.jl", force = true)
+        println("Created back-up of src/includes.jl as src/.includes_bu.jl")
+    end
+    includes = map(x -> "include(\"$x\")", sorted)
+    write( "src/includes.jl",
+        """
+        # include()'s generated using: sort_includes!(\"main\")
+        $(join(includes, "\n"))
+        """
+    )
+    return nothing
+end
+
 function sort_includes(main)
     source_files = String[]
     for (dir, sub_dir, files) in walkdir("src")
         for file in files
-            if endswith(file, ".jl") && file != main
+            if endswith(file, ".jl") && 
+                    file != main && # ignore entrypoint
+                    file != "includes.jl" &&
+                    !startswith(file, ".") # ignore backup
                 push!(source_files, "$dir/$file") 
             end
         end
@@ -198,20 +216,23 @@ function sort_includes(main)
 
     try 
         sorted = Graphs.topological_sort_by_dfs(graph)
-
+        output = [] 
         for index in sorted 
             path = replace(indexer.i2t[index], "src/" => "")
-            println("include(\"$path\")")
+            push!(output, path)
         end
+        return output
     catch e
         loops = Graphs.simplecycles_hawick_james(graph)
+        msg = "loops detected:\n"
         for loop in loops
             if length(loop) > 1
-                println("loop:")
+                msg *= "loop:\n"
                 for i in loop 
-                    println("  $(indexer.i2t[i])") 
+                    msg *= "  $(indexer.i2t[i])\n" 
                 end
             end
         end
+        error(msg)
     end
 end

@@ -5,7 +5,6 @@ Single process, non-allocating `swap!` implementation.
 """
 function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
     @assert sorted(replicas)
-    # perform the swaps
     for my_chain in eachindex(replicas)
         my_replica = replicas[my_chain]
         partner_chain = checked_partner_chain(swap_graph, my_chain)
@@ -32,6 +31,7 @@ function resort_replicas!(replicas)
         if my_replica.chain != my_chain
             partner_chain = my_replica.chain
             partner_replica = replicas[partner_chain]
+            @assert partner_replica.chain == my_chain
             replicas[my_chain]      = partner_replica
             replicas[partner_chain] = my_replica
         end

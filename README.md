@@ -10,7 +10,8 @@ Distributed Non-Reversible Parallel Tempering
 
 :warning: **Warning** <br>
 This package is currently under development. The user interface may change substantially prior to the first stable release.
-For the most up-to-date documentation, please view (TODO: insert link to documentation).
+Please view our documentation for the most up-to-date description. Additionally, the implementation of parallel tempering
+with a variational reference will be available in the very near future.
 
 ## Install
 
@@ -32,7 +33,7 @@ export SSH_PUB_KEY_PATH=/path/to/user/.ssh/id_rsa.pub
 
 From log-in node:
 
-- Clone into a shared directory in a MPI cluster 
+- Clone into a shared folder in a MPI cluster 
 - Inside the cloned repo, call `./mpi-setup` 
-- To launch a job, type `./mpi-run -h` to see an example and documentation. **Note:** you may need to run first with a single node to avoid Julia compilation crashing due to concurrent access to the .julia directory. 
+- To launch a job, type `./mpi-run -h` to see an example and documentation. **Note:** you may need to run first with a single node to avoid Julia compilation crashing due to concurrent access to the .julia folder. 
 - To monitor the job, type `./mpi-watch`

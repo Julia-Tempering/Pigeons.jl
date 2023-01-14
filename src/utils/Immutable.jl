@@ -25,22 +25,27 @@ When the distributed processes each independently call
 `Serialization.serialize()`, naively the processes would each write identical 
 copies of the large immutable data, which is space-inefficient. 
 
-To work around this space-inefficiency, `Immutable` can be used as follows: 
+`Immutable` resolves this space-inefficiency. For most users, 
+all they need to know is to enclose large data inside the 
+struct `Immutable`. 
+
+Details of how serialization/deserialization is performed:
 
 1. Enclose large immutable data inside a `Immutable`. 
     Assume the type of data has well defined hash and ==.
     Internally, we maintain an internal, global Dict indexed 
     by hash(data) storing the data. This global Dict is 
     called `immutables`.
-2. Use `Serialization.serialize` as usual. Internally, we 
+2.  Use flush_immutable() to clear the global immutable state
+3. Use `Serialization.serialize` as usual. Internally, we 
     dispatch serialization of `Immutable` is modified to skip 
     the field containing the data.
-3. Make one of the processes call [`serialize_immutables()`](@ref). 
+4. Make one of the processes call [`serialize_immutables()`](@ref). 
     This serializes the `immutables` Dict.
-4. Then for de-serialization, each process should call 
+5. Then for de-serialization, each process should call 
     [`deserialize_immutables()`](@ref). This restores 
     `immutable`.
-5. Finally, call `Serialization.deserialize()` as usual. 
+6. Finally, call `Serialization.deserialize()` as usual. 
     When an `Immutable` instances is being deserialize, we 
     dispatch deserialization so that the data is retreived 
     from `immutable`.
@@ -48,6 +53,15 @@ To work around this space-inefficiency, `Immutable` can be used as follows:
 Immutable(data) = Immutable(data, true)
 
 const immutables = Dict{UInt, Any}()
+
+"""
+$SIGNATURES 
+
+See [`Immutable()`](@ref).
+"""
+function flush_immutables!()
+    empty!(immutables)
+end
 
 """
 $SIGNATURES 

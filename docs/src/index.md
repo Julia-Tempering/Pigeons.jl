@@ -67,7 +67,7 @@ parameters like random seed, etc by creating an
 ```@example example
 using Pigeons
 
-inputs = Inputs(target = toy_mvn_normal(100))
+inputs = Inputs(target = toy_mvn_target(100))
 ```
 
 See [`Inputs`](@ref) for more options. 
@@ -86,7 +86,7 @@ a PT struct).
 Since the above two julia lines are the most common operation in this package, creating inputs and running PT can be done in one line as:
 
 ```@example example
-pt = pigeons(target = toy_mvn_normal(100))
+pt = pigeons(target = toy_mvn_target(100))
 ```
 
 where the `args...` passed to `pigeons` are forwarded 
@@ -97,24 +97,41 @@ to [`Inputs`](@ref).
 By default, PT will automatically write a "checkpoint" periodically 
 to ensure that not more than half of the work is lost in 
 the event of e.g. a server failure. 
-See [`write_checkpoint`](@ref) for details of how this 
+See [`write_checkpoint()`](@ref) for details of how this 
 is accomplished in a way compatible to both the single-machine 
 and MPI contexts. 
 Each checkpoint is located in 
-`results/all/[unique directory]/round=[x]/checkpoint`, 
-with the latest run in `results/latest/[unique directory]/round=[x]/checkpoint`. 
+`results/all/[unique folder]/round=[x]/checkpoint`, 
+with the latest run in `results/latest/[unique folder]/round=[x]/checkpoint`. 
 
 Checkpoints are also useful when an MPI-distributed PT has been 
 ran, and the user wants to load the full set of 
 results in one interactive session. 
 
-To load a checkpoint, create a [`PT`](@ref) struct by passing in the path string to the checkpoint folder. 
+To load a checkpoint, create a [`PT`](@ref) struct by passing in the path string to the checkpoint folder, for example to re-load the latest checkpoint 
+from the latest run:
 
+```@example example
+pt = pigeons(target = toy_mvn_target(100))
+pt_from_checkpoint = PT("results/latest")
+```
 
-!!! warning "TODO"
+Another use case is you may want to run more iterations 
+of an analysis done in the past. For example, to do two 
+extra rounds on the above PT algorithm run:
 
-    Example (need latest_round() or something like that)
-    How to disable checkpoint. Rerunning with increasing number of rounds, etc.
+```@example example
+pt_from_checkpoint.inputs.n_rounds += 2
+pigeons(pt_from_checkpoint)
+```
+
+You can also disable checkpoints when you create the 
+[`Inputs`](@ref) struct or when passing the input 
+options directly into [`pigeons()`](@ref)
+
+```
+pigeons(target = toy_mvn_target(100), checkpoint = false);
+```
 
 
 ### Automatic correctness checks for parallel/distributed implementations

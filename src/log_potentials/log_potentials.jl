@@ -1,17 +1,4 @@
 """
-$(SIGNATURES)
-Assumes the input `log_potentials` is a vector where each element is a [`log_potential`](@ref).
-
-This default implementation is sufficient in most cases, but in less standard scenarios,
-e.g. where the 
-state space is infinite dimensional, this can be overridden. 
-"""
-log_unnormalized_ratio(log_potentials::AbstractVector, numerator::Int, denominator::Int, state) = 
-    log_potentials[numerator](state) - log_potentials[denominator](state)
-
-
-
-"""
 An encoding of a discrete set of probability distributions, where only the un-normalized 
 probability density functions are known. 
 Each distribution is allowed to have a different normalization constant. 
