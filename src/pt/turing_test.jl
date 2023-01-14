@@ -85,8 +85,8 @@ end
 
 
 
-# model = flip_model() # mix_model() #
-model = mix_model() # mix_model() #
+model = flip_model() # mix_model() #
+# model = mix_model() # mix_model() #
 
 
 vi = DynamicPPL.VarInfo(rng, model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
@@ -96,8 +96,8 @@ DynamicPPL.link!(vi, DynamicPPL.SampleFromPrior())
 println("logprior: $(logprior(model, vi))")
 println("loglikelihood: $(loglikelihood(model, vi))")
 
-# vi.metadata.p.vals[1] = -2
-# println("logprior: $(logprior(model, vi))")
-# println("loglikelihood: $(loglikelihood(model, vi))")
+vi.metadata.p.vals[1] = -2
+println("logprior: $(logprior(model, vi))")
+println("loglikelihood: $(loglikelihood(model, vi))")
 
 DynamicPPL.invlink!!(vi, model)
