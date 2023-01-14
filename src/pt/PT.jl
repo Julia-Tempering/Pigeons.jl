@@ -23,7 +23,7 @@ $FIELDS
     shared
 
     """
-    Either a path to a folder shared by all MPI processes, 
+    Either a path to a folder shared by all processes, 
     which is used to save information to disk (checkpoints, samples etc);
     or nothing if a completely in-memory algorithm is used. 
     """
@@ -71,7 +71,7 @@ Base.show(io::IO, pt::PT) = # contract: should give valid julia expression creat
 """
 $SIGNATURES 
 
-A task that should be ran on only one of the MPI processes. 
+A task that should be ran on only one of the processes. 
 Using the `do .. end` syntax, this can be used as:
 
 ```

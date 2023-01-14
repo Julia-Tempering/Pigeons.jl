@@ -1,5 +1,5 @@
 """
-Information shared by all MPI processes involved in 
+Information shared by all processes involved in 
 a round of distributed parallel tempering. 
 This is updated between rounds but only read during 
 a round. 
@@ -7,7 +7,7 @@ a round.
 Fields:
 $FIELDS
 
-Only one instance maintained per MPI process. 
+Only one instance maintained per process. 
 """
 @concrete struct Shared
     """
