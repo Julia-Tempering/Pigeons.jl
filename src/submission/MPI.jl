@@ -7,7 +7,14 @@ In most contexts both 1 and 2 are needed for an ergonomic UI.
 =#
 
 
+""" 
+Flag to run on MPI.
+Before using, you have to call once [`setup_mpi`](@ref).
 
+Fields: 
+
+$FIELDS
+"""
 @kwdef struct MPI <: Submission
     """
     The number of threads per MPI process, 1 by default.
@@ -36,10 +43,26 @@ In most contexts both 1 and 2 are needed for an ergonomic UI.
     extra_modules::Vector{Module} = []
 end
 
+"""
+$SIGNATURES 
 
+- allocation_code is used to submit the job
+- environment_modules, see `module avail` in the terminal to see what is available on your HPC. 
+"""
+function setup_mpi(; 
+        allocation_code::String, 
+        environment_modules::Vector{String}
+    )
+    MPIPreferences.use_system_binary()
+    @set_preferences!(
+        "allocation_code" => allocation_code, 
+        "environment_modules" => environment_modules
+    )
+end
 
-# TODO do-once set-up script...
-
+"""
+$SIGNATURES
+"""
 function pigeons(pt_arguments, mpi_submission::MPI)
     exec_folder = next_exec_folder() 
 
@@ -70,20 +93,17 @@ end
 resource_string(m::MPI) = 
     "walltime=$(m.walltime),select=$(m.n_mpi_processes):ncpus=$(m.n_threads):mpiprocs=$(m.n_threads):mem=$(m.memory)"
 
-function setup_mpi(; allocation_code::String)
-    MPIPreferences.use_system_binary()
-    @set_preferences!(
-        "allocation_code" => allocation_code
-    )
-end
-
 function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     # TODO: generalize to other submission systems
-    # TODO: remove a few hard-coded things
     # TODO: move some more things over from mpi-run
-    # TODO: module.sh thing should be configureable too - at least written automatically
     info_folder = "$exec_folder/info"
     julia_cmd_str = join(julia_cmd, " ")
+    modules_str = join(
+        map(
+            mod_env_str -> "module load $mod_env_str",
+            @load_preference("environment_modules")),
+        "\n"
+    )
     code = """
     #!/bin/bash
     #PBS -l $(resource_string(mpi_submission))
@@ -93,8 +113,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     #PBS -o $info_folder/stdout.txt
     #PBS -e $info_folder/stderr.txt
     cd \$PBS_O_WORKDIR
-    source ./modules.sh
-
+    $modules_str
     mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"

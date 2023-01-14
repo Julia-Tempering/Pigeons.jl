@@ -1,5 +1,5 @@
 """ 
-Flag to ask to run a function to a new julia 
+Flag to run to a new julia 
 process. Useful e.g. to dynamically control 
 the number of threads to use.  
 Fields: 
