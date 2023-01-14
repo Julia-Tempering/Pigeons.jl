@@ -56,7 +56,7 @@ function informal_interfaces(mod)
         f -> map(name -> (name, resolve(name, mod)), f)
 end
 
-const informal_file_name = ".interfaces"
+const informal_file_name = "interfaces"
 
 """
 $(SIGNATURES)
@@ -74,6 +74,8 @@ makedocs(;
 """
 function informal_doc(doc_dir, mod::Module)
     head = """
+    <!-- WARNING: auto-generated. Do not edit. -->
+    
     Descriptions of *informal interfaces* (see [Pigeons.@informal](reference.html#Pigeons.@informal-Tuple{Symbol,%20Expr}) to see how this page 
     was generated).
 

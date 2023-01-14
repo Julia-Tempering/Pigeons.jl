@@ -4,15 +4,26 @@ CurrentModule = Pigeons
 
 # Pigeons
 
+Facing a challenging integration problem? Tired of waiting for hours or days for your high-dimensional, multimodal Bayesian posterior approximation? Summing over your combinatorial space is taking months? 
+
+Try `Pigeons`: a Julia package to efficiently approximate posterior distributions, and more broadly, Lebesgue integration problems. 
+
 Pigeons' core algorithm is a distributed and parallel implementation 
 of the following algorithms: 
 
 - Non-Reversible Parallel Tempering (NRPT), 
     [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-- Variational PT, [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080).
+- Variational PT, [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080). [under construction]
+
+These algorithms achieve state-of-the-art performance for approximation 
+of challenging probability distributions.
 
 Pigeons can be used in a multi-threaded context, and/or 
 distributed over hundreds or thousands of MPI-communicating machines.
+
+Distributed Parallel Tempering has some remarkable properties. 
+First, even if your model is very large, the network communication between 
+processes in the inner loop of the algorithm 
 
 
 ## Goals
