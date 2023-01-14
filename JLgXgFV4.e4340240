@@ -1,0 +1,34 @@
+ERROR: LoadError: SystemError: mktemp: Read-only file system
+Stacktrace:
+  [1] systemerror(p::Symbol, errno::Int32; extrainfo::Nothing)
+    @ Base ./error.jl:168
+  [2] #systemerror#62
+    @ ./error.jl:167 [inlined]
+  [3] systemerror
+    @ ./error.jl:167 [inlined]
+  [4] mktemp(parent::String; cleanup::Bool)
+    @ Base.Filesystem ./file.jl:593
+  [5] mktemp
+    @ ./file.jl:591 [inlined]
+  [6] compilecache(pkg::Base.PkgId, path::String, internal_stderr::Base.PipeEndpoint, internal_stdout::Base.TTY)
+    @ Base ./loading.jl:1322
+  [7] compilecache(pkg::Base.PkgId, path::String)
+    @ Base ./loading.jl:1306
+  [8] _require(pkg::Base.PkgId)
+    @ Base ./loading.jl:1021
+  [9] require(uuidkey::Base.PkgId)
+    @ Base ./loading.jl:914
+ [10] require(into::Module, mod::Symbol)
+    @ Base ./loading.jl:901
+in expression starting at /scratch/st-alexbou-1/Pigeons.jl/test/swap_test.jl:1
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpiexec detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[63590,1],0]
+  Exit code:    1
+--------------------------------------------------------------------------

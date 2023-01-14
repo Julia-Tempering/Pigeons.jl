@@ -77,12 +77,13 @@ function setup_mpi(allocation_code::String)
     )
 end
 
-function mpi_submission_script(exec_folder, mpi_submission::MPI)
+function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     # TODO: generalize to other submission systems
     # TODO: remove a few hard-coded things
     # TODO: move some more things over from mpi-run
     # TODO: module.sh thing should be configureable too - at least written automatically
     info_folder = "$exec_folder/info"
+    julia_cmd_str = join(julia_cmd, " ")
     code = """
     #!/bin/bash
     #PBS -l $(resource_string(mpi_submission))
@@ -94,7 +95,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPI)
     cd \$PBS_O_WORKDIR
     source ./modules.sh
 
-    mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $command
+    mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
     write(script_path, code)
