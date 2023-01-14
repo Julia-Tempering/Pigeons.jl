@@ -45,7 +45,7 @@ const use_auto_exec_folder = ""
 include("includes.jl")
 
 export pigeons, Inputs, PT, 
-    Resume, Result, 
+    Result, 
     ChildProcess, MPI,
     toy_mvn_target,
     index_process, swap_acceptance_pr, 
