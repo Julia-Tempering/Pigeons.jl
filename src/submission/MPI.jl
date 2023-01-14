@@ -54,9 +54,10 @@ function setup_mpi(;
         environment_modules::Vector{String}
     )
     MPIPreferences.use_system_binary()
-    @set_preferences!(
-        "allocation_code" => allocation_code, 
-        "environment_modules" => environment_modules
+    set_preferences!(Pigeons,
+        "allocation_code" => allocation_code,
+	    "environment_modules" => environment_modules,
+	    force=true
     )
 end
 

@@ -2,7 +2,7 @@
 Slice sampler based on
 [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
 """
-@kwdef @concrete mutable struct SliceSampler
+@kwdef @concrete struct SliceSampler
     w = 1.0 # initial slice size
     p = 10 # slices are no larger than 2^p * w
     dim_fraction = 1.0 # proportion of variables to update
