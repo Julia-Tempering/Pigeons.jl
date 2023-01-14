@@ -78,7 +78,7 @@ function slice_double(h::SliceSampler, state, z, pointer, log_potential, rng)
     neg_potent_R = -log_potential(state)
 
     while (K > 0) && ((z < neg_potent_L) || (z < neg_potent_R))
-        V = rand()        
+        V = rand(rng)        
         if V <= 0.5
             L = L - (R - L)
             pointer[] = L
