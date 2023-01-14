@@ -80,7 +80,10 @@ function pigeons(pt_arguments, mpi_submission::MPI)
     # generate qsub script
     # do job submission & record the submission id
     cmd = mpi_submission_cmd(exec_folder, mpi_submission, julia_cmd)
-    run(cmd)
+    submission_output = read(cmd, String)
+    println(submission_output)
+    info_folder = mkpath("$exec_folder/info")
+    write("$info_folder/submission_output.txt", submission_output)
     return Result{PT}(exec_folder)
 end
 
