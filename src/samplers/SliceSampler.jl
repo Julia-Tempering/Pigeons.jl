@@ -29,26 +29,35 @@ $SIGNATURES
 Slice sample one point.
 """
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential)
-    dim_x = length(state)
     g_x0 = -log_potential(state) # TODO: is it correct to keep the vertical draw out of the loop?
-    for c in 1:dim_x # update *every* coordinate (TODO: change this later!)
-        # pointer = Ref(state, c)
-        z = g_x0 - rand(Exponential(1.0)) # log(vertical draw)
-        L, R = slice_double(h, state, z, c, log_potential)
-        state[c] = slice_shrink(h, state, z, L, R, c, log_potential)
+    for c in 1:length(state) # update *every* coordinate (TODO: change this later!)
+        pointer = Ref(state, c)
+        slice_sample_coord!(h, state, pointer, log_potential, g_x0)
     end
 end
 
 function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential)
-    dim_x = length(keys(state.metadata))
-    state_vector = [0.0 for _ in 1:dim_x] # TODO: remove allocation!
-    for c in 1:dim_x
-        state_vector[c] = state.metadata[c].vals[1]
+    transform_back = false
+    if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
+        DynamicPPL.link!(state, DynamicPPL.SampleFromPrior()) # transform to unconstrained space
+        transform_back = true # transform it back after log_potential evaluation
     end
-    slice_sample!(h, state_vector, log_potential)
-    for c in 1:dim_x
-        state.metadata[c].vals[1] = state_vector[c]
+    g_x0 = -log_potential(state)
+    for i in 1:length(keys(state.metadata))
+        for c in 1:length(state.metadata[i].vals)
+            pointer = Ref(state.metadata[i].vals, c)
+            slice_sample_coord!(h, state, pointer, log_potential, g_x0)
+        end
     end
+    if transform_back
+        DynamicPPL.invlink!!(state, log_potential.model) # transform back to constrained space
+    end
+end
+
+function slice_sample_coord!(h, state, pointer, log_potential, g_x0)
+    z = g_x0 - rand(Exponential(1.0)) # log(vertical draw)
+    L, R = slice_double(h, state, z, pointer, log_potential)
+    pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential)
 end
 
 
@@ -56,32 +65,32 @@ end
 $SIGNATURES
 Double the current slice.
 """
-function slice_double(h::SliceSampler, state, z, c::Integer, log_potential)
-    old_position = state[c] # store old position (trick to avoid memory allocation)
+function slice_double(h::SliceSampler, state, z, pointer, log_potential)
+    old_position = pointer[] # store old position (trick to avoid memory allocation)
     U = rand()
-    L = state[c] - h.w*U # new left endpoint
+    L = old_position - h.w*U # new left endpoint
     R = L + h.w
     K = h.p
     
-    state[c] = L
+    pointer[] = L
     neg_potent_L = -log_potential(state) # store the negative log potential
-    state[c] = R
+    pointer[] = R
     neg_potent_R = -log_potential(state)
 
     while (K > 0) && ((z < neg_potent_L) || (z < neg_potent_R))
         V = rand()        
         if V <= 0.5
             L = L - (R - L)
-            state[c] = L
+            pointer[] = L
             neg_potent_L = -log_potential(state) # store the new neg log potential
         else
             R = R + (R - L)
-            state[c] = R
+            pointer[] = R
             neg_potent_R = -log_potential(state)
         end
         K = K - 1
     end
-    state[c] = old_position # return the state back to where it was before
+    pointer[] = old_position # return the state back to where it was before
     return(; L, R)
 end
 
@@ -90,21 +99,21 @@ end
 $SIGNATURES
 Shrink the current slice.
 """
-function slice_shrink(h::SliceSampler, state, z, L, R, c::Int, log_potential)
-    old_position = state[c]
+function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential)
+    old_position = pointer[]
     Lbar = L
     Rbar = R
 
     while true
         U = rand()
         new_position = Lbar + U * (Rbar - Lbar)
-        state[c] = new_position 
+        pointer[] = new_position 
         consider = (z < -log_potential(state))
-        state[c] = old_position
-        if (consider) && (slice_accept(h, state, new_position, z, L, R, c, log_potential))
+        pointer[] = old_position
+        if (consider) && (slice_accept(h, state, new_position, z, L, R, pointer, log_potential))
             return new_position
         end
-        if new_position < state[c]
+        if new_position < pointer[]
             Lbar = new_position
         else
             Rbar = new_position
@@ -118,14 +127,14 @@ end
 $SIGNATURES
 Test whether to accept the current slice.
 """
-function slice_accept(h::SliceSampler, state, new_position, z, L, R, c::Int, log_potential)
-    old_position = state[c]
+function slice_accept(h::SliceSampler, state, new_position, z, L, R, pointer, log_potential)
+    old_position = pointer[]
     Lhat = L
     Rhat = R
 
-    state[c] = L # trick to avoid memory allocation
+    pointer[] = L # trick to avoid memory allocation
     neg_potent_L = -log_potential(state)
-    state[c] = R 
+    pointer[] = R 
     neg_potent_R = -log_potential(state)
     
     D = false
@@ -139,19 +148,19 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, c::Int, log
         
         if new_position < M
             Rhat = M
-            state[c] = Rhat
+            pointer[] = Rhat
             neg_potent_R = -log_potential(state)
         else
             Lhat = M
-            state[c] = Lhat
+            pointer[] = Lhat
             neg_potent_L = -log_potential(state)
         end
         
         if (D && (z >= neg_potent_L) && (z >= neg_potent_R))
-            state[c] = old_position 
+            pointer[] = old_position 
             return false
         end
     end
-    state[c] = old_position
+    pointer[] = old_position
     return acceptable
 end
