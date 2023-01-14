@@ -45,9 +45,11 @@ explore are specified by the field of type [`Shared`](@ref)
 contained in the provided [`PT`](@ref). 
 """
 function run_one_round!(pt)
+    explorer = pt.shared.explorer
+    multithreaded = multithreaded_flag()
     while next_scan!(pt)
         communicate!(pt)
-        explore!(pt)
+        explore!(pt, explorer, multithreaded)
     end
     return reduce_recorders!(pt.replicas)
 end
@@ -77,15 +79,31 @@ Uses `@threads` to parallelize across threads.
 This is safe by the contract described in 
 [`sample_iid!`](@ref) and [`step!()`](@ref).
 """
-function explore!(pt)
-    explorer = pt.shared.explorer
+explore!(pt, explorer, multithreaded_flag::Val{true}) =
     @threads for replica in locals(pt.replicas)
-        log_potential = find_log_potential(replica, pt.shared)
-        if is_reference(replica.chain, pt.shared)
-            sample_iid!(log_potential, replica)
-        else
-            step!(explorer, replica, pt.shared)
-        end
+        explore!(pt, replica, explorer)
+    end
+
+"""
+$SIGNATURES
+
+The @thread macro brings a large overhead even 
+when Threads.nthreads == 1, so treating each case 
+separately
+"""
+explore!(pt, explorer, multithreaded::Val{false}) =
+    for replica in locals(pt.replicas)
+        explore!(pt, replica, explorer)
+    end
+
+multithreaded_flag() = Val(Threads.nthreads() > 1)
+
+function explore!(pt, replica, explorer)
+    log_potential = find_log_potential(replica, pt.shared)
+    if is_reference(replica.chain, pt.shared)
+        sample_iid!(log_potential, replica)
+    else
+        step!(explorer, replica, pt.shared)
     end
 end
 

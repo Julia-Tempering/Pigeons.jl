@@ -36,7 +36,7 @@ end
 
 function NonReversiblePT(path, schedule)
     log_potentials = discretize(path, schedule)
-    swap_graphs = deo()
+    swap_graphs = deo(n_chains(schedule))
     return NonReversiblePT(path, schedule, log_potentials, swap_graphs)
 end
 
