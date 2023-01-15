@@ -20,7 +20,7 @@ $SIGNATURES
 
 create_state_initializer(target::TuringLogPotential, ::Inputs) = target  
 initialization(target::TuringLogPotential, rng::SplittableRandom, _::Int64) = 
-    DynamicPPL.VarInfo(rng, target, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
+    DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
 
 create_explorer(target::TuringLogPotential, ::Inputs) = 
     SliceSampler()

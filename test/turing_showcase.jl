@@ -1,14 +1,5 @@
-# using Distributions 
-# using ConcreteStructs
-# using DynamicPPL
-# using BenchmarkTools
 using Pigeons
-# using SplittableRandoms
-# using BenchmarkTools
 using Turing
-
-# pigeons(target = toy_mvn_target(100), checked_round = 3)
-
 
 # Unconditioned coinflip model with `N` observations.
 @model function coinflip(; N::Int)
@@ -19,9 +10,7 @@ using Turing
     y ~ filldist(Bernoulli(p), N)
     return y
 end;
-
 coinflip(y::AbstractVector{<:Real}) = coinflip(; N=length(y)) | (; y)
-
 
 function flip_model()
     p_true = 0.5;
