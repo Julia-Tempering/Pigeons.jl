@@ -110,6 +110,44 @@ pt = pigeons(target = toy_mvn_target(100))
 where the `args...` passed to `pigeons` are forwarded 
 to [`Inputs`](@ref).
 
+
+## Accessing the output of PT
+
+The [`PT`](@ref) struct returned by [`pigeons`](@ref) 
+contains a field called `reduced_recorders`, which is just 
+a NamedTuple containing `recorder`'s which can be used to collect 
+arbitary statistics computed along the execution of PT. 
+
+By default, the statistics collected use constant-memory summaries 
+(i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. 
+
+For example, we show here how to plot the *index process*, a 
+useful diagnostic to assess the efficiency of PT algorithms 
+([Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464)). We use the argument `recorder_builders` to 
+specify that we wish to collect the full index process:
+
+```@example example
+p = pigeons(
+        target = toy_mvn_target(1), 
+        recorder_builders = [index_process], 
+        n_rounds = 5)
+```
+
+Then we can access the information via:
+
+```@example example
+p.reduced_recorders.index_process
+Pigeons.index_process_plot(p.reduced_recorders)
+savefig("index_process_plot.svg") # hide
+```
+
+![](index_process_plot.svg)
+
+Other statistics follow the same general usage, 
+see [Parallel Tempering (PT)](pt.html) for 
+more details. 
+
+
 ## Loading and resuming a checkpoint
 
 By default, PT will automatically write a "checkpoint" periodically 
@@ -211,7 +249,6 @@ in the next two sections.
 
 
 ## Running MPI locally
-
 
 To run MPI locally on one machine, using 4 MPI processes and 1 thread per process use:
 
