@@ -46,7 +46,8 @@ modules_string(settings::MPISettings) =
 $SIGNATURES
 
 Run this function once before running MPI jobs. 
-The setting are permanently saved
+The setting are permanently saved. 
+See [`MPISettings`](@ref).
 """
 function setup_mpi(settings::MPISettings)
     folder = mpi_settings_folder()

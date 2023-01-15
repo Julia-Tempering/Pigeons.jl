@@ -55,11 +55,6 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     To avoid accumulating twice the same statistic with (chain1, chain2) and 
     (chain2, chain2), [`swap!()`](@ref) only calls this for the pair with chain1 < chain2.
 
-    By default, the following are accumulated:
-
-    - the swap acceptance probability.
-    - TODO: stepping stone statistics.
-
     """
     function record_swap_stats!(pair_swapper, recorders, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)

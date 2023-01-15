@@ -108,7 +108,7 @@ function find_global_index(lb::LoadBalance, local_idx::Int)::Int
 end
 
 """
-$TYPEDSIGNATURES
+$SIGNATURES
 Return the number of indices (task) this process is responsible for. 
 """
 my_load(lb::LoadBalance)::Int = basic_load(lb) + (lb.my_process_index ≤ n_extras(lb) ? 1 : 0)

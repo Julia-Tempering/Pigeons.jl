@@ -34,7 +34,7 @@ end
 
 
 """
-$(TYPEDSIGNATURES)
+$(SIGNATURES)
 Assumes the input `log_potentials` is a vector where each element is a [`log_potential`](@ref).
 
 This default implementation is sufficient in most cases, but in less standard scenarios,

@@ -1,5 +1,5 @@
 """ 
-$TYPEDSIGNATURES 
+$SIGNATURES 
 
 A toy multi-variate normal (mvn) target distribution used for testing. 
 Uses a specialized path, [`ScaledPrecisionNormalPath`](@ref), 

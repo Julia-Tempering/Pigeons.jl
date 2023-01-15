@@ -26,6 +26,7 @@ function run_checks(pt)
 end
 
 """ 
+$SIGNATURES
 Run a separate, fully serial version of the PT algorithm, 
 and compare the checkpoint files to ensure the two 
 produce exactly the same output.

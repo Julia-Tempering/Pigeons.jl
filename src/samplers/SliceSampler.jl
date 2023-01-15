@@ -8,21 +8,20 @@ Slice sampler based on
     dim_fraction = 1.0 # proportion of variables to update
 end
 
+"""
+$SIGNATURES
 
+Current explorer for Turing models: a [`SliceSampler`](@ref).
+Slice sampler has the advantage of being not very sensitive to tuning. 
 """
-$SIGNATURES 
-"""
-@provides explorer create_explorer(target, inputs) = SliceSampler() # TODO
-create_state_initializer(target) = Ref(zeros(target)) # TODO
+@provides explorer create_explorer(target, inputs) = SliceSampler() 
 adapt_explorer(explorer::SliceSampler, _, _) = explorer 
 explorer_recorder_builders(::SliceSampler) = [] 
-regenerate!(explorer::SliceSampler, replica, shared) = @abstract # TODO or remove
 
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
     slice_sample!(explorer, replica.state, log_potential, replica.rng)
 end
-
 
 """
 $SIGNATURES
@@ -47,8 +46,6 @@ function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_pote
         end
     end
 end
-
-
 
 function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
     transform_back = false

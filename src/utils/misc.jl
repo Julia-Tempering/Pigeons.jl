@@ -44,43 +44,6 @@ function winsorized_std(x; α=0.1)
 end
 
 
-"""
-    lognormalizingconstant(energies, schedule)
-
-Compute an estimate of the log normalizing constant given a vector of 
-`energies` and the corresponding annealing `schedule`.
-"""
-function lognormalizingconstant(energies, schedule)
-    n, N = size(energies)
-    Δβ = schedule[2:end] .- schedule[1:end-1]
-    μ = mean(energies, dims = 1)[2:end]
-    sum(Δβ.*μ)
-end
-
-
-"""
-    computeetas(ϕ, β)
-
-Compute the `etas` matrix given `ϕ`, which is an Array(K - 1, 2) containing 
-knot parameters, and `β`, a vector of `N`+1 schedules. For linear paths, 
-the function returns an (N+1)x2 matrix with entries 1-β in the first column 
-and β in the second column. (This function is useful for those wishing to consider
-non-linear paths. However, full support is provided only for linear paths at 
-the moment.) 
-"""
-function computeetas(ϕ, β)
-    if ϕ != [0.5 0.5]
-        error("ϕ must be [0.5 0.5]")
-    end
-
-    out = zeros(length(β), 2)
-    for i in 1:length(β)
-        out[i, 1] = 1.0 - β[i]
-        out[i, 2] = β[i]
-    end
-
-    return out
-end
 
 """
 $SIGNATURES
