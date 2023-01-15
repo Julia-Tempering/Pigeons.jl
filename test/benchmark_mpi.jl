@@ -1,4 +1,3 @@
 using MPIBenchmarks
 
-
 benchmark(OSULatency())

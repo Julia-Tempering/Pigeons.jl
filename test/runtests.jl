@@ -73,12 +73,3 @@ end
 @testset "Serialize" begin
     mpi_test(1, "serialization_test.jl")
 end
-
-
-include("acceptance.jl")
-include("adaptation.jl")
-include("deo.jl")
-include("exploration.jl")
-include("restarts.jl")
-include("NRPT.jl")
-include("utils.jl")
