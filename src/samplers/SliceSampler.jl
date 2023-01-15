@@ -37,20 +37,28 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, rn
 end
 
 function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, rng)
+    on_transformed_space(state, log_potential) do
+        for i in 1:length(state.metadata)
+            for c in 1:length(state.metadata[i].vals)
+                g_x0 = log_potential(state)
+                pointer = Ref(state.metadata[i].vals, c)
+                slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
+            end
+        end
+    end
+end
+
+
+
+function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
     transform_back = false
     if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
         DynamicPPL.link!(state, DynamicPPL.SampleFromPrior()) # transform to unconstrained space
         transform_back = true # transform it back after log_potential evaluation
     end
-    for i in 1:length(state.metadata)
-        for c in 1:length(state.metadata[i].vals)
-            g_x0 = log_potential(state)
-            pointer = Ref(state.metadata[i].vals, c)
-            slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
-        end
-    end
+    sampling_task()
     if transform_back
-        DynamicPPL.invlink!!(state, log_potential.model) # transform back to constrained space
+        DynamicPPL.invlink!!(state, turing_model(log_potential)) # transform back to constrained space
     end
 end
 

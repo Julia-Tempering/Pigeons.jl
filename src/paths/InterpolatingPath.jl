@@ -17,18 +17,6 @@ standard annealing.
 """
 @provides path InterpolatingPath(ref, target) = InterpolatingPath(ref, target, LinearInterpolator())
 
-"""
-A [`log_potential`](@ref) obtained by evaluation of a [`path`](@ref) at a point beta. 
-"""
-@concrete struct InterpolatedLogPotential
-    path
-    beta
-end
-
-(interpolated::InterpolatedLogPotential)(x) = 
-    interpolate(interpolated.path.interpolator, interpolated.path.ref, interpolated.path.target, interpolated.beta, x)
-
-
 interpolate(path::InterpolatingPath, beta) = InterpolatedLogPotential(path, beta)
 
 # use this extension point to create new types of interpolations, e.g. q-path, etc.

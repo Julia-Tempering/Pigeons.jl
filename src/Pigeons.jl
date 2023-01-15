@@ -39,6 +39,7 @@ import Base.Threads.@threads
 import CRC32c.crc32c
 
 import DynamicPPL
+using Turing
 
 const use_auto_exec_folder = ""
 

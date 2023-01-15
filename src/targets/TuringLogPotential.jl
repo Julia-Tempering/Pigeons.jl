@@ -3,6 +3,9 @@ struct TuringLogPotential
     only_prior::Bool
 end
 
+turing_model(log_potential::TuringLogPotential) = log_potential.model 
+turing_model(log_potential::InterpolatedLogPotential) = log_potential.path.target.model
+
 (log_potential::TuringLogPotential)(vi) = 
     if log_potential.only_prior
         DynamicPPL.logprior(log_potential.model, vi)
