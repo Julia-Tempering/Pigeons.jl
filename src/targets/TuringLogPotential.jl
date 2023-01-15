@@ -25,8 +25,7 @@ create_state_initializer(target::TuringLogPotential, ::Inputs) = target
 initialization(target::TuringLogPotential, rng::SplittableRandom, _::Int64) = 
     DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
 
-create_explorer(target::TuringLogPotential, ::Inputs) = 
-    SliceSampler()
+create_explorer(target::TuringLogPotential, ::Inputs) = SliceSampler()
 
 create_reference_log_potential(target::TuringLogPotential, ::Inputs) = 
     TuringLogPotential(target.model, true)

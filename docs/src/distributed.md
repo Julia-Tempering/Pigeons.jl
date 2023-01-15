@@ -59,8 +59,8 @@ false negatives due to statistical error.
 
 Two factors tend to cause violations of Parallelism Invariance: 
 
-- Global or thread-local random number generators (which are unfortunately widespread approaches to parallel
-    random number generators in many languages).
+- Global, thread-local and task-local random number generators (the dominant approaches to parallel
+    random number generators in current languages).
 - [Non-associativity of floating point operations](https://en.wikipedia.org/wiki/Associative_property#:~:text=non%2Dassociative%20magmas.-,Nonassociativity%20of%20floating%20point%20calculation,sized%20values%20are%20joined%20together). As a result, when several workers 
     perform [Distributed reduction](https://en.wikipedia.org/wiki/MapReduce) of 
     floating point values, the output of this reduction will be slightly different. 
@@ -77,14 +77,13 @@ the two above issues while maintaining the same asymptotic runtime complexity.
 Let us start with a high-level picture of the distributed PT algorithm. 
 
 The high-level code is the function [`pigeons()`](@ref) which is identical to the single-machine algorithm. 
-
-Notice the code is almost identical to the single-machine algorithm [presented earlier](pt.html#Basic-PT-algorithm) with the only difference being [`create_vector_replicas`](@ref) is 
-replaced by [`create_entangled_replicas`](@ref). Also, as promised the 
-output is identical despite a vastly different swap logic. 
-Indeed, beyond the superficial syntactic similarities between the single process and 
-distributed code, the behaviour of [`swap!`](@ref) is quite different (this is triggered by multiple dispatch 
-detecting the different types for 
-`replica` in fully serial versus distributed). 
+A first difference lay in the [`replicas`](@ref) datastructure taking on a different type. Also, as promised the 
+output is identical despite a vastly different swap logic: this can be checked using the `checked_round` 
+argument described in the [user guide](index.html). 
+A second difference between the execution of [`pigeons()`](@ref) in single vs many machine context is the behaviour 
+of [`swap!`](@ref) which is dispatched 
+based on the type of 
+`replicas`. 
 
 In the following, we go over the main building block of 
 our distributed PT algorithm. 
@@ -93,42 +92,65 @@ our distributed PT algorithm.
 ## Splittable random streams
 
 The first building block is a splittable random stream. 
-To motivate splittable random streams, consider the following example violating Parallelism Invariance:
+To motivate splittable random streams, consider the following example violating Parallelism Invariance.
 
-```@example break_pi
-using Pigeons
-using SplittableRandoms
+Julia uses *task-local* random number generators, a notion which 
+is related but distinct from parallelism invariance. 
+We will now explain the difference between task-local random number 
+generators and parallelism invariance, and why the latter is more 
+advantageous for checking correctness of distributed randomized algorithms. 
+
+Consider the following toy example:
+
+```
 using Random
 import Base.Threads.@threads
 
 println("Number of threads: $(Threads.nthreads())")
 
-const n_iters = 10000
-result = zeros(n_iters)
-Random.seed!(1)
+const n_iters = 10000;
+result = zeros(n_iters);
+Random.seed!(1);
 @threads for i in 1:n_iters
     # in a real problem, do some expensive calculation here...
-    result[i] = rand()
+    result[i] = rand();
 end
-println("Multi-threaded: $(last(result))")
-
-Random.seed!(1)
-for i in 1:n_iters
-    # in a real problem, do some expensive calculation here...
-    result[i] = rand()
-end
-println("Single-threaded: $(last(result))")
+println("Result: $(last(result))")
 ```
 
-Unless only one thread is used, the result of the above parallel loop versus serial loop will be different with 
-high probability. 
+When using 8 threads, this outputs:
+```
+Number of threads: 8
+Result: 0.25679999169092793
+```
 
-To work around this, we associate one random number generator to each PT chain instead 
-of one generator per thread. 
+Julia guarantees that if we rerun this code, as long as we 
+are using 8 threads, we will always get the same result, 
+irrespective of the multi-threading scheduling decisions 
+implied by the `@threads`-loop (hence, a step ahead another 
+concept known as thread-local random number generation, which
+does not guarantee replicability even for a fixed number of 
+threads). 
 
+However, when we use a different number of threads (e.g., 
+the key example is one thread), the result is different:
+```
+Number of threads: 1
+Result: 0.8785201210435906
+```
+
+In this simple example above, it is not a big deal, but for our parallel tempering use case, the 
+distributed version of the algorithm is significantly more complex and 
+harder to debug compared to the single-threaded one. Hence we take 
+task-local random number generation one step further, into **parallelism 
+invariance**, which will guarantee that the output is not only 
+reproducible with respect to repetitions for a fixed number of threads, 
+but also for different numbers of threads. 
+
+In our context, a first step to achieve this is to associate one random number generator to each PT chain.
 To do so, we use the 
 [SplittableRandoms.jl library](https://github.com/UBC-Stat-ML/SplittableRandoms.jl) which allows 
-us to turn one seed into several pseudo-independent random number generators. 
+us to turn one seed into an arbitrary collection pseudo-independent random number generators. 
 Since each MPI process holds a subset of the chains, we internally use the 
 function [`split_slice()`](@ref) to 
 get the random number generators for the slice of replicas held in a given MPI process.
