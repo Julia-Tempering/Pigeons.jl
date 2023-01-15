@@ -131,15 +131,15 @@ end
 
 function checkpoint_symlinks(input_checkpoint_folder, fresh_exec_folder, round_index)
     input_exec_folder = (dirname ∘ dirname)(input_checkpoint_folder)
-    symlink_with_relative_paths(
+    safelink(
         "$input_exec_folder/immutables.jls", 
         "$fresh_exec_folder/immutables.jls")
-    symlink_with_relative_paths(
+    safelink(
             "$input_exec_folder/inputs.jls", 
             "$fresh_exec_folder/inputs.jls")
     for r = 1:round_index
         target = "$input_exec_folder/round=$r"
         link = "$fresh_exec_folder/round=$r"
-        symlink_with_relative_paths(target, link)
+        safelink(target, link)
     end
 end

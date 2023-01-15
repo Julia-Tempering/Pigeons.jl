@@ -15,11 +15,22 @@ end
 
 function _ensure_symlinked(exec)
     rm("results/latest", force = true)
-    symlink_with_relative_paths(exec, "results/latest")
+    safelink(exec, "results/latest")
 end
 
-function symlink_with_relative_paths(target::AbstractString, link::AbstractString)
+"""
+$SIGNATURES 
+
+Work around two issues with symlink():
+- naively calling symlink() when there are relative paths leads to broken links
+- on windows, one needs admin permission to do symlinks, so fall back to hardlink in that case 
+"""
+function safelink(target::AbstractString, link::AbstractString)
     relative_to = dirname(link)
     relative_path = relpath(target, relative_to)
-    symlink(relative_path, link)
+    try
+        symlink(relative_path, link)
+    catch # on windows, need admin to do symlink (!)
+        hardlink(abspath(target), abspath(link)) # so then fallback to using hard links
+    end
 end
