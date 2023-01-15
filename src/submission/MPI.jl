@@ -28,7 +28,7 @@ $FIELDS
     """
     The number of MPI processes, 2 by default.
     """
-    n_mpi_processes::Int = 1
+    n_mpi_processes::Int = 2
 
     """
     The memory allocated to each MPI process, 8gb by default.

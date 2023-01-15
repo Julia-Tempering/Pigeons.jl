@@ -18,6 +18,7 @@ end
 
 """
 $SIGNATURES
+Create an `Indexer` with the given `Int` to `T` mapping.
 """
 function Indexer(i2t::AbstractVector{T}) where {T}
     t2i = Dict{T, Int}()

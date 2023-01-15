@@ -3,12 +3,13 @@ using Test
 using Distributions
 using Random
 using SplittableRandoms
-import Pigeons.mpi_test
+import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
+                find_process
 
 
 function test_load_balance(n_processes, n_tasks)
     for p in 1:n_processes
-        lb = Pigeons.LoadBalance(p, n_processes, n_tasks)        
+        lb = LoadBalance(p, n_processes, n_tasks)        
         globals = my_global_indices(lb)
         @assert length(globals) == my_load(lb)
         for g in globals
