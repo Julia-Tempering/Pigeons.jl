@@ -26,7 +26,7 @@ First, even if your model is very large, the network communication between
 processes in the inner loop of the algorithm 
 
 
-## Goals
+## Scope
 
 We describe here the class of problems that can be approached using Pigeons.
 
@@ -67,9 +67,7 @@ Pigeons shines in the following scenarios:
     e.g. a combinatorial object such as a phylogenetic tree. 
 
 
-## Example
-
-### Installing `Pigeons`
+## Installing `Pigeons`
 
 1. If you have not done so, install [Julia](https://julialang.org/downloads/). So far, we have tested the code on Julia 1.8.x.
 2. Install `Pigeons` using
@@ -78,7 +76,7 @@ Pigeons shines in the following scenarios:
 using Pkg; Pkg.add(url = "https://github.com/Julia-Tempering/Pigeons.jl")
 ```
 
-### Running PT
+## Running PT
 
 Specify the target distribution and, optionally, 
 parameters like random seed, etc by creating an 
@@ -92,7 +90,7 @@ inputs = Inputs(target = toy_mvn_target(100))
 
 See [`Inputs`](@ref) for more options. 
 
-Then, run PT (locally on one process, but using multi-threading) using:
+Then, run PT (locally on one process, but using multi-threading) using the function [`pigeons()`](@ref):
 
 ```@example example
 pt = pigeons(inputs)
@@ -112,7 +110,7 @@ pt = pigeons(target = toy_mvn_target(100))
 where the `args...` passed to `pigeons` are forwarded 
 to [`Inputs`](@ref).
 
-### Loading and resuming a checkpoint
+## Loading and resuming a checkpoint
 
 By default, PT will automatically write a "checkpoint" periodically 
 to ensure that not more than half of the work is lost in 
@@ -128,7 +126,8 @@ Checkpoints are also useful when an MPI-distributed PT has been
 ran, and the user wants to load the full set of 
 results in one interactive session. 
 
-To load a checkpoint, create a [`PT`](@ref) struct by passing in the path string to the checkpoint folder, for example to re-load the latest checkpoint 
+To load a checkpoint, create a [`PT`](@ref) struct by passing in the path 
+string to the checkpoint folder, for example to re-load the latest checkpoint 
 from the latest run:
 
 ```@example example
@@ -157,7 +156,7 @@ pigeons(target = toy_mvn_target(100), checkpoint = false);
 ```
 
 
-### Automatic correctness checks for parallel/distributed implementations
+## Automatic correctness checks
 
 It is notoriously difficult to implement correct parallel/distributed algorithms. 
 One strategy we use to address this is to guarantee that the code will output 
@@ -189,16 +188,30 @@ runtime, so for convenience we provide the following way to run the job in a
 child process with a set number of Julia threads:
 
 ```@example example
-pigeons(target = toy_mvn_target(100), checked_round = 3, on = ChildProcess(n_threads = 4))
+pt_result = pigeons(target = toy_mvn_target(100), checked_round = 3, on = ChildProcess(n_threads = 4))
 ```
 
-In this case, since the model is built-in, it runs successfully as expected. But what 
-if you had a third-party target distribution that is not multi-threaded friendly? I.e. it may write in global variables or 
-other non-thread safe construct. Then you can still probably use your thread-naive target over MPI *processes*, as described 
+Notice that this time, instead of returning a [`PT`](@ref) struct, this time we obtain 
+a [`Result`](@ref), which only holds the path where the checkpoints can be found. 
+If you would like to load a result in memory, use:
+```@example example
+pt = load(pt_result)
+```
+
+In this case, since the model is built-in, the check passed successfully as expected. But what 
+if you had a third-party target distribution that is not multi-threaded friendly? 
+I.e. it may write in global variables or 
+other non-thread safe construct. Then you can probably still  use your thread-naive 
+target over MPI *processes*. 
+For example, if the thread-unsafety comes from the use of global variables, then each 
+process will have its own copy of the global variables. 
+
+We described how MPI can be used
 in the next two sections.
 
 
-### Running MPI locally
+## Running MPI locally
+
 
 To run MPI locally on one machine, using 4 MPI processes and 1 thread per process use:
 
@@ -216,7 +229,38 @@ will steeply degrade (in contrast to threads, for which performance degrades
 much more gracefully when the number of threads exceeds the number of cores). 
 
 
-### Running MPI on a cluster
+## Running MPI on a cluster
+
+!!! note "The magic of distributed Parallel Tempering"
+
+    If the dimensionality of the state space is large, you may worry that 
+    the time to transmit states over the network would dominate the running time. 
+    Remarkably, the size of the messages transmitted in the inner loop of our 
+    algorithm does **not** depend on the state space. In a nutshell, the 
+    machines only need to transmit the value of log density ratios (a single float). 
+    See [Algorithm 5 in Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464)
+    for details.
+
+MPI is typically available via a cluster scheduling system. At the time of 
+writing, only `PBS PRO` is supported, but more will be added. 
+
+Follow these instructions to run MPI over several machines:
+
+1. In the cluster login node, follow the [installation instruction as above](#Installing-Pigeons). 
+2. Start Julia in the login node, and perform a one-time setup by calling [`setup_mpi()`](@ref).
+3. Still in the Julia REPL running in the login node, use:
+
+```
+pigeons(
+    target = toy_mvn_target(100), 
+    checked_round = 3, 
+    n_chains = 1000,
+    on = MPI(
+        n_mpi_processes = 1000,
+        n_threads = 1))
+```
+
+This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread.
 
 
 ## Specification of general models
@@ -233,8 +277,3 @@ This sequence of distributions is specified using the informal interface [`log_p
     Add instructions for Markov transition kernels, and example code.
 
 
-## Running distributed jobs
-
-!!! warning "TODO"
-
-    Add instructions once the interface improves a bit.
