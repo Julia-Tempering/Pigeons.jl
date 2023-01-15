@@ -17,5 +17,3 @@ pigeons(; on = ThisProcess(), args...) =
     pigeons(Inputs(; args...), on)
 
 pigeons(pt_arguments, ::ThisProcess) = pigeons(PT(pt_arguments))
-
-
