@@ -23,14 +23,28 @@ $SIGNATURES
 
 Work around two issues with symlink():
 - naively calling symlink() when there are relative paths leads to broken links
-- on windows, one needs admin permission to do symlinks, so fall back to hardlink in that case 
+- on windows, one needs admin permission to do symlinks, so print a helpful error message in that case
 """
 function safelink(target::AbstractString, link::AbstractString)
     relative_to = dirname(link)
     relative_path = relpath(target, relative_to)
     try
         symlink(relative_path, link)
-    catch # on windows, need admin to do symlink (!)
-        hardlink(abspath(target), abspath(link)) # so then fallback to using hard links
+    catch e # on windows, need admin to do symlink (!)
+        if !_safelink_warned[]
+            println("""
+                WARN: could not create symlink($relative_path, $link)
+                    If you are running windows, this is a known issue, 
+                    you will need to run under admin permission, see: 
+                    https://discourse.julialang.org/t/symlink-can-not-create-hardlink-in-windows10/75702
+                    For now, skipping symlinks, this may affect some features 
+                    such as loading checkpoints. 
+                Details: 
+                $e
+                """)
+            _safelink_warned[] = true
+        end
     end
 end
+
+const _safelink_warned::Ref{Bool} = Ref(false)
