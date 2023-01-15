@@ -1,7 +1,0 @@
-#!/bin/bash
-
-echo "Note: this only needs to be called once."
-
-source ./modules.sh
-
-julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
