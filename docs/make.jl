@@ -1,6 +1,7 @@
 using Pigeons
 using Documenter
 using DocStringExtensions 
+using Plots
 
 DocMeta.setdocmeta!(Pigeons, :DocTestSetup, :(using Pigeons); recursive=true)
 
