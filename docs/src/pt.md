@@ -196,39 +196,3 @@ Customizing [`communicate!()`](@ref) follows the same general steps as custom ex
 3. Initial construction of the tempering is done via  [`create_tempering()`](@ref).
 
 
-## Integrating with Turing.jl
-
-It is straightforward to sample from target distributions defined using a [Turing.jl](https://turing.ml/stable/) model. 
-We consider an unidentifiable Beta-Binomial model for instructional purposes.
-Typically, MCMC samplers would have difficulty sampling from 
-posterior distributions of unidentifiable models. However, Pigeons excels in this scenario
-compared to traditional samplers.
-
-First, we define the Turing model.
-```@example Turing
-using Turing
-
-# *Unidentifiable* unconditioned coinflip model with `N` observations.
-@model function coinflip_unidentifiable(; N::Int)
-    p1 ~ Uniform(0, 1) # prior on p1
-    p2 ~ Uniform(0, 1) # prior on p2
-    y ~ filldist(Bernoulli(p1*p2), N) # data-generating model
-    return y
-end;
-coinflip_unidentifiable(y::AbstractVector{<:Real}) = coinflip_unidentifiable(; N=length(y)) | (; y)
-
-function flip_model_unidentifiable()
-    p_true = 0.5; # true probability of heads is 0.5
-    N = 100;
-    data = rand(Bernoulli(p_true), N); # generate N data points
-    return coinflip_unidentifiable(data)
-end
-```
-
-Once we have defined our Turing model, it is straightforward to sample from the posterior distribution of `p1` and `p2` as follows:
-```@example Turing_Pigeons
-using Pigeons
-model = flip_model_unidentifiable()
-pt = pigeons(target = TuringLogPotential(model)) 
-```
-

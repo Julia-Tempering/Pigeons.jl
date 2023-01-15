@@ -267,13 +267,57 @@ This will start a distributed PT algorithm with 1000 chains on 1000 MPI processe
 
 The most general way to invoke Pigeons is by specifying two ingredients: a sequence of distributions, 
 ``\pi_1, \pi_2, \dots, \pi_N``, and for each ``\pi_i``, a ``\pi_i``-invariant Markov transition kernel.
-Typically, $\pi_1$ is a distribution from which we can sample i.i.d. (e.g. the prior, or a variational 
+Typically, ``\pi_1`` is a distribution from which we can sample i.i.d. (e.g. the prior, or a variational 
 approximation), while the last distribution coincides with the distribution of interest, 
-$\pi_N = \pi$. 
-This sequence of distributions is specified using the informal interface [`log_potentials`](@ref). 
+$\pi_N = \pi$, the target. 
+We use an informal interface called [`target`](@ref) to orchestrate the creation of the ingredients 
+needed by parallel tempering algorithms. 
+The main pieces to specify are [`create_state_initializer()`](@ref), to provide initial states, 
+[`create_explorer`](@ref), to construct [`explorer`](@ref)'s 
+which are ``\pi_i``-invariant Markov transition kernel, 
+and finally, [`create_reference_log_potential()`](@ref), 
+to construct ``\pi_1``. 
 
-!!! warning "TODO"
+A range of other extension points are defined, to control 
+the [`tempering`](@ref), interpolating [`path`](@ref)'s, 
+adaptation, but those all have reasonable default implementations built-in. See the [Parallel Tempering (PT) page](pt.html) for more information.
 
-    Add instructions for Markov transition kernels, and example code.
 
+## Integrating with Turing.jl
+
+To demonstrate how to integrate a third-party model into 
+Pigeons, we show in this section how to sample from target distributions defined using a [Turing.jl](https://turing.ml/stable/) model. 
+ 
+We consider an unidentifiable Beta-Binomial model for instructional purposes.
+Typically, MCMC samplers would have difficulty sampling from 
+posterior distributions of unidentifiable models. However, Pigeons excels in this scenario
+compared to traditional samplers.
+
+First, we define the Turing model.
+```@example Turing
+using Turing
+
+# *Unidentifiable* unconditioned coinflip model with `N` observations.
+@model function coinflip_unidentifiable(; N::Int)
+    p1 ~ Uniform(0, 1) # prior on p1
+    p2 ~ Uniform(0, 1) # prior on p2
+    y ~ filldist(Bernoulli(p1*p2), N) # data-generating model
+    return y
+end;
+coinflip_unidentifiable(y::AbstractVector{<:Real}) = coinflip_unidentifiable(; N=length(y)) | (; y)
+
+function flip_model_unidentifiable()
+    p_true = 0.5; # true probability of heads is 0.5
+    N = 100;
+    data = rand(Bernoulli(p_true), N); # generate N data points
+    return coinflip_unidentifiable(data)
+end
+```
+
+Once we have defined our Turing model, it is straightforward to sample from the posterior distribution of `p1` and `p2` as follows:
+```@example Turing_Pigeons
+using Pigeons
+model = flip_model_unidentifiable()
+pt = pigeons(target = TuringLogPotential(model)) 
+```
 
