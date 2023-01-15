@@ -38,6 +38,10 @@ end
 
 """
 $SIGNATURES
+
+Create a PT struct from provided [`Inputs`](@ref). 
+Optionally, provide a specific `exec_folder` path (`AbstractString`), 
+if not one will be created via [`next_exec_folder()`](@ref).
 """
 function PT(inputs::Inputs; exec_folder = use_auto_exec_folder)
     shared = Shared(inputs)

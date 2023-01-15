@@ -77,7 +77,7 @@ respectively).
 
 Uses `@threads` to parallelize across threads. 
 This is safe by the contract described in 
-[`sample_iid!`](@ref) and [`step!()`](@ref).
+[`sample_iid!()`](@ref) and [`step!()`](@ref).
 """
 explore!(pt, explorer, multithreaded_flag::Val{true}) =
     @threads for replica in locals(pt.replicas)
@@ -87,9 +87,9 @@ explore!(pt, explorer, multithreaded_flag::Val{true}) =
 """
 $SIGNATURES
 
-The @thread macro brings a large overhead even 
-when Threads.nthreads == 1, so treating each case 
-separately
+The `@threads` macro brings a large overhead even 
+when `Threads.nthreads == 1`, so a separate method 
+is used for the single thread mode.
 """
 explore!(pt, explorer, multithreaded::Val{false}) =
     for replica in locals(pt.replicas)

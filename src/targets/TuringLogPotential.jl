@@ -17,6 +17,9 @@ turing_model(log_potential::InterpolatedLogPotential) = log_potential.path.targe
 
 """
 $SIGNATURES 
+Given a `DynamicPPL.Model` from Turing.jl, create a 
+`TuringLogPotential` conforming both [`target`](@ref) and 
+[`log_potential`](@ref).
 """
 @provides target TuringLogPotential(model::DynamicPPL.Model) = 
     TuringLogPotential(model, false)

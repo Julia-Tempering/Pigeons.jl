@@ -1,5 +1,5 @@
 """
-A partition of [0, 1] encoded by monotonically increasing grid points 
+A partition of ``[0, 1]`` encoded by monotonically increasing grid points 
 starting at zero and ending at one.
 """
 struct Schedule

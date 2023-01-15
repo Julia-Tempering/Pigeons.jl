@@ -4,7 +4,7 @@ using Distributions
 using Random
 using SplittableRandoms
 import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
-                find_process
+                find_process, split_slice
 
 
 function test_load_balance(n_processes, n_tasks)
