@@ -2,6 +2,9 @@ using Pigeons
 using Serialization
 using Test
 
+import Pigeons: Immutable, serialize_immutables, 
+                deserialize_immutables
+
 data_serialization_name = tempname()
 fake_serialization_name = tempname()
 

@@ -1,3 +1,0 @@
-using MPIBenchmarks
-
-benchmark(OSULatency())

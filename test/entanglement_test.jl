@@ -2,6 +2,11 @@ using Pigeons
 using OnlineStats
 using Random
 
+import Pigeons: Entangler, 
+                my_global_indices, transmit,
+                my_load
+
+
 """
 Run from runtests.jl
 """

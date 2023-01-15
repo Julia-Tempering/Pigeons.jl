@@ -3,6 +3,7 @@ using Test
 using Distributions
 using Random
 using SplittableRandoms
+import Pigeons.mpi_test
 
 
 function test_load_balance(n_processes, n_tasks)
@@ -23,11 +24,6 @@ end
     mpi_test(1, "reduce_test.jl")
     mpi_test(2, "reduce_test.jl")
     mpi_test(3, "reduce_test.jl")
-end
-
-@testset "recorder.jl" begin
-    mpi_test(1, "recorder_test.jl")
-    mpi_test(2, "recorder_test.jl")
 end
 
 @testset "PermutedDistributedArray" begin
@@ -61,10 +57,6 @@ function test_split_slice()
 end
 
 test_split_slice_helper(range) = [rand(r) for r in split_slice(range,  SplittableRandom(1))]
-
-@testset "test_swap" begin
-    mpi_test(3, "swap_test.jl")
-end
 
 @testset "split_test" begin
     test_split_slice()

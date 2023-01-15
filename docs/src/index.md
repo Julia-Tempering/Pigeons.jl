@@ -137,6 +137,8 @@ Then we can access the information via:
 
 ```@example example
 p.reduced_recorders.index_process
+
+using Plots
 Pigeons.index_process_plot(p.reduced_recorders)
 savefig("index_process_plot.svg") # hide
 ```

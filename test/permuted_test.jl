@@ -4,6 +4,10 @@ using Random
 using MPI
 using ArgMacros
 
+import Pigeons: Entangler, my_global_indices, 
+                PermutedDistributedArray, permuted_get,
+                permuted_set!
+
 @structarguments false Args begin
     @argumentdefault Int 37 N "--N"
     @argumentdefault Int 1000 iters "--iters"

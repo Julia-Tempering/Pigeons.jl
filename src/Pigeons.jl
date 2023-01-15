@@ -56,14 +56,4 @@ export pigeons, Inputs, PT,
 
 end # End module
 
-"""
-Instructions to develop:
-
-julia
-using Pkg
-using Revise
-Pkg.activate(".")
-using Pigeons
-
-"""
 
