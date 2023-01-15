@@ -1,5 +1,6 @@
 using Pigeons
 
-model = Pigeons.flip_model()
+# model = Pigeons.flip_model()
+model = Pigeons.flip_model_unidentifiable()
 
-pigeons(target = Pigeons.TuringLogPotential(model), checked_round = 3) 
+pigeons(target = Pigeons.TuringLogPotential(model)) 
