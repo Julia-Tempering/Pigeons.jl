@@ -74,8 +74,7 @@ makedocs(;
 """
 function informal_doc(doc_dir, mod::Module)
     head = """
-    Descriptions of *informal interfaces* (see [Pigeons.@informal](reference.html#Pigeons.@informal-Tuple{Symbol,%20Expr}) to see how this page 
-    was generated).
+    Descriptions of *informal interfaces*.
 
     ---
     """
