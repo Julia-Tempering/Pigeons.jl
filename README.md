@@ -12,7 +12,7 @@ Pigeons.jl enables users to leverage distributed computation to obtain samples f
 
 :warning: **Warning** <br>
 This package is currently under development. The user interface may change substantially prior to the first stable release.
-Please [view our documentation] (https://julia-tempering.github.io/Pigeons.jl/dev/) for the most up-to-date description. Additionally, the implementation of parallel tempering
+Please [view our documentation](https://julia-tempering.github.io/Pigeons.jl/dev/) for the most up-to-date description. Additionally, the implementation of parallel tempering
 with a variational reference will be available in the very near future.
 
 
