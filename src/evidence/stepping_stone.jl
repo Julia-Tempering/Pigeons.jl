@@ -11,5 +11,5 @@ function stepping_stone_pair(log_sum_ratios::GroupBy)
             estimator2 += current 
         end
     end
-    return (estimator1, estimator2) # TODO: shouldn't they by distinct?
+    return (estimator1, -estimator2) 
 end
