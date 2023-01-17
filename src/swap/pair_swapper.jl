@@ -60,7 +60,8 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
         key = (chain1, chain2)
         record_if_requested!(recorders, :swap_acceptance_pr, (key, acceptance_pr))
-        # TODO accumulate stepping-stone statistics
+        record_if_requested!(recorders, :log_sum_ratio, ((chain1, chain2), stat1.log_ratio))
+        record_if_requested!(recorders, :log_sum_ratio, ((chain2, chain1), stat1.log_ratio)) # compute both to estimate a sandwich
     end
 
     """

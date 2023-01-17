@@ -47,12 +47,8 @@ end
 function communicationbarrier(recorders, schedule::Schedule)
     accept_recorder = recorders.swap_acceptance_pr
     max_index = n_chains(schedule) - 1
-    rejection = [rejection_pr(accept_recorder, (i, i+1)) for i in 1:max_index]
+    rejection = [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in 1:max_index]
     return communicationbarrier(rejection, schedule.grids)
 end
 
-function rejection_pr(accept_recorder, key)
-    default = 0.5
-    accept = haskey(accept_recorder.value, key) ? value(accept_recorder[key]) : default
-    return 1.0 - accept
-end
+

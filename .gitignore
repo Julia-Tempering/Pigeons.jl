@@ -16,3 +16,4 @@ LocalPreferences.toml
 temp.jl
 interfaces.md
 .blang-compilation
+filtered.csv

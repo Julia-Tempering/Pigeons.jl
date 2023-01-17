@@ -16,17 +16,14 @@ function initialization(target::BlangTarget, rng::SplittableRandom, _::Int64)
             --engine.random $(java_seed(rng))`,
         Inf # no timeout
     )
-    finalizer(result) do procedure
-        kill(procedure)
-    end
+    # TODO: find a way to kill the child process after GC; 
+    # the code below does not work for some reason. 
+    # finalizer(result) do procedure
+    #     kill(procedure)
+    # end
     return result
 end
 
-# hack to convert to Long, fixme
-function java_seed(rng::SplittableRandom) 
-    result = "$(rand(rng, UInt64))"
-    return result[1:(length(result) - 1)]
-end
 
 # Internals
 
@@ -65,6 +62,13 @@ call_sampler!(log_potential::SteamPotential, worker::ExpectProc) =
         worker, 
         "call_sampler!($(log_potential.beta))"
     )
+
+# hack to convert UInt64 to Long; not in a loop so ok, 
+# but fixme at some point
+function java_seed(rng::SplittableRandom) 
+    result = "$(rand(rng, UInt64))"
+    return result[1:(length(result) - 1)]
+end
 
 function invoke_worker(worker::ExpectProc, request::AbstractString, return_type::Type = Nothing)
     println(worker, request)

@@ -50,4 +50,4 @@ function adapt_tempering(tempering::NonReversiblePT, reduced_recorders)
     return NonReversiblePT(path, updated_schedule)
 end
 
-tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr]
+tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]

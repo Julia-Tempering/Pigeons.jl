@@ -1,3 +1,12 @@
+value_with_default(stats::GroupBy, key, default) =
+    haskey(stats.value, key) ? value(stats[key]) : default
+
+# somehow Julia doesn't have that? (double check)
+inf(object::T) where {T<:Number} = inf(T)
+inf(T::Type{Float16}) = Inf16 
+inf(T::Type{Float32}) = Inf32 
+inf(T::Type{Float64}) = Inf
+
 """
     winsorized_mean(x; α)
 

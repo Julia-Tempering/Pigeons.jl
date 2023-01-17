@@ -2,6 +2,7 @@ using Pigeons
 using Test
 using Distributions
 using Random
+using OnlineStats
 using SplittableRandoms
 import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
                 find_process, split_slice
@@ -41,6 +42,27 @@ end
     end
 end
 
+@testset "LogSum" begin
+    m = Pigeons.LogSum()
+    
+    fit!(m, 2.1)
+    fit!(m, 4)
+    v1 = value(m)
+    @assert v1 ≈ log(exp(2.1) + exp(4))
+
+
+    fit!(m, 2.1)
+    fit!(m, 4)
+    m2 = Pigeons.LogSum() 
+    fit!(m2, 50.1)
+    combined = merge(m, m2)
+    @assert value(combined) ≈ log(exp(v1) + exp(50.1))
+
+    fit!(m, 2.1)
+    fit!(m, 4)
+    empty!(m)
+    @assert value(m) == -Pigeons.inf(0.0)
+end
 
 function test_split_slice()
     # test disjoint random streams
