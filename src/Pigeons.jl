@@ -29,6 +29,7 @@ using Graphs
 using DataStructures
 using Preferences
 using MPIPreferences
+using Expect
 
 import Serialization.serialize
 import Serialization.deserialize

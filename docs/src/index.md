@@ -21,10 +21,6 @@ of challenging probability distributions.
 Pigeons can be used in a multi-threaded context, and/or 
 distributed over hundreds or thousands of MPI-communicating machines.
 
-Distributed Parallel Tempering has some remarkable properties. 
-First, even if your model is very large, the network communication between 
-processes in the inner loop of the algorithm 
-
 
 ## Scope
 
