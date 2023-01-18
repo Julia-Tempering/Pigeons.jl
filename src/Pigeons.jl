@@ -42,6 +42,7 @@ import CRC32c.crc32c
 import OnlineStats._fit!
 import OnlineStats.value
 import OnlineStats._merge!
+import Random.rand! 
 
 import DynamicPPL
 using Turing

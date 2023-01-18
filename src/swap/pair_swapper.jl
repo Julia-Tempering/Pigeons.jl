@@ -58,10 +58,11 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     """
     function record_swap_stats!(pair_swapper, recorders, chain1::Int, stat1, chain2::Int, stat2)
         acceptance_pr = swap_acceptance_probability(stat1, stat2)
-        key = (chain1, chain2)
-        record_if_requested!(recorders, :swap_acceptance_pr, (key, acceptance_pr))
-        record_if_requested!(recorders, :log_sum_ratio, ((chain1, chain2), stat1.log_ratio))
-        record_if_requested!(recorders, :log_sum_ratio, ((chain2, chain1), stat2.log_ratio)) # compute both to estimate a sandwich
+        key1 = (chain1, chain2)
+        key2 = (chain2, chain1)
+        record_if_requested!(recorders, :swap_acceptance_pr, (key1, acceptance_pr))
+        record_if_requested!(recorders, :log_sum_ratio, (key1, stat1.log_ratio))
+        record_if_requested!(recorders, :log_sum_ratio, (key2, stat2.log_ratio)) # compute both to estimate a sandwich
     end
 
     """
