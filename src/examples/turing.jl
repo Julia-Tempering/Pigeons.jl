@@ -28,3 +28,7 @@ function flip_model_unidentifiable()
     data = rand(Bernoulli(p_true), N);
     return coinflip_unidentifiable(data)
 end
+
+@model function turing_normal()
+    x ~ Normal(0, 1)
+end

@@ -43,6 +43,7 @@ import OnlineStats._fit!
 import OnlineStats.value
 import OnlineStats._merge!
 import Random.rand! 
+import Base.(==)
 
 import DynamicPPL
 using Turing

@@ -58,7 +58,7 @@ A function such that calling it returns a fresh
 @informal recorder_builder begin end
 
 function recorder_builders(inputs::Inputs, shared::Shared)
-    result = Set{Function}()
+    result = OrderedSet{Function}()
     union!(result, explorer_recorder_builders(shared.explorer))
     union!(result, tempering_recorder_builders(shared.tempering))
     union!(result, inputs.recorder_builders)
