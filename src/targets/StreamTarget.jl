@@ -1,29 +1,34 @@
 abstract type StreamTarget end
 
-initialization(target::StreamTarget, rng::SplittableRandom, _::Int64) = 
-    @abstract 
+initialization(target::StreamTarget, rng::SplittableRandom, replica_index::Int64) = @abstract 
 
 
-mutable struct StreamState{P, R} # mutable so that it can be finalized (see ?finalized)
-    process::P
-    replica_index::R
-    function StreamState(process::P, replica_index::R) where {P, R}
-        result = new{P, R}(process, replica_index)
-        finalizer(result) do state
-            kill(state.process)
-        end 
+
+mutable struct ProcessReaperToken 
+    proc::Base.Process 
+    function ProcessReaperToken(proc::Base.Process)
+        result = new(proc)
+        finalizer(_kill, result)
         return result
     end
+end
+
+function _kill(token::ProcessReaperToken) 
+    ccall(:uv_process_kill, Int32, (Ptr{Cvoid}, Int32), token.proc.handle, 15)
+end
+
+struct StreamState 
+    worker_process::ExpectProc
+    replica_index::Int
+    token::ProcessReaperToken
 end
 
 struct BlangTarget <: StreamTarget
     command::Cmd
 end
 
-
-
-initialization(target::BlangTarget, rng::SplittableRandom, replica_index::Int64) =
-    result = ExpectProc(
+function initialization(target::BlangTarget, rng::SplittableRandom, replica_index::Int64)
+    worker_process = ExpectProc(
         `$(target.command) 
             --experimentConfigs.resultsHTMLPage false
             --experimentConfigs.saveStandardStreams false
@@ -31,12 +36,10 @@ initialization(target::BlangTarget, rng::SplittableRandom, replica_index::Int64)
             --engine.random $(java_seed(rng))`,
         Inf # no timeout
     )
-    # TODO: find a way to kill the child process after GC; 
-    # the code below does not work for some reason. 
-    # finalizer(result) do procedure
-    #     kill(procedure)
-    # end
-
+    # that does not work 
+    token = ProcessReaperToken(worker_process.proc)
+    return StreamState(worker_process, replica_index, token)
+end
 
 
 # Internals
@@ -64,17 +67,17 @@ create_path(target::StreamTarget, ::Inputs) = StreamPath()
 
 interpolate(path::StreamPath, beta) = StreamPotential(beta)
 
-(log_potential::StreamPotential)(worker::ExpectProc) = 
+(log_potential::StreamPotential)(state::StreamState) = 
     invoke_worker(
-            worker, 
+            state, 
             "log_potential($(log_potential.beta))", 
             Float64
         )
 
 
-call_sampler!(log_potential::StreamPotential, worker::ExpectProc) = 
+call_sampler!(log_potential::StreamPotential, state::StreamState) = 
     invoke_worker(
-        worker, 
+        state, 
         "call_sampler!($(log_potential.beta))"
     )
 
@@ -86,7 +89,7 @@ function java_seed(rng::SplittableRandom)
 end
 
 function invoke_worker(
-        worker::ExpectProc, 
+        state::StreamState, 
         request::AbstractString, 
         return_type::Type = Nothing)
     #=
@@ -100,8 +103,8 @@ function invoke_worker(
     In scenarios where it is attractive to use MPI, one exploration step 
     will typically be >0.1ms. 
     =#
-    println(worker, request)
-    expect!(worker, "response(")
-    response_str = expect!(worker, ")")
+    println(state.worker_process, request)
+    expect!(state.worker_process, "response(")
+    response_str = expect!(state.worker_process, ")")
     return return_type == Nothing ? nothing : parse(return_type, response_str)
 end
