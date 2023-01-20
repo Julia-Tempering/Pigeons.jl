@@ -10,7 +10,11 @@ $FIELDS
     allocation_code::String
 
     """
-    Run `module avail` in the terminal to see what is available on your HPC. 
+    "Envirnonment modules" to load (not to be confused 
+    with Julia modules). 
+    Run `module avail` in the HPC login node to see 
+    what is available on your HPC. 
+    For example: `["git", "gcc", "openmpi"]`
     """
     environment_modules::Vector{String} = []
 end
