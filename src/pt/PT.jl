@@ -62,7 +62,7 @@ pt_exec_folder(use_checkpoint, specified_exec_folder) =
         nothing 
     end
 
-Base.show(io::IO, pt::PT) = # contract: should give valid julia expression creating an equivalent object
+Base.show(io::IO, pt::PT) = # contract: should give valid julia expression creating an equivalent object when possible
     if pt.shared.iterators.round == 0
         print(io, "PT($(pt.inputs))")
     elseif !pt.inputs.checkpoint 

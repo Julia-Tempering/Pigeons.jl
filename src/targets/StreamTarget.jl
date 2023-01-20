@@ -2,9 +2,13 @@ abstract type StreamTarget end
 
 initialization(target::StreamTarget, rng::SplittableRandom, replica_index::Int64) = @abstract 
 
-
-
-mutable struct ProcessReaperToken 
+#=
+It would have been nicer and simpler to define the 
+finalizer on the ExpectProc, but that does not work, 
+i.e the finalizer does not get called. Instead we use 
+a token to signal garbage collection
+=#
+mutable struct ProcessReaperToken # Note: needs to be mutable (see ?finalizer) 
     proc::Base.Process 
     function ProcessReaperToken(proc::Base.Process)
         result = new(proc)
@@ -14,33 +18,38 @@ mutable struct ProcessReaperToken
 end
 
 function _kill(token::ProcessReaperToken) 
+    # ccall from kill(process), we use the low level call at the 
+    # recommendation of ?finalizer
     ccall(:uv_process_kill, Int32, (Ptr{Cvoid}, Int32), token.proc.handle, 15)
 end
 
 struct StreamState 
     worker_process::ExpectProc
     replica_index::Int
-    token::ProcessReaperToken
+    token::ProcessReaperToken 
+    function StreamState(cmd, replica_index)
+        worker_process = 
+            ExpectProc(
+                cmd,
+                Inf # no timeout
+            )
+        token = ProcessReaperToken(worker_process.proc)
+        return new(worker_process, replica_index, token)
+    end
 end
 
 struct BlangTarget <: StreamTarget
     command::Cmd
 end
 
-function initialization(target::BlangTarget, rng::SplittableRandom, replica_index::Int64)
-    worker_process = ExpectProc(
+initialization(target::BlangTarget, rng::SplittableRandom, replica_index::Int64) = 
+    StreamState(
         `$(target.command) 
             --experimentConfigs.resultsHTMLPage false
             --experimentConfigs.saveStandardStreams false
             --engine blang.engines.internals.factories.Pigeons 
             --engine.random $(java_seed(rng))`,
-        Inf # no timeout
-    )
-    # that does not work 
-    token = ProcessReaperToken(worker_process.proc)
-    return StreamState(worker_process, replica_index, token)
-end
-
+        replica_index)
 
 # Internals
 
@@ -104,7 +113,10 @@ function invoke_worker(
     will typically be >0.1ms. 
     =#
     println(state.worker_process, request)
-    expect!(state.worker_process, "response(")
+    prefix = expect!(state.worker_process, "response(")
+    if state.replica_index == 1 && length(prefix) > 3
+        print(prefix)
+    end
     response_str = expect!(state.worker_process, ")")
     return return_type == Nothing ? nothing : parse(return_type, response_str)
 end
