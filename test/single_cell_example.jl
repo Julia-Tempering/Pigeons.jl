@@ -2,6 +2,7 @@ using Pigeons
 
 if !isdir("nowellpack") && !islink(blang_repo)
     # Download and compile the Blang model used in https://www.biorxiv.org/content/10.1101/2020.05.06.058180
+    println("cloning and building nowellpack")
     run(`git clone git@github.com:UBC-Stat-ML/nowellpack.git`)
     cd("nowellpack") do 
         run(`setup-cli`)
