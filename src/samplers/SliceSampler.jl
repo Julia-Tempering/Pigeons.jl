@@ -72,30 +72,41 @@ Double the current slice.
 """
 function slice_double(h::SliceSampler, state, z, pointer, log_potential, rng)
     old_position = pointer[] # store old position (trick to avoid memory allocation)
-    U = rand(rng)
-    L = old_position - h.w*U # new left endpoint
-    R = L + h.w
+    L, R = initialize_slice_endpoints(h.w, pointer, rng, typeof(pointer[])) # dispatch on either float or int
     K = h.p
     
     pointer[] = L
-    neg_potent_L = log_potential(state) # store the negative log potential
+    potent_L = log_potential(state) # store the log potential
     pointer[] = R
-    neg_potent_R = log_potential(state)
+    potent_R = log_potential(state)
 
-    while (K > 0) && ((z < neg_potent_L) || (z < neg_potent_R))
+    while (K > 0) && ((z < potent_L) || (z < potent_R))
         V = rand(rng)        
         if V <= 0.5
             L = L - (R - L)
             pointer[] = L
-            neg_potent_L = log_potential(state) # store the new neg log potential
+            potent_L = log_potential(state) # store the new log potential
         else
             R = R + (R - L)
             pointer[] = R
-            neg_potent_R = log_potential(state)
+            potent_R = log_potential(state)
         end
         K = K - 1
     end
     pointer[] = old_position # return the state back to where it was before
+    return(; L, R)
+end
+
+function initialize_slice_endpoints(width, pointer, rng, ::AbstractFloat)
+    L = pointer[] - width * rang(rng)
+    R = L + width
+    return(; L, R)
+end
+
+function initialize_slice_endpoints(width, pointer, rng, ::Integer)
+    width = Integer(ceil(width))
+    L = pointer[] - rand(rng, 0:width)
+    R = L + width 
     return(; L, R)
 end
 
@@ -111,7 +122,7 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
 
     while true
         U = rand(rng)
-        new_position = Lbar + U * (Rbar - Lbar)
+        new_position = Lbar + U * (Rbar - Lbar) # TODO: differs for int and float
         pointer[] = new_position 
         consider = (z < log_potential(state))
         pointer[] = old_position
@@ -119,7 +130,7 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
             return new_position
         end
         if new_position < pointer[]
-            Lbar = new_position
+            Lbar = new_position # TODO: why does Alex have "+1" here for the IntSliceSampler??
         else
             Rbar = new_position
         end
