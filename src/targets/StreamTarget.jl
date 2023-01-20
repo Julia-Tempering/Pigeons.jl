@@ -3,11 +3,26 @@ abstract type StreamTarget end
 initialization(target::StreamTarget, rng::SplittableRandom, _::Int64) = 
     @abstract 
 
+
+mutable struct StreamState{P, R} # mutable so that it can be finalized (see ?finalized)
+    process::P
+    replica_index::R
+    function StreamState(process::P, replica_index::R) where {P, R}
+        result = new{P, R}(process, replica_index)
+        finalizer(result) do state
+            kill(state.process)
+        end 
+        return result
+    end
+end
+
 struct BlangTarget <: StreamTarget
     command::Cmd
 end
 
-function initialization(target::BlangTarget, rng::SplittableRandom, _::Int64)
+
+
+initialization(target::BlangTarget, rng::SplittableRandom, replica_index::Int64) =
     result = ExpectProc(
         `$(target.command) 
             --experimentConfigs.resultsHTMLPage false
@@ -21,15 +36,14 @@ function initialization(target::BlangTarget, rng::SplittableRandom, _::Int64)
     # finalizer(result) do procedure
     #     kill(procedure)
     # end
-    return result
-end
+
 
 
 # Internals
 
 struct StreamPath end 
 
-@concrete struct SteamPotential 
+@concrete struct StreamPotential 
     beta
 end
 
@@ -43,21 +57,22 @@ function step!(explorer::StreamTarget, replica, shared)
     call_sampler!(log_potential, replica.state)
 end
 
-sample_iid!(log_potential::SteamPotential, replica) = 
+sample_iid!(log_potential::StreamPotential, replica) = 
     call_sampler!(log_potential, replica.state)
 
 create_path(target::StreamTarget, ::Inputs) = StreamPath()
 
-interpolate(path::StreamPath, beta) = SteamPotential(beta)
+interpolate(path::StreamPath, beta) = StreamPotential(beta)
 
-(log_potential::SteamPotential)(worker::ExpectProc) = 
+(log_potential::StreamPotential)(worker::ExpectProc) = 
     invoke_worker(
-        worker, 
-        "log_potential($(log_potential.beta))", 
-        Float64
-    )
+            worker, 
+            "log_potential($(log_potential.beta))", 
+            Float64
+        )
 
-call_sampler!(log_potential::SteamPotential, worker::ExpectProc) = 
+
+call_sampler!(log_potential::StreamPotential, worker::ExpectProc) = 
     invoke_worker(
         worker, 
         "call_sampler!($(log_potential.beta))"
@@ -70,7 +85,21 @@ function java_seed(rng::SplittableRandom)
     return result[1:(length(result) - 1)]
 end
 
-function invoke_worker(worker::ExpectProc, request::AbstractString, return_type::Type = Nothing)
+function invoke_worker(
+        worker::ExpectProc, 
+        request::AbstractString, 
+        return_type::Type = Nothing)
+    #=
+    While this could be significanly optimized (e.g., using protobuf), 
+    in many practical cases where one wants to use MPI, this is 
+    unlikely to be the bottleneck. 
+
+    For example, calling the log_potential evaluation on a basic blang 
+    model takes in the order 0.1ms. This is only done twice per 
+    communication step, since exploration is delegated to the worker. 
+    In scenarios where it is attractive to use MPI, one exploration step 
+    will typically be >0.1ms. 
+    =#
     println(worker, request)
     expect!(worker, "response(")
     response_str = expect!(worker, ")")
