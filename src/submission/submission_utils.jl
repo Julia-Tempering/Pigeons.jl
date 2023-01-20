@@ -10,3 +10,8 @@ function queue_status()
     run(`qstat -u $(ENV["USER"])`)
     return nothing
 end
+
+function stdout(result)
+    exec_folder = result.exec_folder 
+
+end

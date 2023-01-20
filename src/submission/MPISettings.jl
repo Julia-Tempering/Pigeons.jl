@@ -55,6 +55,7 @@ See [`MPISettings`](@ref).
 """
 function setup_mpi(settings::MPISettings)
     folder = mpi_settings_folder()
+
     # create invisible file in home
     mkpath(folder)
     serialize("$folder/settings.jls", settings)
@@ -63,9 +64,10 @@ function setup_mpi(settings::MPISettings)
     write("$folder/modules.sh", modules_string(settings))
 
     # call bash to set things up
+    julia = join(Base.julia_cmd().exec, " ")
     sh( """
         source $folder/modules.sh
-        $(Base.julia_cmd()) --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
+        $julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
         """)
 
     touch("$folder/complete") # signals success
