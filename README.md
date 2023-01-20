@@ -16,3 +16,9 @@ Please [view our documentation](https://julia-tempering.github.io/Pigeons.jl/dev
 with a variational reference will be available in the very near future.
 
 
+## Timeline
+
+The following features should be implemented according to the timeline given below:
+- Sampling on discrete state spaces: January 2023
+- Parallel tempering with a variational reference: February 2023
+- "Parallel parallel" tempering (multiple copies of parallel tempering): February 2023
