@@ -14,7 +14,7 @@ $FIELDS
     with Julia modules). 
     Run `module avail` in the HPC login node to see 
     what is available on your HPC. 
-    For example: `["git", "gcc", "openmpi"]`
+    For example: `["git", "gcc", "intel-mkl", "openmpi"]`
     """
     environment_modules::Vector{String} = []
 end
