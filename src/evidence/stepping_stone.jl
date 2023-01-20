@@ -1,3 +1,5 @@
+stepping_stone_pair(pt::PT) = stepping_stone_pair(pt.reduced_recorders.log_sum_ratios)
+
 function stepping_stone_pair(log_sum_ratios::GroupBy)
     estimator1 = 0.0
     estimator2 = 0.0
