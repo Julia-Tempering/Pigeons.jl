@@ -48,8 +48,8 @@ function run_one_round!(pt)
     explorer = pt.shared.explorer
     multithreaded = multithreaded_flag()
     while next_scan!(pt)
-        communicate!(pt)
         explore!(pt, explorer, multithreaded)
+        communicate!(pt)
     end
     return reduce_recorders!(pt.replicas)
 end
