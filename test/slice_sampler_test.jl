@@ -45,5 +45,3 @@ function test_slice_sampler()
     test_slice_sampler_vector()
     test_slice_sampler_Turing()
 end
-
-test_slice_sampler_Turing()
