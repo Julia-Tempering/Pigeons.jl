@@ -52,7 +52,7 @@ end
 function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
     transform_back = false
     if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
-        DynamicPPL.link!(state, DynamicPPL.SampleFromPrior()) # transform to unconstrained space
+        DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
         transform_back = true # transform it back after log_potential evaluation
     end
     sampling_task()
