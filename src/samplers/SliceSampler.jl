@@ -99,13 +99,13 @@ function slice_double(h::SliceSampler, state, z, pointer, log_potential, rng)
     return(; L, R)
 end
 
-function initialize_slice_endpoints(width, pointer, rng, ::AbstractFloat)
-    L = pointer[] - width * rang(rng)
+function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: AbstractFloat
+    L = pointer[] - width * rand(rng)
     R = L + width
     return(; L, R)
 end
 
-function initialize_slice_endpoints(width, pointer, rng, ::Integer)
+function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: Integer
     width = Integer(ceil(width))
     L = pointer[] - rand(rng, 0:width)
     R = L + width 
@@ -139,8 +139,8 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
     return new_position
 end
 
-draw_new_position(L, R, rng, ::AbstractFloat) = L + rand(rng) * (R-L)
-draw_new_position(L, R, rng, ::Integer) = rand(rng, L:R)
+draw_new_position(L, R, rng, ::Type{T}) where T <: AbstractFloat = L + rand(rng) * (R-L)
+draw_new_position(L, R, rng, ::Type{T}) where T <: Integer = rand(rng, L:R)
 
 
 """
