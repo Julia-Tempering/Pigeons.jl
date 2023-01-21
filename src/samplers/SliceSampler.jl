@@ -3,10 +3,11 @@ Slice sampler based on
 [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
 """
 @kwdef @concrete struct SliceSampler
-    w = 1.0 # initial slice size
-    p = 10 # slices are no larger than 2^p * w
+    w = 10.0 # initial slice size
+    p = 20 # slices are no larger than 2^p * w
     dim_fraction = 1.0 # proportion of variables to update
 end
+
 
 """
 $SIGNATURES
@@ -22,6 +23,7 @@ function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
     slice_sample!(explorer, replica.state, log_potential, replica.rng)
 end
+
 
 """
 $SIGNATURES
@@ -121,22 +123,24 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
     Rbar = R
 
     while true
-        U = rand(rng)
-        new_position = Lbar + U * (Rbar - Lbar) # TODO: differs for int and float
+        new_position = draw_new_position(Lbar, Rbar, rng, typeof(pointer[]))
         pointer[] = new_position 
-        consider = (z < log_potential(state))
+        consider = z < log_potential(state)
         pointer[] = old_position
-        if (consider) && (slice_accept(h, state, new_position, z, L, R, pointer, log_potential))
+        if consider && slice_accept(h, state, new_position, z, L, R, pointer, log_potential)
             return new_position
         end
         if new_position < pointer[]
-            Lbar = new_position # TODO: why does Alex have "+1" here for the IntSliceSampler??
+            Lbar = new_position # TODO: why does Alex have "+1" here for the IntSliceSampler?
         else
             Rbar = new_position
         end
     end
     return new_position
 end
+
+draw_new_position(L, R, rng, ::AbstractFloat) = L + rand(rng) * (R-L)
+draw_new_position(L, R, rng, ::Integer) = rand(rng, L:R)
 
 
 """
