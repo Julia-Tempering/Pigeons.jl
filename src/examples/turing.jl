@@ -19,7 +19,8 @@ coinflip_unidentifiable(y::AbstractVector{<:Real}) = coinflip_unidentifiable(; N
 
 @model function coinflip_modified(; N::Int)
     p ~ Uniform(0.3, 0.7)
-    δ ~ Bernoulli(0.5)
+    # δ ~ Bernoulli(0.5)
+    δ ~ DiscreteUniform(0, 2)
     y ~ filldist(Bernoulli(p + 0.1*δ), N)
     return y
 end;
