@@ -62,11 +62,25 @@ function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log
 end
 
 function slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
-    z = g_x0 - rand(rng, Exponential(1.0)) # log(vertical draw)
-    L, R = slice_double(h, state, z, pointer, log_potential, rng)
-    pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, rng)
+    if pointer[] isa Bool
+        Bernoulli_sample_coord!(state, pointer, log_potential, rng) # don't slice sample for {0,1} variables
+    else
+        z = g_x0 - rand(rng, Exponential(1.0)) # log(vertical draw)
+        L, R = slice_double(h, state, z, pointer, log_potential, rng)
+        pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, rng)
+    end
 end
 
+function Bernoulli_sample_coord!(state, pointer, log_potential, rng)
+    pointer[] = Bool(0)
+    log_potent_0 = log_potential(state)
+    pointer[] = Bool(1)
+    log_potent_1 = log_potential(state)
+    log_ratio = log_potent_0 - log_potent_1
+    if rand(rng) < log_ratio/(1+log_ratio)
+        pointer[] = Bool(0)
+    end # otherwise already set to 1
+end
 
 """
 $SIGNATURES
@@ -106,7 +120,7 @@ function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: A
 end
 
 function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: Integer
-    width = Integer(ceil(width))
+    width = convert(T, ceil(width))
     L = pointer[] - rand(rng, 0:width)
     R = L + width 
     return(; L, R)
