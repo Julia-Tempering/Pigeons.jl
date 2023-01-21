@@ -88,3 +88,8 @@ only_one_process(task, pt) =
     if load(pt.replicas).my_process_index == 1
         task() 
     end
+
+only_one_process_println(pt, arguments) = 
+    only_one_process(pt) do 
+        println(arguments)
+    end
