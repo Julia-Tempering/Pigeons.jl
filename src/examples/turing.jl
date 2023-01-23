@@ -47,3 +47,7 @@ function flip_model_modified()
     data = rand(Bernoulli(p_true), N);
     return coinflip_modified(data)
 end
+
+@model function turing_normal()
+    x ~ Normal(0, 1)
+end
