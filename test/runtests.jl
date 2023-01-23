@@ -6,6 +6,8 @@ using SplittableRandoms
 import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
                 find_process, split_slice
 
+include("slice_sampler_test.jl")
+
 
 function test_load_balance(n_processes, n_tasks)
     for p in 1:n_processes
@@ -65,4 +67,8 @@ end
 
 @testset "Serialize" begin
     mpi_test(1, "serialization_test.jl")
+end
+
+@testset "SliceSampler" begin
+    test_slice_sampler()
 end
