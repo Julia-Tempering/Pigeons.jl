@@ -352,7 +352,7 @@ end
 Once we have defined our Turing model, it is straightforward to sample from the posterior distribution of `p1` and `p2` as follows:
 ```@example Turing_Pigeons
 using Pigeons
-model = flip_model_unidentifiable()
+model = Pigeons.flip_model_unidentifiable()
 pt = pigeons(target = TuringLogPotential(model)) 
 ```
 

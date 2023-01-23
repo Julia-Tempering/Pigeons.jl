@@ -57,7 +57,7 @@ export pigeons, Inputs, PT,
     Result, 
     ChildProcess, MPI,
     toy_mvn_target,
-    index_process, swap_acceptance_pr, log_sum_ratio 
+    index_process, swap_acceptance_pr, log_sum_ratio,
     load,
     setup_mpi,
     TuringLogPotential
