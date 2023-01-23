@@ -3,10 +3,11 @@ Slice sampler based on
 [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
 """
 @kwdef @concrete struct SliceSampler
-    w = 1.0 # initial slice size
-    p = 10 # slices are no larger than 2^p * w
+    w = 10.0 # initial slice size
+    p = 20 # slices are no larger than 2^p * w
     dim_fraction = 1.0 # proportion of variables to update
 end
+
 
 """
 $SIGNATURES
@@ -22,6 +23,7 @@ function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
     slice_sample!(explorer, replica.state, log_potential, replica.rng)
 end
+
 
 """
 $SIGNATURES
@@ -50,7 +52,7 @@ end
 function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
     transform_back = false
     if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
-        DynamicPPL.link!(state, DynamicPPL.SampleFromPrior()) # transform to unconstrained space
+        DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
         transform_back = true # transform it back after log_potential evaluation
     end
     sampling_task()
@@ -60,11 +62,25 @@ function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log
 end
 
 function slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
-    z = g_x0 - rand(rng, Exponential(1.0)) # log(vertical draw)
-    L, R = slice_double(h, state, z, pointer, log_potential, rng)
-    pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, rng)
+    if pointer[] isa Bool
+        Bernoulli_sample_coord!(state, pointer, log_potential, rng) # don't slice sample for {0,1} variables
+    else
+        z = g_x0 - rand(rng, Exponential(1.0)) # log(vertical draw)
+        L, R = slice_double(h, state, z, pointer, log_potential, rng)
+        pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, rng)
+    end
 end
 
+function Bernoulli_sample_coord!(state, pointer, log_potential, rng)
+    pointer[] = Bool(0)
+    log_potent_0 = log_potential(state)
+    pointer[] = Bool(1)
+    log_potent_1 = log_potential(state)
+    log_ratio = log_potent_0 - log_potent_1
+    if rand(rng) < log_ratio/(1+log_ratio)
+        pointer[] = Bool(0)
+    end # otherwise already set to 1
+end
 
 """
 $SIGNATURES
@@ -72,30 +88,41 @@ Double the current slice.
 """
 function slice_double(h::SliceSampler, state, z, pointer, log_potential, rng)
     old_position = pointer[] # store old position (trick to avoid memory allocation)
-    U = rand(rng)
-    L = old_position - h.w*U # new left endpoint
-    R = L + h.w
+    L, R = initialize_slice_endpoints(h.w, pointer, rng, typeof(pointer[])) # dispatch on either float or int
     K = h.p
     
     pointer[] = L
-    neg_potent_L = log_potential(state) # store the negative log potential
+    potent_L = log_potential(state) # store the log potential
     pointer[] = R
-    neg_potent_R = log_potential(state)
+    potent_R = log_potential(state)
 
-    while (K > 0) && ((z < neg_potent_L) || (z < neg_potent_R))
+    while (K > 0) && ((z < potent_L) || (z < potent_R))
         V = rand(rng)        
         if V <= 0.5
             L = L - (R - L)
             pointer[] = L
-            neg_potent_L = log_potential(state) # store the new neg log potential
+            potent_L = log_potential(state) # store the new log potential
         else
             R = R + (R - L)
             pointer[] = R
-            neg_potent_R = log_potential(state)
+            potent_R = log_potential(state)
         end
         K = K - 1
     end
     pointer[] = old_position # return the state back to where it was before
+    return(; L, R)
+end
+
+function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: AbstractFloat
+    L = pointer[] - width * rand(rng)
+    R = L + width
+    return(; L, R)
+end
+
+function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: Integer
+    width = convert(T, ceil(width))
+    L = pointer[] - rand(rng, 0:width)
+    R = L + width 
     return(; L, R)
 end
 
@@ -110,22 +137,24 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
     Rbar = R
 
     while true
-        U = rand(rng)
-        new_position = Lbar + U * (Rbar - Lbar)
+        new_position = draw_new_position(Lbar, Rbar, rng, typeof(pointer[]))
         pointer[] = new_position 
-        consider = (z < log_potential(state))
+        consider = z < log_potential(state)
         pointer[] = old_position
-        if (consider) && (slice_accept(h, state, new_position, z, L, R, pointer, log_potential))
+        if consider && slice_accept(h, state, new_position, z, L, R, pointer, log_potential)
             return new_position
         end
         if new_position < pointer[]
-            Lbar = new_position
+            Lbar = new_position # TODO: why does Alex have "+1" here for the IntSliceSampler?
         else
             Rbar = new_position
         end
     end
     return new_position
 end
+
+draw_new_position(L, R, rng, ::Type{T}) where T <: AbstractFloat = L + rand(rng) * (R-L)
+draw_new_position(L, R, rng, ::Type{T}) where T <: Integer = rand(rng, L:R)
 
 
 """
