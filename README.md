@@ -22,3 +22,7 @@ The following features should be implemented according to the timeline given bel
 - Sampling on discrete state spaces: January 2023 :heavy_check_mark:
 - Parallel tempering with a variational reference: February 2023
 - "Parallel parallel" tempering (multiple copies of parallel tempering): February 2023
+
+## Funding and acknowledgments 
+
+The development and testing of Pigeons.jl is supported by the Natural Sciences and Engineering Research Council of Canada Discovery Grant and Vanier programs, and by the University of British Columbia Advanced Research Computing. The authors would like to thank Roman Baranowski, Jacob Boschee and Alyza Rosario for their help with MPI.
