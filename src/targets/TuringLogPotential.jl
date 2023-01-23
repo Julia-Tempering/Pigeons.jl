@@ -7,12 +7,16 @@ turing_model(log_potential::TuringLogPotential) = log_potential.model
 turing_model(log_potential::InterpolatedLogPotential) = log_potential.path.target.model
 
 (log_potential::TuringLogPotential)(vi) = 
-    if log_potential.only_prior
-        DynamicPPL.logprior(log_potential.model, vi)
-    else  
-        # Bug fix: avoiding now to break into prior and likelihood 
-        #          calls, as it would add the log Jacobian twice.
-        DynamicPPL.logjoint(log_potential.model, vi)
+    try
+        if log_potential.only_prior
+            DynamicPPL.logprior(log_potential.model, vi)
+        else  
+            # Bug fix: avoiding now to break into prior and likelihood 
+            #          calls, as it would add the log Jacobian twice.
+            DynamicPPL.logjoint(log_potential.model, vi)
+        end
+    catch e
+        isa(e, DomainError) ? -Inf : error("Unknown error in evaluation of the Turing log_potential.")
     end
 
 """
