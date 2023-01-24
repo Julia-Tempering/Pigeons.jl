@@ -2,6 +2,7 @@ using Pigeons
 using Distributions
 using Random
 using Turing
+using SplittableRandoms
 
 import Pigeons: SliceSampler, slice_sample!
 
@@ -12,7 +13,7 @@ Run from runtests.jl
 """
 
 function test_slice_sampler_vector()
-    rng = MersenneTwister(1)
+    rng = SplittableRandom(1)
     log_potential = (x) -> logpdf(Bernoulli(0.5), x[1]) + logpdf(Normal(0.0, 1.0), x[2])
     h = SliceSampler()
     state = Any[0, 0.0]
@@ -27,7 +28,7 @@ function test_slice_sampler_vector()
 end
 
 function test_slice_sampler_Turing()
-    rng = MersenneTwister(1)
+    rng = SplittableRandom(1)
     model = flip_model_modified()
     log_potential = TuringLogPotential(model)
     h = SliceSampler()
