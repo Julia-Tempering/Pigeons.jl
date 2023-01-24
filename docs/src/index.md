@@ -148,9 +148,14 @@ more details.
 
 ## Loading and resuming a checkpoint
 
-By default, PT will automatically write a "checkpoint" periodically 
+Pigeons can write a "checkpoint" periodically 
 to ensure that not more than half of the work is lost in 
-the event of e.g. a server failure. 
+the event of e.g. a server failure. This is enabled as follows:
+
+```@example example
+pt = pigeons(target = toy_mvn_target(100), checkpoint = true)
+```
+
 See [`write_checkpoint()`](@ref) for details of how this 
 is accomplished in a way compatible to both the single-machine 
 and MPI contexts. 
@@ -167,28 +172,7 @@ string to the checkpoint folder, for example to re-load the latest checkpoint
 from the latest run:
 
 ```@example example
-pt = pigeons(target = toy_mvn_target(100))
 pt_from_checkpoint = PT("results/latest")
-```
-
-Another use case is you may want to run more iterations 
-of an analysis done in the past. For example, to do two 
-extra *rounds* on the above PT algorithm run 
-(a round is an iteration in the 
-outer loop of our adaptive PT algorithm, see [Parallel Tempering (PT)](pt.html) for 
-more details):
-
-```@example example
-pt_from_checkpoint.inputs.n_rounds += 2
-pigeons(pt_from_checkpoint)
-```
-
-You can also disable checkpoints when you create the 
-[`Inputs`](@ref) struct or when passing the input 
-options directly into [`pigeons()`](@ref)
-
-```@example example
-pigeons(target = toy_mvn_target(100), checkpoint = false);
 ```
 
 
@@ -200,11 +184,11 @@ precisely the same output no matter how many threads/machines are used.
 We describe how this is done under the hood in the page [Distributed PT](distributed.html). 
 
 In practice, how is this useful? Let us say you developed a new target and you would like
-to make sure that it works correctly in a multi-threaded environment. To do so, you can 
-just add a flag to indicate to "check" one of the PT rounds as follows:
+to make sure that it works correctly in a multi-threaded environment. To do so, add a flag to indicate to "check" one of the PT rounds as follows, and 
+enable checkpointing
 
 ```@example example
-pigeons(target = toy_mvn_target(100), checked_round = 3)
+pigeons(target = toy_mvn_target(100), checked_round = 3, checkpoint = true)
 ```
 
 The above line does the following: the PT algorithm will pause at the end of round 3, spawn 
@@ -254,6 +238,7 @@ To run MPI locally on one machine, using 4 MPI processes and 1 thread per proces
 pigeons(
     target = toy_mvn_target(100), 
     checked_round = 3, 
+    checkpoint = true, 
     on = ChildProcess(
             n_local_mpi_processes = 4,
             n_threads = 1))
@@ -288,7 +273,6 @@ Follow these instructions to run MPI over several machines:
 ```
 pigeons(
     target = toy_mvn_target(100), 
-    checked_round = 3, 
     n_chains = 1000,
     on = MPI(
         n_mpi_processes = 1000,

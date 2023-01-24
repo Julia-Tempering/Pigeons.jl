@@ -22,7 +22,7 @@ $FIELDS
     Whether a checkpoint should be written to disk 
     at the end of each round. 
     """
-    checkpoint::Bool = true
+    checkpoint::Bool = false
 
     """
     An Vector with elements of type 
