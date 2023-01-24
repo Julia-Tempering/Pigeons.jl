@@ -122,6 +122,11 @@ Base.:(==)(a::Shared, b::Shared) = recursive_equal(a, b)
 Base.:(==)(a::BlangTarget, b::BlangTarget) = recursive_equal(a, b)
 Base.:(==)(a::NonReversiblePT, b::NonReversiblePT) = recursive_equal(a, b)
 Base.:(==)(a::InterpolatingPath, b::InterpolatingPath) = recursive_equal(a, b)
+Base.:(==)(a::DynamicPPL.Model, b::DynamicPPL.Model) = recursive_equal(a, b)
+Base.:(==)(a::DynamicPPL.ConditionContext, b::DynamicPPL.ConditionContext) = recursive_equal(a, b)
+Base.:(==)(a::TuringLogPotential, b::TuringLogPotential) = recursive_equal(a, b)
+Base.:(==)(a::InterpolatedLogPotential, b::InterpolatedLogPotential) = recursive_equal(a, b)
+
 
 function recursive_equal(a::T, b::T) where {T}
     for f in fieldnames(T)

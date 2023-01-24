@@ -21,6 +21,29 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "Parallelism Invariance" begin
+    # Turing:
+    pigeons(
+        target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
+        n_rounds = 4,
+        checked_round = 3, 
+        checkpoint = true, 
+        on = ChildProcess(
+                n_local_mpi_processes = 4,
+                n_threads = 2))
+    # Blang:
+    Pigeons.setup_blang("blangDemos")
+    pigeons(
+        target = Pigeons.blang_ising(), 
+        n_rounds = 4,
+        checked_round = 3, 
+        checkpoint = true, 
+        on = ChildProcess(
+                n_local_mpi_processes = 4,
+                n_threads = 2))
+    # NB: toy MVN already tested in the doc 
+end
+
 @testset "Entanglement" begin
     mpi_test(1, "entanglement_test.jl")
     mpi_test(2, "entanglement_test.jl")
