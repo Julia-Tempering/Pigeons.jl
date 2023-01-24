@@ -71,15 +71,15 @@ end
 $SIGNATURES
 
 Perform a reduction across all the replicas' individual recorders, 
-using [`merge()`](@ref) on each individual [`recorder`](@ref)
+using `Base.merge()` on each individual [`recorder`](@ref)
 held.
 Returns a [`recorders`](@ref) with all the information merged. 
 
-Will reset the replicas' recorders at the same time using [`empty!()`](@ref).
+Will reset the replicas' recorders at the same time using `Base.empty!()`.
 
 Since this uses [`all_reduce_deterministically`](@ref), the output is 
 identical, no matter how many MPI processes are used, even when 
-the reduction involves only approximately associative [`merge()`](@ref)
+the reduction involves only approximately associative `Base.merge()`
 operations (e.g. most floating point ones).
 """
 reduce_recorders!(replicas::EntangledReplicas) = _reduce_recorders!(replicas)
