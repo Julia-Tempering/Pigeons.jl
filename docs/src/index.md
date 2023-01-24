@@ -208,7 +208,7 @@ runtime, so for convenience we provide the following way to run the job in a
 child process with a set number of Julia threads:
 
 ```@example example
-pt_result = pigeons(target = toy_mvn_target(100), checked_round = 3, on = ChildProcess(n_threads = 4))
+pt_result = pigeons(target = toy_mvn_target(100), checked_round = 3, checkpoint = true, on = ChildProcess(n_threads = 4))
 ```
 
 Notice that this time, instead of returning a [`PT`](@ref) struct, this time we obtain 
