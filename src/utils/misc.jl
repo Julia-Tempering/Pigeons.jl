@@ -15,6 +15,15 @@ function sqr_norm(x)
     return sum 
 end
 
+function cmd_exists(cmd)
+    try 
+        read(Cmd(`$cmd`, ignorestatus = true), String)
+        return true
+    catch 
+        return false
+    end
+end
+
 """
     winsorized_mean(x; α)
 
