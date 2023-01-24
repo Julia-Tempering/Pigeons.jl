@@ -5,16 +5,19 @@ A [`StreamTarget`](@ref) delegating exploration to
 ```@example Blang_Pigeons
 using Pigeons
 
-Pigeons.setup_blang("blangDemos") # pre-compile the blang models
+Pigeons.setup_blang("blangDemos", "UBC-Stat-ML") # pre-compile the blang models in the github repo UBC-Stat-ML/blangDemos
 pigeons(target = Pigeons.blang_ising());
 ```
 
-Limitation: this should be called on a pre-compiled blang model, 
-i.e. via `java package.MyBlangModel ...`, rather than via 
-`blang ...` since the latter could cause several MPI processes to 
-simultaneously attempt to compile in the same directory. 
+Type `Pigeons.blang` followed by tab to find other examples. 
 """
 struct BlangTarget <: StreamTarget
+    #=
+    Limitation: this should be called on a pre-compiled blang model, 
+    i.e. via a command of the form `java package.MyBlangModel ...`, rather than  
+    `blang ...` since the latter could cause several MPI processes to 
+    simultaneously attempt to compile in the same directory. 
+    =#
     command::Cmd
 end
 
@@ -42,9 +45,15 @@ initialization(target::BlangTarget, rng::SplittableRandom, replica_index::Int64)
 $SIGNATURES 
 
 Model for phylogenetic inference from single-cell copy-number alteration from 
-[https://www.biorxiv.org/content/10.1101/2020.05.06.058180](Salehi et al., 2020). 
+[Salehi et al., 2020](https://www.biorxiv.org/content/10.1101/2020.05.06.058180). 
 
-Use `run(Pigeons.blang_sitka(\`--help\`).command)` for more information.
+For more information:
+```@example 
+using Pigeons
+
+Pigeons.setup_blang("blangDemos") 
+run(Pigeons.blang_sitka(`--help`).command);
+```
 """
 blang_sitka(model_options) = 
     BlangTarget(`$(blang_executable("nowellpack", "corrupt.NoisyBinaryModel")) $model_options`)
@@ -53,7 +62,7 @@ blang_sitka(model_options) =
 $SIGNATURES 
 
 Default options for the 535 dataset in 
-[https://www.biorxiv.org/content/10.1101/2020.05.06.058180](Salehi et al., 2020).   
+[Salehi et al., 2020](https://www.biorxiv.org/content/10.1101/2020.05.06.058180).   
 """
 blang_sitka() = blang_sitka(`
         --model.binaryMatrix $(blang_repo_path("nowellpack"))/examples/535/filtered.csv 
@@ -71,7 +80,13 @@ $SIGNATURES
 
 Two-dimensional Ising model.
 
-Use `run(Pigeons.blang_ising(\`--help\`).command)` for more information.
+For more information:
+```@example 
+using Pigeons
+
+Pigeons.setup_blang("blangDemos") 
+run(Pigeons.blang_ising(`--help`).command);
+```
 """
 blang_ising(model_options) = 
     BlangTarget(
