@@ -234,24 +234,3 @@ function sh(script::AbstractString)
     println(result)
     return result
 end
-
-#=
-It would have been nicer and simpler to define the 
-finalizer on the ExpectProc, but that does not work, 
-i.e the finalizer does not get called. Instead we use 
-a token to signal garbage collection
-=#
-mutable struct ProcessReaperToken # Note: needs to be mutable (see ?finalizer) 
-    proc::Base.Process 
-    function ProcessReaperToken(proc::Base.Process)
-        result = new(proc)
-        finalizer(_kill, result)
-        return result
-    end
-end
-
-function _kill(token::ProcessReaperToken) 
-    # ccall from kill(process), we use the low level call at the 
-    # recommendation of ?finalizer
-    ccall(:uv_process_kill, Int32, (Ptr{Cvoid}, Int32), token.proc.handle, 15)
-end

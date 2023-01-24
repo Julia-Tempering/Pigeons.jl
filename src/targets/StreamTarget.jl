@@ -40,7 +40,6 @@ States used in the replicas when a [`StreamTarget`](@ref) is used.
 struct StreamState 
     worker_process::ExpectProc
     replica_index::Int
-    token::ProcessReaperToken 
     """ 
     $SIGNATURES 
 
@@ -55,8 +54,7 @@ struct StreamState
                 cmd,
                 Inf # no timeout
             )
-        token = ProcessReaperToken(worker_process.proc)
-        return new(worker_process, replica_index, token)
+        return new(worker_process, replica_index)
     end
 end
 
