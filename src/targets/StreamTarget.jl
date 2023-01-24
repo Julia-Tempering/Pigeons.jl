@@ -23,6 +23,17 @@ The worker process should be able to reply to commands of the following forms
 """
 abstract type StreamTarget end
 
+"""
+$SIGNATURES
+
+Return [`StreamState`](@ref) by following these steps:
+
+1. create a `Cmd` that uses the provided `rng` to set the random seed properly, as well 
+    as target-specific configurations provided by `target`.
+2. Create [`StreamState`](@ref) from the `Cmd` created in step 1 and return it.
+"""
+initialization(target::StreamTarget, rng::SplittableRandom, replica_index::Int64) = @abstract 
+
 """ 
 States used in the replicas when a [`StreamTarget`](@ref) is used. 
 """
@@ -49,40 +60,7 @@ struct StreamState
     end
 end
 
-"""
-$SIGNATURES
-
-Return [`StreamState`](@ref) by following these steps:
-
-1. create a `Cmd` that uses the provided `rng` to set the random seed properly, as well 
-    as target-specific configurations provided by `target`.
-2. Create [`StreamState`](@ref) from the `Cmd` created in step 1 and return it.
-"""
-initialization(target::StreamTarget, rng::SplittableRandom, replica_index::Int64) = @abstract 
-
-
 # Internals
-
-#=
-It would have been nicer and simpler to define the 
-finalizer on the ExpectProc, but that does not work, 
-i.e the finalizer does not get called. Instead we use 
-a token to signal garbage collection
-=#
-mutable struct ProcessReaperToken # Note: needs to be mutable (see ?finalizer) 
-    proc::Base.Process 
-    function ProcessReaperToken(proc::Base.Process)
-        result = new(proc)
-        finalizer(_kill, result)
-        return result
-    end
-end
-
-function _kill(token::ProcessReaperToken) 
-    # ccall from kill(process), we use the low level call at the 
-    # recommendation of ?finalizer
-    ccall(:uv_process_kill, Int32, (Ptr{Cvoid}, Int32), token.proc.handle, 15)
-end
 
 struct StreamPath end 
 
