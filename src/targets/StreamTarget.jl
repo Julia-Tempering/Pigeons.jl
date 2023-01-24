@@ -62,6 +62,10 @@ end
 
 struct StreamPath end 
 
+#= 
+Only store beta, since the worker process
+will take care of path construction
+=#
 @concrete struct StreamPotential 
     beta
 end
@@ -71,11 +75,19 @@ create_explorer(target::StreamTarget, ::Inputs) = target
 adapt_explorer(explorer::StreamTarget, _, _) = explorer 
 explorer_recorder_builders(::StreamTarget) = [] 
 
+#= 
+Delegate exploration to the worker process.
+=#
 function step!(explorer::StreamTarget, replica, shared)
     log_potential = find_log_potential(replica, shared)
     call_sampler!(log_potential, replica.state)
 end
 
+#= 
+Delegate iid sampling to the worker process.
+Same call as explorer, rely on the worker to 
+detect that the annealing parameter is zero.
+=#
 sample_iid!(log_potential::StreamPotential, replica) = 
     call_sampler!(log_potential, replica.state)
 
@@ -103,6 +115,9 @@ function java_seed(rng::SplittableRandom)
     return result[1:(length(result) - 1)]
 end
 
+#=
+Simple stdin/stdout text-based protocol. 
+=#
 function invoke_worker(
         state::StreamState, 
         request::AbstractString, 
@@ -111,6 +126,7 @@ function invoke_worker(
     println(state.worker_process, request)
     prefix = expect!(state.worker_process, "response(")
     if state.replica_index == 1 && length(prefix) > 3
+        # display output for replica 1 to show e.g. info messages
         print(prefix)
     end
     response_str = expect!(state.worker_process, ")")

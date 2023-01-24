@@ -60,8 +60,7 @@ export pigeons, Inputs, PT,
     index_process, swap_acceptance_pr, log_sum_ratio,
     load,
     setup_mpi,
-    TuringLogPotential, 
-    BlangTarget, blang_command
+    TuringLogPotential
 
 end # End module
 
