@@ -51,7 +51,7 @@ For more information:
 ```@example 
 using Pigeons
 
-Pigeons.setup_blang("blangDemos") 
+Pigeons.setup_blang("nowellpack") 
 run(Pigeons.blang_sitka(`--help`).command);
 ```
 """
@@ -61,7 +61,9 @@ blang_sitka(model_options) =
 """
 $SIGNATURES 
 
-Default options for the 535 dataset in 
+Default options for infering a posterior distribution on 
+phylogenetic trees for  
+the 535 triple negative breast cancer dataset in 
 [Salehi et al., 2020](https://www.biorxiv.org/content/10.1101/2020.05.06.058180).   
 """
 blang_sitka() = blang_sitka(`
@@ -86,6 +88,9 @@ using Pigeons
 
 Pigeons.setup_blang("blangDemos") 
 run(Pigeons.blang_ising(`--help`).command);
+
+E.g., use arguments `model.N` to set the size 
+of the grid. 
 ```
 """
 blang_ising(model_options) = 

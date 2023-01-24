@@ -5,7 +5,7 @@ using [standard streams](https://en.wikipedia.org/wiki/Standard_streams).
 These worker processes can be implemented in an arbitrary programming language. 
 
 [`StreamTarget`](@ref) implements [`log_potential`](@ref) and [`explorer`](@ref) 
-by invoking the worker process via standard stream communication.
+by invoking worker processes via standard stream communication.
 The standard stream is less efficient than alternatives such as 
 protobuff, but it has the advantage of being supported by nearly all 
 programming languages in existence. 

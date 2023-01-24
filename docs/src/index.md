@@ -69,7 +69,7 @@ Pigeons shines in the following scenarios:
 2. Install `Pigeons` using
 
 ```
-using Pkg; Pkg.add(url = "https://github.com/Julia-Tempering/Pigeons.jl")
+using Pkg; Pkg.add("Pigeons")
 ```
 
 ## Running PT
@@ -356,3 +356,27 @@ model = Pigeons.flip_model_unidentifiable()
 pt = pigeons(target = TuringLogPotential(model)) 
 ```
 
+## Targeting a non-Julian model
+
+Suppose you have some code implementing vanilla MCMC, written 
+in an arbitrary "foreign" language such as C++, Python, R, Java, etc. 
+You would like to turn this vanilla MCMC code into a Parallel Tempering 
+algorithm able to harness large numbers of cores, including 
+distributing this algorithm over MPI. 
+However, you do not wish to learn anything about 
+MPI/multi-threading/Parallel Tempering. 
+
+Surprisingly, it is very simple to bridge such code with Pigeons. 
+The only requirement on the "foreign" language is that it supports 
+reading the standard in and writing to the standard out, hence 
+virtually any languages can be interfaced in this fashion. 
+Based on this minimalist "standard stream bridge" with worker 
+processes running foreign code (one such process per replica; not 
+necessarily running on the same machine), Pigeons will 
+coordinate the execution of an adaptive non-reversible parallel 
+tempering algorithm. 
+
+To see how to accomplish this, see [`StreamTarget`](@ref).
+A concrete example is also shown in [`BlangTarget`](@ref), which 
+uses this infrastructure to run arbitrary 
+code in the [Blang modelling language](https://www.stat.ubc.ca/~bouchard/blang/) over MPI.
