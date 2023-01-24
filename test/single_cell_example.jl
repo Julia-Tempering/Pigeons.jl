@@ -22,4 +22,4 @@ blang_model =
             --model.samplerOptions.useMiniMoves true`
     );
 
-
+pigeons(target = blang_model)
