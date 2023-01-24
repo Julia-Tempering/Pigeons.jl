@@ -356,6 +356,3 @@ model = Pigeons.flip_model_unidentifiable()
 pt = pigeons(target = TuringLogPotential(model)) 
 ```
 
-```@example test_fail
-fail()
-```
