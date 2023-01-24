@@ -8,10 +8,16 @@ Limitation: this should be called on a pre-compiled blang model,
 i.e. via `java package.MyBlangModel ...`, rather than via 
 `blang ...` since the latter could cause several MPI processes to 
 simultaneously attempt to compile in the same directory. 
+Here is a workaround if your workflow is based on the `blang ...`
+invocation. First, run a short run locally using e.g. 
+`blang --engine.nScans 10 ...`. This will compile the blang code 
+in the hidden folder `.blang-compilation/build/blang/`
 """
 struct BlangTarget <: StreamTarget
     command::Cmd
 end
+
+# TODO: move nowellpack here; add blangdemo
 
 initialization(target::BlangTarget, rng::SplittableRandom, replica_index::Int64) = 
     StreamState(
