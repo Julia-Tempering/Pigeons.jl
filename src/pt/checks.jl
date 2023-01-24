@@ -5,6 +5,9 @@ function preflight_checks(pt)
     if pt.inputs.checked_round < 0 || pt.inputs.checked_round > pt.inputs.n_rounds 
         throw(ArgumentError("set checked_round between 0 and n_rounds inclusively"))
     end
+    if typeof(pt.inputs.target) <: StreamTarget && pt.inputs.checkpoint 
+        @warn "Checkpoints for StreamTarget do not allow resuming jobs; partial checkpoints (for Shared structs) are still useful for checking Parallelism Invariance"
+    end
 end
 
 """
@@ -20,7 +23,7 @@ function run_checks(pt)
     end
 
     only_one_process(pt) do
-        #check_serialization(pt) # immutables are immutable, etc
+        #check_serialization(pt) # TODO: check immutables do not change, etc
         check_against_serial(pt)
     end
 end
@@ -63,6 +66,7 @@ function compare_serialized(file1, file2)
         error(
             """
             detected non-reproducibility, to investigate: use
+            using Serialization
             first  = deserialize("$file1");
             second = deserialize("$file2");
             """
@@ -97,6 +101,17 @@ function Base.:(==)(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
     return true
 end
 
+#= 
+Since the state reside in different processes, there are not generic way to 
+check equality. 
+But we still want to perform checks on the rest of the PT state 
+(chain, Shared, rngs, etc), so we return true for now.
+
+TODO: in the future, add an optional get_hash() in the Stream protocol 
+to improve this.
+=#
+Base.:(==)(a::StreamState, b::StreamState) = true
+
 # mutable (incl imm with mut fields) structs do not have a nice ===, overload those:
 Base.:(==)(a::SplittableRandom, b::SplittableRandom) = recursive_equal(a, b)
 Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b)    
@@ -104,6 +119,7 @@ Base.:(==)(a::Iterators, b::Iterators) = recursive_equal(a, b)
 Base.:(==)(a::Schedule, b::Schedule) = recursive_equal(a, b)
 Base.:(==)(a::DEO, b::DEO) = recursive_equal(a, b)
 Base.:(==)(a::Shared, b::Shared) = recursive_equal(a, b)
+Base.:(==)(a::BlangTarget, b::BlangTarget) = recursive_equal(a, b)
 Base.:(==)(a::NonReversiblePT, b::NonReversiblePT) = recursive_equal(a, b)
 Base.:(==)(a::InterpolatingPath, b::InterpolatingPath) = recursive_equal(a, b)
 
