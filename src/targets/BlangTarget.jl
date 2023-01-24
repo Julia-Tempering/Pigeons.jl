@@ -123,7 +123,7 @@ function setup_blang(
     end
 
     cd(auto_install_folder) do
-        run(`git clone git@github.com:$organization/$repo_name.git`)
+        run(`git clone https://github.com/$organization/$repo_name.git`)
     end 
 
     cd(repo_path) do

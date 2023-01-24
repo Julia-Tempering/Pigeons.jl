@@ -59,7 +59,7 @@ export pigeons, Inputs, PT,
     toy_mvn_target,
     index_process, swap_acceptance_pr, log_sum_ratio,
     load,
-    setup_mpi,
+    setup_mpi, queue_status, kill_job, watch,
     TuringLogPotential
 
 end # End module

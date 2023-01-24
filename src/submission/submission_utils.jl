@@ -1,24 +1,44 @@
+""" 
+$SIGNATURES 
 
-function queue_status(result)
+Display the queue status for one MPI job. 
+""" 
+function queue_status(result::Result)
     exec_folder = result.exec_folder 
     submission_code = readline("$exec_folder/info/submission_output.txt")
     run(`qstat -x $submission_code`)
     return nothing
 end
 
+""" 
+$SIGNATURES 
+
+Display the queue status for all the user's jobs. 
+"""
 function queue_status()
     run(`qstat -u $(ENV["USER"])`)
     return nothing
 end
 
-function kill_job(result) 
+""" 
+$SIGNATURES
+
+Instruct the scheduler to cancel or kill a job. 
+""" 
+function kill_job(result::Result) 
     exec_folder = result.exec_folder 
     submission_code = readline("$exec_folder/info/submission_output.txt")
     run(`qdel $submission_code`)
     return nothing
 end
 
-function watch(result; machine = 1, last_n_lines = 20)
+""" 
+$SIGNATURES 
+
+Print the queue status as well as the `last_n_lines` standard out 
+and error streams (merged) for the given `machine`. 
+"""
+function watch(result::Result; machine = 1, last_n_lines = 20)
     queue_status(result)
     output_folder = "$(result.exec_folder)/1"
     output_file_name = find_rank_file(output_folder, machine)
@@ -26,6 +46,8 @@ function watch(result; machine = 1, last_n_lines = 20)
     run(`tail -n $last_n_lines $stdout_file`) # -f is nicer but crashes
     return nothing 
 end
+
+# internal
 
 function find_rank_file(folder, machine::Int)
     @assert machine > 0 "using 0-index convention"

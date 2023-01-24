@@ -262,7 +262,7 @@ much more gracefully when the number of threads exceeds the number of cores).
     for details.
 
 MPI is typically available via a cluster scheduling system. At the time of 
-writing, only `PBS PRO` is supported, but more will be added. 
+writing, only [PBS PRO](https://github.com/openpbs/openpbs) is supported, but more will be added. 
 
 Follow these instructions to run MPI over several machines:
 
@@ -271,15 +271,32 @@ Follow these instructions to run MPI over several machines:
 3. Still in the Julia REPL running in the login node, use:
 
 ```
-pigeons(
-    target = toy_mvn_target(100), 
+mpi_run = pigeons(
+    target = toy_mvn_target(1000000), 
     n_chains = 1000,
     on = MPI(
         n_mpi_processes = 1000,
         n_threads = 1))
 ```
 
-This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread.
+This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread, targeting a one million 
+dimensional target distribution. On the UBC Sockeye cluster, the last 
+round of this run (i.e. the last 512 iterations) takes 10 seconds to complete, versus more than 
+2 hours if ran serially, i.e. a >700x speed-up. 
+This is reasonably close to the theoretical 1000x speedup, i.e. we see that the communication costs are negligible. 
+
+You can "watch" the progress of your job (queue status and 
+standard output once it is available), using:
+
+```
+watch(mpi_run)
+```
+
+and cancel/kill a job using 
+
+```
+kill_job(mpi_run)
+```
 
 
 ## Specification of general models
