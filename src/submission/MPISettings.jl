@@ -19,7 +19,7 @@ $FIELDS
     environment_modules::Vector{String} = []
 end
 
-mpi_settings_folder() = expanduser("~/.pigeons")
+mpi_settings_folder() = "$(homedir())/.pigeons"
 
 is_mpi_setup() = isfile("$(mpi_settings_folder())/complete")
 
