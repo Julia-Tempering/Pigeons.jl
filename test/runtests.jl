@@ -21,6 +21,15 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "Stepping stone" begin
+    pt = pigeons(target = toy_mvn_target(100));
+    p = stepping_stone_pair(pt)
+    truth = Pigeons.analytic_lognormalization(toy_mvn_target(100))
+    @test abs(p[1] - truth) < 1
+    @test abs(p[2] - truth) < 1
+end
+
+
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
     # Turing:
