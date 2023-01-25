@@ -126,9 +126,10 @@ function setup_blang(
         run(`git clone https://github.com/$organization/$repo_name.git`)
     end 
 
-    gradle_exec = Sys.iswindows() ? "gradlew.bat" : "gradlew"
     cd(repo_path) do
-        run(`$repo_path/$gradle_exec installDist`)
+        gradle_exec = Sys.iswindows() ? "gradlew.bat" : "gradlew"
+        resolved_gradle_exec = abspath("$repo_path/$gradle_exec")
+        run(`$resolved_gradle_exec installDist`)
     end 
     return nothing
 end
