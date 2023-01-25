@@ -22,6 +22,7 @@ function test_load_balance(n_processes, n_tasks)
 end
 
 @testset "Parallelism Invariance" begin
+    n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows?
     # Turing:
     pigeons(
         target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
@@ -29,7 +30,7 @@ end
         checked_round = 3, 
         checkpoint = true, 
         on = ChildProcess(
-                n_local_mpi_processes = 4,
+                n_local_mpi_processes = n_mpis,
                 n_threads = 2))
     # Blang:
     Pigeons.setup_blang("blangDemos")
@@ -39,7 +40,7 @@ end
         checked_round = 3, 
         checkpoint = true, 
         on = ChildProcess(
-                n_local_mpi_processes = 4,
+                n_local_mpi_processes = n_mpis,
                 n_threads = 2))
     # NB: toy MVN already tested in the doc 
 end
