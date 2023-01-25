@@ -94,7 +94,7 @@ nothing # hide
 ```
 
 This runs PT on a 100-dimensional MVN toy example with 10 chains 
-for 1000 iterations, and 
+for ``2047 = 2^11 - 1`` iterations, and 
 returns a [`PT`](@ref) struct containing the results of 
 this run (more later on how to access information inside 
 a PT struct). Each line in the output provides information on a *round*, where the number of iteration 
@@ -308,7 +308,7 @@ mpi_run = pigeons(
 
 This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread, targeting a one million 
 dimensional target distribution. On the UBC Sockeye cluster, the last 
-round of this run (i.e. the last 512 iterations) takes 10 seconds to complete, versus more than 
+round of this run (i.e. the last 1024 iterations) takes 10 seconds to complete, versus more than 
 2 hours if ran serially, i.e. a >700x speed-up. 
 This is reasonably close to the theoretical 1000x speedup, i.e. we see that the communication costs are negligible. 
 
