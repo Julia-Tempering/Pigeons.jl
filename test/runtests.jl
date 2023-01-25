@@ -37,6 +37,7 @@ end
         target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
         n_rounds = 4,
         checked_round = 3, 
+        multithreaded = true, 
         checkpoint = true, 
         on = ChildProcess(
                 n_local_mpi_processes = n_mpis,
@@ -48,6 +49,7 @@ end
             target = Pigeons.blang_ising(), 
             n_rounds = 4,
             checked_round = 3, 
+            multithreaded = true, 
             checkpoint = true, 
             on = ChildProcess(
                     n_local_mpi_processes = n_mpis,

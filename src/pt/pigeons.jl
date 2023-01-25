@@ -46,7 +46,7 @@ contained in the provided [`PT`](@ref).
 """
 function run_one_round!(pt)
     explorer = pt.shared.explorer
-    multithreaded = multithreaded_flag()
+    multithreaded = multithreaded_flag(pt.inputs.multithreaded)
     @time while next_scan!(pt)
         explore!(pt, explorer, multithreaded)
         communicate!(pt)
@@ -96,7 +96,7 @@ explore!(pt, explorer, multithreaded::Val{false}) =
         explore!(pt, replica, explorer)
     end
 
-multithreaded_flag() = Val(Threads.nthreads() > 1)
+multithreaded_flag(flag) = Val(flag && Threads.nthreads() > 1)
 
 function explore!(pt, replica, explorer)
     log_potential = find_log_potential(replica, pt.shared)
