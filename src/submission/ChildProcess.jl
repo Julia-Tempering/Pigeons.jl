@@ -119,14 +119,15 @@ function launch_code(
 
     # Might be better with quote? 
     # But prototype quote-based syntax seemed more messy..
+    # NB: using raw".." below to work around windows problem: backslash in paths interpreted as escape, so using suggestion in https://discourse.julialang.org/t/windows-file-path-string-slash-direction-best-way-to-copy-paste/29204
     """
     $usings
     $silence_code
 
-    Pigeons.deserialize_immutables("$path_to_serialized_immutables")
-    pt_arguments = deserialize("$path_to_serialized_pt_arguments")
+    Pigeons.deserialize_immutables(raw"$path_to_serialized_immutables")
+    pt_arguments = deserialize(raw"$path_to_serialized_pt_arguments")
 
-    pt = PT(pt_arguments, exec_folder = "$exec_folder")
+    pt = PT(pt_arguments, exec_folder = raw"$exec_folder")
     pigeons(pt)
     """
 end
