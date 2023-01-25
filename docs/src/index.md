@@ -21,10 +21,6 @@ of challenging probability distributions.
 Pigeons can be used in a multi-threaded context, and/or 
 distributed over hundreds or thousands of MPI-communicating machines.
 
-Distributed Parallel Tempering has some remarkable properties. 
-First, even if your model is very large, the network communication between 
-processes in the inner loop of the algorithm 
-
 
 ## Scope
 
@@ -73,7 +69,7 @@ Pigeons shines in the following scenarios:
 2. Install `Pigeons` using
 
 ```
-using Pkg; Pkg.add(url = "https://github.com/Julia-Tempering/Pigeons.jl")
+using Pkg; Pkg.add("Pigeons")
 ```
 
 ## Running PT
@@ -152,9 +148,14 @@ more details.
 
 ## Loading and resuming a checkpoint
 
-By default, PT will automatically write a "checkpoint" periodically 
+Pigeons can write a "checkpoint" periodically 
 to ensure that not more than half of the work is lost in 
-the event of e.g. a server failure. 
+the event of e.g. a server failure. This is enabled as follows:
+
+```@example example
+pt = pigeons(target = toy_mvn_target(100), checkpoint = true)
+```
+
 See [`write_checkpoint()`](@ref) for details of how this 
 is accomplished in a way compatible to both the single-machine 
 and MPI contexts. 
@@ -171,28 +172,7 @@ string to the checkpoint folder, for example to re-load the latest checkpoint
 from the latest run:
 
 ```@example example
-pt = pigeons(target = toy_mvn_target(100))
 pt_from_checkpoint = PT("results/latest")
-```
-
-Another use case is you may want to run more iterations 
-of an analysis done in the past. For example, to do two 
-extra *rounds* on the above PT algorithm run 
-(a round is an iteration in the 
-outer loop of our adaptive PT algorithm, see [Parallel Tempering (PT)](pt.html) for 
-more details):
-
-```@example example
-pt_from_checkpoint.inputs.n_rounds += 2
-pigeons(pt_from_checkpoint)
-```
-
-You can also disable checkpoints when you create the 
-[`Inputs`](@ref) struct or when passing the input 
-options directly into [`pigeons()`](@ref)
-
-```@example example
-pigeons(target = toy_mvn_target(100), checkpoint = false);
 ```
 
 
@@ -204,11 +184,11 @@ precisely the same output no matter how many threads/machines are used.
 We describe how this is done under the hood in the page [Distributed PT](distributed.html). 
 
 In practice, how is this useful? Let us say you developed a new target and you would like
-to make sure that it works correctly in a multi-threaded environment. To do so, you can 
-just add a flag to indicate to "check" one of the PT rounds as follows:
+to make sure that it works correctly in a multi-threaded environment. To do so, add a flag to indicate to "check" one of the PT rounds as follows, and 
+enable checkpointing
 
 ```@example example
-pigeons(target = toy_mvn_target(100), checked_round = 3)
+pigeons(target = toy_mvn_target(100), checked_round = 3, checkpoint = true)
 ```
 
 The above line does the following: the PT algorithm will pause at the end of round 3, spawn 
@@ -228,7 +208,7 @@ runtime, so for convenience we provide the following way to run the job in a
 child process with a set number of Julia threads:
 
 ```@example example
-pt_result = pigeons(target = toy_mvn_target(100), checked_round = 3, on = ChildProcess(n_threads = 4))
+pt_result = pigeons(target = toy_mvn_target(100), checked_round = 3, checkpoint = true, on = ChildProcess(n_threads = 4))
 ```
 
 Notice that this time, instead of returning a [`PT`](@ref) struct, this time we obtain 
@@ -258,6 +238,7 @@ To run MPI locally on one machine, using 4 MPI processes and 1 thread per proces
 pigeons(
     target = toy_mvn_target(100), 
     checked_round = 3, 
+    checkpoint = true, 
     on = ChildProcess(
             n_local_mpi_processes = 4,
             n_threads = 1))
@@ -281,7 +262,7 @@ much more gracefully when the number of threads exceeds the number of cores).
     for details.
 
 MPI is typically available via a cluster scheduling system. At the time of 
-writing, only `PBS PRO` is supported, but more will be added. 
+writing, only [PBS PRO](https://github.com/openpbs/openpbs) is supported, but more will be added. 
 
 Follow these instructions to run MPI over several machines:
 
@@ -290,16 +271,32 @@ Follow these instructions to run MPI over several machines:
 3. Still in the Julia REPL running in the login node, use:
 
 ```
-pigeons(
-    target = toy_mvn_target(100), 
-    checked_round = 3, 
+mpi_run = pigeons(
+    target = toy_mvn_target(1000000), 
     n_chains = 1000,
     on = MPI(
         n_mpi_processes = 1000,
         n_threads = 1))
 ```
 
-This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread.
+This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread, targeting a one million 
+dimensional target distribution. On the UBC Sockeye cluster, the last 
+round of this run (i.e. the last 512 iterations) takes 10 seconds to complete, versus more than 
+2 hours if ran serially, i.e. a >700x speed-up. 
+This is reasonably close to the theoretical 1000x speedup, i.e. we see that the communication costs are negligible. 
+
+You can "watch" the progress of your job (queue status and 
+standard output once it is available), using:
+
+```
+watch(mpi_run)
+```
+
+and cancel/kill a job using 
+
+```
+kill_job(mpi_run)
+```
 
 
 ## Specification of general models
@@ -356,7 +353,31 @@ end
 Once we have defined our Turing model, it is straightforward to sample from the posterior distribution of `p1` and `p2` as follows:
 ```@example Turing_Pigeons
 using Pigeons
-model = flip_model_unidentifiable()
+model = Pigeons.flip_model_unidentifiable()
 pt = pigeons(target = TuringLogPotential(model)) 
 ```
 
+## Targeting a non-Julian model
+
+Suppose you have some code implementing vanilla MCMC, written 
+in an arbitrary "foreign" language such as C++, Python, R, Java, etc. 
+You would like to turn this vanilla MCMC code into a Parallel Tempering 
+algorithm able to harness large numbers of cores, including 
+distributing this algorithm over MPI. 
+However, you do not wish to learn anything about 
+MPI/multi-threading/Parallel Tempering. 
+
+Surprisingly, it is very simple to bridge such code with Pigeons. 
+The only requirement on the "foreign" language is that it supports 
+reading the standard in and writing to the standard out, hence 
+virtually any languages can be interfaced in this fashion. 
+Based on this minimalist "standard stream bridge" with worker 
+processes running foreign code (one such process per replica; not 
+necessarily running on the same machine), Pigeons will 
+coordinate the execution of an adaptive non-reversible parallel 
+tempering algorithm. 
+
+To see how to accomplish this, see [`StreamTarget`](@ref).
+A concrete example is also shown in [`BlangTarget`](@ref), which 
+uses this infrastructure to run arbitrary 
+code in the [Blang modelling language](https://www.stat.ubc.ca/~bouchard/blang/) over MPI.

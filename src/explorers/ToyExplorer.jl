@@ -1,13 +1,15 @@
 """
 Toy [`explorer`](@ref) for toy paths where each [`log_potential`](@ref) supports 
-i.i.d. sampling via `rand(rng, log_potential)`.
+i.i.d. sampling via `rand!(rng, x, log_potential)`.
 """
 struct ToyExplorer end
 
-step!(explorer::ToyExplorer, replica, shared) = 
-    replica.state = rand(
+step!(::ToyExplorer, replica, shared) = 
+    rand!(
         replica.rng, 
-        find_log_potential(replica, shared) )
+        replica.state, 
+        find_log_potential(replica, shared)
+    )
 
 adapt_explorer(explorer::ToyExplorer, _, _) = explorer 
 

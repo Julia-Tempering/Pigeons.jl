@@ -36,7 +36,7 @@ end
 const providers_dict = Dict{String, Set{Expr}}() # we would want Pair{Module,Symbol} but Module seems to have buggy hash/equality behaviour
 function add_provider(key, value)
     if !haskey(providers_dict, key)
-        providers_dict[key] = Set{Expr}()
+        providers_dict[key] = OrderedSet{Expr}()
     end
     push!(providers_dict[key], value)
 end

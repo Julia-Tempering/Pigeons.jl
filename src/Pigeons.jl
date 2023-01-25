@@ -29,6 +29,8 @@ using Graphs
 using DataStructures
 using Preferences
 using MPIPreferences
+using Expect
+using LogExpFunctions
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -37,6 +39,12 @@ import Base.show
 import Base.print 
 import Base.Threads.@threads
 import CRC32c.crc32c
+import OnlineStats._fit!
+import OnlineStats.value
+import OnlineStats._merge!
+import Random.rand! 
+import Base.(==)
+import Pkg.precompile
 
 import DynamicPPL
 using Turing
@@ -49,9 +57,9 @@ export pigeons, Inputs, PT,
     Result, 
     ChildProcess, MPI,
     toy_mvn_target,
-    index_process, swap_acceptance_pr, 
+    index_process, swap_acceptance_pr, log_sum_ratio,
     load,
-    setup_mpi,
+    setup_mpi, queue_status, kill_job, watch,
     TuringLogPotential
 
 end # End module

@@ -58,11 +58,10 @@ initializations.
     """
     initialization(state_initializer, rng::SplittableRandom, replica_index::Int) = @abstract
 end
-# ... initialize all to the same state
+# ... initialize all to exactly the same state (warning: not suitable for in-place changes)
 initialization(state_initializer::Ref, ::SplittableRandom, ::Int) = state_initializer[]
-# ... initialize to a value specific to each chain
+# ... initialize to a value specific to each chain (warning: not suitable for in-place changes)
 initialization(state_initializer::AbstractVector, ::SplittableRandom, replica_index::Int) = state_initializer[replica_index]
-# ... TODO: initialize from prior / other smarter inits
 
 # Closely related but distinct to a state_initializer:
 """

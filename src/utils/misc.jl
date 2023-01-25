@@ -1,3 +1,29 @@
+value_with_default(stats::GroupBy, key, default) =
+    haskey(stats.value, key) ? value(stats[key]) : default
+
+# somehow Julia doesn't have that? (double check)
+inf(object::T) where {T<:Number} = inf(T)
+inf(T::Type{Float16}) = Inf16 
+inf(T::Type{Float32}) = Inf32 
+inf(T::Type{Float64}) = Inf
+
+function sqr_norm(x) 
+    sum = 0.0
+    for i in eachindex(x)
+        sum += x[i]^2
+    end
+    return sum 
+end
+
+function cmd_exists(cmd)
+    try 
+        read(Cmd(`$cmd`, ignorestatus = true), String)
+        return true
+    catch 
+        return false
+    end
+end
+
 """
     winsorized_mean(x; α)
 
@@ -203,6 +229,7 @@ end
 function sh(script::AbstractString)
     path, io = mktemp()
     write(io, script)
+    close(io)
     result = read(`sh $path`, String)
     println(result)
     return result

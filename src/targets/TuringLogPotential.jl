@@ -1,5 +1,5 @@
-struct TuringLogPotential
-    model::DynamicPPL.Model
+@concrete struct TuringLogPotential
+    model
     only_prior::Bool
 end
 

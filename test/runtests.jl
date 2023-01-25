@@ -2,6 +2,7 @@ using Pigeons
 using Test
 using Distributions
 using Random
+using OnlineStats
 using SplittableRandoms
 import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
                 find_process, split_slice
@@ -18,6 +19,29 @@ function test_load_balance(n_processes, n_tasks)
             @assert find_process(lb, g) == p
         end
     end
+end
+
+@testset "Parallelism Invariance" begin
+    # Turing:
+    pigeons(
+        target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
+        n_rounds = 4,
+        checked_round = 3, 
+        checkpoint = true, 
+        on = ChildProcess(
+                n_local_mpi_processes = 4,
+                n_threads = 2))
+    # Blang: # seems like github CI does not allow the test code to clone a repo using git@..? 
+    Pigeons.setup_blang("blangDemos")
+    pigeons(
+        target = Pigeons.blang_ising(), 
+        n_rounds = 4,
+        checked_round = 3, 
+        checkpoint = true, 
+        on = ChildProcess(
+                n_local_mpi_processes = 4,
+                n_threads = 2))
+    # NB: toy MVN already tested in the doc 
 end
 
 @testset "Entanglement" begin
@@ -43,6 +67,27 @@ end
     end
 end
 
+@testset "LogSum" begin
+    m = Pigeons.LogSum()
+    
+    fit!(m, 2.1)
+    fit!(m, 4)
+    v1 = value(m)
+    @assert v1 ≈ log(exp(2.1) + exp(4))
+
+
+    fit!(m, 2.1)
+    fit!(m, 4)
+    m2 = Pigeons.LogSum() 
+    fit!(m2, 50.1)
+    combined = merge(m, m2)
+    @assert value(combined) ≈ log(exp(v1) + exp(50.1))
+
+    fit!(m, 2.1)
+    fit!(m, 4)
+    empty!(m)
+    @assert value(m) == -Pigeons.inf(0.0)
+end
 
 function test_split_slice()
     # test disjoint random streams
