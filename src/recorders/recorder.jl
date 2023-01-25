@@ -30,6 +30,13 @@ Full index process stored in memory.
 """
 @provides recorder index_process() = Dict{Int, Vector{Int}}()
 
+""" 
+Log of the sum of density ratios between neighbour chains, used 
+to compute stepping stone estimators of lognormalization contants.
+"""
+@provides recorder log_sum_ratio() = GroupBy(Tuple{Int, Int}, LogSum())
+
+
 function Base.empty!(x::Mean) 
     x.μ = zero(x.μ)
     x.n = zero(x.n)

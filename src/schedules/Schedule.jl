@@ -12,11 +12,12 @@ struct Schedule
     $SIGNATURES
     """
     function Schedule(grids) 
-        @assert issorted(grids)
-        @assert first(grids) == 0.0
-        @assert last(grids) == 1.0
+        @assert issorted(grids) &&
+                first(grids) == 0.0 && 
+                last(grids) == 1.0 &&
+                length(unique(grids)) == length(grids) "Invalid schedule: $grids"
         # (*) we get passed UnitRange in first iter, and so this 
-        # woudl cause type incompatibility if we didn't convert
+        # would cause type incompatibility if we didn't convert
         new(convert(Vector{Float64}, grids))
     end
 end

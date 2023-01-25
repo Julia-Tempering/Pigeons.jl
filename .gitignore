@@ -15,3 +15,7 @@ empty.jl
 LocalPreferences.toml
 temp.jl
 interfaces.md
+.blang-compilation
+filtered.csv
+nowellpack
+tmp.jl

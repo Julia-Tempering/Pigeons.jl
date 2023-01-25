@@ -10,15 +10,27 @@ struct ScaledPrecisionNormalPath
     """Dimensionality."""
     dim::Int
 end
+
+struct ScaledPrecisionNormalLogPotential
+    precision::Float64
+    dim::Int 
+end
+
+(log_potential::ScaledPrecisionNormalLogPotential)(x) = 
+    -0.5 * log_potential.precision * sqr_norm(x) 
+
 """
 $SIGNATURES
 
 Toy Multivariate Normal (MVN) path of distributions for testing: 
 see section I.4.1 in Syed et al 2021. 
 """
-@provides path ScaledPrecisionNormalPath(dim::Int) = ScaledPrecisionNormalPath(1.0, 10.0, dim) 
-precision(path::ScaledPrecisionNormalPath, beta) = (1.0 - beta) * path.precision0 + beta * path.precision1
-interpolate(path::ScaledPrecisionNormalPath, beta) = MultivariateNormal(zeros(path.dim), Matrix(I, path.dim, path.dim) / precision(path, beta))
+@provides path ScaledPrecisionNormalPath(dim::Int) = 
+    ScaledPrecisionNormalPath(1.0, 10.0, dim) 
+precision(path::ScaledPrecisionNormalPath, beta) = 
+    (1.0 - beta) * path.precision0 + beta * path.precision1
+interpolate(path::ScaledPrecisionNormalPath, beta) = 
+    ScaledPrecisionNormalLogPotential(precision(path, beta), path.dim)
 
 """
 $SIGNATURES
@@ -35,6 +47,13 @@ function analytic_cumulativebarrier(path::ScaledPrecisionNormalPath)
     end
     return cumulativebarrier
 end
+
+analytic_lognormalization(path::ScaledPrecisionNormalPath) = 
+    # log(Z_target) - log(Z_ref)
+    # Z_i propto sigma_i = 1/sqrt(precision_i)
+    # log(Z_i) = -0.5 log(precision_i)
+    # => 0.5 * (log(prec_ref) - log(prec_target))
+    0.5 * path.dim * (log(path.precision0) - log(path.precision1))
 
 """ 
 $SIGNATURES 
