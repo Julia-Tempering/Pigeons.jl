@@ -31,7 +31,7 @@ end
         on = ChildProcess(
                 n_local_mpi_processes = 4,
                 n_threads = 2))
-    # Blang: # seems like github CI does not allow the test code to clone a repo using git@..? 
+    # Blang:
     Pigeons.setup_blang("blangDemos")
     pigeons(
         target = Pigeons.blang_ising(), 

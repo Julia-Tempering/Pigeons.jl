@@ -122,7 +122,7 @@ function setup_blang(
         return nothing
     end
 
-    cd(auto_install_folder) do
+    cd(auto_install_folder) do # NB: github CI does not allow the test code to clone a repo using git@.., so it has to be over https 
         run(`git clone https://github.com/$organization/$repo_name.git`)
     end 
 

@@ -89,7 +89,7 @@ See [`Inputs`](@ref) for more options.
 Then, run PT (locally on one process, but using multi-threading) using the function [`pigeons()`](@ref):
 
 ```@example example
-pt = pigeons(inputs)
+pt = pigeons(inputs);
 ```
 
 This runs PT on a 100-dimensional MVN toy example, and 
@@ -100,7 +100,7 @@ a PT struct).
 Since the above two julia lines are the most common operation in this package, creating inputs and running PT can be done in one line as:
 
 ```@example example
-pt = pigeons(target = toy_mvn_target(100))
+pt = pigeons(target = toy_mvn_target(100));
 ```
 
 where the `args...` passed to `pigeons` are forwarded 
@@ -126,7 +126,7 @@ specify that we wish to collect the full index process:
 p = pigeons(
         target = toy_mvn_target(1), 
         recorder_builders = [index_process], 
-        n_rounds = 5)
+        n_rounds = 5);
 ```
 
 Then we can access the information via:
@@ -135,8 +135,8 @@ Then we can access the information via:
 p.reduced_recorders.index_process
 
 using Plots
-Pigeons.index_process_plot(p.reduced_recorders)
-savefig("index_process_plot.svg") 
+Pigeons.index_process_plot(p.reduced_recorders);
+savefig("index_process_plot.svg"); 
 ```
 
 ![](index_process_plot.svg)
@@ -354,7 +354,7 @@ Once we have defined our Turing model, it is straightforward to sample from the 
 ```@example Turing_Pigeons
 using Pigeons
 model = Pigeons.flip_model_unidentifiable()
-pt = pigeons(target = TuringLogPotential(model)) 
+pt = pigeons(target = TuringLogPotential(model));
 ```
 
 ## Targeting a non-Julian model
