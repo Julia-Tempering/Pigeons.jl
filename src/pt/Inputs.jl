@@ -18,6 +18,9 @@ $FIELDS
     """ The number of chains to use. """
     n_chains::Int = 10
 
+    """ The number of chains to use for the variational reference leg. """
+    n_chains_variational::Int = 0
+    
     """ 
     Whether a checkpoint should be written to disk 
     at the end of each round. 
@@ -37,3 +40,11 @@ $FIELDS
     checked_round::Int = 0
 end
 
+
+function use_variational_reference(inputs::Inputs)
+    if (inputs.n_chains_variational > 0)
+        inputs.n_chains == 0 ? true : error("Two reference distributions have not yet been implemented.")
+    else 
+        return false
+    end
+end
