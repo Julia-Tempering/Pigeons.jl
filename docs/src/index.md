@@ -107,6 +107,23 @@ where the `args...` passed to `pigeons` are forwarded
 to [`Inputs`](@ref).
 
 
+## Estimating the log normalization constant
+
+To estimate the log normalization constant, use [`stepping_stone_pair()`](@ref), 
+for example: 
+
+```@example example
+stepping_stone_pair(pt)
+```
+
+we can see that this is close to the close-form expression available for this 
+toy example:
+
+```@example example
+Pigeons.analytic_lognormalization(toy_mvn_target(100))
+```
+
+
 ## Accessing the output of PT
 
 The [`PT`](@ref) struct returned by [`pigeons`](@ref) 
