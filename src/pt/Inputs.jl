@@ -35,5 +35,11 @@ $FIELDS
     be performed. Set to 0 to skip these checks. 
     """
     checked_round::Int = 0
+
+    """
+    If multithreaded explorers should be allowed. 
+    False by default since it incurs an overhead. 
+    """
+    multithreaded::Bool = false
 end
 
