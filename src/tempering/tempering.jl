@@ -16,7 +16,7 @@ we also assume the presence of the following fields:
     Given a [`tempering`](@ref) and reduced [`recorders`](@ref) 
     return an updated [`tempering`](@ref).
     """
-    adapt_tempering(tempering, reduced_recorders) = @abstract
+    adapt_tempering(tempering, reduced_recorders, iterators, var_reference::VarReference) = @abstract
     
     """
     $SIGNATURES 

@@ -40,13 +40,15 @@ function NonReversiblePT(path, schedule)
     return NonReversiblePT(path, schedule, log_potentials, swap_graphs)
 end
 
-adapt_tempering(tempering::NonReversiblePT, reduced_recorders) =
+function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference)
+    if activate_var_reference(var_reference, iterators)
+        # update tempering path to have new reference
+        update_var_reference!(var_reference, tempering.path)
+    end
     NonReversiblePT(
         tempering.path, 
-        optimal_schedule(
-            reduced_recorders, 
-            tempering.schedule
-        )
+        optimal_schedule(reduced_recorders, tempering.schedule)
     )
+end
 
 tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]
