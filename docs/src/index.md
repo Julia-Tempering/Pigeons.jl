@@ -86,25 +86,48 @@ inputs = Inputs(target = toy_mvn_target(100))
 
 See [`Inputs`](@ref) for more options. 
 
-Then, run PT (locally on one process, but using multi-threading) using the function [`pigeons()`](@ref):
+Then, run PT (locally on one process) using the function [`pigeons()`](@ref):
 
 ```@example example
-pt = pigeons(inputs)
+pt = pigeons(inputs);
+nothing # hide
 ```
 
-This runs PT on a 100-dimensional MVN toy example, and 
+This runs PT on a 100-dimensional MVN toy example with 10 chains 
+for ``2047 = 2^11 - 1`` iterations, and 
 returns a [`PT`](@ref) struct containing the results of 
 this run (more later on how to access information inside 
-a PT struct).
+a PT struct). Each line in the output provides information on a *round*, where the number of iteration 
+per round doubles at each round and adaptation is performed 
+between rounds. 
 
-Since the above two julia lines are the most common operation in this package, creating inputs and running PT can be done in one line as:
+Since the above two julia lines are the most common operations in this package, creating inputs and running PT can be done in one line 
+as follows:
 
 ```@example example
-pt = pigeons(target = toy_mvn_target(100))
+pt = pigeons(target = toy_mvn_target(100));
+nothing # hide
 ```
 
 where the `args...` passed to `pigeons` are forwarded 
 to [`Inputs`](@ref).
+
+
+## Estimating the log normalization constant
+
+To estimate the log normalization constant, use [`stepping_stone_pair()`](@ref), 
+for example: 
+
+```@example example
+stepping_stone_pair(pt)
+```
+
+we can see that this is close to the close-form expression available for this 
+toy example:
+
+```@example example
+Pigeons.analytic_lognormalization(toy_mvn_target(100))
+```
 
 
 ## Accessing the output of PT
@@ -126,7 +149,8 @@ specify that we wish to collect the full index process:
 p = pigeons(
         target = toy_mvn_target(1), 
         recorder_builders = [index_process], 
-        n_rounds = 5)
+        n_rounds = 5);
+nothing # hide
 ```
 
 Then we can access the information via:
@@ -135,8 +159,9 @@ Then we can access the information via:
 p.reduced_recorders.index_process
 
 using Plots
-Pigeons.index_process_plot(p.reduced_recorders)
-savefig("index_process_plot.svg") 
+Pigeons.index_process_plot(p.reduced_recorders);
+savefig("index_process_plot.svg"); 
+nothing # hide
 ```
 
 ![](index_process_plot.svg)
@@ -208,8 +233,10 @@ runtime, so for convenience we provide the following way to run the job in a
 child process with a set number of Julia threads:
 
 ```@example example
-pt_result = pigeons(target = toy_mvn_target(100), checked_round = 3, checkpoint = true, on = ChildProcess(n_threads = 4))
+pt_result = pigeons(target = toy_mvn_target(100), multithreaded = true, checked_round = 3, checkpoint = true, on = ChildProcess(n_threads = 4))
 ```
+
+Notice that we also add the flag `multithreaded = true`. 
 
 Notice that this time, instead of returning a [`PT`](@ref) struct, this time we obtain 
 a [`Result`](@ref), which only holds the path where the checkpoints can be found. 
@@ -281,7 +308,7 @@ mpi_run = pigeons(
 
 This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread, targeting a one million 
 dimensional target distribution. On the UBC Sockeye cluster, the last 
-round of this run (i.e. the last 512 iterations) takes 10 seconds to complete, versus more than 
+round of this run (i.e. the last 1024 iterations) takes 10 seconds to complete, versus more than 
 2 hours if ran serially, i.e. a >700x speed-up. 
 This is reasonably close to the theoretical 1000x speedup, i.e. we see that the communication costs are negligible. 
 
@@ -354,7 +381,8 @@ Once we have defined our Turing model, it is straightforward to sample from the 
 ```@example Turing_Pigeons
 using Pigeons
 model = Pigeons.flip_model_unidentifiable()
-pt = pigeons(target = TuringLogPotential(model)) 
+pt = pigeons(target = TuringLogPotential(model));
+nothing # hide
 ```
 
 ## Targeting a non-Julian model

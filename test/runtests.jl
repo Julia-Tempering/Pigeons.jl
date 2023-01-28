@@ -21,26 +21,40 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "Stepping stone" begin
+    pt = pigeons(target = toy_mvn_target(100));
+    p = stepping_stone_pair(pt)
+    truth = Pigeons.analytic_lognormalization(toy_mvn_target(100))
+    @test abs(p[1] - truth) < 1
+    @test abs(p[2] - truth) < 1
+end
+
+
 @testset "Parallelism Invariance" begin
+    n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
     # Turing:
     pigeons(
         target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
         n_rounds = 4,
         checked_round = 3, 
+        multithreaded = true, 
         checkpoint = true, 
         on = ChildProcess(
-                n_local_mpi_processes = 4,
+                n_local_mpi_processes = n_mpis,
                 n_threads = 2))
-    # Blang: # seems like github CI does not allow the test code to clone a repo using git@..? 
-    Pigeons.setup_blang("blangDemos")
-    pigeons(
-        target = Pigeons.blang_ising(), 
-        n_rounds = 4,
-        checked_round = 3, 
-        checkpoint = true, 
-        on = ChildProcess(
-                n_local_mpi_processes = 4,
-                n_threads = 2))
+    # Blang:
+    if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
+        Pigeons.setup_blang("blangDemos")
+        pigeons(
+            target = Pigeons.blang_ising(), 
+            n_rounds = 4,
+            checked_round = 3, 
+            multithreaded = true, 
+            checkpoint = true, 
+            on = ChildProcess(
+                    n_local_mpi_processes = n_mpis,
+                    n_threads = 2))
+    end
     # NB: toy MVN already tested in the doc 
 end
 

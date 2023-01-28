@@ -122,12 +122,14 @@ function setup_blang(
         return nothing
     end
 
-    cd(auto_install_folder) do
+    cd(auto_install_folder) do # NB: github CI does not allow the test code to clone a repo using git@.., so it has to be over https 
         run(`git clone https://github.com/$organization/$repo_name.git`)
     end 
 
     cd(repo_path) do
-        run(`$repo_path/gradlew installDist`)
+        gradle_exec = Sys.iswindows() ? "gradlew.bat" : "gradlew"
+        resolved_gradle_exec = abspath("$repo_path/$gradle_exec")
+        run(`$resolved_gradle_exec installDist`)
     end 
     return nothing
 end
