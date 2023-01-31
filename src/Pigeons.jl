@@ -45,10 +45,14 @@ import OnlineStats._merge!
 import Random.rand! 
 import Base.(==)
 import Pkg.precompile
-import Requires.@require 
+
+using Comrade  # temporary! to quickly test for now..
+using VLBIImagePriors 
 
 import DynamicPPL
 using Turing
+
+
 
 const use_auto_exec_folder = ""
 
@@ -63,12 +67,6 @@ export pigeons, Inputs, PT,
     setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     TuringLogPotential, 
     stepping_stone_pair
-
-function __init__()
-    @require Comrade = "99d987ce-9a1e-4df8-bc0b-1ea019aa547b" begin
-        @require VLBIImagePriors = "b1ba175b-8447-452c-b961-7db2d6f7a029" println("Got both!")
-    end
-end
 
 end # End module
 
