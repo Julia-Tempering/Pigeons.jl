@@ -29,6 +29,19 @@ end
     @test abs(p[2] - truth) < 1
 end
 
+@testset "Moments" begin
+    pt = pigeons(target = toy_mvn_target(2), recorder_builders = [Pigeons.target_online], n_rounds = 20);
+    for var_name in Pigeons.continuous_variables(pt)
+        m = Pigeons.mean(pt, var_name)
+        for i in eachindex(m)
+            @test abs(m[i] - 0.0) < 0.001
+        end
+        v = Pigeons.variance(pt, var_name) 
+        for i in eachindex(v) 
+            @test abs(v[i] - 0.1) < 0.001 
+        end
+    end
+end
 
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf

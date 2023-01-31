@@ -36,11 +36,23 @@ to compute stepping stone estimators of lognormalization contants.
 """
 @provides recorder log_sum_ratio() = GroupBy(Tuple{Int, Int}, LogSum())
 
+""" 
+Online statistics on the target chain. 
+"""
+@provides recorder target_online() = OnlineStateRecorder() 
+
 
 function Base.empty!(x::Mean) 
     x.μ = zero(x.μ)
     x.n = zero(x.n)
     return x
+end
+
+function Base.empty!(x::Variance)
+    x.σ2 = zero(x.σ2) 
+    x.μ = zero(x.μ)
+    x.n = zero(x.n) 
+    return x 
 end
 
 function Base.empty!(x::GroupBy)
