@@ -94,7 +94,7 @@ nothing # hide
 ```
 
 This runs PT on a 100-dimensional MVN toy example with 10 chains 
-for ``2047 = 2^11 - 1`` iterations, and 
+for ``2047 = 2^{11} - 1`` iterations, and 
 returns a [`PT`](@ref) struct containing the results of 
 this run (more later on how to access information inside 
 a PT struct). Each line in the output provides information on a *round*, where the number of iteration 
