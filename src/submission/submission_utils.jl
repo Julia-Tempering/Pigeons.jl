@@ -20,6 +20,20 @@ function queue_status()
     return nothing
 end
 
+function queue_ncpus_free()
+    n = 0
+    for line in readlines(`pbsnodes -aSj -F dsv`)
+        for item in eachsplit(line, "|")
+            m = match(r"ncpus[(]f[/]t[)][=]([0-9]+)[/].*", item)
+            if m !== nothing
+                suffix = m.captures[1]
+                n += parse(Int, suffix)
+            end
+        end
+    end
+    return n
+end
+
 """ 
 $SIGNATURES
 

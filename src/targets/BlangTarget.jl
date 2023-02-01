@@ -77,6 +77,13 @@ blang_sitka() = blang_sitka(`
         --model.samplerOptions.useMiniMoves true
     `)
 
+blang_unid(model_options = "") = 
+    BlangTarget(
+        `$(blang_executable("blangDemos", "demos.UnidentifiableProduct")) $model_options`
+    )
+
+
+
 """ 
 $SIGNATURES 
 

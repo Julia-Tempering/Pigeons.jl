@@ -111,7 +111,7 @@ call_sampler!(log_potential::StreamPotential, state::StreamState) =
 # hack to convert UInt64 to Long; not in a loop so ok, 
 # but fixme at some point
 function java_seed(rng::SplittableRandom) 
-    result = "$(rand(rng, UInt64))"
+    result = "$(rand(split(rng), UInt64))"
     return result[1:(length(result) - 1)]
 end
 
