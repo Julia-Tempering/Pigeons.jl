@@ -2,7 +2,7 @@
 Online statistics on the states.
 """
 @kwdef struct OnlineStateRecorder
-    stats::Dict{Pair{Symbol, Symbol}, Any} = Dict{Pair{Symbol, Symbol}, Any}()
+    stats::Dict{Pair{Symbol, Type}, Any} = Dict{Pair{Symbol, Type}, Any}()
 end
 
 """
@@ -22,7 +22,7 @@ variance(output, variable_name::Symbol) = get_statistic(output, variable_name, V
 
 get_statistic(pt::PT, variable_name::Symbol, t::Type{T}) where {T} = get_statistic(pt.reduced_recorders.target_online, variable_name, t)
 function get_statistic(recorder::OnlineStateRecorder, variable_name::Symbol, ::Type{T}) where {T}
-    key = Pair(variable_name, Symbol(T))
+    key = Pair(variable_name, T)
     v = value(recorder.stats[key]) 
     return value.(v)
 end  
@@ -64,7 +64,7 @@ $SIGNATURES
 """
 continuous_variables(pt::PT) = continuous_variables(locals(pt.replicas)[1].state) 
 
-const STATS = [Symbol(Mean), Symbol(Variance)]
+const STATS = [Mean, Variance]
 const SINGLETON_VAR = [:singleton_variable]
 continuous_variables(state::Array) = SINGLETON_VAR
 variable(state::Array, name::Symbol) = 
@@ -86,15 +86,16 @@ function record!(recorder::OnlineStateRecorder, state)
     end
 end
 
-function initialize_online_state_recorder!(stats::Dict{Pair{Symbol, Symbol}, Any}, state)
-    initialize_online_state_recorder!(stats, state, Mean) 
-    initialize_online_state_recorder!(stats, state, Variance) 
-end
+initialize_online_state_recorder!(stats, state) = 
+    for stat_type in STATS
+        initialize_online_state_recorder!(stats, state, stat_type)
+    end 
 
-function initialize_online_state_recorder!(stats::Dict{Pair{Symbol, Symbol}, Any}, state, ::Type{T}) where T
+initialize_online_state_recorder!(stats, state, ::Type{T}) where {T} = 
     for name in continuous_variables(state)
         var = variable(state, name) 
         collection = [T() for i in eachindex(var)] 
-        stats[Pair(name, Symbol(T))] = Group(collection) 
+        key = Pair(name, T)
+        stats[key] = Group(collection) 
     end
-end
+
