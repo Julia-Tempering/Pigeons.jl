@@ -60,12 +60,14 @@ end
 
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
+    recorders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
     # Turing:
     pigeons(
         target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
         n_rounds = 4,
         checked_round = 3, 
-        multithreaded = true, 
+        multithreaded = true,
+        recorders,
         checkpoint = true, 
         on = ChildProcess(
                 n_local_mpi_processes = n_mpis,
@@ -77,6 +79,7 @@ end
             target = Pigeons.blang_ising(), 
             n_rounds = 4,
             checked_round = 3, 
+            recorders, 
             multithreaded = true, 
             checkpoint = true, 
             on = ChildProcess(
