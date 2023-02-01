@@ -13,20 +13,13 @@ iteration.
 
     """
     $SIGNATURES
-
-    Given a [`swap_graphs`](@ref) and [`Shared`](@ref), return 
-    a `Set{Int}` of chain(s) indices targetting the distribution of interest. 
     """
-    reference_chains(swap_graphs, shared) = @abstract 
+    is_reference(swap_graphs, chain::Int) = @abstract 
 
     """
     $SIGNATURES
-
-    Given a [`swap_graphs`](@ref) and [`Shared`](@ref), return the set of chain(s) targetting the reference distribution.
-    These are typically tractable in the sense that we can sample 
-    i.i.d. from them. 
     """
-    target_chains(swap_graphs, shared) = @abstract
+    is_target(swap_graphs, chain::Int) = @abstract
 end
 
 

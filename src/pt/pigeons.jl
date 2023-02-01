@@ -100,12 +100,12 @@ multithreaded_flag(flag) = Val(flag && Threads.nthreads() > 1)
 
 function explore!(pt, replica, explorer)
     log_potential = find_log_potential(replica, pt.shared)
-    if is_reference(replica.chain, pt.shared)
+    if is_reference(pt.shared.tempering.swap_graphs, replica.chain)
         sample_iid!(log_potential, replica)
     else
         step!(explorer, replica, pt.shared)
     end
-    if is_target(replica.chain, pt.shared)
+    if is_target(pt.shared.tempering.swap_graphs, replica.chain)
         record_if_requested!(replica.recorders, :target_online, replica.state)
     end 
 end
@@ -126,9 +126,3 @@ function adapt(pt, reduced_recorders)
     updated_replicas = pt.replicas # TODO: adapt too? e.g. assign to closest from previous, leveraging checkpoints?
     return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder, reduced_recorders)
 end
-
-is_reference(chain, shared) = 
-    chain in reference_chains(shared.tempering.swap_graphs, shared)
-
-is_target(chain, shared) = 
-    chain in target_chains(shared.tempering.swap_graphs, shared)

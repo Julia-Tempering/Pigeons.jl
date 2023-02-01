@@ -8,6 +8,9 @@ Canonical example is the standard Odd and Even swap. Extension point for e.g.
 - parallel parallel tempering,
 - variational methods with more than 2 legs,
 - PT algorithms dealing with more than one target simultaneously for the purpose of model selection. 
+
+Should implement the methods below, in addition to [`is_reference()`](@ref) and 
+[`is_target()`](@ref).
 """
 @informal swap_graph begin
     """
@@ -35,5 +38,7 @@ function partner_chain(swap_graph::OddEven, chain::Int)
     else                                        return proposed
     end
 end
+is_reference(::OddEven, chain::Int) = chain == 1
+is_target(deo::OddEven, chain::Int) = chain == deo.n_chains
 
 

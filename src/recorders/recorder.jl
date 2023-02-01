@@ -41,6 +41,11 @@ Online statistics on the target chain.
 """
 @provides recorder target_online() = OnlineStateRecorder() 
 
+""" 
+Restart and round-trip counts. 
+"""
+@provides recorder round_trip() = RoundTripRecorder() 
+
 
 function Base.empty!(x::Mean) 
     x.μ = zero(x.μ)

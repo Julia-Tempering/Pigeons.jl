@@ -1,5 +1,5 @@
 """
-Online statistics on the states.
+See [`target_online()`](@ref).
 """
 @kwdef struct OnlineStateRecorder
     stats::Dict{Pair{Symbol, Type}, Any} = Dict{Pair{Symbol, Type}, Any}()
