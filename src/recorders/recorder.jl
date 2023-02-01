@@ -46,6 +46,29 @@ Restart and round-trip counts.
 """
 @provides recorder round_trip() = RoundTripRecorder() 
 
+""" 
+Auto-correlation before and after an exploration step, grouped by  
+chain.
+"""
+@provides recorder energy_ac1() = GroupBy(Int, CovMatrix(2))
+
+"""
+$SIGNATURES 
+
+Auto-correlations between energy before and after an exploration step, 
+for each chain. Organized as a `Vector` where component i corresponds 
+to chain i.
+"""
+energy_ac1s(pt::PT) = energy_ac1s(pt.reduced_recorders.energy_ac1)
+
+"""
+$SIGNATURES
+"""
+function energy_ac1s(stat)
+    coll = value(stat)
+    indices = 1:length(coll)
+    return [cor(coll[i])[1,2] for i in indices]
+end
 
 function Base.empty!(x::Mean) 
     x.μ = zero(x.μ)
@@ -64,6 +87,13 @@ function Base.empty!(x::GroupBy)
     x.n = zero(x.n)
     empty!(x.value)
     return x
+end
+
+function Base.empty!(o::CovMatrix{T}) where {T} 
+    o.b = zeros(T, p)
+    o.A = zeros(T, p, p)
+    o.value = zeros(T, p, p) 
+    return o
 end
 
 """

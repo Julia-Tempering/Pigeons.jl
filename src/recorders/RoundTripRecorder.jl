@@ -3,7 +3,7 @@ See [`round_trip()`](@ref).
 """
 @kwdef mutable struct RoundTripRecorder 
     n_tempered_restarts::Int = 0
-    n_round_trips = 0
+    n_round_trips::Int = 0
     #=
     Internal; encoding is:
 

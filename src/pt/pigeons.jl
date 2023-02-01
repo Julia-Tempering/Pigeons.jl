@@ -100,15 +100,29 @@ multithreaded_flag(flag) = Val(flag && Threads.nthreads() > 1)
 
 function explore!(pt, replica, explorer)
     log_potential = find_log_potential(replica, pt.shared)
+    before = eval_if_ac_requested(log_potential, replica)
     if is_reference(pt.shared.tempering.swap_graphs, replica.chain)
         sample_iid!(log_potential, replica)
     else
         step!(explorer, replica, pt.shared)
     end
+    process_ac!(log_potential, replica, before)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
         record_if_requested!(replica.recorders, :target_online, replica.state)
     end 
 end
+
+eval_if_ac_requested(log_potential, replica) = 
+    haskey(replica.recorders, :energy_ac1) ?
+        log_potential(replica.state) :
+        0.0 
+
+process_ac!(log_potential, replica, before) =
+    if haskey(replica.recorders, :energy_ac1)
+        after = log_potential(replica.state)
+        record!(replica.recorders[:energy_ac1], (replica.chain, SVector(before, after)))
+    end
+
 
 """
 $SIGNATURES 
