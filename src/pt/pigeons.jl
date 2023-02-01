@@ -105,6 +105,9 @@ function explore!(pt, replica, explorer)
     else
         step!(explorer, replica, pt.shared)
     end
+    if is_target(replica.chain, pt.shared)
+        record_if_requested!(replica.recorders, :target_online, replica.state)
+    end 
 end
 
 """
@@ -126,3 +129,6 @@ end
 
 is_reference(chain, shared) = 
     chain in reference_chains(shared.tempering.swap_graphs, shared)
+
+is_target(chain, shared) = 
+    chain in target_chains(shared.tempering.swap_graphs, shared)
