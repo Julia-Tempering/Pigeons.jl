@@ -112,6 +112,7 @@ to improve this.
 =#
 Base.:(==)(a::StreamState, b::StreamState) = true
 
+# TODO: maybe move this to a sub-module in which == is nicer by default?
 # mutable (incl imm with mut fields) structs do not have a nice ===, overload those:
 Base.:(==)(a::SplittableRandom, b::SplittableRandom) = recursive_equal(a, b)
 Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b)    
@@ -128,6 +129,7 @@ Base.:(==)(a::TuringLogPotential, b::TuringLogPotential) = recursive_equal(a, b)
 Base.:(==)(a::InterpolatedLogPotential, b::InterpolatedLogPotential) = recursive_equal(a, b)
 Base.:(==)(a::RoundTripRecorder, b::RoundTripRecorder) = recursive_equal(a, b)
 Base.:(==)(a::OnlineStateRecorder, b::OnlineStateRecorder) = recursive_equal(a, b)
+Base.:(==)(a::LocalBarrier, b::LocalBarrier) = recursive_equal(a, b)
 
 function recursive_equal(a::T, b::T) where {T}
     for f in fieldnames(T)
