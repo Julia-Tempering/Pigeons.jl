@@ -96,7 +96,7 @@ In cases where the sampled model contains large immutable data, consider using
 [`Immutable()`](@ref) to save disk space (Immutables will be written only by 
 one MPI process at the first round). 
 """
-function write_checkpoint(pt, reduced_recorders)
+function write_checkpoint(pt)
     if !pt.inputs.checkpoint 
         return 
     end
@@ -111,7 +111,7 @@ function write_checkpoint(pt, reduced_recorders)
     
     only_one_process(pt) do
         serialize("$checkpoint_folder/shared.jls", pt.shared)
-        serialize("$checkpoint_folder/reduced_recorders.jls", reduced_recorders)
+        serialize("$checkpoint_folder/reduced_recorders.jls", pt.reduced_recorders)
         # only need to save Inputs & immutables at first round
         if pt.shared.iterators.round == 1 
             serialize("$(pt.exec_folder)/inputs.jls", pt.inputs)

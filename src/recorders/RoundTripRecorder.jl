@@ -18,14 +18,14 @@ See [`round_trip()`](@ref).
 end
 
 """$SIGNATURES"""
-n_tempered_restarts(recorder::RoundTripRecorder) = recorder.n_tempered_restarts 
+n_tempered_restarts(reduced_recorders) = reduced_recorders.round_trip.n_tempered_restarts 
 """$SIGNATURES"""
-n_round_trips(recorder::RoundTripRecorder) = recorder.n_round_trips 
+n_round_trips(reduced_recorders) = reduced_recorders.round_trip.n_round_trips 
 
 """$SIGNATURES"""
-n_tempered_restarts(pt::PT) = n_tempered_restarts(pt.reduced_recorders.round_trip)
+n_tempered_restarts(pt::PT) = n_tempered_restarts(pt.reduced_recorders)
 """$SIGNATURES"""
-n_round_trips(pt::PT) = n_round_trips(pt.reduced_recorders.round_trip)
+n_round_trips(pt::PT) = n_round_trips(pt.reduced_recorders)
 
 function Base.empty!(recorder::RoundTripRecorder)
     recorder.n_tempered_restarts = 0

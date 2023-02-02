@@ -32,6 +32,7 @@ using MPIPreferences
 using Expect
 using LogExpFunctions
 using StaticArrays
+using Printf
 
 import Serialization.serialize
 import Serialization.deserialize

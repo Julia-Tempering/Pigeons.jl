@@ -40,10 +40,12 @@ function next_scan!(pt)
     # TODO: collect timing information on process=1
     iterators = pt.shared.iterators
     iterators.scan += 1
-    if iterators.scan ≤ 2^iterators.round 
+    if iterators.scan ≤ n_scans_in_round(iterators)
         return true
     else # this round is over, prepare to start new round:
         iterators.scan = 0
         return false
     end
 end
+
+n_scans_in_round(iterators::Iterators) = 2^(iterators.round)

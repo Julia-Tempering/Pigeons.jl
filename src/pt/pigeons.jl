@@ -14,19 +14,12 @@ function pigeons(pt::PT)
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders)
-        report(pt, reduced_recorders)
-        write_checkpoint(pt, reduced_recorders) 
+        report(pt)
+        write_checkpoint(pt) 
         run_checks(pt)
     end
     return pt 
 end
-
-"""
-$SIGNATURES 
-
-Report summary information on the progress of [`pigeons()`](@ref).
-"""
-report(pt, reduced_recorders) = nothing # TODO
 
 """
 $SIGNATURES 
@@ -47,10 +40,11 @@ contained in the provided [`PT`](@ref).
 function run_one_round!(pt)
     explorer = pt.shared.explorer
     multithreaded = multithreaded_flag(pt.inputs.multithreaded)
-    @time while next_scan!(pt)
+    timed = @timed while next_scan!(pt)
         explore!(pt, explorer, multithreaded)
         communicate!(pt)
     end
+    record_timed_if_requested!(pt, :round, timed)
     return reduce_recorders!(pt.replicas)
 end
 

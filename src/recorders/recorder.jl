@@ -52,6 +52,34 @@ chain.
 """
 @provides recorder energy_ac1() = GroupBy(Int, CovMatrix(2))
 
+""" 
+Timing informations. 
+"""
+@provides recorder timing_extrema() = GroupBy(Symbol, Extrema())
+
+""" 
+Allocations informations. 
+"""
+@provides recorder allocation_extrema() = GroupBy(Symbol, Extrema())
+
+record_timed_if_requested!(pt::PT, category::Symbol, timed) = 
+    record_timed_if_requested!(locals(pt.replicas)[1].recorders, category, timed)
+
+function record_timed_if_requested!(recorders, category::Symbol, timed)
+    record_if_requested!(recorders, :timing_extrema,     (category, timed.time))
+    record_if_requested!(recorders, :allocation_extrema, (category, timed.bytes))
+end
+
+"""
+Maximum time (over the MPI process) to compute the last Parallel Tempering round. 
+"""
+last_round_max_time(pt)  = maximum(value(pt.reduced_recorders.timing_extrema)[:round])
+
+"""
+Maximum bytes allocated (over the MPI process) to compute the last Parallel Tempering round. 
+"""
+last_round_max_allocation(pt) = maximum(value(pt.reduced_recorders.allocation_extrema)[:round])
+
 """
 $SIGNATURES 
 
@@ -59,12 +87,13 @@ Auto-correlations between energy before and after an exploration step,
 for each chain. Organized as a `Vector` where component i corresponds 
 to chain i.
 """
-energy_ac1s(pt::PT) = energy_ac1s(pt.reduced_recorders.energy_ac1)
+energy_ac1s(pt::PT) = energy_ac1s(pt.reduced_recorders)
 
 """
 $SIGNATURES
 """
-function energy_ac1s(stat)
+function energy_ac1s(reduced_recorders)
+    stat = reduced_recorders.energy_ac1
     coll = value(stat)
     indices = 1:length(coll)
     return [cor(coll[i])[1,2] for i in indices]
