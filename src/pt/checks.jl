@@ -65,10 +65,12 @@ function compare_serialized(file1, file2)
     if first != second
         error(
             """
-            detected non-reproducibility, to investigate: use
-            using Serialization
-            first  = deserialize("$file1");
-            second = deserialize("$file2");
+            detected non-reproducibility, to investigate, type in the REPL:
+            ─────────────────────────────────
+             using Serialization
+             first  = deserialize("$file1");
+             second = deserialize("$file2");
+            ─────────────────────────────────
             """
         )
     end
