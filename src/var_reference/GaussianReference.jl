@@ -11,5 +11,5 @@ activate_var_reference(::GaussianReference, iterators::Iterators) = iterators.ro
 var_reference_recorder_builders(::GaussianReference) = [target_online]
 
 
-update_path!(path, iterators::Iterators, ::GaussianReference) = @abstract # TODO
+update_path!(path, iterators, ::GaussianReference) = @abstract # TODO
 sample_iid!(::GaussianReference) = @abstract # TODO
