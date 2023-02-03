@@ -34,7 +34,7 @@ $FIELDS
     An Vector with elements of type 
     [`recorder_builder`](@ref). 
     """
-    recorder_builders::Vector = Function[]
+    recorder_builders::Vector = default_recorder_builders()
 
     """
     The round index where [`run_checks()`](@ref) will 
@@ -57,3 +57,24 @@ function use_var_reference(inputs::Inputs)
         return false
     end
 end
+"""
+Set of recorders with no measurable impact on performance. 
+"""
+default_recorder_builders() = [
+    log_sum_ratio,
+    timing_extrema, 
+    allocation_extrema
+]
+
+"""
+Set of constant memory recorders.
+"""
+online_recorder_builders() = [
+    log_sum_ratio,
+    timing_extrema, 
+    allocation_extrema,
+    log_sum_ratio,
+    round_trip,
+    energy_ac1, 
+    target_online
+]

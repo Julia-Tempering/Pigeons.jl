@@ -33,6 +33,7 @@ using Expect
 using LogExpFunctions
 using StaticArrays
 using Printf
+using Statistics
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -46,7 +47,11 @@ import OnlineStats.value
 import OnlineStats._merge!
 import Random.rand! 
 import Base.(==)
+import Base.keys
 import Pkg.precompile
+import Statistics.mean 
+import Statistics.var
+
 
 import DynamicPPL
 using Turing

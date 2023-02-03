@@ -13,7 +13,7 @@ stepping_stone_pair(pt::PT) = stepping_stone_pair(pt.reduced_recorders.log_sum_r
 function stepping_stone_pair(log_sum_ratios::GroupBy)
     estimator1 = 0.0
     estimator2 = 0.0
-    for (i, j) in keys(log_sum_ratios.value)
+    for (i, j) in keys(log_sum_ratios)
         log_sum_ratio = log_sum_ratios[(i, j)]
         current = value(log_sum_ratio) - log(log_sum_ratio.n)
         if i < j 
@@ -23,4 +23,9 @@ function stepping_stone_pair(log_sum_ratios::GroupBy)
         end
     end
     return (estimator1, -estimator2) 
+end
+
+function stepping_stone(input)
+    pair = stepping_stone_pair(input) 
+    return (pair[1] + pair[2]) / 2.0
 end
