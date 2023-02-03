@@ -71,6 +71,9 @@ function compare_serialized(file1, file2)
              first  = deserialize("$file1");
              second = deserialize("$file2");
             ─────────────────────────────────
+            If you are using custom stuct, either mutable or containing 
+            mutables, you may just need to add custom ==, see 
+            src/pt/checks.jl.
             """
         )
     end
@@ -78,17 +81,24 @@ end
 
 function Base.:(==)(a::GroupBy, b::GroupBy) 
     # as of Jan 2023, OnlineStat uses a default method of 
-    # descending into the fields, somehow not valid for GroupBy
-    if a.value != b.value 
+    # descending into the fields, which is somehow not valid for GroupBy, 
+    # probably due to undeterminism of underlying OrderedCollections.OrderedDict
+    common_keys = keys(a)
+    if common_keys != keys(b)
         return false
     end
-    for key in keys(a.value) 
-        if a[key] != b[key] 
+    for key in common_keys
+        if a[key] != b[key]
             return false
         end
     end
     return true
 end
+
+# CovMatrix contains a cache matrix, which is NaN until value(.) is called
+Base.:(==)(a::CovMatrix, b::CovMatrix) = value(a) == value(b)
+
+Base.keys(a::GroupBy) = keys(a.value)
 
 function Base.:(==)(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
     # as of Jan 2023, DynamicPPL does not supply == for TypedVarInfo

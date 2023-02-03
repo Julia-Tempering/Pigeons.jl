@@ -93,16 +93,26 @@ $SIGNATURES
 Auto-correlations between energy before and after an exploration step, 
 for each chain. Organized as a `Vector` where component i corresponds 
 to chain i.
+
+It is often useful to skip the reference chain, for two reasons, first, 
+exploration should be iid there, second, if the prior is flat the 
+auto-correlation of the energy will be NaN for the reference.
 """
-energy_ac1s(pt::PT) = energy_ac1s(pt.reduced_recorders)
+energy_ac1s(pt::PT, skip_reference = false) = energy_ac1s(pt.reduced_recorders, skip_reference, pt)
+
 
 """
 $SIGNATURES
 """
-function energy_ac1s(reduced_recorders)
+function energy_ac1s(reduced_recorders, skip_reference = false, pt = nothing)
     stat = reduced_recorders.energy_ac1
     coll = value(stat)
     indices = 1:length(coll)
+    if skip_reference
+        indices = filter(indices) do chain 
+            !is_reference(pt.shared.tempering.swap_graphs, chain) 
+        end
+    end
     return [cor(coll[i])[1,2] for i in indices]
 end
 

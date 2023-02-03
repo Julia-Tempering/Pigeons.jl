@@ -47,6 +47,7 @@ import OnlineStats.value
 import OnlineStats._merge!
 import Random.rand! 
 import Base.(==)
+import Base.keys
 import Pkg.precompile
 
 import DynamicPPL

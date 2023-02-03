@@ -61,5 +61,6 @@ online_recorder_builders() = [
     allocation_extrema,
     log_sum_ratio,
     round_trip,
-    energy_ac1
+    energy_ac1, 
+    target_online
 ]
