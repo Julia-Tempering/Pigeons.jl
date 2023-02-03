@@ -1,11 +1,15 @@
+"""
+A Gaussian mean-field variational reference (i.e., with a diagonal covariance matrix).
+"""
 @concrete struct GaussianReference <: VarReference
-    d
-    μ
-    Σ
+    μ::Vector # means
+    σ::Vector # standard deviations
 end
 
-function update_var_reference!(path, iterators::Iterators, ::GaussianReference)
-    0
-end
+dim(var_reference::GaussianReference) = length(var_reference.μ)
+activate_var_reference(::GaussianReference, iterators::Iterators) = iterators.round ≥ 6 ? true : false
+var_reference_recorder_builders(::GaussianReference) = [target_online]
 
-var_reference_recorder_builders(::GaussianReference) = [] # todo
+
+update_path!(path, iterators::Iterators, ::GaussianReference) = @abstract # TODO
+sample_iid!(::GaussianReference) = @abstract # TODO
