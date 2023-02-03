@@ -130,7 +130,8 @@ function adapt(pt, reduced_recorders)
     updated_shared = Shared(
         pt.shared.iterators, 
         updated_tempering, 
-        updated_explorer)
+        updated_explorer,
+        pt.shared.var_reference)
     updated_replicas = pt.replicas # TODO: adapt too? e.g. assign to closest from previous, leveraging checkpoints?
     return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder, reduced_recorders)
 end

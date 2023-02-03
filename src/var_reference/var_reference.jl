@@ -41,7 +41,7 @@ end
 
 @provides var_reference function create_var_reference(inputs) 
     if use_var_reference(inputs)
-        var_reference = GaussianReference() # default to Gaussian for now
+        var_reference = inputs.var_reference
     else 
        var_reference = NoVarReference()
     end 

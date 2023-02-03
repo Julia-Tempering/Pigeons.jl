@@ -27,8 +27,8 @@ Only one instance maintained per process.
 
     """
     See [`var_reference`](@ref)
-    var_reference
     """
+    var_reference
 end
 
 """
@@ -43,6 +43,6 @@ function Shared(inputs)
     tempering = create_tempering(inputs)
     explorer = create_explorer(inputs) 
     var_reference = create_var_reference(inputs)
-    return Shared(iterators, tempering, explorer)
+    return Shared(iterators, tempering, explorer, var_reference)
 end
 

@@ -49,12 +49,13 @@ function NonReversiblePT(path, schedule, communication_barriers)
     return NonReversiblePT(path, schedule, log_potentials, swap_graphs, communication_barriers)
 end
 
-adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference) =
-    # update_path!(tempering.path, iterators, var_reference)
+function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference)
+    update_path!(tempering.path, iterators, var_reference)
     NonReversiblePT(
         tempering.path, 
         optimal_schedule(reduced_recorders, tempering.schedule), 
         communication_barriers(reduced_recorders, tempering.schedule)
     )
+end
 
 tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]
