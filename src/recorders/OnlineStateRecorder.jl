@@ -47,14 +47,6 @@ $SIGNATURES
 continuous_variables(pt::PT) = continuous_variables(locals(pt.replicas)[1].state) 
 
 const STATS = [Mean, Variance]
-const SINGLETON_VAR = [:singleton_variable]
-continuous_variables(state::Array) = SINGLETON_VAR
-variable(state::Array, name::Symbol) = 
-    if name === :singleton_variable
-        state 
-    else
-        error()
-    end
 
 function record!(recorder::OnlineStateRecorder, state)
     if isempty(recorder.stats)
