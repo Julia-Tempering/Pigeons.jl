@@ -31,6 +31,8 @@ using Preferences
 using MPIPreferences
 using Expect
 using LogExpFunctions
+using StaticArrays
+using Printf
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -54,14 +56,16 @@ const use_auto_exec_folder = ""
 include("includes.jl")
 
 export pigeons, Inputs, PT, 
-    Result, 
+    # methods for running jobs:
     ChildProcess, MPI,
-    toy_mvn_target,
-    index_process, swap_acceptance_pr, log_sum_ratio,
-    load,
-    setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
-    TuringLogPotential, 
-    stepping_stone_pair
+    # targets:
+    toy_mvn_target, TuringLogPotential,
+    # recorders:
+    index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, 
+    # utils to run on scheduler:
+    Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
+    # getting information out of an execution
+    stepping_stone_pair, n_tempered_restarts, n_round_trips
 
 end # End module
 

@@ -1,5 +1,5 @@
 """
-Online statistics on the states.
+See [`target_online()`](@ref).
 """
 @kwdef struct OnlineStateRecorder
     stats::Dict{Pair{Symbol, Type}, Any} = Dict{Pair{Symbol, Type}, Any}()
@@ -9,7 +9,7 @@ end
 $SIGNATURES 
 
 Compute the mean of the given variable from the output, the latter is either 
-a [`PT`](@ref) or an [`OnlineStateRecorder`](@ref)
+a [`PT`](@ref) or a reduced [`recorders`](@ref)
 """
 mean(output, variable_name::Symbol) = get_statistic(output, variable_name, Mean) 
 
@@ -20,8 +20,9 @@ Same as [`mean()`](@ref) but for the variance.
 """
 variance(output, variable_name::Symbol) = get_statistic(output, variable_name, Variance) 
 
-get_statistic(pt::PT, variable_name::Symbol, t::Type{T}) where {T} = get_statistic(pt.reduced_recorders.target_online, variable_name, t)
-function get_statistic(recorder::OnlineStateRecorder, variable_name::Symbol, ::Type{T}) where {T}
+get_statistic(pt::PT, variable_name::Symbol, t::Type{T}) where {T} = get_statistic(pt.reduced_recorders, variable_name, t)
+function get_statistic(reduced_recorders, variable_name::Symbol, ::Type{T}) where {T}
+    recorder = reduced_recorders.target_online
     key = Pair(variable_name, T)
     v = value(recorder.stats[key]) 
     return value.(v)
@@ -44,20 +45,6 @@ function Base.merge(recorder1::OnlineStateRecorder, recorder2::OnlineStateRecord
     end
     return result 
 end
-
-""" 
-$SIGNATURES 
-
-The names (each a `Symbol`) of the continuous variables in the given state. 
-"""
-continuous_variables(state) = @abstract 
-
-"""
-$SIGNATURES 
-
-The storage of the variable of the given name, typically an `Array`.
-"""
-variable(state, name::Symbol) = @abstract 
 
 """
 $SIGNATURES

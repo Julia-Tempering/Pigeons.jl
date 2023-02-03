@@ -29,6 +29,21 @@ end
     @test abs(p[2] - truth) < 1
 end
 
+@testset "Round trips" begin
+    n_chains = 4
+    n_rounds = 5
+    
+    pt = pigeons(; target = Pigeons.TestSwapper(1.0), recorder_builders = [Pigeons.round_trip], n_chains, n_rounds);
+    
+    len = 2^(n_rounds)
+    truth = 0.0
+    for i in 0:(n_chains-1)
+        truth += floor(max(len - i, 0) / n_chains / 2)
+    end
+
+    @test truth == Pigeons.n_round_trips(pt)
+end
+
 @testset "Moments" begin
     pt = pigeons(target = toy_mvn_target(2), recorder_builders = [Pigeons.target_online], n_rounds = 20);
     for var_name in Pigeons.continuous_variables(pt)
@@ -45,12 +60,14 @@ end
 
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
+    recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
     # Turing:
     pigeons(
         target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
         n_rounds = 4,
         checked_round = 3, 
-        multithreaded = true, 
+        multithreaded = true,
+        recorder_builders = recorder_builders,
         checkpoint = true, 
         on = ChildProcess(
                 n_local_mpi_processes = n_mpis,
@@ -58,10 +75,11 @@ end
     # Blang:
     if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
         Pigeons.setup_blang("blangDemos")
-        pigeons(
+        pigeons(; 
             target = Pigeons.blang_ising(), 
             n_rounds = 4,
             checked_round = 3, 
+            recorder_builders = recorder_builders, 
             multithreaded = true, 
             checkpoint = true, 
             on = ChildProcess(

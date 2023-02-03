@@ -6,6 +6,7 @@ In addition to the methods in the contract below,
 we also assume the presence of the following fields:
 - [`log_potentials`](@ref)
 - [`swap_graphs`](@ref)
+- [`communication_barriers`](@ref)
 """
 @informal tempering begin
     """

@@ -37,6 +37,13 @@ Constraints:
 - ...but also ergonomic
 
 
+## Plan for next step on this
+
+- We now have a working version of collection for samples 
+    that are not order-sensitive
+- for order sensitive, do some benchmarking to compare the 
+    different approaches 1-3. 
+
 
 
 
