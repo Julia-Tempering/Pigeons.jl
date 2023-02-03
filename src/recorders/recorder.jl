@@ -61,30 +61,32 @@ chain.
 """ 
 Timing informations. 
 """
-@provides recorder timing_extrema() = GroupBy(Symbol, Extrema())
+@provides recorder timing_extrema() = NonReproducible(GroupBy(Symbol, Extrema()))
 
 """ 
 Allocations informations. 
 """
-@provides recorder allocation_extrema() = GroupBy(Symbol, Extrema())
+@provides recorder allocation_extrema() = NonReproducible(GroupBy(Symbol, Extrema()))
 
 record_timed_if_requested!(pt::PT, category::Symbol, timed) = 
-    record_timed_if_requested!(locals(pt.replicas)[1].recorders, category, timed)
+record_timed_if_requested!(locals(pt.replicas)[1].recorders, category, timed)
 
 function record_timed_if_requested!(recorders, category::Symbol, timed)
     record_if_requested!(recorders, :timing_extrema,     (category, timed.time))
     record_if_requested!(recorders, :allocation_extrema, (category, timed.bytes))
 end
 
+
 """
 Maximum time (over the MPI process) to compute the last Parallel Tempering round. 
 """
-last_round_max_time(pt)  = maximum(value(pt.reduced_recorders.timing_extrema)[:round])
+last_round_max_time(pt)  = maximum(value(pt.reduced_recorders.timing_extrema.contents)[:round])
 
 """
 Maximum bytes allocated (over the MPI process) to compute the last Parallel Tempering round. 
 """
-last_round_max_allocation(pt) = maximum(value(pt.reduced_recorders.allocation_extrema)[:round])
+last_round_max_allocation(pt) = maximum(value(pt.reduced_recorders.allocation_extrema.contents)[:round])
+
 
 """
 $SIGNATURES 

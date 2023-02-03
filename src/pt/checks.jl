@@ -113,6 +113,7 @@ TODO: in the future, add an optional get_hash() in the Stream protocol
 to improve this.
 =#
 Base.:(==)(a::StreamState, b::StreamState) = true
+Base.:(==)(a::NonReproducible, b::NonReproducible) = true
 
 # TODO: maybe move this to a sub-module in which == is nicer by default?
 # mutable (incl imm with mut fields) structs do not have a nice ===, overload those:
