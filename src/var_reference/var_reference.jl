@@ -1,5 +1,4 @@
 abstract type VarReference end
-
 """
 A variational reference distribution.
 """
@@ -9,7 +8,7 @@ A variational reference distribution.
     $SIGNATURES
     Choose on which rounds/scans to activate the variational reference.
     """
-    activate_var_reference(var_reference::VarReference, iterators::Iterators) = iterators.round ≥ 6 ? true : false
+    activate_var_reference(var_reference::VarReference, iterators) = iterators.round ≥ 6 ? true : false
     
     """
     $SIGNATURES
@@ -26,8 +25,7 @@ A variational reference distribution.
     """
     $SIGNATURES
     """
-    sample_iid!(var_reference::VarReference)::AbstractVector = @abstract
-    sample_iid!(var_reference::VarReference)::DynamicPPL.VarInfo = @abstract
+    sample_iid!(var_reference::VarReference) = @abstract
     
     
     
