@@ -24,3 +24,8 @@ function stepping_stone_pair(log_sum_ratios::GroupBy)
     end
     return (estimator1, -estimator2) 
 end
+
+function stepping_stone(input)
+    pair = stepping_stone_pair(input) 
+    return (pair[1] + pair[2]) / 2.0
+end

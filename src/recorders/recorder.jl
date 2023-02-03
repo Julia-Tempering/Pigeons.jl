@@ -25,6 +25,12 @@ of interacting chains.
 """
 @provides recorder swap_acceptance_pr() = GroupBy(Tuple{Int, Int}, Mean())
 
+function min_swap_pr(pt)
+    collection = value(pt.reduced_recorders.swap_acceptance_pr)
+    prs = value.(values(collection))
+    return minimum(prs)
+end
+
 """ 
 Full index process stored in memory. 
 """

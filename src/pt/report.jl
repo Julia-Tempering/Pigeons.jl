@@ -1,4 +1,4 @@
-all_reports = [  
+all_reports() = [  
         # header with    # lambda expression used to 
         # width of 8     # compute that report item
         "  #scans "   => pt -> n_scans_in_round(pt.shared.iterators), 
@@ -6,6 +6,8 @@ all_reports = [
         "    Λ    "   => pt -> pt.shared.tempering.communication_barriers.globalbarrier, 
         " time(s) "   => pt -> last_round_max_time(pt), 
         " allc(B) "   => pt -> last_round_max_allocation(pt), 
+        "  log(Z) "   => pt -> stepping_stone(pt),
+        "  min(α) "   => pt -> min_swap_pr(pt)
     ]
 
 """
@@ -53,7 +55,7 @@ hr(reports, sep) =
 
 function reports_available(pt)
     result = Pair[] 
-    for pair in all_reports 
+    for pair in all_reports() 
         try 
             (pair[2])(pt) 
             push!(result, pair)
