@@ -32,6 +32,8 @@ variable(state::Array, name::Symbol) =
     end
 
 # For the stream interface, view the state as a black box
+# Useful so that running with default block of recorders 
+# does not crash. 
 continuous_variables(state::StreamState) = []
 
 
