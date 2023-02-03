@@ -50,13 +50,6 @@ $FIELDS
 end
 
 
-function use_var_reference(inputs::Inputs)
-    if (inputs.n_chains_var_reference > 0)
-        inputs.n_chains == 0 ? true : error("Two reference distributions have not yet been implemented.")
-    else 
-        return false
-    end
-end
 """
 Set of recorders with no measurable impact on performance. 
 """

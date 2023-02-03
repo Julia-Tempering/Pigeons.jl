@@ -4,7 +4,7 @@
     Σ
 end
 
-function update_var_reference!(::GaussianReference, path)
+function update_var_reference!(path, iterators::Iterators, ::GaussianReference)
     0
 end
 

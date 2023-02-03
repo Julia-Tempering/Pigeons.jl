@@ -24,6 +24,11 @@ Only one instance maintained per process.
     See [`explorer`](@ref).
     """
     explorer
+
+    """
+    See [`var_reference`](@ref)
+    var_reference
+    """
 end
 
 """
@@ -37,6 +42,7 @@ function Shared(inputs)
     iterators = Iterators() 
     tempering = create_tempering(inputs)
     explorer = create_explorer(inputs) 
+    var_reference = create_var_reference(inputs)
     return Shared(iterators, tempering, explorer)
 end
 

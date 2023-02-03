@@ -1,6 +1,7 @@
 abstract type VarReference end
+
 """
-A variational reference distribution.
+A variational family of reference distributions.
 """
 @informal var_reference begin
     
@@ -8,13 +9,13 @@ A variational reference distribution.
     $SIGNATURES
     Choose on which rounds/scans to activate the variational reference.
     """
-    activate_var_reference(var_reference::VarReference, iterators) = iterators.round ≥ 6 ? true : false
+    activate_var_reference(var_reference::VarReference, iterators::Iterators) = iterators.round ≥ 6 ? true : false
     
     """
     $SIGNATURES
-    Update the variational reference and the annealing path.
+    Update the variational reference and the annealing path. Returns the new annealing path.
     """
-    update_var_reference!(var_reference::VarReference, path) = @abstract
+    update_path!(path, iterators::Iterators, var_reference::VarReference) = @abstract
 
     """
     $SIGNATURES
@@ -24,24 +25,24 @@ A variational reference distribution.
     
     """
     $SIGNATURES
+    Obtain one iid sample from the reference distribution specified by the variational family.
     """
     sample_iid!(var_reference::VarReference) = @abstract
-    
-    
-    
-    # - will need to specify:
-    # -- update/adapt function
-    # -- special sampler
-    # -- create_state_initializer???
-    # -- create_explorer???
-    
-    # you need to define a special log_potential::VarReference type so that your sampler can dispatch on this type
-    
-    # what you want to do is change adapt_tempering on line 43 of NRPT.jl so that the path AND annealing schedule also
-    # get updated. use the "reduced_recorders" object to do this.
 end
 
 
-@provides var_reference create_var_reference() = GaussianReference()
+function use_var_reference(inputs::Inputs)
+    if (inputs.n_chains_var_reference > 0)
+        inputs.n_chains == 0 ? true : error("Two reference distributions have not yet been implemented.")
+    else 
+        return false
+    end
+end
 
-
+@provides var_reference function create_var_reference(inputs) 
+    if use_var_reference(inputs)
+        var_reference = GaussianReference() # default to Gaussian for now
+    else 
+       var_reference = NoVarReference()
+    end 
+end

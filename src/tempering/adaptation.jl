@@ -99,5 +99,3 @@ function rejections(reduced_recorders, n_chains)
                         # we use defaults since in the first round, not all swaps are attempted, use 0.5 for missing entries
     return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in 1:max_index] 
 end
-
-
