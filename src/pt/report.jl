@@ -7,7 +7,10 @@ all_reports() = [
         " time(s) "   => pt -> last_round_max_time(pt), 
         " allc(B) "   => pt -> last_round_max_allocation(pt), 
         "  log(Z) "   => pt -> stepping_stone(pt),
-        "  min(α) "   => pt -> min_swap_pr(pt)
+        "  min(α) "   => pt -> minimum(swap_prs(pt)), 
+        "  avg(α) "   => pt -> Statistics.mean(swap_prs(pt)),
+        "  max|ρ| "   => pt -> maximum(abs.(energy_ac1s(pt))),
+        "  avg|ρ| "   => pt -> Statistics.mean(abs.(energy_ac1s(pt))),
     ]
 
 """

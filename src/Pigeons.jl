@@ -33,6 +33,7 @@ using Expect
 using LogExpFunctions
 using StaticArrays
 using Printf
+using Statistics
 
 import Serialization.serialize
 import Serialization.deserialize
