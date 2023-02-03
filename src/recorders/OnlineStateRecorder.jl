@@ -7,18 +7,13 @@ end
 
 """
 $SIGNATURES 
-
-Compute the mean of the given variable from the output, the latter is either 
-a [`PT`](@ref) or a reduced [`recorders`](@ref)
 """
-mean(output, variable_name::Symbol) = get_statistic(output, variable_name, Mean) 
+Statistics.mean(pt::PT, variable_name::Symbol = :singleton_variable) = get_statistic(pt, variable_name, Mean) 
 
 """
 $SIGNATURES 
-
-Same as [`mean()`](@ref) but for the variance. 
 """
-variance(output, variable_name::Symbol) = get_statistic(output, variable_name, Variance) 
+Statistics.var(pt::PT, variable_name::Symbol = :singleton_variable) = get_statistic(pt, variable_name, Variance) 
 
 get_statistic(pt::PT, variable_name::Symbol, t::Type{T}) where {T} = get_statistic(pt.reduced_recorders, variable_name, t)
 function get_statistic(reduced_recorders, variable_name::Symbol, ::Type{T}) where {T}

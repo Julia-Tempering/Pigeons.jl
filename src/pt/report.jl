@@ -8,9 +8,9 @@ all_reports() = [
         " allc(B) "   => pt -> last_round_max_allocation(pt), 
         "  log(Z) "   => pt -> stepping_stone(pt),
         "  min(α) "   => pt -> minimum(swap_prs(pt)), 
-        "  avg(α) "   => pt -> Statistics.mean(swap_prs(pt)),
+        "  avg(α) "   => pt -> mean(swap_prs(pt)),
         "  max|ρ| "   => pt -> maximum(abs.(energy_ac1s(pt, true))),
-        "  avg|ρ| "   => pt -> Statistics.mean(abs.(energy_ac1s(pt, true))),
+        "  avg|ρ| "   => pt -> mean(abs.(energy_ac1s(pt, true))),
     ]
 
 """
