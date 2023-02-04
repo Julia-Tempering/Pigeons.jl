@@ -15,7 +15,7 @@ A variational family of reference distributions.
     $SIGNATURES
     Update the variational reference and the annealing path. Returns the new annealing path.
     """
-    update_path!(path, iterators, var_reference) = @abstract
+    update_reference!(reduced_recorders, var_reference) = @abstract
 
     """
     $SIGNATURES
@@ -27,9 +27,25 @@ A variational family of reference distributions.
     $SIGNATURES
     Obtain one iid sample from the reference distribution specified by the variational family.
     """
-    sample_iid!(var_reference) = @abstract
+    sample_iid!(state, var_reference) = @abstract
+
+    """
+    $SIGNATURES
+    Evaluate the log density of the variational reference at a point `x`.
+    """
+    (var_reference::VarReference)(x) = @abstract
 end
 
+
+update_path_if_needed!(path, reduced_recorders, iterators, var_reference) = 
+    activate_var_reference(var_reference, iterators) ? 
+        update_path_var_reference!(path, reduced_recorders, var_reference) : 
+        nothing
+
+function update_path_var_reference!(path, reduced_recorders, var_reference)
+    update_reference!(reduced_recorders, var_reference)
+    path = InterpolatingPath(var_reference, path.target)
+end
 
 function use_var_reference(inputs)
     if (inputs.n_chains_var_reference > 0)

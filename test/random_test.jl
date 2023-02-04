@@ -8,6 +8,7 @@
 
 # Turing ----------
 using Turing
+using SplittableRandoms
 
 # *Unidentifiable* unconditioned coinflip model with `N` observations.
 @model function coinflip_unidentifiable(; N::Int)
@@ -27,9 +28,12 @@ end
 
 using Pigeons
 model = Pigeons.flip_model_unidentifiable()
-pt = pigeons(target = TuringLogPotential(model))
+target = TuringLogPotential(model)
+# pt = pigeons(target = target)
 
-
+rng = SplittableRandom(1)
+vi = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
+println("Hello world :)")
 
 
 

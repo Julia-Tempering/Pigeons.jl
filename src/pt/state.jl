@@ -21,6 +21,12 @@ some recorders such as [`OnlineStateRecorder`](@ref).
     The storage within the [`state`](@ref) of the variable of the given name, typically an `Array`.
     """
     variable(state, name::Symbol) = @abstract 
+
+    """
+    $SIGNATURES
+    Update the state's entry at symbol `name` and `index` with `value`.
+    """
+    update_state!(state, name::Symbol, index, value) = @abstract
 end
 
 
@@ -43,5 +49,9 @@ variable(state::Array, name::Symbol) =
 # Useful so that running with default block of recorders 
 # does not crash. 
 continuous_variables(state::StreamState) = []
+
+continuous_variables(state::DynamicPPL.TypedVarInfo) = fieldnames(typeof(state.metadata))
+
+
 
 
