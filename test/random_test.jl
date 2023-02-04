@@ -5,10 +5,12 @@
 # pt = pigeons(inputs)
 
 
-
-# Turing ----------
 using Turing
 using SplittableRandoms
+using Pigeons
+
+# Turing ----------
+
 
 # *Unidentifiable* unconditioned coinflip model with `N` observations.
 @model function coinflip_unidentifiable(; N::Int)
@@ -28,12 +30,19 @@ end
 
 using Pigeons
 model = Pigeons.flip_model_unidentifiable()
-target = TuringLogPotential(model)
-# pt = pigeons(target = target)
+inputs = Inputs(
+    target = TuringLogPotential(model),
+    n_chains = 0,
+    n_chains_var_reference = 10,
+    var_reference = Pigeons.GaussianReference()
+)
+pt = pigeons(inputs)
 
-rng = SplittableRandom(1)
-vi = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
-println("Hello world :)")
+
+
+# rng = SplittableRandom(1)
+# vi = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
+# println("Hello world :)")
 
 
 

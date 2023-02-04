@@ -38,20 +38,37 @@ const DISCRETE_VARS = Ref([])
 
 const SINGLETON_VAR = [:singleton_variable]
 continuous_variables(state::Array) = SINGLETON_VAR
-variable(state::Array, name::Symbol) = 
+discrete_variables(state::Array) = []
+update_state!(state::Array, name::Symbol, index, value) = (state[name][index] = value)
+function variable(state::Array, name::Symbol)
     if name === :singleton_variable
         state 
     else
         error()
     end
+end
+
+
 
 # For the stream interface, view the state as a black box
 # Useful so that running with default block of recorders 
 # does not crash. 
 continuous_variables(state::StreamState) = []
 
-continuous_variables(state::DynamicPPL.TypedVarInfo) = fieldnames(typeof(state.metadata))
 
-
-
+continuous_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)
+discrete_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, Integer)
+variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = state.metadata[name].vals
+update_state!(state::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value) = 
+    (state.metadata[name].vals[index] = value)
+function variables(state::DynamicPPL.TypedVarInfo, type::DataType) 
+    all_names = fieldnames(typeof(state.metadata))
+    var_names = []
+    for name in all_names
+        if typeof(state.metadata[name].vals[1]) <: type
+            var_names = vcat(var_names, name)
+        end
+    end
+    return var_names
+end
 

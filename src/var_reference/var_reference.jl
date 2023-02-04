@@ -27,13 +27,13 @@ A variational family of reference distributions.
     $SIGNATURES
     Obtain one iid sample from the reference distribution specified by the variational family.
     """
-    sample_iid!(state, var_reference) = @abstract
+    sample_iid!(var_reference::VarReference, replica) = @abstract
 
     """
     $SIGNATURES
     Evaluate the log density of the variational reference at a point `x`.
     """
-    (var_reference::VarReference)(x) = @abstract
+    (var_reference::VarReference)(state) = @abstract
 end
 
 

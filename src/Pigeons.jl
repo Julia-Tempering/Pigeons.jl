@@ -69,9 +69,10 @@ export pigeons, Inputs, PT,
     index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, 
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
-    # getting information out of an execution
+    # getting information out of an execution:
     stepping_stone_pair, n_tempered_restarts, n_round_trips
-
+    # variational references:
+    GaussianReference, NoVarReference
 end # End module
 
 
