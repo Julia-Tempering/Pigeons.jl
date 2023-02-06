@@ -4,7 +4,6 @@ authors = ["Alexandre Bouchard-Côté, Nikola Surjanovic <nikola.surjanovic@stat
 version = "0.1.0"
 
 [deps]
-ArgMacros = "dbc42088-9de8-42a0-8ec8-2cd114e1ea3e"
 CRC32c = "8bf52ea8-c179-5cab-976a-9e18b702a9bc"
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -36,7 +35,6 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
-ArgMacros = "0.2"
 ConcreteStructs = "0.2"
 DataStructures = "0.18"
 Distributions = "0.25"
