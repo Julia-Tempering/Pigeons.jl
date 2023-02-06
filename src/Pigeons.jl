@@ -52,9 +52,7 @@ import Pkg.precompile
 import Statistics.mean 
 import Statistics.var
 
-
 import DynamicPPL
-using Turing
 
 const use_auto_exec_folder = ""
 
