@@ -23,8 +23,8 @@ function run_checks(pt)
     end
 
     only_one_process(pt) do
-        #check_serialization(pt) # TODO: check immutables do not change, etc
         check_against_serial(pt)
+        #check_serialization(pt) # TODO: check immutables do not change, etc
     end
 end
 

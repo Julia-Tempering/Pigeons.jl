@@ -19,7 +19,6 @@ using Dates
 using OnlineStats
 using MacroTools
 using DocStringExtensions
-using Plots
 using LinearAlgebra
 using SpecialFunctions
 using Serialization
@@ -34,6 +33,7 @@ using LogExpFunctions
 using StaticArrays
 using Printf
 using Statistics
+using RecipesBase
 
 import Serialization.serialize
 import Serialization.deserialize

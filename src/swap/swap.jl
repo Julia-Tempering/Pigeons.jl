@@ -101,20 +101,6 @@ function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
     permuted_set!(replicas.chain_to_replica_global_indices, chain.(replicas.locals), my_replica_global_indices)
 end
 
-"""
-$SIGNATURES
-
-Given a [`recorders`](@ref), create an index process plot.
-"""
-function index_process_plot(recorders)
-    index_process = recorders.index_process
-    p = plot()
-    for i in eachindex(index_process)
-        p = plot!(p, index_process[i], legend = false)
-    end
-    return p
-end
-
 # Private low-level functions shared by all implementations
 
 function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partner_chain::Int, swap_graph)
