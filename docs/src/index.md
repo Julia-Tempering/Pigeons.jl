@@ -357,7 +357,7 @@ posterior distributions of unidentifiable models. However, Pigeons excels in thi
 compared to traditional samplers.
 
 First, we define the Turing model.
-```@example Turing
+```@example Turing_Pigeons
 using Turing
 
 # *Unidentifiable* unconditioned coinflip model with `N` observations.
