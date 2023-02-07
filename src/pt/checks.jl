@@ -39,10 +39,18 @@ function check_against_serial(pt)
     parallel_checkpoint = "$(pt.exec_folder)/round=$round/checkpoint"
     
     # run a serial copy
+    dependencies = 
+        if isfile("$(pt.exec_folder)/.dependencies.jls")
+            # this process was itself spawn using ChildProcess/MPI 
+            # so use the same dependencies as this process 
+            deserialize("$(pt.exec_folder)/.dependencies.jls")
+        else
+            []
+        end
     serial_pt_inputs = deepcopy(pt.inputs)
     serial_pt_inputs.n_rounds = round 
     serial_pt_inputs.checked_round = 0 # <- otherwise infinity loop
-    serial_pt_result = pigeons(serial_pt_inputs, on = ChildProcess(n_threads = 1, wait = true))
+    serial_pt_result = pigeons(serial_pt_inputs, on = ChildProcess(; n_threads = 1, wait = true, dependencies))
     serial_checkpoint = "$(serial_pt_result.exec_folder)/round=$round/checkpoint"
 
     # compare the serialized files

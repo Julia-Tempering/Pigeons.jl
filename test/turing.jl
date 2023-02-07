@@ -1,5 +1,3 @@
-using LinearAlgebra
-
 # Unconditioned coinflip model with `N` observations.
 @model function coinflip(; N::Int)
     p ~ Beta(1, 12)

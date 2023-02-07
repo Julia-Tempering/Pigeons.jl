@@ -36,10 +36,11 @@ $FIELDS
     memory::String = "8gb"
 
     """
-    Extra Julia `Module`s needed by the child 
+    Julia modules (if of type `Module`) or paths to include 
+    (if of type `String`) needed by the child 
     process. 
     """
-    extra_julia_modules::Vector{Module} = []
+    dependencies::Vector{Module} = []
 end
 
 """
@@ -55,7 +56,7 @@ function pigeons(pt_arguments, mpi_submission::MPI)
     julia_cmd = launch_cmd(
         pt_arguments,
         exec_folder,
-        mpi_submission.extra_julia_modules,
+        mpi_submission.dependencies,
         mpi_submission.n_threads,
         false
     )
