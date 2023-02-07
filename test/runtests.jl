@@ -8,6 +8,11 @@ using SplittableRandoms
 import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
                 find_process, split_slice
 
+# Otherwise child process tests do not work
+using Pkg
+Pkg.develop(PackageSpec(path=pwd()))
+Pkg.instantiate()'
+
 include("slice_sampler_test.jl")
 
 
