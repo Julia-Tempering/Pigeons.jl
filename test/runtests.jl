@@ -64,7 +64,7 @@ end
     recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
     # Turing:
     pigeons(
-        target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
+        target = TuringLogPotential(flip_model_unidentifiable()), 
         n_rounds = 4,
         checked_round = 3, 
         multithreaded = true,
