@@ -1,6 +1,13 @@
 using Pigeons
 using Pkg
 
+#=
+Rationale for this hack:
+- putting those in the [extras] section will lead to ChildProcess not 
+  having access to it
+- the other method, a second toml file, seems more promising but 
+  proved challenging to get to work on CI
+=#
 for i in ["Test", "LinearAlgebra", "Turing", "ArgMacros", "Plots"]
     Pkg.add(i)
 end
