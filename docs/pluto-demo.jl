@@ -23,10 +23,17 @@ begin
 	using PlutoUI
     using Plots
 	using Statistics
+	using Revise
 	
 	Pkg.activate(".")
+	Pkg.resolve()
 	using Pigeons 
+	plotly()
+	
 end
+
+# ╔═╡ af8d270a-080d-4eed-a597-e83d5b067fde
+
 
 # ╔═╡ cee9aed2-766f-4338-8599-666496eb1b47
 html"""<style>
@@ -75,20 +82,27 @@ mean(pt)
 # ╔═╡ ac68d6a3-7ba5-4c33-8569-5869fd5fbf9c
 var(pt)
 
-# ╔═╡ e91c5c8d-0ea2-4b6d-b86d-5a884130804f
+# ╔═╡ c51f76b9-964b-46c4-8ab3-d58a71d77036
+md"""
+## Communication barrier
+"""
 
+# ╔═╡ a35522ec-1487-4d89-bd4f-a1fb180fbd5b
+plot(pt.shared.tempering.communication_barriers.localbarrier) 
 
 # ╔═╡ Cell order:
-# ╟─8ff27bee-c6e5-48c1-9a4c-1b999674f6b4
-# ╟─cee9aed2-766f-4338-8599-666496eb1b47
-# ╟─36158fb4-4f50-44f1-beac-7a5c31de1171
+# ╠═8ff27bee-c6e5-48c1-9a4c-1b999674f6b4
+# ╠═af8d270a-080d-4eed-a597-e83d5b067fde
+# ╠═cee9aed2-766f-4338-8599-666496eb1b47
+# ╠═36158fb4-4f50-44f1-beac-7a5c31de1171
 # ╟─ecb0601d-118c-432e-be58-7742cbff72e1
 # ╠═e1b58e13-cac8-468d-8402-0a23d443e47d
 # ╠═d90ff8fd-b336-4637-8f14-1f8334d9f1ac
 # ╠═13c7307f-3556-4241-af19-2391dbbdfe08
 # ╟─1072f8e9-922b-46e4-8f45-ea8280872cb6
 # ╠═ee5aeb5e-3271-4787-9994-1896afab9b48
-# ╟─66c33117-6fc2-4e3f-a3dc-4e38de24535c
+# ╠═66c33117-6fc2-4e3f-a3dc-4e38de24535c
 # ╠═52ee18c2-5eac-4948-a6dd-c6ebf7a21024
 # ╠═ac68d6a3-7ba5-4c33-8569-5869fd5fbf9c
-# ╠═e91c5c8d-0ea2-4b6d-b86d-5a884130804f
+# ╟─c51f76b9-964b-46c4-8ab3-d58a71d77036
+# ╠═a35522ec-1487-4d89-bd4f-a1fb180fbd5b
