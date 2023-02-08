@@ -59,7 +59,7 @@ mutable struct Entangler
                 println("Entangler initialized 1 process (without MPI); $(Threads.nthreads())")
             end
         else
-            Init() 
+            Init(threadlevel = :funneled) 
             comm = Comm_dup(parent_communicator)
             my_process_index = Comm_rank(comm) + 1
             n_processes = Comm_size(comm)
@@ -86,7 +86,7 @@ mpi_active() =
     if silence_mpi[] 
         false
     else 
-        Init()
+        Init(threadlevel = :funneled)
         Comm_size(COMM_WORLD) > 1
     end
 
