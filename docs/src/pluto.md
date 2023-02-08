@@ -18,3 +18,32 @@ Open a browser in the client and go to
 [http://localhost:1234/](http://localhost:1234/). 
 Look at the server terminal to get the "secret" part 
 of the URL. 
+
+# Various tricks
+
+## Killing zombies
+
+On the client:
+
+```
+lsof -i :1234
+```
+
+## Force reload a cell
+
+Ctrl-a followed by Shift-Enter
+
+
+## Misc
+
+TableOfContents()
+
+Wider:
+
+```
+html"""<style>
+main {
+    max-width: 1000px;
+}
+"""
+```
