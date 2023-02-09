@@ -84,10 +84,10 @@ end
 function mpi_submission_cmd(exec_folder, mpi_submission::MPI, julia_cmd) 
     submission_script = mpi_submission_script(exec_folder, mpi_submission, julia_cmd)
     return `qsub $submission_script`
-end
-
-resource_string(m::MPI) = 
-    "walltime=$(m.walltime),select=$(m.n_mpi_processes):ncpus=$(m.n_threads):mpiprocs=$(m.n_threads):mem=$(m.memory)"
+end                         #                             +-- each chunks should request as many cpus as threads,
+                            # +-- number of "chunks"...   |                   +-- NB: if mpiprocs were set to more than 1 this would give a number of mpi processes equal to select*mpiprocs
+resource_string(m::MPI) =   # v                           v                   v               
+    "walltime=$(m.walltime),select=$(m.n_mpi_processes):ncpus=$(m.n_threads):mpiprocs=1:mem=$(m.memory)"
 
 function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     # TODO: generalize to other submission systems
