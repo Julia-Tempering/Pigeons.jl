@@ -36,9 +36,9 @@ Ctrl-a followed by Shift-Enter
 
 ## Misc
 
-TableOfContents()
+### TableOfContents()
 
-Wider:
+### Wider:
 
 ```
 html"""<style>
@@ -47,3 +47,7 @@ main {
 }
 """
 ```
+
+### Sharing github hosted html
+
+https://raw.githack.com/
