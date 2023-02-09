@@ -37,9 +37,10 @@ initialization(target::StreamTarget, rng::SplittableRandom, replica_index::Int64
 """ 
 States used in the replicas when a [`StreamTarget`](@ref) is used. 
 """
-struct StreamState 
+mutable struct StreamState 
     worker_process::ExpectProc
     replica_index::Int
+    dead::Bool
     """ 
     $SIGNATURES 
 
@@ -54,7 +55,7 @@ struct StreamState
                 cmd,
                 Inf # no timeout
             )
-        return new(worker_process, replica_index)
+        return new(worker_process, replica_index, false)
     end
 end
 
@@ -95,17 +96,18 @@ create_path(target::StreamTarget, ::Inputs) = StreamPath()
 
 interpolate(path::StreamPath, beta) = StreamPotential(beta)
 
-(log_potential::StreamPotential)(state::StreamState) = 
-    invoke_worker(
-            state, 
-            "log_potential($(log_potential.beta))", 
-            Float64
-        )
+(log_potential::StreamPotential)(state::StreamState) =
+    invoke_worker_robustly(
+        state, 
+        "log_potential($(log_potential.beta))", 
+        0.0
+    )
 
 call_sampler!(log_potential::StreamPotential, state::StreamState) = 
-    invoke_worker(
+    invoke_worker_robustly(
         state, 
-        "call_sampler!($(log_potential.beta))"
+        "call_sampler!($(log_potential.beta))", 
+        nothing
     )
 
 # hack to convert UInt64 to Long; not in a loop so ok, 
@@ -114,6 +116,23 @@ function java_seed(rng::SplittableRandom)
     result = "$(rand(split(rng), UInt64))"
     return result[1:(length(result) - 1)]
 end
+
+function invoke_worker_robustly(
+        state::StreamState, 
+        request::AbstractString,
+        default::T) where {T}
+    if state.dead
+        return default
+    end
+    try 
+        return invoke_worker(state, request, T)
+    catch e 
+        state.dead = true
+        @warn "Worker process died; message: $e" 
+        return default
+    end
+end
+
 
 #=
 Simple stdin/stdout text-based protocol. 
