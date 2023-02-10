@@ -4,13 +4,12 @@ $SIGNATURES
 Display the queue status for one MPI job. 
 """ 
 function queue_status(result::Result)
-    exec_folder = result.exec_folder 
     submission_code = queue_code(result)
     run(`qstat -x $submission_code`)
     return nothing
 end
 
-queue_code(result::Result) = readline("$exec_folder/info/submission_output.txt")
+queue_code(result::Result) = readline("$(result.exec_folder)/info/submission_output.txt")
 
 """ 
 $SIGNATURES 
@@ -54,25 +53,51 @@ $SIGNATURES
 Print the queue status as well as the standard out 
 and error streams (merged) for the given `machine`. 
 """
-function watch(result::Result; machine = 1)
+function watch(result::Result; machine = 1, interactive = true)
     @assert machine > 0 "using 0-index convention"
     queue_status(result)
+    output_folder = "$(result.exec_folder)/1" # 1 is not a bug, i.e. not hardcoded machine 1
     
-    output_folder = "$(result.exec_folder)/1"
-    print("Waiting")
-    while !isfile(output_folder) || find_rank_file(output_folder, machine) === nothing
-        sleep(10)
-        print(".")
+    while !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
+        if !interactive 
+            return 
+        end
+        print("Looking for standard out file (press enter to try again, or any key and enter to stop)")
+        x = readline()
+        if !isempty(x)
+            break
+        end
+        queue_status(result)
     end
     println()
 
     output_file_name = find_rank_file(output_folder, machine)
     stdout_file = "$output_folder/$output_file_name/stdout"
     
-    println("Watching machine $machine stdout (note ctrl-c will not kill job, just stop monitoring):")
-    run(`tail -n $last_n_lines $stdout_file`) 
-    return nothing 
+    println("Watching machine $machine stdout:")
+
+    #run(`tail  $stdout_file`) 
+    open(stdout_file) do io    
+        while true
+            data = readline(io)
+            !isempty(data) && println(data)
+            if isempty(data)
+                if !interactive 
+                    return 
+                end
+                sleep(1)
+                print("Monitoring (press enter to try again, or any key and enter to stop)")
+                x = readline()
+                if !isempty(x)
+                    break
+                end
+            end
+        end
+    end
+    return stdout_file 
 end
+
+
 
 # internal
 
