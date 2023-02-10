@@ -105,21 +105,21 @@ end
     end
 end
 
-# @testset "Long MPI" begin
-#     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
-#     recorder_builders = []
-#     pigeons(
-#         target = toy_mvn_target(1), 
-#         n_rounds = 20,
-#         checked_round = 20, 
-#         n_chains = 10_000,
-#         multithreaded = false,
-#         recorder_builders = recorder_builders,
-#         checkpoint = true, 
-#         on = ChildProcess(
-#                 n_local_mpi_processes = n_mpis,
-#                 n_threads = 1)) 
-# end
+@testset "Longer MPI" begin
+    n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
+    recorder_builders = []
+    pigeons(
+        target = toy_mvn_target(1), 
+        n_rounds = 12,
+        checked_round = 12, 
+        n_chains = 200,
+        multithreaded = false,
+        recorder_builders = recorder_builders,
+        checkpoint = true, 
+        on = ChildProcess(
+                n_local_mpi_processes = n_mpis,
+                n_threads = 1)) 
+end
 
 @testset "Entanglement" begin
     mpi_test(1, "entanglement_test.jl")
