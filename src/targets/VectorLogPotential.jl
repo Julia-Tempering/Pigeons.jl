@@ -1,37 +1,50 @@
 @concrete struct VectorLogPotential
     """
-    User-coded function for the target log potential that assumes the state is a single vector.
+    User-coded function for the target log potential that assumes the state is a vector.
     """
     target_log_potential
 
     """
-    User-coded function for the reference log potential that assumes the state is a single vector.
+    User-coded function for the reference log potential that assumes the state is a vector.
     """
     reference_log_potential
 
     """
-    Can be called with rand(rng, reference) to obtain a sample from the prior.
-    E.g., a Distribution.
+    E.g., reference_sample!(rng, state) yields a sample from the reference,
+    modifying the vector `state`.
     """
-    reference
+    reference_sample!
+
+    """
+    Number of model parameters. 
+    """
+    dim # TODO: remove
 
     only_reference::Bool
 end
 
-@provides target VectorLogPotential(target_log_potential, reference_log_potential, prior) = 
-  VectorLogPotential(target_log_potential, reference_log_potential, prior, false)
+@provides target VectorLogPotential(target_log_potential, reference_log_potential, reference_sample!, dim) = 
+  VectorLogPotential(target_log_potential, reference_log_potential, reference_sample!, dim, false)
 
 (log_potential::VectorLogPotential)(x) = log_potential.target_log_potential(x)
 
+"""
+An *allocating* version of reference_sample!() that does not need to accept a `state`.
+"""
+function reference_sample(rng, target::VectorLogPotential) 
+    state = Vector{Any}(undef, target.dim)
+    target.reference_sample!(rng, state)
+    return state
+end
+
 create_state_initializer(target::VectorLogPotential, ::Inputs) = target
 initialization(target::VectorLogPotential, rng::SplittableRandom, _::Int64) = 
-  rand(rng, target.reference)
+  reference_sample(rng, target)
 
 create_explorer(::VectorLogPotential, ::Inputs) = SliceSampler()
 
 create_reference_log_potential(target::VectorLogPotential, ::Inputs) = 
-    VectorLogPotential(target.target_log_potential, target.reference_log_potential, target.reference, true)
+  VectorLogPotential(target.target_log_potential, target.reference_log_potential, target.reference_sample!, true)
 
-function sample_iid!(log_potential::VectorLogPotential, replica) 
-    replica.state = initialization(log_potential, replica.rng, replica.replica_index)
-end
+sample_iid!(target::VectorLogPotential, replica) = 
+  target.reference_sample!(replica.rng, replica.state)
