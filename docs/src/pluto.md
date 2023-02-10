@@ -1,5 +1,17 @@
 # Instructions for remote Pluto execution
 
+Simplest method: connect to server via VSCode. Then 
+
+```
+julia
+using Pluto
+Pluto.run()
+```
+
+And this will open a browser window. 
+
+Longer route without VSCode:
+
 On the server:
 
 ```
