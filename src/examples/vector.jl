@@ -9,8 +9,8 @@ function Bernoulli_Normal_reference_sample!(rng, x)
 end
 
 Normal_2D(x) = logpdf(Normal(0.0, 1.0), x[1]) + logpdf(Normal(0.0, 1.0), x[2])
-Normal_2D_reference(x) = logpdf(Normalli(100.0, 1.0), x[1]) + logpdf(Normal(100.0, 1.0), x[2])
+Normal_2D_reference(x) = logpdf(Normal(10.0, 1.0), x[1]) + logpdf(Normal(10.0, 1.0), x[2])
 function Normal_2D_reference_sample!(rng, x) 
-    x[1] = rand(rng, Normal(100.0, 1.0))
-    x[2] = rand(rng, Normal(100.0, 1.0))
+    x[1] = rand(rng, Normal(10.0, 1.0))
+    x[2] = rand(rng, Normal(10.0, 1.0))
 end
