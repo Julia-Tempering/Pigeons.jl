@@ -53,48 +53,29 @@ $SIGNATURES
 Print the queue status as well as the standard out 
 and error streams (merged) for the given `machine`. 
 """
-function watch(result::Result; machine = 1, interactive = true)
+function watch(result::Result; machine = 1, last = nothing, interactive = false)
     @assert machine > 0 "using 0-index convention"
     queue_status(result)
     output_folder = "$(result.exec_folder)/1" # 1 is not a bug, i.e. not hardcoded machine 1
-    
-    while !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
-        if !interactive 
-            return 
-        end
-        print("Looking for standard out file (press enter to try again, or any key and enter to stop)")
-        x = readline()
-        if !isempty(x)
-            break
-        end
-        queue_status(result)
+
+    if !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
+        println("Job not yet started, try again later.")
+        return nothing
     end
-    println()
 
     output_file_name = find_rank_file(output_folder, machine)
     stdout_file = "$output_folder/$output_file_name/stdout"
-    
-    println("Watching machine $machine stdout:")
 
-    #run(`tail  $stdout_file`) 
-    open(stdout_file) do io    
-        while true
-            data = readline(io)
-            !isempty(data) && println(data)
-            if isempty(data)
-                if !interactive 
-                    return 
-                end
-                sleep(1)
-                print("Monitoring (press enter to try again, or any key and enter to stop)")
-                x = readline()
-                if !isempty(x)
-                    break
-                end
-            end
-        end
+    cmd = `tail`
+    if last !== nothing 
+        cmd = `$cmd -n $last`
     end
-    return stdout_file 
+    if interactive
+        cmd = `$cmd -f`
+    end
+
+    run(`$cmd $stdout_file`) 
+    return nothing 
 end
 
 
