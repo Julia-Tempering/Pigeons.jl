@@ -6,10 +6,9 @@ include("../src/examples/turing.jl")
 
 model = Pigeons.flip_model_unidentifiable()
 inputs = Inputs(
-    target = TuringLogPotential(model),
-    n_chains = 0,
-    n_chains_var_reference = 10,
-    var_reference = GaussianReference(),
+    target =  toy_mvn_target(1),
+    n_chains = 10,
+    n_chains_var_reference = 0,
     seed = 1
 )
 pt = pigeons(inputs)
