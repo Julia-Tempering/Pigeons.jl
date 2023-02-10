@@ -70,7 +70,7 @@ export pigeons, Inputs, PT,
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     # getting information out of an execution:
-    stepping_stone_pair, n_tempered_restarts, n_round_trips
+    stepping_stone_pair, n_tempered_restarts, n_round_trips,
     # variational references:
     GaussianReference, NoVarReference
 end # End module

@@ -1,7 +1,6 @@
 using Pigeons
 using Distributions
 using Random
-using Turing
 using SplittableRandoms
 
 import Pigeons: SliceSampler, slice_sample!
@@ -23,8 +22,8 @@ function test_slice_sampler_vector()
         slice_sample!(h, state, log_potential, rng)
         states[i] = copy(state)
     end
-    @assert all(abs.(mean(states) - [0.5, 0.0]) .≤ 0.2)
-    @assert all(abs.(std(states) - [0.5, 1.0]) .≤ 0.2)
+    @test all(abs.(mean(states) - [0.5, 0.0]) .≤ 0.2)
+    @test all(abs.(std(states) - [0.5, 1.0]) .≤ 0.2)
 end
 
 function test_slice_sampler_Turing()
@@ -39,7 +38,7 @@ function test_slice_sampler_Turing()
         slice_sample!(h, vi, log_potential, rng)
         states[i] = vi.metadata[1].vals[1]
     end
-    @assert abs(mean(states) - 0.5) ≤ 0.2
+    @test abs(mean(states) - 0.5) ≤ 0.2
 end
 
 function test_slice_sampler()

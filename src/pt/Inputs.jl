@@ -71,3 +71,14 @@ online_recorder_builders() = [
     energy_ac1, 
     target_online
 ]
+
+"""
+Extract the number of PT chains from `Inputs`.
+TODO: Once you implement PT with two reference distributions, update this function.
+"""
+function number_of_chains(inputs) 
+    if (inputs.n_chains > 0) && (inputs.n_chains_var_reference > 0)
+        error("Two reference distributions have not yet been implemented.")
+    end
+    (inputs.n_chains > 0) ? inputs.n_chains : inputs.n_chains_var_reference
+end

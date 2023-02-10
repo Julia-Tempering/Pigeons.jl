@@ -21,6 +21,7 @@ function update_reference!(reduced_recorders, var_reference::GaussianReference)
         var_reference.μ[var_name] = get_statistic(reduced_recorders, var_name, Mean)
         var_reference.σ[var_name] = sqrt.(get_statistic(reduced_recorders, var_name, Variance))
     end
+    println(var_reference) # debug
 end
 
 function sample_iid!(var_reference::GaussianReference, replica)
