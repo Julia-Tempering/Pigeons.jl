@@ -60,16 +60,7 @@ function pigeons(pt_arguments, mpi_submission::MPI)
         mpi_submission.n_threads,
         false
     )
-
-    # TODO: if pt_arguments is a Resume, 
-    # offer options to use it to populate mpi_configuration
-
-    #= 
-    If the julia folder is in a read-only folder from the 
-    worker nodes, need to precompile.
-    =#
-    precompile()
-
+    
     # generate qsub script
     # do job submission & record the submission id
     cmd = mpi_submission_cmd(exec_folder, mpi_submission, julia_cmd)

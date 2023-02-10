@@ -49,7 +49,6 @@ import OnlineStats._merge!
 import Random.rand! 
 import Base.(==)
 import Base.keys
-import Pkg.precompile
 import Statistics.mean 
 import Statistics.var
 
