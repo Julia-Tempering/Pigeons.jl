@@ -41,18 +41,32 @@ mutable struct Entangler
     current_received_bits::Vector{Bool} 
 
     """
-    The current micro-iteration.  
+    The current micro-iteration. Do not rely on it to 
+    count logical steps as it is reset to zero after 
+    `transmit_counter_bound` micor-iterations to avoid 
+    underflows to negative 
+    tags which cause MPI to crash. 
     """
     n_transmits::Int 
+
+    """
+    Calculated from MPI.tag_ub and n_global_indices to 
+    ensure MPI tags stay valid (i.e. do not overflow into 
+    negative values).
+    """
+    transmit_counter_bound::Int
 
     """
     If `parent_communicator` is `nothing`, then assume there is only 
     one machine (self) and bypass MPI.
     """
-    function Entangler(n_global_indices::Int; parent_communicator::Union{Comm,Nothing} = COMM_WORLD, verbose::Bool = true)
+    function Entangler(n_global_indices::Int; 
+            parent_communicator::Union{Comm,Nothing} = COMM_WORLD, 
+            verbose::Bool = true)
         if parent_communicator === nothing
             # do everything locally (no network comm)
             comm = nothing
+            transmit_counter_bound = 2^40
             my_process_index = 1
             n_processes = 1
             if verbose
@@ -61,6 +75,7 @@ mutable struct Entangler
         else
             Init(threadlevel = :funneled) 
             comm = Comm_dup(parent_communicator)
+            transmit_counter_bound = ceil(Int, tag_ub() / n_global_indices - 2)
             my_process_index = Comm_rank(comm) + 1
             n_processes = Comm_size(comm)
             if verbose && my_process_index == 1
@@ -70,7 +85,7 @@ mutable struct Entangler
   
         lb = LoadBalance(my_process_index, n_processes, n_global_indices)
         received_bits = Vector{Bool}(undef, my_load(lb))
-        return new(comm, lb, received_bits, 0)
+        return new(comm, lb, received_bits, 0, transmit_counter_bound)
     end
 end
 
@@ -300,6 +315,24 @@ end
 # A transmit index keeps track of the micro-iteration.
 # Each micro iteration contains several pairwise communications
 function next_transmit_index!(e::Entangler)::Int
+    # avoid "MPIError(4): MPI_ERR_TAG: invalid tag" due to overflow to negative
+    if e.n_transmits > e.transmit_counter_bound
+        e.n_transmits = 0
+        if e.load.my_process_index == 1
+            @info   """
+                    To avoid MPI tag overflow, looping back to tag zero.
+                    This will not cause problems unless micro-iterations 
+                    across different machines can overlap by more 
+                    than transmit_counter_bound micro-iterations
+                    (here $(e.transmit_counter_bound) micro-iterations). For 
+                    example, in non-reversible PT, that cannot happen 
+                    when, e.g., 2x the number of chains (i.e. 2 x the number of 
+                    global indices, here $(2 * e.load.n_global_indices)) 
+                    is smaller than the transmit_counter_bound 
+                    (here $(e.transmit_counter_bound)).
+                    """ # TODO: double-check and write the proof
+        end
+    end
     result = e.n_transmits
     e.n_transmits += 1
     return result
