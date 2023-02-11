@@ -4,6 +4,7 @@ using Random
 using SplittableRandoms
 
 include("../src/examples/turing.jl")
+include("../src/examples/vector.jl")
 
 """
 Run from runtests.jl
@@ -11,35 +12,55 @@ Run from runtests.jl
 
 function test_var_reference_Turing()
     model = Pigeons.flip_model_unidentifiable()
-
+    
     # Check NoVarReference()
     inputs = Inputs(
-        target = TuringLogPotential(model),
-        n_chains = 10,
-        n_chains_var_reference = 0,
-        seed = 1
+    target = TuringLogPotential(model),
+    n_chains = 10,
+    n_chains_var_reference = 0,
+    seed = 1
     )
     @test_nothrow pt = pigeons(inputs)
-
+    
     # Check GaussianReference()
     inputs = Inputs(
-        target = TuringLogPotential(model),
-        n_chains = 0,
-        n_chains_var_reference = 10,
-        var_reference = GaussianReference(),
-        seed = 1
+    target = TuringLogPotential(model),
+    n_chains = 0,
+    n_chains_var_reference = 10,
+    var_reference = GaussianReference(),
+    seed = 1
     )
     @test_nothrow pt = pigeons(inputs)
 end
+
 
 function test_var_reference_vector()
+    target = VectorLogPotential(
+        Normal_2D,
+        Normal_2D_reference,
+        Normal_2D_reference_sample!,
+        2
+    )
+    
     # Check NoVarReference()
-    @test_nothrow 1 == 1
-
+    inputs = Inputs(
+    target                  = target,
+    n_chains                = 10,
+    n_chains_var_reference  = 0,
+    seed                    = 1
+    )
+    @test_nothrow pt = pigeons(inputs)
+    
     # Check GaussianReference()
-    @test_nothrow 1 == 1
+    inputs = Inputs(
+    target                  = target,
+    n_chains                = 0,
+    n_chains_var_reference  = 10,
+    seed                    = 1,
+    var_refrence            = GaussianReference()
+    )
+    @test_nothrow pt = pigeons(inputs)
 end
-
 
 
 function test_var_reference()

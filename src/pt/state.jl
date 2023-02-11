@@ -42,7 +42,7 @@ discrete_variables(state::Array) = []
 update_state!(state::Array, name::Symbol, index, value) = (state[name][index] = value)
 function variable(state::Array, name::Symbol)
     if name === :singleton_variable
-        state 
+        state
     else
         error()
     end

@@ -35,7 +35,7 @@ end
 An *allocating* version of reference_sample!() that does not need to accept a `state`.
 """
 function reference_sample(rng, target::VectorLogPotential) 
-    state = Vector{Any}(undef, target.dim)
+    state = Vector{Number}(undef, target.dim)
     target.reference_sample!(rng, state)
     return state
 end

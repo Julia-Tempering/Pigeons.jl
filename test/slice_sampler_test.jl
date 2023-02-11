@@ -15,7 +15,7 @@ function test_slice_sampler_vector()
     rng = SplittableRandom(1)
     log_potential = (x) -> logpdf(Bernoulli(0.5), x[1]) + logpdf(Normal(0.0, 1.0), x[2])
     h = SliceSampler()
-    state = Any[0, 0.0]
+    state = Number[0, 0.0]
     n = 1000
     states = Vector{typeof(state)}(undef, n)
     for i in 1:n
