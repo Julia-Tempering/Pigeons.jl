@@ -77,6 +77,13 @@ blang_sitka() = blang_sitka(`
         --model.samplerOptions.useMiniMoves true
     `)
 
+blang_unid(model_options = "") = 
+    BlangTarget(
+        `$(blang_executable("blangDemos", "demos.UnidentifiableProduct")) $model_options`
+    )
+
+
+
 """ 
 $SIGNATURES 
 
@@ -97,6 +104,18 @@ blang_ising(model_options) =
     BlangTarget(
         `$(blang_executable("blangDemos", "blang.validation.internals.fixtures.Ising")) $model_options`
     )
+
+blang_bhcd(model_options) = 
+    BlangTarget(
+        `$(blang_executable("blangBHCD", "bhcd.BHCD")) $model_options`
+    )
+
+blang_bhcd() = blang_bhcd(`
+    --model.graph.file $(blang_repo_path("blangBHCD"))/data/metabolic/links_tpa_reduced.csv 
+    --treatNaNAsNegativeInfinity true 
+    --checkIsDAG false 
+    --model.variant BINOM
+`)
 
 """
 $SIGNATURES 

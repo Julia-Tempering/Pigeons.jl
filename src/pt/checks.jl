@@ -23,8 +23,8 @@ function run_checks(pt)
     end
 
     only_one_process(pt) do
-        #check_serialization(pt) # TODO: check immutables do not change, etc
         check_against_serial(pt)
+        #check_serialization(pt) # TODO: check immutables do not change, etc
     end
 end
 
@@ -39,10 +39,18 @@ function check_against_serial(pt)
     parallel_checkpoint = "$(pt.exec_folder)/round=$round/checkpoint"
     
     # run a serial copy
+    dependencies = 
+        if isfile("$(pt.exec_folder)/.dependencies.jls")
+            # this process was itself spawn using ChildProcess/MPI 
+            # so use the same dependencies as this process 
+            deserialize("$(pt.exec_folder)/.dependencies.jls")
+        else
+            []
+        end
     serial_pt_inputs = deepcopy(pt.inputs)
     serial_pt_inputs.n_rounds = round 
     serial_pt_inputs.checked_round = 0 # <- otherwise infinity loop
-    serial_pt_result = pigeons(serial_pt_inputs, on = ChildProcess(n_threads = 1, wait = true))
+    serial_pt_result = pigeons(serial_pt_inputs, on = ChildProcess(; n_threads = 1, wait = true, dependencies))
     serial_checkpoint = "$(serial_pt_result.exec_folder)/round=$round/checkpoint"
 
     # compare the serialized files
@@ -65,10 +73,15 @@ function compare_serialized(file1, file2)
     if first != second
         error(
             """
-            detected non-reproducibility, to investigate: use
-            using Serialization
-            first  = deserialize("$file1");
-            second = deserialize("$file2");
+            detected non-reproducibility, to investigate, type in the REPL:
+            ─────────────────────────────────
+             using Serialization
+             first  = deserialize("$file1");
+             second = deserialize("$file2");
+            ─────────────────────────────────
+            If you are using custom stuct, either mutable or containing 
+            mutables, you may just need to add custom ==, see 
+            src/pt/checks.jl.
             """
         )
     end
@@ -76,17 +89,24 @@ end
 
 function Base.:(==)(a::GroupBy, b::GroupBy) 
     # as of Jan 2023, OnlineStat uses a default method of 
-    # descending into the fields, somehow not valid for GroupBy
-    if a.value != b.value 
+    # descending into the fields, which is somehow not valid for GroupBy, 
+    # probably due to undeterminism of underlying OrderedCollections.OrderedDict
+    common_keys = keys(a)
+    if common_keys != keys(b)
         return false
     end
-    for key in keys(a.value) 
-        if a[key] != b[key] 
+    for key in common_keys
+        if a[key] != b[key]
             return false
         end
     end
     return true
 end
+
+# CovMatrix contains a cache matrix, which is NaN until value(.) is called
+Base.:(==)(a::CovMatrix, b::CovMatrix) = value(a) == value(b)
+
+Base.keys(a::GroupBy) = keys(a.value)
 
 function Base.:(==)(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
     # as of Jan 2023, DynamicPPL does not supply == for TypedVarInfo
@@ -111,7 +131,9 @@ TODO: in the future, add an optional get_hash() in the Stream protocol
 to improve this.
 =#
 Base.:(==)(a::StreamState, b::StreamState) = true
+Base.:(==)(a::NonReproducible, b::NonReproducible) = true
 
+# TODO: maybe move this to a sub-module in which == is nicer by default?
 # mutable (incl imm with mut fields) structs do not have a nice ===, overload those:
 Base.:(==)(a::SplittableRandom, b::SplittableRandom) = recursive_equal(a, b)
 Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b)    
@@ -126,7 +148,9 @@ Base.:(==)(a::DynamicPPL.Model, b::DynamicPPL.Model) = recursive_equal(a, b)
 Base.:(==)(a::DynamicPPL.ConditionContext, b::DynamicPPL.ConditionContext) = recursive_equal(a, b)
 Base.:(==)(a::TuringLogPotential, b::TuringLogPotential) = recursive_equal(a, b)
 Base.:(==)(a::InterpolatedLogPotential, b::InterpolatedLogPotential) = recursive_equal(a, b)
-
+Base.:(==)(a::RoundTripRecorder, b::RoundTripRecorder) = recursive_equal(a, b)
+Base.:(==)(a::OnlineStateRecorder, b::OnlineStateRecorder) = recursive_equal(a, b)
+Base.:(==)(a::LocalBarrier, b::LocalBarrier) = recursive_equal(a, b)
 
 function recursive_equal(a::T, b::T) where {T}
     for f in fieldnames(T)

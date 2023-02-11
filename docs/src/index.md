@@ -94,7 +94,7 @@ nothing # hide
 ```
 
 This runs PT on a 100-dimensional MVN toy example with 10 chains 
-for ``2047 = 2^11 - 1`` iterations, and 
+for ``2047 = 2^{11} - 1`` iterations, and 
 returns a [`PT`](@ref) struct containing the results of 
 this run (more later on how to access information inside 
 a PT struct). Each line in the output provides information on a *round*, where the number of iteration 
@@ -159,7 +159,7 @@ Then we can access the information via:
 p.reduced_recorders.index_process
 
 using Plots
-Pigeons.index_process_plot(p.reduced_recorders);
+plot(p.reduced_recorders.index_process);
 savefig("index_process_plot.svg"); 
 nothing # hide
 ```
@@ -357,7 +357,7 @@ posterior distributions of unidentifiable models. However, Pigeons excels in thi
 compared to traditional samplers.
 
 First, we define the Turing model.
-```@example Turing
+```@example Turing_Pigeons
 using Turing
 
 # *Unidentifiable* unconditioned coinflip model with `N` observations.
@@ -380,7 +380,7 @@ end
 Once we have defined our Turing model, it is straightforward to sample from the posterior distribution of `p1` and `p2` as follows:
 ```@example Turing_Pigeons
 using Pigeons
-model = Pigeons.flip_model_unidentifiable()
+model = flip_model_unidentifiable()
 pt = pigeons(target = TuringLogPotential(model));
 nothing # hide
 ```

@@ -52,10 +52,15 @@ function communication_barriers(intensity::AbstractVector, schedule::AbstractVec
     x = schedule
     y = [0; cumsum(intensity)]
     cumulativebarrier = Interpolations.interpolate(x, y, FritschCarlsonMonotonicInterpolation())
-    localbarrier(beta) = Interpolations.gradient(cumulativebarrier, beta)[1]
+    localbarrier = LocalBarrier(cumulativebarrier)
     globalbarrier = sum(intensity)
     return (; localbarrier, cumulativebarrier, globalbarrier)
 end
+
+@concrete struct LocalBarrier
+    cumulativebarrier
+end
+(barrier::LocalBarrier)(beta) = Interpolations.gradient(barrier.cumulativebarrier, beta)[1]
 
 is_intensity(x::AbstractArray{T}) where {T} = all(≥(zero(T)), x)
 

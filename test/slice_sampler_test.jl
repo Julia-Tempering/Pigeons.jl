@@ -6,7 +6,7 @@ using SplittableRandoms
 
 import Pigeons: SliceSampler, slice_sample!
 
-include("../src/examples/turing.jl")
+include("turing.jl")
 
 """
 Run from runtests.jl

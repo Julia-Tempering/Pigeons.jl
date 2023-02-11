@@ -14,19 +14,12 @@ function pigeons(pt::PT)
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders)
-        report(pt, reduced_recorders)
-        write_checkpoint(pt, reduced_recorders) 
+        report(pt)
+        write_checkpoint(pt) 
         run_checks(pt)
     end
     return pt 
 end
-
-"""
-$SIGNATURES 
-
-Report summary information on the progress of [`pigeons()`](@ref).
-"""
-report(pt, reduced_recorders) = nothing # TODO
 
 """
 $SIGNATURES 
@@ -47,10 +40,11 @@ contained in the provided [`PT`](@ref).
 function run_one_round!(pt)
     explorer = pt.shared.explorer
     multithreaded = multithreaded_flag(pt.inputs.multithreaded)
-    @time while next_scan!(pt)
+    timed = @timed while next_scan!(pt)
         explore!(pt, explorer, multithreaded)
         communicate!(pt)
     end
+    record_timed_if_requested!(pt, :round, timed)
     return reduce_recorders!(pt.replicas)
 end
 
@@ -88,7 +82,7 @@ explore!(pt, explorer, multithreaded_flag::Val{true}) =
 $SIGNATURES
 
 The `@threads` macro brings a large overhead even 
-when `Threads.nthreads == 1`, so a separate method 
+when `Threads.nthreads == 1` (!), so a separate method 
 is used for the single thread mode.
 """
 explore!(pt, explorer, multithreaded::Val{false}) =
@@ -100,12 +94,29 @@ multithreaded_flag(flag) = Val(flag && Threads.nthreads() > 1)
 
 function explore!(pt, replica, explorer)
     log_potential = find_log_potential(replica, pt.shared)
-    if is_reference(replica.chain, pt.shared)
+    before = eval_if_ac_requested(log_potential, replica)
+    if is_reference(pt.shared.tempering.swap_graphs, replica.chain)
         sample_iid!(log_potential, replica)
     else
         step!(explorer, replica, pt.shared)
     end
+    process_ac!(log_potential, replica, before)
+    if is_target(pt.shared.tempering.swap_graphs, replica.chain)
+        record_if_requested!(replica.recorders, :target_online, replica.state)
+    end 
 end
+
+eval_if_ac_requested(log_potential, replica) = 
+    haskey(replica.recorders, :energy_ac1) ?
+        log_potential(replica.state) :
+        0.0 
+
+process_ac!(log_potential, replica, before) =
+    if haskey(replica.recorders, :energy_ac1)
+        after = log_potential(replica.state)
+        record!(replica.recorders[:energy_ac1], (replica.chain, SVector(before, after)))
+    end
+
 
 """
 $SIGNATURES 
@@ -123,6 +134,3 @@ function adapt(pt, reduced_recorders)
     updated_replicas = pt.replicas # TODO: adapt too? e.g. assign to closest from previous, leveraging checkpoints?
     return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder, reduced_recorders)
 end
-
-is_reference(chain, shared) = 
-    chain in reference_chains(shared.tempering.swap_graphs, shared)

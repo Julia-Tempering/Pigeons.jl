@@ -15,9 +15,9 @@ function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
             partner_swap_stat = partner_chain == my_chain ? 
                 my_swap_stat :
                 swap_stat(pair_swapper, partner_replica, my_chain)
-            _swap!(pair_swapper, my_replica,      my_swap_stat,      partner_swap_stat, partner_chain)
+            _swap!(pair_swapper, my_replica,      my_swap_stat,      partner_swap_stat, partner_chain, swap_graph)
             if partner_chain != my_chain
-            _swap!(pair_swapper, partner_replica, partner_swap_stat, my_swap_stat,      my_chain)
+            _swap!(pair_swapper, partner_replica, partner_swap_stat, my_swap_stat,      my_chain, swap_graph)
             end
         end
     end
@@ -93,7 +93,7 @@ function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
     lb = load(replicas)
     for i in eachindex(replicas.locals)
         @assert find_global_index(lb, i) === replicas.locals[i].replica_index
-        _swap!(pair_swapper, replicas.locals[i], my_swap_stats[i], partner_swap_stats[i], partner_chains[i])
+        _swap!(pair_swapper, replicas.locals[i], my_swap_stats[i], partner_swap_stats[i], partner_chains[i], swap_graph)
     end
 
     # update the distributed array mapping chains to replicas
@@ -101,27 +101,14 @@ function swap!(pair_swapper, replicas::EntangledReplicas, swap_graph)
     permuted_set!(replicas.chain_to_replica_global_indices, chain.(replicas.locals), my_replica_global_indices)
 end
 
-"""
-$SIGNATURES
-
-Given a [`recorders`](@ref), create an index process plot.
-"""
-function index_process_plot(recorders)
-    index_process = recorders.index_process
-    p = plot()
-    for i in eachindex(index_process)
-        p = plot!(p, index_process[i], legend = false)
-    end
-    return p
-end
-
 # Private low-level functions shared by all implementations
 
-function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partner_chain::Int)
+function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partner_chain::Int, swap_graph)
     my_chain = r.chain
 
     # keep track of index process even if not performing swap
     record_if_requested!(r.recorders, :index_process, (r.replica_index, r.chain))
+    record_if_requested!(r.recorders, :round_trip, (is_reference(swap_graph, r.chain), is_target(swap_graph, r.chain)))
 
     if my_chain == partner_chain return nothing end
 

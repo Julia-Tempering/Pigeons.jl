@@ -1,14 +1,30 @@
 using Pigeons
+using Pkg
+
+#=
+Rationale for this hack:
+- putting those in the [extras] section will lead to ChildProcess not 
+  having access to it
+- the other method, a second toml file, seems more promising but 
+  proved challenging to get to work on CI
+=#
+for i in ["Test", "LinearAlgebra", "Turing", "ArgMacros", "Plots"]
+    Pkg.add(i)
+end
+
 using Test
 using Distributions
 using Random
+using Statistics
 using OnlineStats
+using LinearAlgebra
+using Turing
 using SplittableRandoms
 import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
                 find_process, split_slice
 
 include("slice_sampler_test.jl")
-
+include("turing.jl")
 
 function test_load_balance(n_processes, n_tasks)
     for p in 1:n_processes
@@ -29,33 +45,80 @@ end
     @test abs(p[2] - truth) < 1
 end
 
+@testset "Round trips" begin
+    n_chains = 4
+    n_rounds = 5
+    
+    pt = pigeons(; target = Pigeons.TestSwapper(1.0), recorder_builders = [Pigeons.round_trip], n_chains, n_rounds);
+    
+    len = 2^(n_rounds)
+    truth = 0.0
+    for i in 0:(n_chains-1)
+        truth += floor(max(len - i, 0) / n_chains / 2)
+    end
+
+    @test truth == Pigeons.n_round_trips(pt)
+end
+
+@testset "Moments" begin
+    pt = pigeons(target = toy_mvn_target(2), recorder_builders = [Pigeons.target_online], n_rounds = 20);
+    for var_name in Pigeons.continuous_variables(pt)
+        m = mean(pt, var_name)
+        for i in eachindex(m)
+            @test abs(m[i] - 0.0) < 0.001
+        end
+        v = var(pt, var_name) 
+        for i in eachindex(v) 
+            @test abs(v[i] - 0.1) < 0.001 
+        end
+    end
+end
 
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
+    recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
     # Turing:
     pigeons(
-        target = TuringLogPotential(Pigeons.flip_model_unidentifiable()), 
+        target = TuringLogPotential(flip_model_unidentifiable()), 
         n_rounds = 4,
         checked_round = 3, 
-        multithreaded = true, 
+        multithreaded = true,
+        recorder_builders = recorder_builders,
         checkpoint = true, 
         on = ChildProcess(
+                dependencies = [Turing, LinearAlgebra, "turing.jl"],
                 n_local_mpi_processes = n_mpis,
                 n_threads = 2))
     # Blang:
     if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
         Pigeons.setup_blang("blangDemos")
-        pigeons(
+        pigeons(; 
             target = Pigeons.blang_ising(), 
             n_rounds = 4,
             checked_round = 3, 
+            recorder_builders = recorder_builders, 
             multithreaded = true, 
             checkpoint = true, 
             on = ChildProcess(
                     n_local_mpi_processes = n_mpis,
                     n_threads = 2))
     end
-    # NB: toy MVN already tested in the doc 
+end
+
+@testset "Longer MPI" begin
+    n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
+    recorder_builders = []
+    pigeons(
+        target = toy_mvn_target(1), 
+        n_rounds = 12,
+        checked_round = 12, 
+        n_chains = 200,
+        multithreaded = false,
+        recorder_builders = recorder_builders,
+        checkpoint = true, 
+        on = ChildProcess(
+                n_local_mpi_processes = n_mpis,
+                n_threads = 1)) 
 end
 
 @testset "Entanglement" begin

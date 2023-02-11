@@ -8,7 +8,8 @@ import MPI: Comm, Allreduce, Comm_rank,
             Comm_dup, Request, Waitall,
             RequestSet, mpiexec, Allreduce, 
             Allgather, Comm_split, isend, recv,
-            bcast
+            bcast, tag_ub
+
      
 using Base: Forward
 using Distributions
@@ -19,7 +20,6 @@ using Dates
 using OnlineStats
 using MacroTools
 using DocStringExtensions
-using Plots
 using LinearAlgebra
 using SpecialFunctions
 using Serialization
@@ -31,6 +31,10 @@ using Preferences
 using MPIPreferences
 using Expect
 using LogExpFunctions
+using StaticArrays
+using Printf
+using Statistics
+using RecipesBase
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -44,24 +48,27 @@ import OnlineStats.value
 import OnlineStats._merge!
 import Random.rand! 
 import Base.(==)
-import Pkg.precompile
+import Base.keys
+import Statistics.mean 
+import Statistics.var
 
 import DynamicPPL
-using Turing
 
 const use_auto_exec_folder = ""
 
 include("includes.jl")
 
 export pigeons, Inputs, PT, 
-    Result, 
+    # methods for running jobs:
     ChildProcess, MPI,
-    toy_mvn_target,
-    index_process, swap_acceptance_pr, log_sum_ratio,
-    load,
-    setup_mpi, queue_status, kill_job, watch,
-    TuringLogPotential, 
-    stepping_stone_pair
+    # targets:
+    toy_mvn_target, TuringLogPotential,
+    # recorders:
+    index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, 
+    # utils to run on scheduler:
+    Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
+    # getting information out of an execution
+    stepping_stone_pair, n_tempered_restarts, n_round_trips
 
 end # End module
 

@@ -38,7 +38,7 @@ We use the terminology chain to refer to an index ``i`` of ``\pi_i``.
 Typically, ``\pi_N`` coincides with the distribution of interest ``\pi`` (called the "target"), while 
 ``\pi_1`` is a tractable approximation that will help PT efficiently explore the 
 state space (called the "reference"). 
-More broadly, we assume a subset of the chains (given by [`target_chains()`](@ref)) coincide with the target, and that a subset of the chains (given by [`reference_chains()`](@ref)) support 
+More broadly, we assume a subset of the chains (determined by [`is_target()`](@ref)) coincide with the target, and that a subset of the chains (determined by  [`is_reference()`](@ref)) support 
 efficient exploration such as i.i.d. sampling or a rapid mixing kernel. 
 
 PT is designed so that its stationary distribution is ``\boldsymbol{\pi} = \pi_1 \times \pi_2 \times \dots \pi_N``. 
@@ -145,7 +145,8 @@ to save the full index process, use:
 ```@example recorders
 using Pigeons
 
-pt = pigeons(target = toy_mvn_target(1), recorder_builders = [index_process])
+pt = pigeons(target = toy_mvn_target(1), recorder_builders = [index_process]);
+nothing # hide
 ```
 You can then access the index process via 
 ```@example recorders

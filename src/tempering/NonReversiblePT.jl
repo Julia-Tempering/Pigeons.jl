@@ -16,6 +16,15 @@ $FIELDS
 
     """ The [`swap_graphs`](@ref). """
     swap_graphs
+
+    """ 
+    The communication barriers computed by 
+    [`communication_barriers()`](@ref) at the 
+    same time as this tempering was created; or 
+    nothing before adaptation, i.e. before the 
+    first call to [`adapt_tempering`](@ref).
+    """
+    communication_barriers
 end
 
 Base.show(io::IO, nrpt::NonReversiblePT) = 
@@ -31,13 +40,13 @@ function NonReversiblePT(inputs::Inputs)
     n_chains = inputs.n_chains
     path = create_path(inputs.target, inputs)
     initial_schedule = equally_spaced_schedule(n_chains)
-    return NonReversiblePT(path, initial_schedule)
+    return NonReversiblePT(path, initial_schedule, nothing)
 end
 
-function NonReversiblePT(path, schedule)
+function NonReversiblePT(path, schedule, communication_barriers)
     log_potentials = discretize(path, schedule)
     swap_graphs = deo(n_chains(schedule))
-    return NonReversiblePT(path, schedule, log_potentials, swap_graphs)
+    return NonReversiblePT(path, schedule, log_potentials, swap_graphs, communication_barriers)
 end
 
 adapt_tempering(tempering::NonReversiblePT, reduced_recorders) =
@@ -45,8 +54,10 @@ adapt_tempering(tempering::NonReversiblePT, reduced_recorders) =
         tempering.path, 
         optimal_schedule(
             reduced_recorders, 
-            tempering.schedule
-        )
+            tempering.schedule), 
+        communication_barriers(
+            reduced_recorders, 
+            tempering.schedule)
     )
 
 tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]
