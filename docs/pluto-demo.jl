@@ -17,11 +17,11 @@ end
 # ╔═╡ 8ff27bee-c6e5-48c1-9a4c-1b999674f6b4
 # ╠═╡ show_logs = false
 begin
-    import Pkg
-    Pkg.activate()
+	import Pkg
+	Pkg.activate()
 
 	using PlutoUI
-    using Plots
+	using Plots
 	using Statistics
 	using Revise
 	
@@ -29,7 +29,6 @@ begin
 	Pkg.resolve()
 	using Pigeons 
 	plotly()
-	
 end
 
 # ╔═╡ cee9aed2-766f-4338-8599-666496eb1b47
