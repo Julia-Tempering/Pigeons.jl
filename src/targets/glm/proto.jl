@@ -65,14 +65,29 @@ end
 function bench(n, p)
     design, transp, params = bench_fixtures(n, p)
 
-    @time value_direct = direct(transp, params)
+    t1 = @timed value_direct = direct(transp, params)
     cached = CachedParameters(design, params)
-    @time begin
+    t2 = @timed begin
         for j in 1:p 
             update(cached, j, params[j])
         end
     end
-    
-    println("$value_direct $(value(cached))")
+
     @assert value_direct ≈ value(cached)
+
+    return t1.time / (t2.time/p)
+end
+
+# quick viz using heatmap(log10.(Pigeons.speedups_matrix(13, 13)))
+# rows are increasing n, columns, increasing p
+function speedups_matrix(x, y)
+    speedups = zeros(x, y)
+    for i in 1:x
+        for j in 1:y
+            n = 2^i 
+            p = 2^j 
+            speedups[i, j] = bench(n, p)
+        end
+    end
+    speedups
 end
