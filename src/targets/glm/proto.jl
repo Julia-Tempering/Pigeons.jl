@@ -1,4 +1,4 @@
-non_linearity(x::Float64) = log(1.0 + exp(x)) # for now, just the normalizer, rest is much easier
+non_linearity(x) = log1pexp(x) # for now, just the normalizer, rest is much easier
 
 @concrete struct CachedParameters
     n::Int
@@ -44,9 +44,9 @@ function direct(transposed_design::Matrix, vector)
     n = size(transposed_design, 1)
     p = size(transposed_design, 2)
     @assert length(vector) == p
-    result::Float64 = 0.0 
+    result = 0.0 
     for i in 1:n
-        sum::Float64 = 0.0
+        sum = 0.0
         for j in 1:p
             sum += transposed_design[i, j] * vector[j]
         end
@@ -55,11 +55,15 @@ function direct(transposed_design::Matrix, vector)
     return result
 end
 
-function bench(n, p)
-    # build a matrix 
+function bench_fixtures(n, p)
     design = rand(p, n)
     transp = copy(transpose(design))
     params = rand(p) 
+    return design, transp, params
+end
+
+function bench(n, p)
+    design, transp, params = bench_fixtures(n, p)
 
     @time value_direct = direct(transp, params)
     cached = CachedParameters(design, params)
@@ -70,4 +74,5 @@ function bench(n, p)
     end
     
     println("$value_direct $(value(cached))")
+    @assert value_direct ≈ value(cached)
 end
