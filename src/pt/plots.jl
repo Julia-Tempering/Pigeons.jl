@@ -13,6 +13,11 @@ A plot `@recipe` for an index process.
     return nothing
 end
 
+"""
+$SIGNATURES
+
+A plot `@recipe` for a [`LocalBarrier`](@ref). 
+"""
 @recipe function plot_local_barrier(barrier::LocalBarrier)
     xlabel --> "β"
     ylabel --> "λ(β)" 
@@ -21,11 +26,3 @@ end
     y = barrier.(x)
     return x, y
 end  
-
-# @recipe function plot_local_barrier(barrier::LocalBarrier)
-#     return plot_barrier(barrier)
-# end
-
-# @recipe function plot_global_barrier(barrier::Interpolations.MonotonicInterpolation)
-#     return plot_barrier(barrier)
-# end

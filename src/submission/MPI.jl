@@ -40,7 +40,7 @@ $FIELDS
     (if of type `String`) needed by the child 
     process. 
     """
-    dependencies::Vector{Module} = []
+    dependencies::Vector{Any} = []
 end
 
 """

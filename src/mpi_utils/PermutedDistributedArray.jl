@@ -3,7 +3,7 @@ A distributed array making special assumptions on how
 it will be accessed and written to. 
 The indices of this distributed array correspond to the 
 notion of "global indices" defined in [`LoadBalance`](@ref). 
-Several MPI processes cooperate, each processing storing 
+Several MPI processes cooperate, each process storing 
 data for a slice of this distributed array. 
 
 We make the following assumptions:

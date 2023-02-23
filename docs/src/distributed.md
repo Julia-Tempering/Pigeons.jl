@@ -63,7 +63,7 @@ Two factors tend to cause violations of Parallelism Invariance:
     random number generators in current languages).
 - [Non-associativity of floating point operations](https://en.wikipedia.org/wiki/Associative_property#:~:text=non%2Dassociative%20magmas.-,Nonassociativity%20of%20floating%20point%20calculation,sized%20values%20are%20joined%20together). As a result, when several workers 
     perform [Distributed reduction](https://en.wikipedia.org/wiki/MapReduce) of 
-    floating point values, the output of this reduction will be slightly different. 
+    floating point values, the output of this reduction will be slightly different depending on the number of workers. 
     When these reductions are then fed into further random operations, this implies 
     two randomized algorithms with the same seed but using a different number of workers 
     will eventually arbitrarily diverge pointwise. 

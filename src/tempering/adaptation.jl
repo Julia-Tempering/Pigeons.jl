@@ -57,6 +57,10 @@ function communication_barriers(intensity::AbstractVector, schedule::AbstractVec
     return (; localbarrier, cumulativebarrier, globalbarrier)
 end
 
+""" 
+A local communication barrier (obtained by storing 
+a cumulative barrier and differentiating it).
+"""
 @concrete struct LocalBarrier
     cumulativebarrier
 end

@@ -20,10 +20,6 @@ $FIELDS
     process. 
     """
     dependencies::Vector{Any} = []
-    # eventually, detect & save which 
-    # modules should be loaded? E.g. could use 
-    #    https://stackoverflow.com/questions/25575406/list-of-loaded-imported-packages-in-julia
-    #    see filter((x) -> typeof(eval(x)) <:  Module && x ≠ :Main, names(Main,imported=true))
 
     """
     If greater than one, run the code locally 
