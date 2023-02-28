@@ -108,12 +108,8 @@ call_sampler!(log_potential::StreamPotential, state::StreamState) =
         "call_sampler!($(log_potential.beta))"
     )
 
-# hack to convert UInt64 to Long; not in a loop so ok, 
-# but fixme at some point
-function java_seed(rng::SplittableRandom) 
-    result = "$(rand(split(rng), UInt64))"
-    return result[1:(length(result) - 1)]
-end
+# convert a random UInt64 to positive Int64/Java-Long
+java_seed(rng::SplittableRandom) = (rand(split(rng), UInt64) >>> 1) % Int64
 
 #=
 Simple stdin/stdout text-based protocol. 
