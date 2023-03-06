@@ -7,6 +7,8 @@ non_linearity(x) = log1pexp(x) # for now, just the normalizer, rest is much easi
     data   # stored as n x p
 end 
 
+Random.seed!(3);
+
 function CachedParameters(design::Matrix, params::Vector) 
     p, n = size(design)
     @assert length(params) == p 
@@ -19,6 +21,7 @@ function CachedParameters(design::Matrix, params::Vector)
 end
 
 value(cached) = cached.caches[cached.p + cached.n + 1]
+
 
 function update(cached, entry::Int, new_value)
     @assert 1 ≤ entry ≤ cached.p
@@ -61,6 +64,16 @@ function bench_fixtures(n, p)
     params = rand(p) 
     return design, transp, params
 end
+
+n = 170
+p = 210
+design, transp, params = bench_fixtures(n, p)
+cp = CachedParameters(design, params)
+
+# non_linearity(design[1,1]*params[1]) + non_linearity(design[1,2] * params[1])
+
+
+println("proto1 = $(value(cp))")
 
 function bench(n, p)
     design, transp, params = bench_fixtures(n, p)
