@@ -75,7 +75,7 @@ mutable struct Entangler
         else
             init_mpi()
             comm = Comm_dup(parent_communicator)
-            transmit_counter_bound = ceil(Int, tag_ub() / n_global_indices / 2)
+            transmit_counter_bound = ceil(Int, tag_ub() / n_global_indices - 2)
             my_process_index = Comm_rank(comm) + 1
             n_processes = Comm_size(comm)
             if verbose && my_process_index == 1
