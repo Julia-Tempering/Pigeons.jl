@@ -116,19 +116,30 @@ function init_state(data)
     return (; param, data, dotprod, result)
 end
 
-ns = 1:n
+const vd = Variable(:dotprod) 
+const vr = Variable(:result)
 
 function proto3_update(cache, buffer, orderings, entry::Int, new_value)
     setup_buffer(Variable(:dotprod), orderings[entry], cache, buffer)
-    setup_buffer(Variable(:result), ns, cache, buffer)
+    setup_buffer(Variable(:result), 1:n, cache, buffer)
     cache.param[entry] = new_value
     update(Variable(:dotprod), orderings[entry], cache, buffer)
-    update(Variable(:result), ns, cache, buffer) 
+    update(Variable(:result), 1:n, cache, buffer) 
+end
+
+const ns_ = 1:n
+
+function proto3_update3(cache, buffer, orderings_slice, entry::Int, new_value)
+    setup_buffer(Variable(:dotprod), orderings_slice, cache, buffer)
+    setup_buffer(Variable(:result), ns_, cache, buffer)
+    cache.param[entry] = new_value
+    update(Variable(:dotprod), orderings_slice, cache, buffer)
+    update(Variable(:result), ns_, cache, buffer) 
 end
 
 function proto3_initialize(cache, orderings)
-    initialize(Variable(:dotprod), orderings[entry], cache)
-    initialize(Variable(:result), 1:n, cache) 
+    initialize(vd, orderings[1], cache)
+    initialize(vr, 1:n, cache) 
 end
 
 function proto3_fixtures(data)
