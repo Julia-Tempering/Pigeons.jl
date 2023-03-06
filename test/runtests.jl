@@ -12,6 +12,9 @@ Rationale for this hack:
 #     Pkg.add(i)
 # end
 
+using MPIPreferences
+MPIPreferences.use_jll_binary("OpenMPI_jll")
+
 using Test
 using Distributions
 using Random
