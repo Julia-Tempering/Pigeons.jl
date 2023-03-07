@@ -105,7 +105,7 @@ mpi_active() =
         Comm_size(COMM_WORLD) > 1
     end
 
-init_mpi() = Init(threadlevel = :funneled)
+init_mpi() = Init(threadlevel = :multiple)
 
 """
 $SIGNATURES
