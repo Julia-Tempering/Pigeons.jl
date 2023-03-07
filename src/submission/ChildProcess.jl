@@ -62,7 +62,7 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         run(julia_cmd, wait = new_process.wait)
     else
         mpiexec() do exe
-            mpi_cmd = `$exe -n $(new_process.n_local_mpi_processes)`
+            mpi_cmd = `$exe --oversubscribe -n $(new_process.n_local_mpi_processes)`
             cmd = `$mpi_cmd $julia_cmd`
             run(cmd, wait = new_process.wait)
         end
