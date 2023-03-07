@@ -110,7 +110,7 @@ end
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
     recorder_builders = []
     pigeons(
-        target = toy_mvn_target(1), 
+        target = Pigeons.TestSwapper(0.5), 
         n_rounds = 12,
         checked_round = 12, 
         n_chains = 200,
