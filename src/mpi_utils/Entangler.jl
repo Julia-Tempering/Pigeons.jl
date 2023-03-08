@@ -174,7 +174,8 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
             source_view = Ref{T}(source_datum)
             mpi_rank = process_index - 1
             # asynchronously (non-blocking) send over MPI:
-            Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
+            dummy_request = Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
+            free(dummy_request) # <-- critical - see https://github.com/pmodels/mpich/issues/6432#issue-1612064302
         end
     end
 

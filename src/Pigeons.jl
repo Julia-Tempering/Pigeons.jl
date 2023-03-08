@@ -8,7 +8,7 @@ import MPI: Comm, Allreduce, Comm_rank,
             Comm_dup, Request, Waitall,
             RequestSet, mpiexec, Allreduce, 
             Allgather, Comm_split, isend, recv,
-            bcast, tag_ub
+            bcast, tag_ub, free 
 
      
 using Base: Forward
