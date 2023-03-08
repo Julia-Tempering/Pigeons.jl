@@ -254,7 +254,8 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
                 dest_global_index = current_global - spacing 
                 dest_process = find_process(e.load, dest_global_index)
                 dest_rank = dest_process - 1
-                isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
+                dummy_request = isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
+                free(dummy_request)
                 current_local += spacing           
                 did_send = true     
             elseif current_global + spacing ≤ e.load.n_global_indices
