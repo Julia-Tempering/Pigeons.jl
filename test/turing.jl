@@ -1,28 +1,25 @@
 # Unconditioned coinflip model with `N` observations.
-@model function coinflip(; N::Int)
+@model function coinflip(y)
     p ~ Beta(1, 12)
-    y ~ filldist(Bernoulli(p), N)
+    y .~ Bernoulli(p)
     return y
 end;
-coinflip(y::AbstractVector{<:Real}) = coinflip(; N=length(y)) | (; y)
 
 # *Unidentifiable* unconditioned coinflip model with `N` observations.
-@model function coinflip_unidentifiable(; N::Int)
+@model function coinflip_unidentifiable(y)
     p1 ~ Uniform(0, 1)
     p2 ~ Uniform(0, 1)
-    y ~ filldist(Bernoulli(p1*p2), N)
+    y .~ Bernoulli(p1*p2)
     return y
 end;
-coinflip_unidentifiable(y::AbstractVector{<:Real}) = coinflip_unidentifiable(; N=length(y)) | (; y)
 
-@model function coinflip_modified(; N::Int)
+@model function coinflip_modified(y)
     p ~ Uniform(0.3, 0.7)
     # δ ~ Bernoulli(0.5)
     δ ~ DiscreteUniform(0, 2)
-    y ~ filldist(Bernoulli(p + 0.1*δ), N)
+    y .~ Bernoulli(p + 0.1*δ)
     return y
 end;
-coinflip_modified(y::AbstractVector{<:Real}) = coinflip_modified(; N=length(y)) | (; y)
 
 
 function flip_model()
