@@ -78,7 +78,7 @@ end
     # Turing:
     pigeons(
         target = TuringLogPotential(flip_model_unidentifiable()), 
-        n_rounds = 4,
+        n_rounds = 13,
         checked_round = 3, 
         multithreaded = true,
         recorder_builders = recorder_builders,
@@ -92,7 +92,7 @@ end
         Pigeons.setup_blang("blangDemos")
         pigeons(; 
             target = Pigeons.blang_ising(), 
-            n_rounds = 4,
+            n_rounds = 13,
             checked_round = 3, 
             recorder_builders = recorder_builders, 
             multithreaded = true, 
@@ -108,7 +108,7 @@ end
     recorder_builders = []
     pigeons(
         target = Pigeons.TestSwapper(0.5), 
-        n_rounds = 12,
+        n_rounds = 14,
         checked_round = 12, 
         n_chains = 200,
         multithreaded = false,
