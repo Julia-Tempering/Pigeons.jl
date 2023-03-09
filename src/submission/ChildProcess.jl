@@ -62,21 +62,29 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         run(julia_cmd, wait = new_process.wait)
     else
         mpiexec() do exe
-            mpi_cmd = `$exe -n $(new_process.n_local_mpi_processes)`
+            println("Checking MPI version:")
+            run(`$exe -V`)
+            mpi_args = extra_mpi_args()
+            mpi_cmd = `$exe $mpi_args -n $(new_process.n_local_mpi_processes)`
             cmd = `$mpi_cmd $julia_cmd`
-            run(cmd, wait = new_process.wait)
+            logfile = "Pigeons.log"
+            println("Launching command\n\tcmd = $cmd\n\tlogfile = $logfile")
+            run(pipeline(cmd; stdout = logfile, stderr = logfile, append = true), wait = new_process.wait)
         end
     end
     return Result{PT}(exec_folder)
 end
 
+function extra_mpi_args()
+    MPIPreferences.abi == "OpenMPI" ? `--mca orte_base_help_aggregate 0 -v` : ``
+end
+
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, silence_mpi::Bool)
-    julia_bin = Base.julia_cmd()
-    active_proj = dirname(Base.active_project())
-    run(`$julia_bin --project=$active_proj -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`) # instantiate and precompile before spawning children. otherwise all of them would need to do this and we'd have race conditions on the compilation cache 
+    julia_bin = "julia"#Base.julia_cmd()
+    cur_proj = dirname(Base.current_project())
     script_path = launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
     return `$julia_bin
-            --project=$(dirname(Base.active_project()))
+            --project=$cur_proj
             --threads=$n_threads 
             $script_path`
 end
@@ -126,6 +134,8 @@ function launch_code(
     # But prototype quote-based syntax seemed more messy..
     # NB: using raw".." below to work around windows problem: backslash in paths interpreted as escape, so using suggestion in https://discourse.julialang.org/t/windows-file-path-string-slash-direction-best-way-to-copy-paste/29204
     """
+    println("wd = " * pwd())
+    println("active_proj = " * dirname(Base.active_project()) )
     prefix=string(getpid())
     println("hello from PID " * prefix)
     open(prefix * ".log", "a") do out
@@ -153,7 +163,7 @@ function launch_code(
                     println("done!")
                     print("running pigeons(pt)...")
                     pigeons(pt)
-                    println("done")
+                    println("done!")
                 end
             end
         end

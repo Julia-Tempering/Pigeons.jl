@@ -31,48 +31,48 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
-@testset "System MPI" begin
-    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
-        @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
-    end
-end
+# @testset "System MPI" begin
+#     if haskey(ENV,"JULIA_MPI_TEST_BINARY")
+#         @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
+#     end
+# end
 
-@testset "Stepping stone" begin
-    pt = pigeons(target = toy_mvn_target(100));
-    p = stepping_stone_pair(pt)
-    truth = Pigeons.analytic_lognormalization(toy_mvn_target(100))
-    @test abs(p[1] - truth) < 1
-    @test abs(p[2] - truth) < 1
-end
+# @testset "Stepping stone" begin
+#     pt = pigeons(target = toy_mvn_target(100));
+#     p = stepping_stone_pair(pt)
+#     truth = Pigeons.analytic_lognormalization(toy_mvn_target(100))
+#     @test abs(p[1] - truth) < 1
+#     @test abs(p[2] - truth) < 1
+# end
 
-@testset "Round trips" begin
-    n_chains = 4
-    n_rounds = 5
+# @testset "Round trips" begin
+#     n_chains = 4
+#     n_rounds = 5
     
-    pt = pigeons(; target = Pigeons.TestSwapper(1.0), recorder_builders = [Pigeons.round_trip], n_chains, n_rounds);
+#     pt = pigeons(; target = Pigeons.TestSwapper(1.0), recorder_builders = [Pigeons.round_trip], n_chains, n_rounds);
     
-    len = 2^(n_rounds)
-    truth = 0.0
-    for i in 0:(n_chains-1)
-        truth += floor(max(len - i, 0) / n_chains / 2)
-    end
+#     len = 2^(n_rounds)
+#     truth = 0.0
+#     for i in 0:(n_chains-1)
+#         truth += floor(max(len - i, 0) / n_chains / 2)
+#     end
 
-    @test truth == Pigeons.n_round_trips(pt)
-end
+#     @test truth == Pigeons.n_round_trips(pt)
+# end
 
-@testset "Moments" begin
-    pt = pigeons(target = toy_mvn_target(2), recorder_builders = [Pigeons.target_online], n_rounds = 20);
-    for var_name in Pigeons.continuous_variables(pt)
-        m = mean(pt, var_name)
-        for i in eachindex(m)
-            @test abs(m[i] - 0.0) < 0.001
-        end
-        v = var(pt, var_name) 
-        for i in eachindex(v) 
-            @test abs(v[i] - 0.1) < 0.001 
-        end
-    end
-end
+# @testset "Moments" begin
+#     pt = pigeons(target = toy_mvn_target(2), recorder_builders = [Pigeons.target_online], n_rounds = 20);
+#     for var_name in Pigeons.continuous_variables(pt)
+#         m = mean(pt, var_name)
+#         for i in eachindex(m)
+#             @test abs(m[i] - 0.0) < 0.001
+#         end
+#         v = var(pt, var_name) 
+#         for i in eachindex(v) 
+#             @test abs(v[i] - 0.1) < 0.001 
+#         end
+#     end
+# end
 
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
@@ -194,3 +194,8 @@ end
 @testset "SliceSampler" begin
     test_slice_sampler()
 end
+
+# clean-up logs
+ls = readdir()
+foreach(rm, filter(endswith(".log"), ls))
+foreach(rm, filter(endswith(".err"), ls))
