@@ -68,8 +68,9 @@ function pigeons(pt_arguments, new_process::ChildProcess)
             logfile = "Pigeons.log"
             println("Launching command\n\tcmd = $cmd\n\tlogfile = $logfile")
             try
-                run(pipeline(cmd; stdout = logfile, stderr = logfile, append = true), wait = new_process.wait)
+                run(pipeline(cmd; stdout = logfile, stderr = logfile), wait = new_process.wait)
             catch e
+                println("pipeline terminated with non-zero status. Dumping stdout+stderr:\n\n")
                 open(logfile, "r") do f
                     println(read(f, String))
                 end
@@ -139,44 +140,25 @@ function launch_code(
     # But prototype quote-based syntax seemed more messy..
     # NB: using raw".." below to work around windows problem: backslash in paths interpreted as escape, so using suggestion in https://discourse.julialang.org/t/windows-file-path-string-slash-direction-best-way-to-copy-paste/29204
     """
-    println("wd = " * pwd())
-    println("active_proj = " * dirname(Base.active_project()) )
-    prefix=string(getpid())
-    println("hello from PID " * prefix)
-    open(prefix * ".log", "a") do out
-        open(prefix * ".err", "a") do err
-            redirect_stdout(out) do
-                redirect_stderr(err) do
-                    $dependency_declarations
-                    $silence_code
-                    println("using Pigeons located @ " * pathof(Pigeons))
-                end
-            end
-        end
-    end
-    # need to do this in order to be able to use declarations, since they happened inside a function
-    open(prefix * ".log", "a") do out
-        open(prefix * ".err", "a") do err
-            redirect_stdout(out) do
-                redirect_stderr(err) do
-                    print("deserializing...")
-                    Pigeons.deserialize_immutables(raw"$path_to_serialized_immutables")
-                    pt_arguments = deserialize(raw"$path_to_serialized_pt_arguments")
-                    println("done!")
-                    print("running PT...")
-                    pt = PT(pt_arguments, exec_folder = raw"$exec_folder")
-                    println("done!")
-                    print("running pigeons(pt)...")
-                    pigeons(pt)
-                    println("done!")
-                end
-            end
-        end
-    end
+    pid=string(getpid())
+    println("hello from PID " * pid)
+
+    println(pid * ": wd = " * pwd())
+    println(pid * ": active_proj = " * dirname(Base.active_project()) )
+
+    $dependency_declarations
+    println(pid * ": using Pigeons located @ " * dirname(pathof(Pigeons)))
+
+    $silence_code
+
+    Pigeons.deserialize_immutables(raw"$path_to_serialized_immutables")
+    pt_arguments = deserialize(raw"$path_to_serialized_pt_arguments")
+    pt = PT(pt_arguments, exec_folder = raw"$exec_folder")
+    pigeons(pt)
     """
 end
 
-add_dependency(dependency::Module) = "@eval using $dependency"
+add_dependency(dependency::Module) = "using $dependency"
 function add_dependency(dependency::String) 
     abs_path = abspath(dependency)
     return """include(raw"$abs_path")"""
