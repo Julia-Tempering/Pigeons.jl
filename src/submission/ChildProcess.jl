@@ -67,7 +67,13 @@ function pigeons(pt_arguments, new_process::ChildProcess)
             cmd = `$mpi_cmd $julia_cmd`
             logfile = "Pigeons.log"
             println("Launching command\n\tcmd = $cmd\n\tlogfile = $logfile")
-            run(pipeline(cmd; stdout = logfile, stderr = logfile, append = true), wait = new_process.wait)
+            try
+                run(pipeline(cmd; stdout = logfile, stderr = logfile, append = true), wait = new_process.wait)
+            catch
+                open(logfile, "r") do f
+                    println(read(f, String))
+                end
+            end
         end
     end
     return Result{PT}(exec_folder)
@@ -78,8 +84,8 @@ function extra_mpi_args()
 end
 
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, silence_mpi::Bool)
-    julia_bin = "julia"#Base.julia_cmd()
-    cur_proj = dirname(Base.current_project())
+    julia_bin   = Base.julia_cmd()
+    cur_proj    = dirname(Base.current_project())
     script_path = launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
     return `$julia_bin
             --project=$cur_proj
