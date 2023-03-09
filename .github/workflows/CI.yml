@@ -54,91 +54,91 @@ jobs:
         with:
           files: lcov.info
     
-  # # test OpenMPI_jll
-  # test-OpenMPI-jll:
-  #   name: Julia OpenMPI_jll - ${{ github.event_name }}
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       version:
-  #         - '1.8'
-  #       os:
-  #         - ubuntu-latest
-  #       arch:
-  #         - x64
-
-  #     fail-fast: false
-  #   env:
-  #     JULIA_MPI_TEST_BINARY: OpenMPI_jll
-  #     JULIA_MPI_TEST_ABI: OpenMPI
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v3
-
-  #   - uses: julia-actions/setup-julia@latest
-  #     with:
-  #       version: ${{ matrix.version }}
-  #       arch: ${{ matrix.arch }}
-  #   - uses: julia-actions/cache@v1
-
-  #   - name: use OpenMPI_jll
-  #     shell: julia --color=yes --project=test {0}
-  #     run: |
-  #       using Pkg
-  #       Pkg.instantiate()
-  #       using MPIPreferences
-  #       MPIPreferences.use_jll_binary("OpenMPI_jll")
-
-  #   - uses: julia-actions/julia-runtest@latest
-
-
-
-  # adapted from MPI.jl
-  test-system-MPI-apt:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.mpi }} - ${{ github.event_name }}
+  # test OpenMPI_jll
+  test-OpenMPI-jll:
+    name: Julia OpenMPI_jll - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         version:
           - '1.8'
         os:
           - ubuntu-latest
-        mpi:
-          - libopenmpi-dev
+        arch:
+          - x64
+
+      fail-fast: false
     env:
-      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_BINARY: OpenMPI_jll
+      JULIA_MPI_TEST_ABI: OpenMPI
     steps:
-      - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      - name: Install MPI via apt
-        run: |
-          sudo apt-get update
-          sudo apt-get install $MPI
-        env:
-          MPI: ${{ matrix.mpi }}
+    - uses: julia-actions/setup-julia@latest
+      with:
+        version: ${{ matrix.version }}
+        arch: ${{ matrix.arch }}
+    - uses: julia-actions/cache@v1
 
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
+    - name: use OpenMPI_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.instantiate()
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("OpenMPI_jll")
 
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: ${{ matrix.version }}
-          arch: x64
+    - uses: julia-actions/julia-runtest@latest
 
-      - uses: julia-actions/cache@v1
 
-      - name: use system MPI
-        shell: julia --color=yes --project=test {0}
-        run: |
-          using Pkg
-          Pkg.instantiate()
-          using MPIPreferences
-          MPIPreferences.use_system_binary()
+
+  # # adapted from MPI.jl
+  # test-system-MPI-apt:
+  #   name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.mpi }} - ${{ github.event_name }}
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       version:
+  #         - '1.8'
+  #       os:
+  #         - ubuntu-latest
+  #       mpi:
+  #         - libopenmpi-dev
+  #   env:
+  #     JULIA_MPI_TEST_BINARY: system
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Install MPI via apt
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install $MPI
+  #       env:
+  #         MPI: ${{ matrix.mpi }}
+
+  #     - uses: actions/setup-java@v3
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: '11'
+
+  #     - uses: julia-actions/setup-julia@v1
+  #       with:
+  #         version: ${{ matrix.version }}
+  #         arch: x64
+
+  #     - uses: julia-actions/cache@v1
+
+  #     - name: use system MPI
+  #       shell: julia --color=yes --project=test {0}
+  #       run: |
+  #         using Pkg
+  #         Pkg.instantiate()
+  #         using MPIPreferences
+  #         MPIPreferences.use_system_binary()
       
-      - uses: julia-actions/julia-runtest@v1
+  #     - uses: julia-actions/julia-runtest@v1
 
   docs:
     name: Documentation
