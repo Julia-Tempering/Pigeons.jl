@@ -88,6 +88,8 @@ end
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, silence_mpi::Bool)
     julia_bin   = Base.julia_cmd()
     cur_proj    = dirname(Base.current_project())
+    @info "forcing instantiate + precompile on project $cur_proj"
+    run(`$julia_bin --project=$cur_proj -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`) # instantiate and precompile before spawning children. otherwise all of them would need to do this and we'd have race conditions on the compilation cache 
     script_path = launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
     return `$julia_bin
             --project=$cur_proj
