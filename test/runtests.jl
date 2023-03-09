@@ -1,27 +1,22 @@
 using Pigeons
-using Pkg
 
-#=
-Rationale for this hack:
-- putting those in the [extras] section will lead to ChildProcess not 
-  having access to it
-- the other method, a second toml file, seems more promising but 
-  proved challenging to get to work on CI
-=#
-Pkg.add(["Test", "LinearAlgebra", "DynamicPPL", "ArgMacros", "Plots"])
-
-using Test
+using ArgMacros
 using Distributions
-using Random
-using Statistics
-using OnlineStats
-using LinearAlgebra
 using DynamicPPL
-using SplittableRandoms
+using LinearAlgebra
+using MPI
 using MPIPreferences
-import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
+using OnlineStats
+using Random
+using Serialization
+using SplittableRandoms
+using Statistics
+using Test
+
+import Pigeons: my_global_indices, LoadBalance, my_load,
                 find_process, split_slice
 
+include("misc.jl")
 include("slice_sampler_test.jl")
 include("turing.jl")
 

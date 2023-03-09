@@ -90,7 +90,7 @@ jobs:
         shell: julia --color=yes --project=test {0}
         run: |
           using Pkg
-          Pkg.add(["Pkg","MPIPreferences"])
+          Pkg.instantiate()
           using MPIPreferences
           MPIPreferences.use_system_binary()
       
