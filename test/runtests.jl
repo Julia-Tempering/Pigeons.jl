@@ -36,6 +36,12 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "System MPI" begin
+    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
+        @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
+    end
+end
+
 @testset "Stepping stone" begin
     pt = pigeons(target = toy_mvn_target(100));
     p = stepping_stone_pair(pt)
@@ -70,12 +76,6 @@ end
         for i in eachindex(v) 
             @test abs(v[i] - 0.1) < 0.001 
         end
-    end
-end
-
-@testset "MPI" begin
-    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
-        @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
     end
 end
 

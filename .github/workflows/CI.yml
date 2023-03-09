@@ -90,12 +90,9 @@ jobs:
         shell: julia --color=yes --project=test {0}
         run: |
           using Pkg
-          Pkg.add("MPIPreferences")
+          Pkg.add(["Pkg","MPIPreferences"])
           using MPIPreferences
           MPIPreferences.use_system_binary()
-          # need to remove these to avoid getting a 'Package "Pkg" missing' error
-          rm("test/Project.toml")
-          rm("test/Manifest.toml")
       
       - uses: julia-actions/julia-runtest@v1
 
