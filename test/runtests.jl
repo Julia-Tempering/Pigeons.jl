@@ -31,9 +31,15 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
-@testset "System MPI" begin
+@testset "MPI" begin
     if haskey(ENV,"JULIA_MPI_TEST_BINARY")
         @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
+    end
+    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
+        @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
+    end
+    if haskey(ENV,"JULIA_MPI_TEST_ABI")
+        @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
     end
 end
 

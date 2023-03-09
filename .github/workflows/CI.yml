@@ -53,6 +53,48 @@ jobs:
       - uses: codecov/codecov-action@v2
         with:
           files: lcov.info
+    
+    # test OpenMPI_jll
+    test-openmpi-jll:
+    strategy:
+      matrix:
+        version:
+          - '1.8'
+          - 'nightly'
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        arch:
+          - x64
+
+      fail-fast: false
+    env:
+      JULIA_MPI_TEST_BINARY: OpenMPI_jll
+      JULIA_MPI_TEST_ABI: OpenMPI
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: julia-actions/setup-julia@latest
+      with:
+        arch: ${{ matrix.julia_arch }}
+        version: ${{ matrix.julia_version }}
+    - uses: julia-actions/cache@v1
+
+    - name: use OpenMPI_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.instantiate()
+        using MPIPreferences
+        MPIPreferences.use_system_binary()
+        
+    - uses: julia-actions/julia-runtest@latest
+
 
 
   # adapted from MPI.jl
