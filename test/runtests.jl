@@ -31,15 +31,9 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
-@testset "MPI" begin
+@testset "System MPI" begin
     if haskey(ENV,"JULIA_MPI_TEST_BINARY")
         @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
-    end
-    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
-        @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
-    end
-    if haskey(ENV,"JULIA_MPI_TEST_ABI")
-        @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
     end
 end
 
@@ -83,10 +77,9 @@ end
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
     recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
-
-
+    # Turing:
     pigeons(
-        target = toy_mvn_target(1), 
+        target = TuringLogPotential(flip_model_unidentifiable()), 
         n_rounds = 13,
         checked_round = 3, 
         multithreaded = true,
@@ -95,79 +88,21 @@ end
         on = ChildProcess(
                 dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
                 n_local_mpi_processes = n_mpis,
-                n_threads = 1))
-
-
-    pigeons(
-        target = Pigeons.TestSwapper(0.5), 
-        n_rounds = 13,
-        checked_round = 3, 
-        multithreaded = true,
-        recorder_builders = recorder_builders,
-        checkpoint = true, 
-        on = ChildProcess(
-                dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
-                n_local_mpi_processes = n_mpis,
-                n_threads = 1))
-
-        
-
-
-    # # temp 
-    # # Turing:
-    # pigeons(
-    #     target = TuringLogPotential(flip_model_unidentifiable()), 
-    #     n_rounds = 13,
-    #     checked_round = 3, 
-    #     multithreaded = true,
-    #     recorder_builders = recorder_builders,
-    #     checkpoint = true, 
-    #     on = ChildProcess(
-    #             dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
-    #             n_local_mpi_processes = 1,
-    #             n_threads = 1))
-    # # Blang:
-    # if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
-    #     Pigeons.setup_blang("blangDemos")
-    #     pigeons(; 
-    #         target = Pigeons.blang_ising(), 
-    #         n_rounds = 13,
-    #         checked_round = 3, 
-    #         recorder_builders = recorder_builders, 
-    #         multithreaded = true, 
-    #         checkpoint = true, 
-    #         on = ChildProcess(
-    #                 n_local_mpi_processes = 1,
-    #                 n_threads = 1))
-    # end
-
-
-    # # Turing:
-    # pigeons(
-    #     target = TuringLogPotential(flip_model_unidentifiable()), 
-    #     n_rounds = 13,
-    #     checked_round = 3, 
-    #     multithreaded = true,
-    #     recorder_builders = recorder_builders,
-    #     checkpoint = true, 
-    #     on = ChildProcess(
-    #             dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
-    #             n_local_mpi_processes = n_mpis,
-    #             n_threads = 1))
-    # # Blang:
-    # if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
-    #     Pigeons.setup_blang("blangDemos")
-    #     pigeons(; 
-    #         target = Pigeons.blang_ising(), 
-    #         n_rounds = 13,
-    #         checked_round = 3, 
-    #         recorder_builders = recorder_builders, 
-    #         multithreaded = true, 
-    #         checkpoint = true, 
-    #         on = ChildProcess(
-    #                 n_local_mpi_processes = n_mpis,
-    #                 n_threads = 1))
-    # end
+                n_threads = 2))
+    # Blang:
+    if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
+        Pigeons.setup_blang("blangDemos")
+        pigeons(; 
+            target = Pigeons.blang_ising(), 
+            n_rounds = 13,
+            checked_round = 3, 
+            recorder_builders = recorder_builders, 
+            multithreaded = true, 
+            checkpoint = true, 
+            on = ChildProcess(
+                    n_local_mpi_processes = n_mpis,
+                    n_threads = 2))
+    end
 end
 
 @testset "Longer MPI" begin
