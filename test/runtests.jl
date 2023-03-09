@@ -88,7 +88,7 @@ end
         on = ChildProcess(
                 dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
                 n_local_mpi_processes = n_mpis,
-                n_threads = 2))
+                n_threads = 1))
     # Blang:
     if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
         Pigeons.setup_blang("blangDemos")
