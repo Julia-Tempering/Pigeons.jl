@@ -157,6 +157,8 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
     # indicators of whether each local index is to be received over MPI
     e.current_received_bits .= true 
     at_least_one_mpi = false
+
+    requests = RequestSet()
     
     # send (or copy if local)
     for local_index in 1:myload
@@ -174,14 +176,13 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
             source_view = Ref{T}(source_datum)
             mpi_rank = process_index - 1
             # asynchronously (non-blocking) send over MPI:
-            dummy_request = Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
-            free(dummy_request) # <-- critical - see https://github.com/pmodels/mpich/issues/6432#issue-1612064302
+            request = Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
+            push!(requests, request)
         end
     end
 
     # receive
     if at_least_one_mpi
-        requests = RequestSet()
         my_globals = my_global_indices(e.load)
         for local_index in 1:myload
             if e.current_received_bits[local_index]
@@ -241,6 +242,8 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
     # outer loop is over the levels of a binary tree over the global indices
     iteration = 1
 
+    requests = RequestSet()
+
     while n_remaining_to_reduce > 1
         transmit_index = next_transmit_index!(e)
         current_local = my_first_remaining_local
@@ -254,8 +257,8 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
                 dest_global_index = current_global - spacing 
                 dest_process = find_process(e.load, dest_global_index)
                 dest_rank = dest_process - 1
-                dummy_request = isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
-                free(dummy_request)
+                request = isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
+                push!(requests, request)
                 current_local += spacing           
                 did_send = true     
             elseif current_global + spacing ≤ e.load.n_global_indices
@@ -278,6 +281,7 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
         
         if did_send 
             my_first_remaining_local += spacing
+            Waitall(requests)
         end
         n_global_indices_remaining_before = ceil(Int, n_global_indices_remaining_before/2)
         spacing = spacing * 2
