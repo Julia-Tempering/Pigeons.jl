@@ -18,6 +18,7 @@ using OnlineStats
 using LinearAlgebra
 using DynamicPPL
 using SplittableRandoms
+using MPIPreferences
 import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
                 find_process, split_slice
 
@@ -69,6 +70,12 @@ end
         for i in eachindex(v) 
             @test abs(v[i] - 0.1) < 0.001 
         end
+    end
+end
+
+@testset "MPI" begin
+    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
+        @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
     end
 end
 
