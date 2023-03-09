@@ -77,6 +77,36 @@ end
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
     recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
+
+    # temp 
+    # Turing:
+    pigeons(
+        target = TuringLogPotential(flip_model_unidentifiable()), 
+        n_rounds = 13,
+        checked_round = 3, 
+        multithreaded = true,
+        recorder_builders = recorder_builders,
+        checkpoint = true, 
+        on = ChildProcess(
+                dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
+                n_local_mpi_processes = 1,
+                n_threads = 1))
+    # Blang:
+    if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
+        Pigeons.setup_blang("blangDemos")
+        pigeons(; 
+            target = Pigeons.blang_ising(), 
+            n_rounds = 13,
+            checked_round = 3, 
+            recorder_builders = recorder_builders, 
+            multithreaded = true, 
+            checkpoint = true, 
+            on = ChildProcess(
+                    n_local_mpi_processes = 1,
+                    n_threads = 1))
+    end
+
+
     # Turing:
     pigeons(
         target = TuringLogPotential(flip_model_unidentifiable()), 
