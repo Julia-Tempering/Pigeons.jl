@@ -101,7 +101,7 @@ end
             checkpoint = true, 
             on = ChildProcess(
                     n_local_mpi_processes = n_mpis,
-                    n_threads = 2))
+                    n_threads = 1))
     end
 end
 
