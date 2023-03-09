@@ -85,8 +85,10 @@ jobs:
       - uses: julia-actions/cache@v1
 
       - name: use system MPI
-        shell: julia --color=yes --project=. {0}
+        shell: julia --color=yes --project=test {0}
         run: |
+          using Pkg
+          Pkg.add("MPIPreferences")
           using MPIPreferences
           MPIPreferences.use_system_binary()
       
