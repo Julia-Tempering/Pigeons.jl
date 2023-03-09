@@ -62,6 +62,8 @@ jobs:
         mpi:
           - libmpich-dev
           - libopenmpi-dev
+    env:
+      JULIA_MPI_TEST_BINARY: system
     steps:
       - uses: actions/checkout@v3
 
@@ -91,10 +93,10 @@ jobs:
           Pkg.add("MPIPreferences")
           using MPIPreferences
           MPIPreferences.use_system_binary()
+          # need to remove these to avoid getting a 'Package "Pkg" missing' error
           rm("test/Project.toml")
           rm("test/Manifest.toml")
       
-      - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
 
   docs:
