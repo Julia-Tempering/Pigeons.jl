@@ -69,10 +69,11 @@ function pigeons(pt_arguments, new_process::ChildProcess)
             println("Launching command\n\tcmd = $cmd\n\tlogfile = $logfile")
             try
                 run(pipeline(cmd; stdout = logfile, stderr = logfile, append = true), wait = new_process.wait)
-            catch
+            catch e
                 open(logfile, "r") do f
                     println(read(f, String))
                 end
+                rethrow(e)
             end
         end
     end
@@ -80,7 +81,7 @@ function pigeons(pt_arguments, new_process::ChildProcess)
 end
 
 function extra_mpi_args()
-    MPIPreferences.abi == "OpenMPI" ? `--mca orte_base_help_aggregate 0 -v` : ``
+    MPIPreferences.abi == "OpenMPI" ? `--mca orte_base_help_aggregate 0 --oversubscribe -v` : ``
 end
 
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, silence_mpi::Bool)
