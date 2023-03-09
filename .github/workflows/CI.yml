@@ -77,8 +77,8 @@ jobs:
 
     - uses: julia-actions/setup-julia@latest
       with:
-        arch: ${{ matrix.julia_arch }}
-        version: ${{ matrix.julia_version }}
+        version: ${{ matrix.version }}
+        arch: ${{ matrix.arch }}
     - uses: julia-actions/cache@v1
 
     - name: use OpenMPI_jll
