@@ -73,7 +73,8 @@ end
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, silence_mpi::Bool)
     julia_bin = Base.julia_cmd()
     script_path = launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
-    return `$julia_bin 
+    return `$julia_bin
+            --project=$(dirname(Base.active_project()))
             --threads=$n_threads 
             $script_path`
 end
