@@ -74,7 +74,6 @@ function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, sil
     julia_bin = Base.julia_cmd()
     script_path = launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
     return `$julia_bin 
-            --project   
             --threads=$n_threads 
             $script_path`
 end
@@ -124,8 +123,6 @@ function launch_code(
     # But prototype quote-based syntax seemed more messy..
     # NB: using raw".." below to work around windows problem: backslash in paths interpreted as escape, so using suggestion in https://discourse.julialang.org/t/windows-file-path-string-slash-direction-best-way-to-copy-paste/29204
     """
-    using Pkg
-    Pkg.instantiate()
     $dependency_declarations
     $silence_code
 
