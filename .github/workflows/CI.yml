@@ -55,6 +55,7 @@ jobs:
           files: lcov.info
     
     # test OpenMPI_jll
+  test-OpenMPI-jll:
     name: Julia OpenMPI_jll - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -86,7 +87,7 @@ jobs:
         using Pkg
         Pkg.instantiate()
         using MPIPreferences
-        MPIPreferences.use_system_binary()
+        MPIPreferences.use_jll_binary("OpenMPI_jll")
 
     - uses: julia-actions/julia-runtest@latest
 
