@@ -124,6 +124,8 @@ function launch_code(
     # But prototype quote-based syntax seemed more messy..
     # NB: using raw".." below to work around windows problem: backslash in paths interpreted as escape, so using suggestion in https://discourse.julialang.org/t/windows-file-path-string-slash-direction-best-way-to-copy-paste/29204
     """
+    using Pkg
+    Pkg.instantiate()
     $dependency_declarations
     $silence_code
 
