@@ -15,8 +15,11 @@ $FIELDS
     """ The number of rounds to run. """
     n_rounds::Int = 10
 
-    """ The number of chains to use. """
+    """ The number of chains to use in total (across all possible legs). """
     n_chains::Int = 10
+
+    """ The number of chains to use for the fixed reference leg. """
+    n_chains_fixed_reference::Int = 10
 
     """ The number of chains to use for the variational reference leg. """
     n_chains_var_reference::Int = 0
@@ -47,6 +50,20 @@ $FIELDS
     False by default since it incurs an overhead. 
     """
     multithreaded::Bool = false
+
+    function Inputs(target::I, seed, n_rounds, n_chains, n_chains_fixed_reference, n_chains_var_reference,
+                    var_reference, checkpoint, recorder_builders, checked_round, multithreaded) where {I}
+        @assert n_chains == n_chains_fixed_reference + n_chains_var_reference
+        if (n_chains_var_reference == 0)
+            @assert isa(var_reference, NoVarReference)
+        elseif (n_chains_var_reference > 0)
+            @assert !isa(var_reference, NoVarReference)
+        end
+        return new{I}(
+            target, seed, n_rounds, n_chains, n_chains_fixed_reference, n_chains_var_reference,
+            var_reference, checkpoint, recorder_builders, checked_round, multithreaded
+        )
+    end
 end
 
 
@@ -74,11 +91,7 @@ online_recorder_builders() = [
 
 """
 Extract the number of PT chains from `Inputs`.
-TODO: Once you implement PT with two reference distributions, update this function.
 """
 function number_of_chains(inputs) 
-    if (inputs.n_chains > 0) && (inputs.n_chains_var_reference > 0)
-        error("Two reference distributions have not yet been implemented.")
-    end
     (inputs.n_chains > 0) ? inputs.n_chains : inputs.n_chains_var_reference
 end
