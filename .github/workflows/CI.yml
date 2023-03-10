@@ -138,6 +138,7 @@ jobs:
           Pkg.instantiate()
           using MPIPreferences
           MPIPreferences.use_system_binary()
+          run(`sed -i.bu 's/unknown/MPICH/' test/LocalPreferences.toml`) # fix wrong abi detection for mpich
           rm("test/Manifest.toml")
       
       - uses: julia-actions/julia-runtest@v1
