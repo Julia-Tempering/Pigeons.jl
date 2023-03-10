@@ -62,34 +62,24 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         run(julia_cmd, wait = new_process.wait)
     else
         mpiexec() do exe
-            mpi_args = extra_mpi_args()
-            mpi_cmd = `$exe $mpi_args -n $(new_process.n_local_mpi_processes)`
+            mpi_cmd = `$exe -n $(new_process.n_local_mpi_processes)`
             cmd = `$mpi_cmd $julia_cmd`
-            logfile = "Pigeons.log"
-            println("Launching command\n\tcmd = $cmd\n\tlogfile = $logfile")
-            try
-                run(pipeline(cmd; stdout = logfile, stderr = logfile), wait = new_process.wait)
-            catch e
-                println("pipeline terminated with non-zero status. Dumping stdout+stderr:\n\n")
-                open(logfile, "r") do f
-                    println(read(f, String))
-                end
-                rethrow(e)
-            end
+            run(cmd, wait = new_process.wait)
         end
     end
     return Result{PT}(exec_folder)
 end
 
-function extra_mpi_args()
-    MPIPreferences.abi == "OpenMPI" ? `--mca orte_base_help_aggregate 0 --oversubscribe -v` : ``
-end
-
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, silence_mpi::Bool)
-    julia_bin   = Base.julia_cmd()
-    cur_proj    = dirname(Base.current_project())
-    @info "forcing instantiate + precompile on project $cur_proj"
-    run(`$julia_bin --project=$cur_proj -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`) # instantiate and precompile before spawning children. otherwise all of them would need to do this and we'd have race conditions on the compilation cache 
+    julia_bin = Base.julia_cmd()
+    cur_proj  = Base.current_project()
+    if !isnothing(cur_proj)
+        # instantiate the project to make sure dependencies exist
+        # also, precompile to issues with coordinating access to compilecache
+        dir = dirname(cur_proj)
+        @info "forcing instantiate + precompile on project $dir"
+        run(`$julia_bin --project=$dir -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
+    end
     script_path = launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
     return `$julia_bin
             --project=$cur_proj
@@ -142,15 +132,7 @@ function launch_code(
     # But prototype quote-based syntax seemed more messy..
     # NB: using raw".." below to work around windows problem: backslash in paths interpreted as escape, so using suggestion in https://discourse.julialang.org/t/windows-file-path-string-slash-direction-best-way-to-copy-paste/29204
     """
-    pid=string(getpid())
-    println("hello from PID " * pid)
-
-    println(pid * ": wd = " * pwd())
-    println(pid * ": active_proj = " * dirname(Base.active_project()) )
-
     $dependency_declarations
-    println(pid * ": using Pigeons located @ " * dirname(pathof(Pigeons)))
-
     $silence_code
 
     Pigeons.deserialize_immutables(raw"$path_to_serialized_immutables")

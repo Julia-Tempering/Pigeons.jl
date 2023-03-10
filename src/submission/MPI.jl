@@ -41,6 +41,11 @@ $FIELDS
     process. 
     """
     dependencies::Vector{Module} = []
+
+    """
+    Extra arguments passed to mpiexec.
+    """
+    mpiexec_args::String = ""
 end
 
 """
@@ -96,7 +101,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     #PBS -e $info_folder/stderr.txt
     cd \$PBS_O_WORKDIR
     $(modules_string(mpi_settings))
-    mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
+    mpiexec $(mpi_submission.mpiexec_args) --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
     write(script_path, code)
