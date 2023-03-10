@@ -41,6 +41,11 @@ $FIELDS
     When wait is false, the process' I/O streams are directed to devnull.
     """
     wait = true
+
+    """
+    Extra arguments passed to mpiexec.
+    """
+    mpiexec_args::String = ""
 end 
 
 """
@@ -62,7 +67,7 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         run(julia_cmd, wait = new_process.wait)
     else
         mpiexec() do exe
-            mpi_cmd = `$exe -n $(new_process.n_local_mpi_processes)`
+            mpi_cmd = `$exe $(new_process.mpiexec_args) -n $(new_process.n_local_mpi_processes)`
             cmd = `$mpi_cmd $julia_cmd`
             run(cmd, wait = new_process.wait)
         end
