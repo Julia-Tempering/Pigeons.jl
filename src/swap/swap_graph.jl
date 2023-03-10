@@ -8,9 +8,6 @@ Canonical example is the standard Odd and Even swap. Extension point for e.g.
 - parallel parallel tempering,
 - variational methods with more than 2 legs,
 - PT algorithms dealing with more than one target simultaneously for the purpose of model selection. 
-
-Should implement the methods below, in addition to [`is_reference()`](@ref) and 
-[`is_target()`](@ref).
 """
 @informal swap_graph begin
     """
@@ -19,8 +16,22 @@ Should implement the methods below, in addition to [`is_reference()`](@ref) and
     Convention: if a chain is not interacting, return its index.
     """
     partner_chain(swap_graph, chain::Int) = @abstract
+
+    """
+    $SIGNATURES
+    For a given [`swap_graph`](@ref) and input `chain` index, is the current chain a reference distribution?
+    """
+    is_reference(swap_graph, chain::Int) = @abstract 
+    
+    """
+    $SIGNATURES
+    For a given [`swap_graph`](@ref) and input `chain` index, is the current chain a target distribution?
+    """
+    is_target(swap_graph, chain::Int) = @abstract
 end
 
+
+""" Implements a [`swap_graph`](@ref). """
 struct OddEven
     even::Bool
     n_chains::Int

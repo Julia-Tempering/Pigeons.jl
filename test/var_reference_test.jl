@@ -25,7 +25,8 @@ function test_var_reference_Turing()
     # Check GaussianReference()
     inputs = Inputs(
     target = TuringLogPotential(model),
-    n_chains = 0,
+    n_chains = 10,
+    n_chains_fixed_reference = 0,
     n_chains_var_reference = 10,
     var_reference = GaussianReference(),
     seed = 1
@@ -54,7 +55,8 @@ function test_var_reference_vector()
     # Check GaussianReference()
     inputs = Inputs(
     target                  = target,
-    n_chains                = 0,
+    n_chains                = 10,
+    n_chains_fixed_reference = 0,
     n_chains_var_reference  = 10,
     seed                    = 1,
     var_reference            = GaussianReference()
