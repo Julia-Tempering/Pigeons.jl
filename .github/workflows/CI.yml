@@ -92,11 +92,10 @@ jobs:
   #       rm("test/Manifest.toml")
 
   #   - uses: julia-actions/julia-runtest@latest
-
-
-
+  
+  # test system MPI using Brew in macOS
   # adapted from MPI.jl
-  test-system-MPI-apt:
+  test-system-MPI-brew:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.mpi }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -105,18 +104,18 @@ jobs:
         version:
           - '1.8'
         os:
-          - ubuntu-latest
+          - macos-latest
         mpi:
-          - libmpich-dev
+          - mpich
+          - openmpi
     env:
       JULIA_MPI_TEST_BINARY: system
+      ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install MPI via apt
-        run: |
-          sudo apt-get update
-          sudo apt-get install $MPI
+      - name: Install MPI via homebrew
+        run: brew install $MPI
         env:
           MPI: ${{ matrix.mpi }}
 
@@ -139,8 +138,57 @@ jobs:
           Pkg.instantiate()
           using MPIPreferences
           MPIPreferences.use_system_binary()
+          rm("test/Manifest.toml")
       
       - uses: julia-actions/julia-runtest@v1
+
+  # # adapted from MPI.jl
+  # test-system-MPI-apt:
+  #   name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.mpi }} - ${{ github.event_name }}
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       version:
+  #         - '1.8'
+  #       os:
+  #         - ubuntu-latest
+  #       mpi:
+  #         - libmpich-dev
+  #   env:
+  #     JULIA_MPI_TEST_BINARY: system
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Install MPI via apt
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install $MPI
+  #       env:
+  #         MPI: ${{ matrix.mpi }}
+
+  #     - uses: actions/setup-java@v3
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: '11'
+
+  #     - uses: julia-actions/setup-julia@v1
+  #       with:
+  #         version: ${{ matrix.version }}
+  #         arch: x64
+
+  #     - uses: julia-actions/cache@v1
+
+  #     - name: use system MPI
+  #       shell: julia --color=yes --project=test {0}
+  #       run: |
+  #         using Pkg
+  #         Pkg.instantiate()
+  #         using MPIPreferences
+  #         MPIPreferences.use_system_binary()
+  #         rm("test/Manifest.toml")
+      
+  #     - uses: julia-actions/julia-runtest@v1
 
   # docs:
   #   name: Documentation
