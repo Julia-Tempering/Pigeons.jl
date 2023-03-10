@@ -31,13 +31,15 @@ we also assume the presence of the following fields:
     """ 
     $SIGNATURES 
 
-    Given a [`tempering`](@ref) and a [`Shared`](@ref) struct, 
+    Given a [`tempering`](@ref) and a [`target`](@ref), 
     create a [`pair_swapper`](@ref). 
 
     If omitted, by default will return the standard Metropolis-Hastings 
     accept-reject. 
     """
     create_pair_swapper(tempering, target) = tempering.log_potentials
+
+    get_log_potentials(tempering) = @abstract
 end
 
 """
@@ -45,4 +47,10 @@ $SIGNATURES
 
 Build the [`tempering`](@ref) needed for [`communicate!()`](@ref). 
 """
-@provides tempering create_tempering(inputs::Inputs) = NonReversiblePT(inputs)
+@provides tempering function create_tempering(inputs::Inputs) 
+    if (number_of_chains_fixed(inputs) == 0) | (number_of_chains_var(inputs) == 0)
+        return NonReversiblePT(inputs)
+    else
+        return VariationalPT(inputs)
+    end
+end

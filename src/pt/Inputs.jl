@@ -53,6 +53,7 @@ $FIELDS
 
     function Inputs(target::I, seed, n_rounds, n_chains, n_chains_fixed_reference, n_chains_var_reference,
                     var_reference, checkpoint, recorder_builders, checked_round, multithreaded) where {I}
+        @assert (n_chains ≥ 2) & (n_chains_fixed_reference ≥ 0) & (n_chains_var_reference ≥ 0)
         @assert n_chains == n_chains_fixed_reference + n_chains_var_reference
         if (n_chains_var_reference == 0)
             @assert isa(var_reference, NoVarReference)
@@ -92,6 +93,6 @@ online_recorder_builders() = [
 """
 Extract the number of PT chains from `Inputs`.
 """
-function number_of_chains(inputs) 
-    (inputs.n_chains > 0) ? inputs.n_chains : inputs.n_chains_var_reference
-end
+number_of_chains(inputs) = inputs.n_chains
+number_of_chains_fixed(inputs) = inputs.n_chains_fixed_reference
+number_of_chains_var(inputs) = inputs.n_chains_var_reference

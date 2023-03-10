@@ -59,3 +59,4 @@ function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterator
 end
 
 tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]
+get_log_potentials(tempering::NonReversiblePT) = tempering.log_potentials
