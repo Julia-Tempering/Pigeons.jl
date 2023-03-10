@@ -80,7 +80,7 @@ end
 
     # test swapper 
     pigeons(
-        target = Pigeons.TestSwapper(0.5), 
+        target = toy_mvn_target(1), 
         n_rounds = 10,
         checked_round = 3, 
         recorder_builders = recorder_builders,
