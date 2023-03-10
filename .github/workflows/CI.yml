@@ -108,6 +108,7 @@ jobs:
           - ubuntu-latest
         mpi:
           - libopenmpi-dev
+          - libmpich-dev
     env:
       JULIA_MPI_TEST_BINARY: system
     steps:
