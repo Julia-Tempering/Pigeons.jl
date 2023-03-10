@@ -1,4 +1,5 @@
 using LinearAlgebra
+using DynamicPPL
 
 # Unconditioned coinflip model with `N` observations.
 @model function coinflip(; N::Int)
