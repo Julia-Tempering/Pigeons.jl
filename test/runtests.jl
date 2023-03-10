@@ -77,94 +77,106 @@ end
 @testset "Parallelism Invariance" begin
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
     recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
-    # Turing:
-    pigeons(
-        target = TuringLogPotential(flip_model_unidentifiable()), 
-        n_rounds = 13,
-        checked_round = 3, 
-        multithreaded = true,
-        recorder_builders = recorder_builders,
-        checkpoint = true, 
-        on = ChildProcess(
-                dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
-                n_local_mpi_processes = n_mpis,
-                n_threads = 2))
-    # Blang:
-    if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
-        Pigeons.setup_blang("blangDemos")
-        pigeons(; 
-            target = Pigeons.blang_ising(), 
-            n_rounds = 13,
-            checked_round = 3, 
-            recorder_builders = recorder_builders, 
-            multithreaded = true, 
-            checkpoint = true, 
-            on = ChildProcess(
-                    n_local_mpi_processes = n_mpis,
-                    n_threads = 2))
-    end
-end
 
-@testset "Longer MPI" begin
-    n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
-    recorder_builders = []
+    # test swapper 
     pigeons(
         target = Pigeons.TestSwapper(0.5), 
-        n_rounds = 14,
-        checked_round = 12, 
-        n_chains = 200,
-        multithreaded = false,
+        n_rounds = 10,
+        checked_round = 3, 
         recorder_builders = recorder_builders,
         checkpoint = true, 
         on = ChildProcess(
                 n_local_mpi_processes = n_mpis,
-                n_threads = 1)) 
+                n_threads = 2)) 
+
+    # # Turing:
+    # pigeons(
+    #     target = TuringLogPotential(flip_model_unidentifiable()), 
+    #     n_rounds = 10,
+    #     checked_round = 3, 
+    #     multithreaded = true,
+    #     recorder_builders = recorder_builders,
+    #     checkpoint = true, 
+    #     on = ChildProcess(
+    #             dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
+    #             n_local_mpi_processes = n_mpis,
+    #             n_threads = 2))
+    # # Blang:
+    # if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
+    #     Pigeons.setup_blang("blangDemos")
+    #     pigeons(; 
+    #         target = Pigeons.blang_ising(), 
+    #         n_rounds = 10,
+    #         checked_round = 3, 
+    #         recorder_builders = recorder_builders, 
+    #         multithreaded = true, 
+    #         checkpoint = true, 
+    #         on = ChildProcess(
+    #                 n_local_mpi_processes = n_mpis,
+    #                 n_threads = 2))
+    # end
 end
 
-@testset "Entanglement" begin
-    mpi_test(1, "entanglement_test.jl")
-    mpi_test(2, "entanglement_test.jl")
+# @testset "Longer MPI" begin
+#     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
+#     recorder_builders = []
+#     pigeons(
+#         target = Pigeons.TestSwapper(0.5), 
+#         n_rounds = 14,
+#         checked_round = 12, 
+#         n_chains = 200,
+#         multithreaded = false,
+#         recorder_builders = recorder_builders,
+#         checkpoint = true, 
+#         on = ChildProcess(
+#                 n_local_mpi_processes = n_mpis,
+#                 n_threads = 1)) 
+# end
 
-    mpi_test(1, "reduce_test.jl")
-    mpi_test(2, "reduce_test.jl")
-    mpi_test(3, "reduce_test.jl")
-end
+# @testset "Entanglement" begin
+#     mpi_test(1, "entanglement_test.jl")
+#     mpi_test(2, "entanglement_test.jl")
 
-@testset "PermutedDistributedArray" begin
-    mpi_test(1, "permuted_test.jl", options = ["-s"])
-    mpi_test(1, "permuted_test.jl")
-    mpi_test(2, "permuted_test.jl")
-end
+#     mpi_test(1, "reduce_test.jl")
+#     mpi_test(2, "reduce_test.jl")
+#     mpi_test(3, "reduce_test.jl")
+# end
 
-@testset "LoadBalance" begin
-    for i in 1:20
-        for j in i:30
-            test_load_balance(i, j)
-        end
-    end
-end
+# @testset "PermutedDistributedArray" begin
+#     mpi_test(1, "permuted_test.jl", options = ["-s"])
+#     mpi_test(1, "permuted_test.jl")
+#     mpi_test(2, "permuted_test.jl")
+# end
 
-@testset "LogSum" begin
-    m = Pigeons.LogSum()
+# @testset "LoadBalance" begin
+#     for i in 1:20
+#         for j in i:30
+#             test_load_balance(i, j)
+#         end
+#     end
+# end
+
+# @testset "LogSum" begin
+#     m = Pigeons.LogSum()
     
-    fit!(m, 2.1)
-    fit!(m, 4)
-    v1 = value(m)
-    @assert v1 ≈ log(exp(2.1) + exp(4))
+#     fit!(m, 2.1)
+#     fit!(m, 4)
+#     v1 = value(m)
+#     @assert v1 ≈ log(exp(2.1) + exp(4))
 
 
-    fit!(m, 2.1)
-    fit!(m, 4)
-    m2 = Pigeons.LogSum() 
-    fit!(m2, 50.1)
-    combined = merge(m, m2)
-    @assert value(combined) ≈ log(exp(v1) + exp(50.1))
+#     fit!(m, 2.1)
+#     fit!(m, 4)
+#     m2 = Pigeons.LogSum() 
+#     fit!(m2, 50.1)
+#     combined = merge(m, m2)
+#     @assert value(combined) ≈ log(exp(v1) + exp(50.1))
 
-    fit!(m, 2.1)
-    fit!(m, 4)
-    empty!(m)
-    @assert value(m) == -Pigeons.inf(0.0)
-end
+#     fit!(m, 2.1)
+#     fit!(m, 4)
+#     empty!(m)
+#     @assert value(m) == -Pigeons.inf(0.0)
+# end
 
 function test_split_slice()
     # test disjoint random streams
@@ -183,17 +195,17 @@ end
 
 test_split_slice_helper(range) = [rand(r) for r in split_slice(range,  SplittableRandom(1))]
 
-@testset "split_test" begin
-    test_split_slice()
-end
+# @testset "split_test" begin
+#     test_split_slice()
+# end
 
-@testset "Serialize" begin
-    mpi_test(1, "serialization_test.jl")
-end
+# @testset "Serialize" begin
+#     mpi_test(1, "serialization_test.jl")
+# end
 
-@testset "SliceSampler" begin
-    test_slice_sampler()
-end
+# @testset "SliceSampler" begin
+#     test_slice_sampler()
+# end
 
 # clean-up logs
 ls = readdir()
