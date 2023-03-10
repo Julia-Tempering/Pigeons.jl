@@ -8,7 +8,7 @@ function mpi_test(n_processes::Int, test_file::String; options = [])
             "$project_folder/test/$test_file"
         end
     mpiexec() do exe
-        mpi_args = extra_mpi_args()
+        mpi_args = Pigeons.extra_mpi_args()
         run(`$exe $mpi_args -n $n_processes $(Base.julia_cmd()) --project=$project_folder $resolved_test_file $options`)
     end
 end

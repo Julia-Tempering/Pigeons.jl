@@ -62,7 +62,7 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         run(julia_cmd, wait = new_process.wait)
     else
         mpiexec() do exe
-            mpi_args = Pigeons.extra_mpi_args()
+            mpi_args = extra_mpi_args()
             mpi_cmd = `$exe $mpi_args -n $(new_process.n_local_mpi_processes)`
             cmd = `$mpi_cmd $julia_cmd`
             logfile = "Pigeons.log"
