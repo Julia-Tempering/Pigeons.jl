@@ -93,7 +93,7 @@ explore!(pt, explorer, multithreaded::Val{false}) =
 multithreaded_flag(flag) = Val(flag && Threads.nthreads() > 1)
 
 function explore!(pt, replica, explorer)
-    log_potential = find_log_potential(replica, pt.shared)
+    log_potential = find_log_potential(replica, pt.shared.tempering, pt.shared)
     before = eval_if_ac_requested(log_potential, replica)
     if is_reference(pt.shared.tempering.swap_graphs, replica.chain)
         sample_iid!(log_potential, replica)

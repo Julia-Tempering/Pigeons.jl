@@ -20,7 +20,7 @@ adapt_explorer(explorer::SliceSampler, _, _) = explorer
 explorer_recorder_builders(::SliceSampler) = [] 
 
 function step!(explorer::SliceSampler, replica, shared)
-    log_potential = find_log_potential(replica, shared)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
     slice_sample!(explorer, replica.state, log_potential, replica.rng)
 end
 

@@ -50,12 +50,12 @@ tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr, log_sum_rati
 
 # create_pair_swapper(tempering::VariationalPT, target) = find_log_potential(tempering) # TODO
 
-function find_log_potential(replica, tempering::VariationalPT)
-    tuple = ReplicaIndexer(replica, tempering)
-    if tuple.leg == :fixed 
-        return tempering.fixed_leg.log_potentials[tuple.chain]
-    elseif tuple.leg == :variational 
-        return tempering.variational_leg.log_potentials[tuple.chain]
+function find_log_potential(replica, tempering::VariationalPT, shared)
+    tup = shared.indexer.i2t[replica.chain]
+    if tup.leg == :fixed 
+        return tempering.fixed_leg.log_potentials[tup.chain]
+    elseif tup.leg == :variational 
+        return tempering.variational_leg.log_potentials[tup.chain]
     end
 end
 
@@ -67,15 +67,15 @@ within a leg of PT and the leg in which it is located.
 Given a tuple, return the global chain number.
 """
 function create_replica_indexer(tempering::VariationalPT)
-    n_chains_fixed = tempering.fixed_leg.n_chains 
-    n_chains_var = tempering.variational_leg.n_chains
+    n_chains_fixed = number_of_chains(tempering.fixed_leg)
+    n_chains_var = number_of_chains(tempering.variational_leg)
     n_chains = n_chains_fixed + n_chains_var
     i2t = Vector{Any}(undef, n_chains)
     for i in 1:n_chains
         if i ≤ n_chains_fixed 
-            i2t[i] = (i, :fixed)
+            i2t[i] = (chain = i, leg = :fixed)
         else 
-            i2t[i] = (i - n_chains_fixed, :variational)
+            i2t[i] = (chain = i - n_chains_fixed, leg = :variational)
         end
     end
     return Indexer(i2t)

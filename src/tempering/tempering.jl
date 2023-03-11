@@ -42,9 +42,9 @@ we also assume the presence of the following fields:
     """
     $SIGNATURES 
     Find the [`log_potential`](@ref) for the chain 
-    the replica is at, based on the [`tempering`](@ref) object.  
+    the replica is at, based on the [`tempering`](@ref) and [`Shared`](@ref) objects.  
     """
-    find_log_potential(replica, tempering) = @abstract
+    find_log_potential(replica, tempering, shared) = @abstract
     
     """
     $SIGNATURES

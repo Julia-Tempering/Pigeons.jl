@@ -46,7 +46,7 @@ function Shared(inputs)
     tempering = create_tempering(inputs)
     explorer = create_explorer(inputs) 
     var_reference = create_var_reference(inputs)
-    indexer = nothing
+    indexer = create_replica_indexer(tempering)
     return Shared(iterators, tempering, explorer, var_reference, indexer)
 end
 

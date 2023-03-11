@@ -93,6 +93,6 @@ online_recorder_builders() = [
 """
 Extract the number of PT chains from `Inputs`.
 """
-number_of_chains(inputs) = inputs.n_chains
-number_of_chains_fixed(inputs) = inputs.n_chains_fixed_reference
-number_of_chains_var(inputs) = inputs.n_chains_var_reference
+number_of_chains(inputs::Inputs) = inputs.n_chains
+number_of_chains_fixed(inputs::Inputs) = inputs.n_chains_fixed_reference
+number_of_chains_var(inputs::Inputs) = inputs.n_chains_var_reference
