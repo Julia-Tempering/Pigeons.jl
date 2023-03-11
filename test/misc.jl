@@ -9,7 +9,7 @@ function mpi_test(n_processes::Int, test_file::String; options = [])
         end
     mpiexec() do exe
         mpi_args = extra_mpi_args()
-        run(`$exe $mpi_args -n $n_processes $(Base.julia_cmd()) --project=$project_folder $resolved_test_file $options`)
+        run(`$exe $mpi_args -n $n_processes $(Base.julia_cmd()) -t 2 --project=$project_folder $resolved_test_file $options`)
     end
 end
 
