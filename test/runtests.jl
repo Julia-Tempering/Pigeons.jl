@@ -20,8 +20,17 @@ include("misc.jl")
 include("slice_sampler_test.jl")
 include("turing.jl")
 
+@testset "MPI backend" begin
+    @info "MPI: using $(MPIPreferences.abi) ($(MPIPreferences.binary))"
+    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
+        @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
+    end
+    if haskey(ENV,"JULIA_MPI_TEST_ABI")
+        @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
+    end
+end
+
 @testset "GC+multithreading" begin
-    @info MPIPreferences.abi
     mpi_test(2, "gc_test.jl")
 end
 
@@ -33,15 +42,6 @@ end
 #         for g in globals
 #             @assert find_process(lb, g) == p
 #         end
-#     end
-# end
-
-# @testset "MPI backend" begin
-#     if haskey(ENV,"JULIA_MPI_TEST_BINARY")
-#         @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
-#     end
-#     if haskey(ENV,"JULIA_MPI_TEST_ABI")
-#         @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
 #     end
 # end
 
