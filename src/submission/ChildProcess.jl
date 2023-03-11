@@ -78,20 +78,18 @@ function pigeons(pt_arguments, new_process::ChildProcess)
 end
 
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, silence_mpi::Bool)
-    julia_bin = Base.julia_cmd()
-    cur_proj  = Base.current_project()
-    if !isnothing(cur_proj)
+    script_path  = launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
+    jl_cmd       = Base.julia_cmd()
+    project_file = Base.current_project()
+    if !isnothing(project_file)
         # instantiate the project to make sure dependencies exist
-        # also, precompile to issues with coordinating access to compilecache
-        dir = dirname(cur_proj)
-        @info "forcing instantiate + precompile on project $dir"
-        run(`$julia_bin --project=$dir -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
+        # also, precompile to avoid issues with coordinating access to compile cache
+        project_dir = dirname(project_file)
+        jl_cmd      = `$jl_cmd --project=$project_dir`
+        println("Instantiating and pre-compiling project on $project_dir")
+        run(`$jl_cmd -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
     end
-    script_path = launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
-    return `$julia_bin
-            --project=$cur_proj
-            --threads=$n_threads 
-            $script_path`
+    return `$jl_cmd --threads=$n_threads $script_path`
 end
 
 function launch_script(pt_arguments, exec_folder, dependencies, silence_mpi)
