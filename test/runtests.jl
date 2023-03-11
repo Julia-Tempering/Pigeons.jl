@@ -207,8 +207,3 @@ test_split_slice_helper(range) = [rand(r) for r in split_slice(range,  Splittabl
 # @testset "SliceSampler" begin
 #     test_slice_sampler()
 # end
-
-# clean-up logs
-ls = readdir()
-foreach(rm, filter(endswith(".log"), ls))
-foreach(rm, filter(endswith(".err"), ls))
