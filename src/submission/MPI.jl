@@ -45,7 +45,7 @@ $FIELDS
     """
     Extra arguments passed to mpiexec.
     """
-    mpiexec_args::String = ""
+    mpiexec_args::Cmd = ``
 end
 
 """

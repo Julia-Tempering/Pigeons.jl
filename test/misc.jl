@@ -14,5 +14,5 @@ function mpi_test(n_processes::Int, test_file::String; options = [])
 end
 
 function extra_mpi_args()
-    MPIPreferences.abi == "OpenMPI" ? "--oversubscribe" : ""
+    MPIPreferences.abi == "OpenMPI" ? `--oversubscribe` : ``
 end

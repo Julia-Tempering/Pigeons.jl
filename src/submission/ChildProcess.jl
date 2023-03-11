@@ -19,7 +19,7 @@ $FIELDS
     (if of type `String`) needed by the child 
     process. 
     """
-    dependencies::Vector{Any} = []
+    dependencies::Vector = []
     # eventually, detect & save which 
     # modules should be loaded? E.g. could use 
     #    https://stackoverflow.com/questions/25575406/list-of-loaded-imported-packages-in-julia
@@ -34,19 +34,21 @@ $FIELDS
     third-party target distribution which somehow 
     does not support multi-threading. 
     """
-    n_local_mpi_processes = 1
+    n_local_mpi_processes::Int = 1
 
     """
     If wait is false, the process runs asynchronously.
     When wait is false, the process' I/O streams are directed to devnull.
     """
-    wait = true
+    wait::Bool = true
 
     """
     Extra arguments passed to mpiexec.
     """
-    mpiexec_args::String = ""
+    mpiexec_args::Cmd = ``
 end 
+
+
 
 """
 $SIGNATURES 
@@ -67,9 +69,7 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         run(julia_cmd, wait = new_process.wait)
     else
         mpiexec() do exe
-            args    = new_process.mpiexec_args
-            mpi_cmd = length(args)>0 ? `$exe $args` : `$exe` # need this because `$("")` == `''` != `` 
-            mpi_cmd = `$mpi_cmd -n $(new_process.n_local_mpi_processes)`
+            mpi_cmd = `$exe $(new_process.mpiexec_args) -n $(new_process.n_local_mpi_processes)`
             cmd     = `$mpi_cmd $julia_cmd`
             run(cmd, wait = new_process.wait)
         end
@@ -82,7 +82,7 @@ function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, sil
     jl_cmd       = Base.julia_cmd()
     project_file = Base.current_project()
     if !isnothing(project_file)
-        # instantiate the project to make sure dependencies exist
+        # forcing instantiate the project to make sure dependencies exist
         # also, precompile to avoid issues with coordinating access to compile cache
         project_dir = dirname(project_file)
         jl_cmd      = `$jl_cmd --project=$project_dir`
