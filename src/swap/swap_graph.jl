@@ -31,25 +31,4 @@ Canonical example is the standard Odd and Even swap. Extension point for e.g.
 end
 
 
-""" Implements a [`swap_graph`](@ref). """
-struct OddEven
-    even::Bool
-    n_chains::Int
-end
-odd(n_chains::Int) =  OddEven(false, n_chains)
-even(n_chains::Int) = OddEven(true, n_chains)
-
-n_chains(swap_graph::OddEven) = swap_graph.n_chains
-function partner_chain(swap_graph::OddEven, chain::Int)
-    @assert 1 ≤ chain ≤ swap_graph.n_chains
-    direction = (iseven(chain) == swap_graph.even ? 1 : -1)
-    proposed = chain + direction
-    if      proposed == 0                       return 1
-    elseif  proposed == swap_graph.n_chains + 1 return swap_graph.n_chains
-    else                                        return proposed
-    end
-end
-is_reference(::OddEven, chain::Int) = chain == 1
-is_target(deo::OddEven, chain::Int) = chain == deo.n_chains
-
 

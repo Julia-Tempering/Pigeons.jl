@@ -39,7 +39,21 @@ we also assume the presence of the following fields:
     """
     create_pair_swapper(tempering, target) = tempering.log_potentials
 
-    get_log_potentials(tempering) = @abstract
+    """
+    $SIGNATURES 
+    Find the [`log_potential`](@ref) for the chain 
+    the replica is at, based on the [`tempering`](@ref) object.  
+    """
+    find_log_potential(replica, tempering) = @abstract
+    
+    """
+    $SIGNATURES
+    Optional.
+    Create an [`Indexer`](@ref) for the replicas in this `tempering` object.
+    E.g. the replica indexer is used to determine to which leg a chain belongs 
+    and its relative chain index for multi-leg PT methods.
+    """
+    create_replica_indexer(tempering) = nothing
 end
 
 """
