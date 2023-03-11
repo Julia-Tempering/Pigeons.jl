@@ -1,3 +1,5 @@
+# note: the models here don't use `filldist` in order to avoid importing
+# Turing, which was crashing as of 2023-03-06
 # Unconditioned coinflip model with `N` observations.
 @model function coinflip(y)
     p ~ Beta(1, 12)
