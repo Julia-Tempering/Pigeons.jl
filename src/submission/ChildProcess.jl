@@ -86,7 +86,6 @@ function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, sil
         # also, precompile to avoid issues with coordinating access to compile cache
         project_dir = dirname(project_file)
         jl_cmd      = `$jl_cmd --project=$project_dir`
-        println("Instantiating and pre-compiling project on $project_dir")
         run(`$jl_cmd -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
     end
     return `$jl_cmd --threads=$n_threads $script_path`

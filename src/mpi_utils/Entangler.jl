@@ -158,7 +158,7 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
     e.current_received_bits .= true 
     at_least_one_mpi = false
 
-    requests = RequestSet()
+    requests = RequestSet() # non-blocking requests that will be waited on
     
     # send (or copy if local)
     for local_index in 1:myload
@@ -176,6 +176,8 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
             source_view = Ref{T}(source_datum)
             mpi_rank = process_index - 1
             # asynchronously (non-blocking) send over MPI:
+            # note: we wait for the Isend request to avoid the application 
+            # terminating in the last iteration without completing its request.
             request = Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
             push!(requests, request)
         end
