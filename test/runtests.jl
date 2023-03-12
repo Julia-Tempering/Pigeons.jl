@@ -90,7 +90,7 @@ end
         checkpoint = true, 
         on = ChildProcess(
                 n_local_mpi_processes = n_mpis,
-                n_threads = 2,
+                n_threads = 1,
                 mpiexec_args = extra_mpi_args())) 
 
     # Turing:
@@ -104,7 +104,7 @@ end
         on = ChildProcess(
                 dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
                 n_local_mpi_processes = n_mpis,
-                n_threads = 2,
+                n_threads = 1,
                 mpiexec_args = extra_mpi_args()))
 
     # Blang:
@@ -119,7 +119,7 @@ end
             checkpoint = true, 
             on = ChildProcess(
                     n_local_mpi_processes = n_mpis,
-                    n_threads = 2,
+                    n_threads = 1,
                     mpiexec_args = extra_mpi_args()))
     end
 end
@@ -137,7 +137,7 @@ end
         checkpoint = true, 
         on = ChildProcess(
                 n_local_mpi_processes = n_mpis,
-                n_threads = 2,
+                n_threads = 1,
                 mpiexec_args = extra_mpi_args())) 
 end
 
