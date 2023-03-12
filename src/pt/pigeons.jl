@@ -10,6 +10,8 @@ This will also call [`report()`](@ref), [`write_checkpoint()`](@ref),
 and [`run_checks()`](@ref) between rounds. 
 """
 function pigeons(pt::PT) 
+    @warn "TEMPORARY - GC DISABLED FOR TESTING"
+    GC.enable(false)
     preflight_checks(pt)
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
