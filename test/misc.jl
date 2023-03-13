@@ -1,4 +1,5 @@
 function mpi_test(n_processes::Int, test_file::String; options = [])
+    n_processes = set_n_mpis_to_one_on_windows(n_processes)
     jl_cmd = Base.julia_cmd()
     project_folder = dirname(Base.current_project())
     run(`$jl_cmd --project=$(project_folder) -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
@@ -12,6 +13,15 @@ function mpi_test(n_processes::Int, test_file::String; options = [])
     mpiexec() do exe
         mpi_args = extra_mpi_args()
         run(`$exe $mpi_args -n $n_processes $jl_cmd -t 2 --project=$project_folder $resolved_test_file $options`)
+    end
+end
+
+function set_n_mpis_to_one_on_windows(default_n_mpis::Int)
+    if Sys.iswindows()
+        @info "MPI functionalities are not currently supported/tested on windows, see https://github.com/Julia-Tempering/Pigeons.jl/issues/34" maxlog=1
+        return 1
+    else
+        return default_n_mpis
     end
 end
 

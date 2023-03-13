@@ -90,46 +90,6 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
   
 
-  # test MicrosoftMPI by requesting it with MPIPreferences
-  # adapted from MPI.jl
-  test-MicrosoftMPI-jll:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - MicrosoftMPI_jll - ${{ github.event_name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        version:
-          - '1.8'
-        os:
-          - windows-latest
-        arch:
-          - x64
-
-      fail-fast: false
-    env:
-      JULIA_MPI_TEST_BINARY: MicrosoftMPI_jll
-      JULIA_MPI_TEST_ABI: MicrosoftMPI
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.version }}
-        arch: ${{ matrix.arch }}
-    - uses: julia-actions/cache@v1
-
-    - name: use MicrosoftMPI_jll
-      shell: julia --color=yes --project=test {0}
-      run: |
-        using Pkg
-        Pkg.instantiate()
-        using MPIPreferences
-        MPIPreferences.use_jll_binary("MicrosoftMPI_jll")
-        rm("test/Manifest.toml")
-
-    - uses: julia-actions/julia-runtest@latest
-
-
   # test system MPI using Brew in macOS
   # adapted from MPI.jl
   test-system-MPI-brew:
@@ -179,58 +139,6 @@ jobs:
           rm("test/Manifest.toml")
       
       - uses: julia-actions/julia-runtest@v1
-
-
-  # # test system MPI using apt in ubuntu
-  # # adapted from MPI.jl
-  # # TODO: commented out because apt has older versions of MPICH and OMPI that
-  # # segfault with multithreading. Re-introduce them when apt pkgs are upgraded 
-  # test-system-MPI-apt:
-  #   name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.mpi }} - ${{ github.event_name }}
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       version:
-  #         - '1.8'
-  #       os:
-  #         - ubuntu-latest
-  #       mpi:
-  #         - libmpich-dev
-  #   env:
-  #     JULIA_MPI_TEST_BINARY: system
-  #   steps:
-  #     - uses: actions/checkout@v3
-
-  #     - name: Install MPI via apt
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install $MPI
-  #       env:
-  #         MPI: ${{ matrix.mpi }}
-
-  #     - uses: actions/setup-java@v3
-  #       with:
-  #         distribution: 'temurin'
-  #         java-version: '11'
-
-  #     - uses: julia-actions/setup-julia@v1
-  #       with:
-  #         version: ${{ matrix.version }}
-  #         arch: x64
-
-  #     - uses: julia-actions/cache@v1
-
-  #     - name: use system MPI
-  #       shell: julia --color=yes --project=test {0}
-  #       run: |
-  #         using Pkg
-  #         Pkg.instantiate()
-  #         using MPIPreferences
-  #         MPIPreferences.use_system_binary()
-  #         rm("test/Manifest.toml")
-      
-  #     - uses: julia-actions/julia-runtest@v1
 
 
   docs:

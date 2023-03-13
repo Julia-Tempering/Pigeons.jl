@@ -82,8 +82,10 @@ end
     end
 end
 
+
+
 @testset "Parallelism Invariance" begin
-    n_mpis = 4
+    n_mpis = set_n_mpis_to_one_on_windows(4)
     recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
 
     # test swapper 
@@ -130,7 +132,7 @@ end
 end
 
 @testset "Longer MPI" begin
-    n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
+    n_mpis = set_n_mpis_to_one_on_windows(4)
     recorder_builders = []
     pigeons(
         target = Pigeons.TestSwapper(0.5), 
