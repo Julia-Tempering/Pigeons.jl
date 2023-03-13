@@ -63,7 +63,7 @@ function pigeons(pt_arguments, mpi_submission::MPI)
         exec_folder,
         mpi_submission.dependencies,
         mpi_submission.n_threads,
-        false
+        true # set mpi_active_ref flag to true
     )
     
     # generate qsub script

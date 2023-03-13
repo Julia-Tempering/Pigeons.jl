@@ -89,24 +89,6 @@ mutable struct Entangler
     end
 end
 
-# use this to force mpi_active() to return false
-const silence_mpi = Ref(false)
-
-"""
-$SIGNATURES
-
-Detect if more than one MPI processes can be found. 
-""" 
-mpi_active() =  
-    if silence_mpi[] 
-        false
-    else 
-        init_mpi()
-        Comm_size(COMM_WORLD) > 1
-    end
-
-init_mpi() = Init(threadlevel = :funneled)
-
 """
 $SIGNATURES
 
