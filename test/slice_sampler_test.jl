@@ -1,9 +1,3 @@
-using Pigeons
-using Distributions
-using Random
-using Turing
-using SplittableRandoms
-
 import Pigeons: SliceSampler, slice_sample!
 
 include("turing.jl")

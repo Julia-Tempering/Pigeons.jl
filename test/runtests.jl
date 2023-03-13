@@ -1,28 +1,22 @@
 using Pigeons
-using Pkg
 
-#=
-Rationale for this hack:
-- putting those in the [extras] section will lead to ChildProcess not 
-  having access to it
-- the other method, a second toml file, seems more promising but 
-  proved challenging to get to work on CI
-=#
-for i in ["Test", "LinearAlgebra", "Turing", "ArgMacros", "Plots"]
-    Pkg.add(i)
-end
-
-using Test
+using ArgMacros
 using Distributions
-using Random
-using Statistics
-using OnlineStats
+using DynamicPPL
 using LinearAlgebra
-using Turing
+using MPI
+using MPIPreferences
+using OnlineStats
+using Random
+using Serialization
 using SplittableRandoms
-import Pigeons: mpi_test, my_global_indices, LoadBalance, my_load,
+using Statistics
+using Test
+
+import Pigeons: my_global_indices, LoadBalance, my_load,
                 find_process, split_slice
 
+include("misc.jl")
 include("slice_sampler_test.jl")
 include("turing.jl")
 
@@ -35,6 +29,20 @@ function test_load_balance(n_processes, n_tasks)
             @assert find_process(lb, g) == p
         end
     end
+end
+
+@testset "MPI backend" begin
+    @info "MPI: using $(MPIPreferences.abi) ($(MPIPreferences.binary))"
+    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
+        @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
+    end
+    if haskey(ENV,"JULIA_MPI_TEST_ABI")
+        @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
+    end
+end
+
+@testset "GC+multithreading" begin
+    mpi_test(2, "gc_test.jl")
 end
 
 @testset "Stepping stone" begin
@@ -75,33 +83,49 @@ end
 end
 
 @testset "Parallelism Invariance" begin
-    n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
+    n_mpis = 4
     recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
+
+    # test swapper 
+    pigeons(
+        target = toy_mvn_target(1), 
+        n_rounds = 10,
+        checked_round = 3, 
+        recorder_builders = recorder_builders,
+        checkpoint = true, 
+        on = ChildProcess(
+                n_local_mpi_processes = n_mpis,
+                n_threads = 2,
+                mpiexec_args = extra_mpi_args())) 
+
     # Turing:
     pigeons(
         target = TuringLogPotential(flip_model_unidentifiable()), 
-        n_rounds = 4,
+        n_rounds = 10,
         checked_round = 3, 
         multithreaded = true,
         recorder_builders = recorder_builders,
         checkpoint = true, 
         on = ChildProcess(
-                dependencies = [Turing, LinearAlgebra, "turing.jl"],
+                dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
                 n_local_mpi_processes = n_mpis,
-                n_threads = 2))
+                n_threads = 2,
+                mpiexec_args = extra_mpi_args()))
+
     # Blang:
     if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
         Pigeons.setup_blang("blangDemos")
         pigeons(; 
             target = Pigeons.blang_ising(), 
-            n_rounds = 4,
+            n_rounds = 10,
             checked_round = 3, 
             recorder_builders = recorder_builders, 
             multithreaded = true, 
             checkpoint = true, 
             on = ChildProcess(
                     n_local_mpi_processes = n_mpis,
-                    n_threads = 2))
+                    n_threads = 2,
+                    mpiexec_args = extra_mpi_args()))
     end
 end
 
@@ -109,8 +133,8 @@ end
     n_mpis = Sys.iswindows() ? 1 : 4 # MPI on child process crashes on windows;  see c016f59c84645346692f720854b7531743c728bf
     recorder_builders = []
     pigeons(
-        target = toy_mvn_target(1), 
-        n_rounds = 12,
+        target = Pigeons.TestSwapper(0.5), 
+        n_rounds = 14,
         checked_round = 12, 
         n_chains = 200,
         multithreaded = false,
@@ -118,7 +142,8 @@ end
         checkpoint = true, 
         on = ChildProcess(
                 n_local_mpi_processes = n_mpis,
-                n_threads = 1)) 
+                n_threads = 2,
+                mpiexec_args = extra_mpi_args())) 
 end
 
 @testset "Entanglement" begin

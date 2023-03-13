@@ -73,7 +73,7 @@ mutable struct Entangler
                 println("Entangler initialized 1 process (without MPI); $(Threads.nthreads())")
             end
         else
-            Init(threadlevel = :funneled) 
+            init_mpi()
             comm = Comm_dup(parent_communicator)
             transmit_counter_bound = ceil(Int, tag_ub() / n_global_indices - 2)
             my_process_index = Comm_rank(comm) + 1
@@ -88,22 +88,6 @@ mutable struct Entangler
         return new(comm, lb, received_bits, 0, transmit_counter_bound)
     end
 end
-
-# use this to force mpi_active() to return false
-const silence_mpi = Ref(false)
-
-"""
-$SIGNATURES
-
-Detect if more than one MPI processes can be found. 
-""" 
-mpi_active() =  
-    if silence_mpi[] 
-        false
-    else 
-        Init(threadlevel = :funneled)
-        Comm_size(COMM_WORLD) > 1
-    end
 
 """
 $SIGNATURES
@@ -155,6 +139,8 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
     # indicators of whether each local index is to be received over MPI
     e.current_received_bits .= true 
     at_least_one_mpi = false
+
+    requests = RequestSet() # non-blocking requests that will be waited on
     
     # send (or copy if local)
     for local_index in 1:myload
@@ -172,13 +158,15 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
             source_view = Ref{T}(source_datum)
             mpi_rank = process_index - 1
             # asynchronously (non-blocking) send over MPI:
-            Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
+            # note: we wait for the Isend request to avoid the application 
+            # terminating in the last iteration without completing its request.
+            request = Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
+            push!(requests, request)
         end
     end
 
     # receive
     if at_least_one_mpi
-        requests = RequestSet()
         my_globals = my_global_indices(e.load)
         for local_index in 1:myload
             if e.current_received_bits[local_index]
@@ -238,6 +226,8 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
     # outer loop is over the levels of a binary tree over the global indices
     iteration = 1
 
+    requests = RequestSet()
+
     while n_remaining_to_reduce > 1
         transmit_index = next_transmit_index!(e)
         current_local = my_first_remaining_local
@@ -251,7 +241,8 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
                 dest_global_index = current_global - spacing 
                 dest_process = find_process(e.load, dest_global_index)
                 dest_rank = dest_process - 1
-                isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
+                request = isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
+                push!(requests, request)
                 current_local += spacing           
                 did_send = true     
             elseif current_global + spacing ≤ e.load.n_global_indices
@@ -274,6 +265,7 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
         
         if did_send 
             my_first_remaining_local += spacing
+            Waitall(requests)
         end
         n_global_indices_remaining_before = ceil(Int, n_global_indices_remaining_before/2)
         spacing = spacing * 2
