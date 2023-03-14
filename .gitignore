@@ -7,7 +7,8 @@
 .vscode/settings.json
 build
 .interfaces.md
-
+*.log
+*.err
 machines.txt
 results
 .includes_bu.jl
