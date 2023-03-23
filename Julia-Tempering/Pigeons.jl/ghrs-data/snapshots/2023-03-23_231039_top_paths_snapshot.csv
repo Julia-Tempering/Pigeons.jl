@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Julia-Tempering/Pigeons.jl,40,18
+/Julia-Tempering/Pigeons.jl/tree/main/src,19,3
+/Julia-Tempering/Pigeons.jl/pull/30,10,7
+/Julia-Tempering/Pigeons.jl/tree/main/src/pt,9,1
+/Julia-Tempering/Pigeons.jl/tree/variational-pt,9,1
+/Julia-Tempering/Pigeons.jl/blob/main/src/recorders/LogSum.jl,6,1
+/Julia-Tempering/Pigeons.jl/tree/main/src/recorders,6,1
+/Julia-Tempering/Pigeons.jl/blob/main/src/pt/Inputs.jl,5,1
+/Julia-Tempering/Pigeons.jl/blob/main/src/recorders/recorder.jl,5,1
+/Julia-Tempering/Pigeons.jl/blob/main/src/pt/PT.jl,4,1
