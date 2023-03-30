@@ -7,5 +7,11 @@ point beta in the closed interval ``[0, 1]``.
     beta
 end
 
-(interpolated::InterpolatedLogPotential)(x) = 
-    interpolate(interpolated.path.interpolator, interpolated.path.ref, interpolated.path.target, interpolated.beta, x)
+interpolate(interpolator, ref_log_potential, target_log_potential, beta, x) = 
+    interpolate(interpolator, ref_log_potential(x), target_log_potential(x), beta)
+
+function interpolate(::LinearInterpolator, ref_log_potential_value, target_log_potential_value, beta) 
+    @assert 0.0 ≤ beta ≤ 1.0
+    @weighted(1.0 - beta, ref_log_potential_value) +
+    @weighted(beta,       target_log_potential_value)
+end

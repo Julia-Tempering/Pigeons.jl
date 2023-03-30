@@ -35,6 +35,8 @@ using StaticArrays
 using Printf
 using Statistics
 using RecipesBase
+using LogDensityProblemsAD 
+using ForwardDiff
 
 import Serialization.serialize
 import Serialization.deserialize
