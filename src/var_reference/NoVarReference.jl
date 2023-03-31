@@ -1,4 +1,4 @@
-struct NoVarReference end 
+struct NoVarReference <: VarReference end 
 
 activate_var_reference(::NoVarReference, _) = false
 update_path!(path, _, ::NoVarReference) = nothing

@@ -1,7 +1,7 @@
 """
 A Gaussian mean-field variational reference (i.e., with a diagonal covariance matrix).
 """
-@kwdef mutable struct GaussianReference
+@kwdef mutable struct GaussianReference <: VarReference
     μ::Dict{Symbol, Any} = Dict{Symbol, Any}() # means
     σ::Dict{Symbol, Any} = Dict{Symbol, Any}() # standard deviations
     
