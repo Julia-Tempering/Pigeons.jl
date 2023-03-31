@@ -3,15 +3,15 @@ using Distributions
 using Random
 using SplittableRandoms
 
-include("../src/examples/turing.jl")
-include("../src/examples/vector.jl")
+include("turing.jl")
+include("vector.jl")
 
 """
 Run from runtests.jl
 """
 
 function test_var_reference_Turing()
-    model = Pigeons.flip_model_unidentifiable()
+    model = flip_model_unidentifiable()
     
     # Check NoVarReference()
     inputs = Inputs(
