@@ -105,6 +105,18 @@ blang_ising(model_options) =
         `$(blang_executable("blangDemos", "blang.validation.internals.fixtures.Ising")) $model_options`
     )
 
+blang_bhcd(model_options) = 
+    BlangTarget(
+        `$(blang_executable("blangBHCD", "bhcd.BHCD")) $model_options`
+    )
+
+blang_bhcd() = blang_bhcd(`
+    --model.graph.file $(blang_repo_path("blangBHCD"))/data/metabolic/links_tpa_reduced.csv 
+    --treatNaNAsNegativeInfinity true 
+    --checkIsDAG false 
+    --model.variant BINOM
+`)
+
 """
 $SIGNATURES 
 

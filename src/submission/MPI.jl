@@ -36,10 +36,16 @@ $FIELDS
     memory::String = "8gb"
 
     """
-    Extra Julia `Module`s needed by the child 
+    Julia modules (if of type `Module`) or paths to include 
+    (if of type `String`) needed by the child 
     process. 
     """
-    extra_julia_modules::Vector{Module} = []
+    dependencies::Vector{Module} = []
+
+    """
+    Extra arguments passed to mpiexec.
+    """
+    mpiexec_args::Cmd = ``
 end
 
 """
@@ -55,20 +61,11 @@ function pigeons(pt_arguments, mpi_submission::MPI)
     julia_cmd = launch_cmd(
         pt_arguments,
         exec_folder,
-        mpi_submission.extra_julia_modules,
+        mpi_submission.dependencies,
         mpi_submission.n_threads,
-        false
+        true # set mpi_active_ref flag to true
     )
-
-    # TODO: if pt_arguments is a Resume, 
-    # offer options to use it to populate mpi_configuration
-
-    #= 
-    If the julia folder is in a read-only folder from the 
-    worker nodes, need to precompile.
-    =#
-    precompile()
-
+    
     # generate qsub script
     # do job submission & record the submission id
     cmd = mpi_submission_cmd(exec_folder, mpi_submission, julia_cmd)
@@ -83,10 +80,10 @@ end
 function mpi_submission_cmd(exec_folder, mpi_submission::MPI, julia_cmd) 
     submission_script = mpi_submission_script(exec_folder, mpi_submission, julia_cmd)
     return `qsub $submission_script`
-end
-
-resource_string(m::MPI) = 
-    "walltime=$(m.walltime),select=$(m.n_mpi_processes):ncpus=$(m.n_threads):mpiprocs=$(m.n_threads):mem=$(m.memory)"
+end                         #                             +-- each chunks should request as many cpus as threads,
+                            # +-- number of "chunks"...   |                   +-- NB: if mpiprocs were set to more than 1 this would give a number of mpi processes equal to select*mpiprocs
+resource_string(m::MPI) =   # v                           v                   v               
+    "walltime=$(m.walltime),select=$(m.n_mpi_processes):ncpus=$(m.n_threads):mpiprocs=1:mem=$(m.memory)"
 
 function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     # TODO: generalize to other submission systems
@@ -104,7 +101,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     #PBS -e $info_folder/stderr.txt
     cd \$PBS_O_WORKDIR
     $(modules_string(mpi_settings))
-    mpiexec --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
+    mpiexec $(mpi_submission.mpiexec_args) --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
     write(script_path, code)

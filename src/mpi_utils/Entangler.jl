@@ -41,26 +41,41 @@ mutable struct Entangler
     current_received_bits::Vector{Bool} 
 
     """
-    The current micro-iteration.  
+    The current micro-iteration. Do not rely on it to 
+    count logical steps as it is reset to zero after 
+    `transmit_counter_bound` micor-iterations to avoid 
+    underflows to negative 
+    tags which cause MPI to crash. 
     """
     n_transmits::Int 
+
+    """
+    Calculated from MPI.tag_ub and n_global_indices to 
+    ensure MPI tags stay valid (i.e. do not overflow into 
+    negative values).
+    """
+    transmit_counter_bound::Int
 
     """
     If `parent_communicator` is `nothing`, then assume there is only 
     one machine (self) and bypass MPI.
     """
-    function Entangler(n_global_indices::Int; parent_communicator::Union{Comm,Nothing} = COMM_WORLD, verbose::Bool = true)
+    function Entangler(n_global_indices::Int; 
+            parent_communicator::Union{Comm,Nothing} = COMM_WORLD, 
+            verbose::Bool = true)
         if parent_communicator === nothing
             # do everything locally (no network comm)
             comm = nothing
+            transmit_counter_bound = 2^40
             my_process_index = 1
             n_processes = 1
             if verbose
                 println("Entangler initialized 1 process (without MPI); $(Threads.nthreads())")
             end
         else
-            Init() 
+            init_mpi()
             comm = Comm_dup(parent_communicator)
+            transmit_counter_bound = ceil(Int, tag_ub() / n_global_indices - 2)
             my_process_index = Comm_rank(comm) + 1
             n_processes = Comm_size(comm)
             if verbose && my_process_index == 1
@@ -70,25 +85,9 @@ mutable struct Entangler
   
         lb = LoadBalance(my_process_index, n_processes, n_global_indices)
         received_bits = Vector{Bool}(undef, my_load(lb))
-        return new(comm, lb, received_bits, 0)
+        return new(comm, lb, received_bits, 0, transmit_counter_bound)
     end
 end
-
-# use this to force mpi_active() to return false
-const silence_mpi = Ref(false)
-
-"""
-$SIGNATURES
-
-Detect if more than one MPI processes can be found. 
-""" 
-mpi_active() =  
-    if silence_mpi[] 
-        false
-    else 
-        Init()
-        Comm_size(COMM_WORLD) > 1
-    end
 
 """
 $SIGNATURES
@@ -140,6 +139,8 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
     # indicators of whether each local index is to be received over MPI
     e.current_received_bits .= true 
     at_least_one_mpi = false
+
+    requests = RequestSet() # non-blocking requests that will be waited on
     
     # send (or copy if local)
     for local_index in 1:myload
@@ -157,13 +158,15 @@ function transmit!(e::Entangler, source_data::AbstractVector{T}, to_global_indic
             source_view = Ref{T}(source_datum)
             mpi_rank = process_index - 1
             # asynchronously (non-blocking) send over MPI:
-            Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
+            # note: we wait for the Isend request to avoid the application 
+            # terminating in the last iteration without completing its request.
+            request = Isend(source_view, e.communicator, dest = mpi_rank, tag = tag(e, transmit_index, global_index))
+            push!(requests, request)
         end
     end
 
     # receive
     if at_least_one_mpi
-        requests = RequestSet()
         my_globals = my_global_indices(e.load)
         for local_index in 1:myload
             if e.current_received_bits[local_index]
@@ -223,6 +226,8 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
     # outer loop is over the levels of a binary tree over the global indices
     iteration = 1
 
+    requests = RequestSet()
+
     while n_remaining_to_reduce > 1
         transmit_index = next_transmit_index!(e)
         current_local = my_first_remaining_local
@@ -236,7 +241,8 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
                 dest_global_index = current_global - spacing 
                 dest_process = find_process(e.load, dest_global_index)
                 dest_rank = dest_process - 1
-                isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
+                request = isend(work_array[current_local], e.communicator; dest = dest_rank, tag = tag(e, transmit_index, iteration))
+                push!(requests, request)
                 current_local += spacing           
                 did_send = true     
             elseif current_global + spacing ≤ e.load.n_global_indices
@@ -259,6 +265,7 @@ function reduce_deterministically(operation, source_data::AbstractVector{T}, e::
         
         if did_send 
             my_first_remaining_local += spacing
+            Waitall(requests)
         end
         n_global_indices_remaining_before = ceil(Int, n_global_indices_remaining_before/2)
         spacing = spacing * 2
@@ -300,6 +307,24 @@ end
 # A transmit index keeps track of the micro-iteration.
 # Each micro iteration contains several pairwise communications
 function next_transmit_index!(e::Entangler)::Int
+    # avoid "MPIError(4): MPI_ERR_TAG: invalid tag" due to overflow to negative
+    if e.n_transmits > e.transmit_counter_bound
+        e.n_transmits = 0
+        if e.load.my_process_index == 1
+            @info   """
+                    To avoid MPI tag overflow, looping back to tag zero.
+                    This will not cause problems unless micro-iterations 
+                    across different machines can overlap by more 
+                    than transmit_counter_bound micro-iterations
+                    (here $(e.transmit_counter_bound) micro-iterations). For 
+                    example, in non-reversible PT, that cannot happen 
+                    when, e.g., 2x the number of chains (i.e. 2 x the number of 
+                    global indices, here $(2 * e.load.n_global_indices)) 
+                    is smaller than the transmit_counter_bound 
+                    (here $(e.transmit_counter_bound)).
+                    """ maxlog=1 # TODO: double-check and write the proof
+        end
+    end
     result = e.n_transmits
     e.n_transmits += 1
     return result

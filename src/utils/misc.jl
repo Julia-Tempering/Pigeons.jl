@@ -97,13 +97,6 @@ is attempted).
 """
 macro abstract() quote error("Attempted to call an abstract function.") end end
 
-function mpi_test(n_processes::Int, test_file::String; options = [])
-    project_folder = dirname(Base.current_project())
-    mpiexec() do exe
-        run(`$exe -n $n_processes $(Base.julia_cmd()) --project=$project_folder $project_folder/test/$test_file $options`)
-    end
-end
-
 
 """
     @weighted(w, x) 

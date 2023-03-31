@@ -8,7 +8,8 @@ import MPI: Comm, Allreduce, Comm_rank,
             Comm_dup, Request, Waitall,
             RequestSet, mpiexec, Allreduce, 
             Allgather, Comm_split, isend, recv,
-            bcast
+            bcast, tag_ub 
+
      
 using Base: Forward
 using Distributions
@@ -19,7 +20,6 @@ using Dates
 using OnlineStats
 using MacroTools
 using DocStringExtensions
-using Plots
 using LinearAlgebra
 using SpecialFunctions
 using Serialization
@@ -34,6 +34,7 @@ using LogExpFunctions
 using StaticArrays
 using Printf
 using Statistics
+using RecipesBase
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -48,13 +49,10 @@ import OnlineStats._merge!
 import Random.rand! 
 import Base.(==)
 import Base.keys
-import Pkg.precompile
 import Statistics.mean 
 import Statistics.var
 
-
 import DynamicPPL
-using Turing
 
 const use_auto_exec_folder = ""
 

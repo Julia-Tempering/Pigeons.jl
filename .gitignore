@@ -7,7 +7,8 @@
 .vscode/settings.json
 build
 .interfaces.md
-
+*.log
+*.err
 machines.txt
 results
 .includes_bu.jl
@@ -19,3 +20,4 @@ interfaces.md
 filtered.csv
 nowellpack
 tmp.jl
+Manifest.toml
