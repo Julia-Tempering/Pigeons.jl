@@ -4,7 +4,8 @@ function gradient(log_potential::TuringLogPotential, vi, autodiff_backend = :For
     # The LogDensityFunction actually contains state info, so we don't want 
     # to use them as log_potential's, moreover, 
     # LogDensityFunction() and ADgradient() seems cheaper than logdensity_and_gradient 
-    # so we are should not be losing more than a factor 2 speed here 
+    # so we are should not be losing more than a factor 2 speed here by 
+    # repeatedly extracting the LogDensityFunction and its ADgradient
     fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, context)
     gradient_calculator = ADgradient(autodiff_backend, fct)
     _, grad = LogDensityProblemsAD.logdensity_and_gradient(gradient_calculator, current_point)
