@@ -1,5 +1,3 @@
-abstract type VarReference end
-
 """
 A variational family of reference distributions.
 """
@@ -27,13 +25,13 @@ A variational family of reference distributions.
     $SIGNATURES
     Obtain one iid sample from the reference distribution specified by the variational family.
     """
-    sample_iid!(var_reference::VarReference, replica) = @abstract
+    sample_iid!(var_reference, replica) = @abstract
 
     """
     $SIGNATURES
     Evaluate the log density of the variational reference at a point `x`.
     """
-    (var_reference::VarReference)(state) = @abstract
+    (var_reference)(state) = @abstract
 end
 
 
