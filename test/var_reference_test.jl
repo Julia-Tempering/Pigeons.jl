@@ -20,7 +20,7 @@ function test_var_reference_Turing()
     n_chains_var_reference = 0,
     seed = 1
     )
-    @test_nothrow pt = pigeons(inputs)
+    @test_nowarn pt = pigeons(inputs)
     
     # Check GaussianReference()
     inputs = Inputs(
@@ -30,7 +30,7 @@ function test_var_reference_Turing()
     var_reference = GaussianReference(),
     seed = 1
     )
-    @test_nothrow pt = pigeons(inputs)
+    @test_nowarn pt = pigeons(inputs)
 end
 
 
@@ -49,7 +49,7 @@ function test_var_reference_vector()
     n_chains_var_reference  = 0,
     seed                    = 1
     )
-    @test_nothrow pt = pigeons(inputs)
+    @test_nowarn pt = pigeons(inputs)
     
     # Check GaussianReference()
     inputs = Inputs(
@@ -59,7 +59,7 @@ function test_var_reference_vector()
     seed                    = 1,
     var_refrence            = GaussianReference()
     )
-    @test_nothrow pt = pigeons(inputs)
+    @test_nowarn pt = pigeons(inputs)
 end
 
 
