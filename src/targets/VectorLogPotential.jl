@@ -1,3 +1,6 @@
+"""
+Supports user-defined log potentials that take in vectors as input.
+"""
 @concrete struct VectorLogPotential
     """
     User-coded function for the target log potential that assumes the state is a vector.

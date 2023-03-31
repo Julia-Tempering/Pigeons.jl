@@ -55,6 +55,9 @@ function use_var_reference(inputs)
     end
 end
 
+"""
+Create a variational reference.
+"""
 @provides var_reference function create_var_reference(inputs) 
     if use_var_reference(inputs)
         var_reference = inputs.var_reference

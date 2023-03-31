@@ -5,7 +5,7 @@ used to create Parallel Tempering algorithms.
 Fields (see source file for default values):
 $FIELDS
 """
-@kwdef mutable struct Inputs{I}
+@kwdef mutable struct Inputs{I, V}
     """ The target distribution. """
     target::I
 
@@ -22,7 +22,7 @@ $FIELDS
     n_chains_var_reference::Int = 0
     
     """ The variational reference family. """
-    var_reference::VarReference = NoVarReference()
+    var_reference::V = NoVarReference()
 
     """ 
     Whether a checkpoint should be written to disk 
