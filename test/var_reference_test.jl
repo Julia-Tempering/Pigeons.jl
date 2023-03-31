@@ -57,7 +57,7 @@ function test_var_reference_vector()
     n_chains                = 0,
     n_chains_var_reference  = 10,
     seed                    = 1,
-    var_refrence            = GaussianReference()
+    var_reference            = GaussianReference()
     )
     @test_nowarn pt = pigeons(inputs)
 end

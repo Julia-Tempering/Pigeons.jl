@@ -36,6 +36,9 @@ const DISCRETE_VARS = Ref([])
 
 # Implementations
 
+continuous_variables(state::Nothing) = SINGLETON_VAR # e.g. for TestSwapper
+discrete_variables(state::Nothing) = []
+
 const SINGLETON_VAR = [:singleton_variable]
 continuous_variables(state::Array) = SINGLETON_VAR
 discrete_variables(state::Array) = []
