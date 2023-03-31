@@ -11,10 +11,8 @@ function gradient(log_potential::TuringLogPotential, vi, autodiff_backend = :For
     return grad
 end
 
-gradient(interpolated::InterpolatedLogPotential, x, autodiff_backend = :ForwardDiff) = 
-    interpolate(
-        interpolated.path.interpolator, 
-        gradient(interpolated.path.ref.density, x, autodiff_backend), 
-        gradient(interpolated.path.target.density, x, autodiff_backend), 
-        interpolated.beta
-    )
+function gradient(interpolated::InterpolatedLogPotential{InterpolatingPath{R, T, LinearInterpolator}, B}, x, autodiff_backend = :ForwardDiff) where {R, T, B}
+    @assert 0.0 ≤ beta ≤ 1.0 
+    return  @weighted(1.0 - beta, gradient(interpolated.path.ref.density, x, autodiff_backend)) +
+            @weighted(beta,       gradient(interpolated.path.target.density, x, autodiff_backend))
+end
