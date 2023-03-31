@@ -37,6 +37,7 @@ using Statistics
 using RecipesBase
 using LogDensityProblemsAD 
 using ForwardDiff
+using Roots
 
 import Serialization.serialize
 import Serialization.deserialize
