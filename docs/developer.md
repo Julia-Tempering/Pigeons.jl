@@ -7,7 +7,7 @@ From the root of the Pigeons repo:
 ```
 julia
 ;
-cd test
+cd docs
 [ctrl-c]
 ]activate .
 [ctrl-c]
