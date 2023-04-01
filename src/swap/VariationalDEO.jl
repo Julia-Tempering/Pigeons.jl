@@ -21,7 +21,7 @@ Implements the Deterministic Even Odd (DEO) scheme but with two references
     return VariationalDEO(n_chains_fixed, n_chains_var)
 end
 
-create_swap_graph(variational_deo::VariationalDEO, shared) = iseven(shared.iterators.scan) ? even(deo.n_chains) : odd(deo.n_chains)
+create_swap_graph(deo::VariationalDEO, shared) = iseven(shared.iterators.scan) ? even(deo.n_chains) : odd(deo.n_chains)
 
 is_reference(deo::VariationalDEO, chain::Int) = (chain == 1) | (chain == deo.n_chains)
 is_target(deo::VariationalDEO, chain::Int) = chain == deo.n_chains_fixed

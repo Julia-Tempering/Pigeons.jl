@@ -3,7 +3,7 @@ all_reports() = [
         # width of 9     # compute that report item
         "  #scans  "   => pt -> n_scans_in_round(pt.shared.iterators), 
         "  rd-trip "   => pt -> n_round_trips(pt), 
-        "    Λ     "   => pt -> pt.shared.tempering.communication_barriers.globalbarrier, 
+        "    Λ     "   => pt -> global_barrier(pt.shared.tempering),
         "  time(s) "   => pt -> last_round_max_time(pt), 
         "  allc(B) "   => pt -> last_round_max_allocation(pt), 
         "  log(Z)  "   => pt -> stepping_stone(pt),
@@ -37,6 +37,8 @@ end
 
 render_report_cell(f, pt) = render_report_cell(f(pt))
 render_report_cell(value::Number) = @sprintf "%9.3g " value
+render_report_cell(value::Tuple{Number, Number}) = 
+    "(" * (@sprintf "%9.3g " value[1]) * ", " * (@sprintf "%9.3g" value[2]) * ")"
 
 function header(reports)
     hr(reports, "─")

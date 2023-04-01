@@ -36,7 +36,7 @@ function VariationalPT(inputs::Inputs)
     n_chains_var = number_of_chains_var(inputs)
     initial_schedule_var = equally_spaced_schedule(n_chains_var)
     variational_leg = NonReversiblePT(path_var, initial_schedule_var, nothing)
-    swap_graphs = deo(number_of_chains(inputs))
+    swap_graphs = variational_deo(n_chains_fixed, n_chains_var)
     return VariationalPT(fixed_leg, variational_leg, swap_graphs)
 end
 
@@ -49,7 +49,7 @@ end
 tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr, log_sum_ratio]
 
 create_pair_swapper(tempering::VariationalPT, target) = 
-    vcat(tempering.fixed_leg.log_potentials, tempering.variational_leg.log_potentials)
+    vcat(tempering.fixed_leg.log_potentials, reverse(tempering.variational_leg.log_potentials))
     # TODO: Update this to avoid unnecesary allocations
 
 function find_log_potential(replica, tempering::VariationalPT, shared)
@@ -74,11 +74,19 @@ function create_replica_indexer(tempering::VariationalPT)
     n_chains = n_chains_fixed + n_chains_var
     i2t = Vector{Any}(undef, n_chains)
     for i in 1:n_chains
+        # reference ----- target -- target ---- reference 
+        #     1     -----   N    -- N + 1  ----    2N
         if i ≤ n_chains_fixed 
             i2t[i] = (chain = i, leg = :fixed)
         else 
-            i2t[i] = (chain = i - n_chains_fixed, leg = :variational)
+            i2t[i] = (chain = n_chains_var - (i - n_chains_fixed) + 1, leg = :variational)
         end
     end
     return Indexer(i2t)
 end
+
+global_barrier(tempering::VariationalPT) = 
+    (
+        tempering.fixed_leg.communication_barriers.globalbarrier, 
+        tempering.variational_leg.communication_barriers.globalbarrier
+    )

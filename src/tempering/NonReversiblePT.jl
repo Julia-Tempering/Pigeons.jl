@@ -61,3 +61,4 @@ end
 tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]
 find_log_potential(replica, tempering::NonReversiblePT, shared) = tempering.log_potentials[replica.chain]
 number_of_chains(tempering::NonReversiblePT) = n_chains(tempering.schedule)
+global_barrier(tempering::NonReversiblePT) = tempering.communication_barriers.globalbarrier
