@@ -2,10 +2,9 @@
 
 ## How to create doc locally
 
-From the root of the Pigeons repo:
+Start a REPL, then
 
 ```
-julia
 ;
 cd docs
 [ctrl-c]
