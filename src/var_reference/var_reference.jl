@@ -4,7 +4,9 @@ Abstract type for variational references.
 abstract type VarReference end
 
 """
-A variational family of reference distributions.
+A variational family of reference distributions. 
+Implementations should also satisfy the [`log_potential`](@ref) 
+contract. 
 """
 @informal var_reference begin
     
@@ -31,12 +33,6 @@ A variational family of reference distributions.
     Obtain one iid sample from the reference distribution specified by the variational family.
     """
     sample_iid!(var_reference::VarReference, replica) = @abstract
-
-    # """
-    # $SIGNATURES
-    # Evaluate the log density of the variational reference at a `state`.
-    # """
-    (var_reference::VarReference)(state) = @abstract
 end
 
 
