@@ -32,10 +32,10 @@ A variational family of reference distributions.
     """
     sample_iid!(var_reference::VarReference, replica) = @abstract
 
-    """
-    $SIGNATURES
-    Evaluate the log density of the variational reference at a point `x`.
-    """
+    # """
+    # $SIGNATURES
+    # Evaluate the log density of the variational reference at a `state`.
+    # """
     (var_reference::VarReference)(state) = @abstract
 end
 
