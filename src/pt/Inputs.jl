@@ -41,6 +41,8 @@ $FIELDS
     False by default since it incurs an overhead. 
     """
     multithreaded::Bool = false
+
+    fused_swaps::Bool = false
 end
 
 """

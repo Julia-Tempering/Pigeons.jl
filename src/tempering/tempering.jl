@@ -27,18 +27,17 @@ we also assume the presence of the following fields:
     Return `[]` if none are needed.
     """
     tempering_recorder_builders(tempering) = @abstract 
-
-    """ 
-    $SIGNATURES 
-
-    Given a [`tempering`](@ref) and a [`Shared`](@ref) struct, 
-    create a [`pair_swapper`](@ref). 
-
-    If ommitted, by default will return the standard Metropolis-Hastings 
-    accept-reject. 
-    """
-    create_pair_swapper(tempering, target) = tempering.log_potentials
 end
+
+""" 
+$SIGNATURES 
+
+By default will return the standard Metropolis-Hastings 
+accept-reject. 
+"""
+create_pair_swapper(inputs, log_potentials) = inputs.fused_swaps ? 
+    FusedSwap(log_potentials) :
+    log_potentials
 
 """
 $SIGNATURES 

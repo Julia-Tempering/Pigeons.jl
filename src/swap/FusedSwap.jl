@@ -109,11 +109,10 @@ function record_swap_stats!(pair_swapper::FusedSwap, recorders, chain1::Int, sta
     # record_if_requested!(recorders, :log_sum_ratio, (key2, stat2.log_ratio)) # compute both to estimate a sandwich
 end
 
-function swap_decision(pair_swapper::FusedSwap, chain1::Int, stat1, chain2::Int, stat2)
-    acceptance_pr = swap_acceptance_probability(stat1, stat2)
-    uniform = chain1 < chain2 ? stat1.uniform : stat2.uniform
-
-    # TODO: if accept, move the state using the involution
-
-    return uniform < acceptance_pr
+function apply_swap!(pair_swapper::FusedSwap, partner_chain::Int, do_swap::Bool, replica, my_swap_stat)
+    if do_swap
+        replica.chain = partner_chain 
+        _, mover = state_mover(pair_swapper, replica)
+        move!(mover, my_swap_stat.proposed)
+    end
 end

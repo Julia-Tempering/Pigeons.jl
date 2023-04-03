@@ -57,7 +57,7 @@ inputs needed for [`swap!`](@ref).
 """
 function communicate!(pt)
     tempering = pt.shared.tempering
-    swapper = create_pair_swapper(tempering, pt.inputs.target)
+    swapper = create_pair_swapper(pt.inputs, pt.shared.tempering.log_potentials)
     graph = create_swap_graph(tempering.swap_graphs, pt.shared)
     swap!(swapper, pt.replicas, graph)
 end

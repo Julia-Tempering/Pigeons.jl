@@ -120,9 +120,7 @@ function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partn
         record_swap_stats!(pair_swapper, r.recorders, my_chain, my_swap_stat, partner_chain, partner_swap_stat)
     end
 
-    if do_swap
-        r.chain = partner_chain # NB: other "half" of the swap performed by partner
-    end
+    apply_swap!(pair_swapper, partner_chain, do_swap, r, my_swap_stat)
 end
 
 function checked_partner_chain(swap_graph, my_chain::Int)::Int 

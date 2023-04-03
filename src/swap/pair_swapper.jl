@@ -83,9 +83,21 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
         uniform = chain1 < chain2 ? stat1.uniform : stat2.uniform
         return uniform < acceptance_pr
     end
+
+    """
+    $SIGNATURES
+
+    Given a [`pair_swapper`](@ref), the output of [`swap_decision`](@ref) in the input argument `do_swap`, 
+    and a replica, modify the state in the replica. 
+    """
+    function apply_swap!(pair_swapper, partner_chain::Int, do_swap::Bool, replica, my_swap_stat)
+        if do_swap
+            replica.chain = partner_chain 
+        end
+    end
 end
 
-swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
+swap_acceptance_probability(stat1, stat2) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
 
 """
 For testing/benchmarking purposes, a simple 
