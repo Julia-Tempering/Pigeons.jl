@@ -35,8 +35,8 @@ const DISCRETE_VARS = Ref([])
 
 
 # Implementations
-
 const SINGLETON_VAR = [:singleton_variable]
+
 continuous_variables(state::Array) = SINGLETON_VAR
 discrete_variables(state::Array) = []
 update_state!(state::Array, name::Symbol, index, value) = (state[name][index] = value)
@@ -53,7 +53,8 @@ end
 # For the stream interface, view the state as a black box
 # Useful so that running with default block of recorders 
 # does not crash. 
-continuous_variables(state::StreamState) = []
+continuous_variables(state::Union{Nothing, StreamState}) = []
+discrete_variables(state::Union{Nothing, StreamState}) = []
 
 
 continuous_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)

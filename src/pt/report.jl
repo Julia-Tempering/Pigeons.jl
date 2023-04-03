@@ -38,7 +38,7 @@ end
 render_report_cell(f, pt) = render_report_cell(f(pt))
 render_report_cell(value::Number) = @sprintf "%9.3g " value
 render_report_cell(value::Tuple{Number, Number}) = 
-    "(" * (@sprintf "%9.3g " value[1]) * ", " * (@sprintf "%9.3g" value[2]) * ")"
+    "(" * (@sprintf "%4.3g" value[1]) * ", " * (@sprintf "%4.3g" value[2]) * ")"
 
 function header(reports)
     hr(reports, "─")

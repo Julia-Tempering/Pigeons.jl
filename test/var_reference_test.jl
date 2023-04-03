@@ -65,7 +65,23 @@ function test_var_reference_vector()
 end
 
 
+function test_two_references()
+    model = Pigeons.flip_model_unidentifiable()
+
+    inputs = Inputs(
+        target = TuringLogPotential(model),
+        n_chains = 10,
+        n_chains_fixed_reference = 5,
+        n_chains_var_reference = 5,
+        var_reference = GaussianReference(),
+        seed = 1
+    )
+    @test_nowarn pt = pigeons(inputs)
+end
+
+
 function test_var_reference()
     test_var_reference_Turing()
     test_var_reference_vector()
+    test_two_references()
 end
