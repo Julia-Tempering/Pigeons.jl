@@ -1,11 +1,3 @@
-using Pigeons
-using Distributions
-using Random
-using SplittableRandoms
-
-include("turing.jl")
-include("vector.jl")
-
 """
 Run from runtests.jl
 """
@@ -15,20 +7,20 @@ function test_var_reference_Turing()
     
     # Check NoVarReference()
     inputs = Inputs(
-    target = TuringLogPotential(model),
-    n_chains = 10,
-    n_chains_var_reference = 0,
-    seed = 1
+        target = TuringLogPotential(model),
+        n_chains = 10,
+        n_chains_var_reference = 0,
+        seed = 1
     )
     @test_nowarn pt = pigeons(inputs)
     
     # Check GaussianReference()
     inputs = Inputs(
-    target = TuringLogPotential(model),
-    n_chains = 0,
-    n_chains_var_reference = 10,
-    var_reference = GaussianReference(),
-    seed = 1
+        target = TuringLogPotential(model),
+        n_chains = 0,
+        n_chains_var_reference = 10,
+        var_reference = GaussianReference(),
+        seed = 1
     )
     @test_nowarn pt = pigeons(inputs)
 end
@@ -44,20 +36,20 @@ function test_var_reference_vector()
     
     # Check NoVarReference()
     inputs = Inputs(
-    target                  = target,
-    n_chains                = 10,
-    n_chains_var_reference  = 0,
-    seed                    = 1
+        target                  = target,
+        n_chains                = 10,
+        n_chains_var_reference  = 0,
+        seed                    = 1
     )
     @test_nowarn pt = pigeons(inputs)
     
     # Check GaussianReference()
     inputs = Inputs(
-    target                  = target,
-    n_chains                = 0,
-    n_chains_var_reference  = 10,
-    seed                    = 1,
-    var_reference            = GaussianReference()
+        target                  = target,
+        n_chains                = 0,
+        n_chains_var_reference  = 10,
+        seed                    = 1,
+        var_reference            = GaussianReference()
     )
     @test_nowarn pt = pigeons(inputs)
 end

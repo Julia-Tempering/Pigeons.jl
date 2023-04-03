@@ -20,6 +20,7 @@ include("misc.jl")
 include("slice_sampler_test.jl")
 include("var_reference_test.jl")
 include("turing.jl")
+include("vector.jl")
 
 function test_load_balance(n_processes, n_tasks)
     for p in 1:n_processes

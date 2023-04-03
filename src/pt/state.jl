@@ -62,8 +62,11 @@ continuous_variables(state::StreamState) = []
 continuous_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)
 discrete_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, Integer)
 variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = state.metadata[name].vals
-update_state!(state::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value) = 
-    (state.metadata[name].vals[index] = value)
+
+function update_state!(state::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value)
+    state.metadata[name].vals[index] = value
+end
+
 function variables(state::DynamicPPL.TypedVarInfo, type::DataType) 
     all_names = fieldnames(typeof(state.metadata))
     var_names = []

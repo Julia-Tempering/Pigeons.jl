@@ -36,10 +36,13 @@ contract.
 end
 
 
-update_path_if_needed!(path, reduced_recorders, iterators, var_reference) = 
-    activate_var_reference(var_reference, iterators) ? 
-        update_path_var_reference!(path, reduced_recorders, var_reference) : 
+function update_path_if_needed!(path, reduced_recorders, iterators, var_reference) 
+    if activate_var_reference(var_reference, iterators) 
+        update_path_var_reference!(path, reduced_recorders, var_reference) 
+    else 
         nothing
+    end
+end
 
 function update_path_var_reference!(path, reduced_recorders, var_reference)
     update_reference!(reduced_recorders, var_reference)
