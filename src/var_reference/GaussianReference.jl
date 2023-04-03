@@ -1,9 +1,9 @@
 """
 A Gaussian mean-field variational reference (i.e., with a diagonal covariance matrix).
 """
-@kwdef mutable struct GaussianReference <: VarReference
-    mean::Dict{Symbol, Any} = Dict{Symbol, Any}() # means
-    standard_deviation::Dict{Symbol, Any} = Dict{Symbol, Any}() # standard deviations
+mutable struct GaussianReference{T} <: VarReference
+    mean::Dict{Symbol, T} = Dict{Symbol, T}() # means
+    standard_deviation::Dict{Symbol, T} = Dict{Symbol, T}() # standard deviations
     
     function GaussianReference(mean, standard_deviation)
         @assert length(mean) == length(standard_deviation)
