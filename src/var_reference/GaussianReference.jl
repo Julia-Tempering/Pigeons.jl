@@ -15,7 +15,8 @@ A Gaussian mean-field variational reference (i.e., with a diagonal covariance ma
 end
 
 dim(var_reference::GaussianReference) = length(var_reference.mean)
-activate_var_reference(::GaussianReference, iterators::Iterators) = iterators.round ≥ 6 ? true : false
+activate_var_reference(var_reference::GaussianReference, iterators::Iterators) = 
+    iterators.round ≥ var_reference.first_tuning_round ? true : false
 var_reference_recorder_builders(::GaussianReference) = [target_online]
 
 function update_reference!(reduced_recorders, var_reference::GaussianReference)

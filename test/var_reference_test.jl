@@ -31,7 +31,7 @@ function test_var_reference_vector()
         Normal_2D,
         Normal_2D_reference,
         Normal_2D_reference_sample!,
-        2
+        [0.0, 0.0]
     )
     
     # Check NoVarReference()
