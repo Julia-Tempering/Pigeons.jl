@@ -32,8 +32,6 @@ end
 @provides target VectorLogPotential(target_log_potential, reference_log_potential, reference_sample!, initial_state) = 
   VectorLogPotential(target_log_potential, reference_log_potential, reference_sample!, initial_state, false)
 
-dim(log_potential::VectorLogPotential) = length(log_potential.initial_state)
-
 function (log_potential::VectorLogPotential)(x)
   log_potential.only_reference ? log_potential.reference_log_potential(x) : 
     log_potential.target_log_potential(x)
