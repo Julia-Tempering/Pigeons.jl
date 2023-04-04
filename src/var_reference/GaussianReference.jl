@@ -1,13 +1,16 @@
 """
 A Gaussian mean-field variational reference (i.e., with a diagonal covariance matrix).
 """
-@kwdef mutable struct GaussianReference{T} <: VarReference
-    mean::Dict{Symbol, T} = Dict{Symbol, T}() # means
-    standard_deviation::Dict{Symbol, T} = Dict{Symbol, T}() # standard deviations
+@kwdef mutable struct GaussianReference <: VarReference
+    mean::Dict{Symbol, Any} = Dict{Symbol, Any}() # means
+    standard_deviation::Dict{Symbol, Any} = Dict{Symbol, Any}() # standard deviations
+    first_tuning_round::Int = 6
     
-    function GaussianReference(mean::Dict{Symbol, T}, standard_deviation::Dict{Symbol, T}) where T
+    function GaussianReference(mean::Dict{Symbol, Any}, standard_deviation::Dict{Symbol, Any},
+                               first_tuning_round::Int) where T
         @assert length(mean) == length(standard_deviation)
-        new{T}(mean, standard_deviation)
+        @assert first_tuning_round ≥ 1
+        new(mean, standard_deviation)
     end
 end
 
