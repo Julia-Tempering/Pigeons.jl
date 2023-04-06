@@ -330,6 +330,11 @@ kill_job(mpi_run)
 
 The most general way to invoke Pigeons is by specifying two ingredients: a sequence of distributions, 
 ``\pi_1, \pi_2, \dots, \pi_N``, and for each ``\pi_i``, a ``\pi_i``-invariant Markov transition kernel.
+
+See [examples/general-target.jl](https://github.com/Julia-Tempering/Pigeons.jl/tree/main/examples/general-target.jl) 
+for an example of how to input an arbitrary Julia function as the 
+target distribution.
+
 Typically, ``\pi_1`` is a distribution from which we can sample i.i.d. (e.g. the prior, or a variational 
 approximation), while the last distribution coincides with the distribution of interest, 
 $\pi_N = \pi$, the target. 
