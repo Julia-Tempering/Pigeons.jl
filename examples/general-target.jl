@@ -5,7 +5,12 @@ using SplittableRandoms
 # Create a custom type to control dispatch on the informal interface 'target'
 struct MyLogPotential end
 
+# In the following, we implement the methods described in the documentation at 
+# https://julia-tempering.github.io/Pigeons.jl/dev/interfaces/#target (see "contract")
+
 # Make it conform the 'log_potential' informal interface
+# since we are using the default path, see 
+# https://julia-tempering.github.io/Pigeons.jl/dev/reference/#Pigeons.create_path-Tuple{Any,%20Inputs}
 (::MyLogPotential)(x) = -abs(x[1]) / 3
 
 # Instruct to use the slice sampler for MyLogPotential
@@ -14,7 +19,8 @@ Pigeons.create_explorer(::MyLogPotential, ::Inputs) = Pigeons.SliceSampler()
 # Instruct to use a normal reference
 Pigeons.create_reference_log_potential(::MyLogPotential, ::Inputs) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
 
-# Instruct how to create fresh state objects (using again MyLogPotential as a dummy )
+# Instruct how to create fresh state objects (using again MyLogPotential as a dummy type for dispatch on 
+# the informal interface 'state_initializer')
 Pigeons.create_state_initializer(my_potential::MyLogPotential, ::Inputs) = my_potential
 Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
 
