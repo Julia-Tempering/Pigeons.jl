@@ -20,8 +20,9 @@ with a variational reference will be available in the very near future.
 
 The following features should be implemented according to the timeline given below:
 - Sampling on discrete state spaces: January 2023 :heavy_check_mark:
-- Parallel tempering with a variational reference: April 2023
-- "Parallel parallel" tempering (multiple copies of parallel tempering): April 2023
+- Parallel tempering with a variational reference: April 2023 :heavy_check_mark:
+- "Parallel parallel" tempering (multiple copies of parallel tempering): TBD
+- Parallel tempering on optimized paths: TBD
 
 ## Funding and acknowledgments 
 
