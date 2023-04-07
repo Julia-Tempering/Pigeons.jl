@@ -62,7 +62,7 @@ export pigeons, Inputs, PT,
     # methods for running jobs:
     ChildProcess, MPI,
     # targets:
-    toy_mvn_target, TuringLogPotential, VectorLogPotential,
+    toy_mvn_target, TuringLogPotential, 
     # recorders:
     index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, 
     # utils to run on scheduler:
