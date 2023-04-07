@@ -1,5 +1,5 @@
 """
-Supports user-defined real-valued log potentials that take in vectors as input.
+Supports user-defined log potentials that take in vectors as input.
 """
 @concrete struct VectorLogPotential
     """
@@ -19,35 +19,38 @@ Supports user-defined real-valued log potentials that take in vectors as input.
     reference_sample!
 
     """
-    The starting state that will be used to initialize the PT Markov chain on the expanded space. 
+    Number of model parameters. 
     """
-    initial_state
+    dim # TODO: remove
 
-    """
-    Whether to only use the prior to evaluate the log potential (i.e., evaluate the prior log density).
-    """
     only_reference::Bool
 end
 
-@provides target VectorLogPotential(target_log_potential, reference_log_potential, reference_sample!, initial_state) = 
-  VectorLogPotential(target_log_potential, reference_log_potential, reference_sample!, initial_state, false)
-
-dim(log_potential::VectorLogPotential) = length(log_potential.initial_state)
+@provides target VectorLogPotential(target_log_potential, reference_log_potential, reference_sample!, dim) = 
+  VectorLogPotential(target_log_potential, reference_log_potential, reference_sample!, dim, false)
 
 function (log_potential::VectorLogPotential)(x)
   log_potential.only_reference ? log_potential.reference_log_potential(x) : 
     log_potential.target_log_potential(x)
 end
 
+"""
+An *allocating* version of reference_sample!() that does not need to accept a `state`.
+"""
+function reference_sample(rng, target::VectorLogPotential) 
+    state = Vector{Number}(undef, target.dim)
+    target.reference_sample!(rng, state)
+    return state
+end
+
 create_state_initializer(target::VectorLogPotential, ::Inputs) = target
 initialization(target::VectorLogPotential, rng::SplittableRandom, _::Int64) = 
-  copy(target.initial_state)
+  reference_sample(rng, target)
 
 create_explorer(::VectorLogPotential, ::Inputs) = SliceSampler()
 
 create_reference_log_potential(target::VectorLogPotential, ::Inputs) = 
-  VectorLogPotential(target.target_log_potential, target.reference_log_potential, 
-                     target.reference_sample!, target.initial_state, true)
+  VectorLogPotential(target.target_log_potential, target.reference_log_potential, target.reference_sample!, target.dim, true)
 
 sample_iid!(target::VectorLogPotential, replica) = 
   target.reference_sample!(replica.rng, replica.state)
