@@ -4,15 +4,19 @@ A Gaussian mean-field variational reference (i.e., with a diagonal covariance ma
 @kwdef mutable struct GaussianReference <: VarReference
     μ::Dict{Symbol, Any} = Dict{Symbol, Any}() # means
     σ::Dict{Symbol, Any} = Dict{Symbol, Any}() # standard deviations
-    
-    function GaussianReference(μ, σ)
+    first_tuning_round::Int  = 6
+
+    function GaussianReference(μ, σ, first_tuning_round)
         @assert length(μ) == length(σ)
-        new(μ, σ)
+        @assert first_tuning_round ≥ 1
+        new(μ, σ, first_tuning_round)
     end
 end
 
 dim(var_reference::GaussianReference) = length(var_reference.μ)
-activate_var_reference(::GaussianReference, iterators::Iterators) = iterators.round ≥ 6 ? true : false
+function activate_var_reference(var_reference::GaussianReference, iterators::Iterators) 
+    iterators.round ≥ var_reference.first_tuning_round ? true : false
+end
 var_reference_recorder_builders(::GaussianReference) = [target_online]
 
 function update_reference!(reduced_recorders, var_reference::GaussianReference)
