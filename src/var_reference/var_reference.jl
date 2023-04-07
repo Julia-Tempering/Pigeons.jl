@@ -20,7 +20,7 @@ contract.
     $SIGNATURES
     Update the variational reference and the annealing path. Returns the new annealing path.
     """
-    update_reference!(reduced_recorders, var_reference, state) = @abstract
+    update_reference!(reduced_recorders, var_reference) = @abstract
 
     """
     $SIGNATURES
@@ -36,16 +36,16 @@ contract.
 end
 
 
-function update_path_if_needed!(path, reduced_recorders, iterators, var_reference, state) 
+function update_path_if_needed!(path, reduced_recorders, iterators, var_reference) 
     if activate_var_reference(var_reference, iterators) 
-        update_path_var_reference!(path, reduced_recorders, var_reference, state) 
+        update_path_var_reference!(path, reduced_recorders, var_reference) 
     else 
         nothing
     end
 end
 
-function update_path_var_reference!(path, reduced_recorders, var_reference, state)
-    update_reference!(reduced_recorders, var_reference, state)
+function update_path_var_reference!(path, reduced_recorders, var_reference)
+    update_reference!(reduced_recorders, var_reference)
     path = InterpolatingPath(var_reference, path.target)
 end
 
