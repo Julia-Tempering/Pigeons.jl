@@ -42,7 +42,9 @@ discrete_variables(state::Union{Nothing, Pigeons.StreamState}) = []
 
 continuous_variables(state::Array) = SINGLETON_VAR
 discrete_variables(state::Array) = []
-update_state!(state::Array, name::Symbol, index, value) = (state[name][index] = value)
+function update_state!(state::Array, name::Symbol, index, value) 
+    state[name][index] = value
+end
 function variable(state::Array, name::Symbol)
     if name === :singleton_variable
         state
@@ -62,8 +64,9 @@ continuous_variables(state::StreamState) = []
 continuous_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)
 discrete_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, Integer)
 variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = state.metadata[name].vals
-update_state!(state::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value) = 
-    (state.metadata[name].vals[index] = value)
+function update_state!(state::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value)
+    state.metadata[name].vals[index] = value
+end
 function variables(state::DynamicPPL.TypedVarInfo, type::DataType) 
     all_names = fieldnames(typeof(state.metadata))
     var_names = []

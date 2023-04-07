@@ -1,11 +1,3 @@
-using Pigeons
-using Distributions
-using Random
-using SplittableRandoms
-
-include("turing.jl")
-include("vector.jl")
-
 """
 Run from runtests.jl
 """

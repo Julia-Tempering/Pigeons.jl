@@ -26,7 +26,7 @@ end
 function sample_iid!(var_reference::GaussianReference, replica)
     for var_name in CONTINUOUS_VARS[]
         for i in eachindex(var_reference.μ[var_name])
-            val = rand(replica.rng, Normal(var_reference.μ[var_name][i], var_reference.σ[var_name][i]))
+            val = randn(replica.rng) * var_reference.σ[var_name][i] + var_reference.μ[var_name][i]
             update_state!(replica.state, var_name, i, val)
         end
     end
@@ -37,7 +37,9 @@ function (var_reference::GaussianReference)(state)
     for var_name in CONTINUOUS_VARS[]
         var = variable(state, var_name)
         for i in eachindex(var)
-            log_pdf += logpdf(Normal(var_reference.μ[var_name][i], var_reference[var_name][i]), var[i])
+            mean = var_reference.μ[var_name][i] 
+            standard_deviation = var_reference.σ[var_name][i]
+            log_pdf += -0.5 * log(2*pi*standard_deviation^2) - 1/(2*standard_deviation^2) * (var[i] - mean)^2
         end 
     end
     return log_pdf
