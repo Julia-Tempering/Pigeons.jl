@@ -145,7 +145,7 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
             return new_position
         end
         if new_position < pointer[]
-            Lbar = new_position # TODO: why does Alex have "+1" here for the IntSliceSampler?
+            Lbar = new_position
         else
             Rbar = new_position
         end
