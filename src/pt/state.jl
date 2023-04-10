@@ -32,10 +32,6 @@ and dispatch accordingly.)
 end
 
 
-const CONTINUOUS_VARS = Ref([])
-const DISCRETE_VARS = Ref([])
-
-
 # Implementations
 const SINGLETON_VAR = [:singleton_variable]
 

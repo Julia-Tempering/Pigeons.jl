@@ -19,16 +19,16 @@ function activate_var_reference(var_reference::GaussianReference, iterators::Ite
 end
 var_reference_recorder_builders(::GaussianReference) = [target_online]
 
-function update_reference!(reduced_recorders, var_reference::GaussianReference)
-    if DISCRETE_VARS[] != [] error("Updating a Gaussian reference with discrete variables.") end
-    for var_name in CONTINUOUS_VARS[]
+function update_reference!(reduced_recorders, var_reference::GaussianReference, state)
+    if discrete_variables(state) != [] error("Updating a Gaussian reference with discrete variables.") end
+    for var_name in continuous_variables(state)
         var_reference.μ[var_name] = get_statistic(reduced_recorders, var_name, Mean)
         var_reference.σ[var_name] = sqrt.(get_statistic(reduced_recorders, var_name, Variance))
     end
 end
 
 function sample_iid!(var_reference::GaussianReference, replica)
-    for var_name in CONTINUOUS_VARS[]
+    for var_name in continuous_variables(replica.state)
         for i in eachindex(var_reference.μ[var_name])
             val = randn(replica.rng) * var_reference.σ[var_name][i] + var_reference.μ[var_name][i]
             update_state!(replica.state, var_name, i, val)
@@ -38,7 +38,7 @@ end
 
 function (var_reference::GaussianReference)(state)
     log_pdf = 0.0
-    for var_name in CONTINUOUS_VARS[]
+    for var_name in continuous_variables(state)
         var = variable(state, var_name)
         for i in eachindex(var)
             mean = var_reference.μ[var_name][i] 
