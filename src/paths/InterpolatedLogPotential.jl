@@ -8,4 +8,10 @@ point beta in the closed interval ``[0, 1]``.
 end
 
 (interpolated::InterpolatedLogPotential)(x) = 
-    interpolate(interpolated.path.interpolator, interpolated.path.ref, interpolated.path.target, interpolated.beta, x)
+    if interpolated.beta == zero(interpolated.beta)
+        interpolated.path.ref(x)
+    elseif interpolated.beta == one(interpolated.beta)
+        interpolated.path.target(x)
+    else
+        interpolate(interpolated.path.interpolator, interpolated.path.ref(x), interpolated.path.target(x), interpolated.beta)
+    end
