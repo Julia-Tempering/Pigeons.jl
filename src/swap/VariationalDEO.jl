@@ -1,16 +1,9 @@
 struct VariationalDEO
-    n_chains::Int 
     n_chains_fixed::Int
     n_chains_var::Int
 end
 
-function VariationalDEO(n_chains_fixed, n_chains_var) 
-    VariationalDEO(
-        n_chains_fixed + n_chains_var, 
-        n_chains_fixed, 
-        n_chains_var
-    )
-end
+n_chains(deo::VariationalDEO) = deo.n_chains_fixed + deo.n_chains_var
 
 """
 $SIGNATURES
@@ -21,8 +14,8 @@ Implements the Deterministic Even Odd (DEO) scheme but with two references
     return VariationalDEO(n_chains_fixed, n_chains_var)
 end
 
-create_swap_graph(deo::VariationalDEO, shared) = iseven(shared.iterators.scan) ? even(deo.n_chains) : odd(deo.n_chains)
+create_swap_graph(deo::VariationalDEO, shared) = 
+    iseven(shared.iterators.scan) ? even(n_chains(deo)) : odd(n_chains(deo))
 
-is_reference(deo::VariationalDEO, chain::Int) = (chain == 1) | (chain == deo.n_chains)
+is_reference(deo::VariationalDEO, chain::Int) = (chain == 1) | (chain == n_chains(deo))
 is_target(deo::VariationalDEO, chain::Int) = chain == deo.n_chains_fixed
-n_chains(deo::VariationalDEO) = deo.n_chains

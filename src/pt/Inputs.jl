@@ -15,11 +15,8 @@ $FIELDS
     """ The number of rounds to run. """
     n_rounds::Int = 10
 
-    """ The number of chains to use in total (across all possible legs). """
-    n_chains::Int = 10
-
     """ The number of chains to use for the fixed reference leg. """
-    n_chains_fixed_reference::Int = 10
+    n_chains::Int = 10
 
     """ The number of chains to use for the variational reference leg. """
     n_chains_var_reference::Int = 0
@@ -51,17 +48,14 @@ $FIELDS
     """
     multithreaded::Bool = false
 
-    function Inputs(target::I, seed, n_rounds, n_chains, n_chains_fixed_reference, n_chains_var_reference,
-                    var_reference, checkpoint, recorder_builders, checked_round, multithreaded) where {I}
-        @assert (n_chains ≥ 2) & (n_chains_fixed_reference ≥ 0) & (n_chains_var_reference ≥ 0)
-        @assert n_chains == n_chains_fixed_reference + n_chains_var_reference
+    function Inputs(target::I, seed, n_rounds, n_chains, n_chains_var_reference,
+                    var_reference::V, checkpoint, recorder_builders, checked_round, multithreaded) where {I, V}
+        @assert (n_chains ≥ 0) & (n_chains_var_reference ≥ 0) & (n_chains + n_chains_var_reference ≥ 2)
         if (n_chains_var_reference == 0)
             @assert isa(var_reference, NoVarReference)
-        elseif (n_chains_var_reference > 0)
-            @assert !isa(var_reference, NoVarReference)
         end
-        return new{I}(
-            target, seed, n_rounds, n_chains, n_chains_fixed_reference, n_chains_var_reference,
+        return new{I,V}(
+            target, seed, n_rounds, n_chains, n_chains_var_reference,
             var_reference, checkpoint, recorder_builders, checked_round, multithreaded
         )
     end
@@ -93,6 +87,7 @@ online_recorder_builders() = [
 """
 Extract the number of PT chains from `Inputs`.
 """
-number_of_chains(inputs::Inputs) = inputs.n_chains
-number_of_chains_fixed(inputs::Inputs) = inputs.n_chains_fixed_reference
+number_of_chains(inputs::Inputs) = number_of_chains_fixed(inputs) + number_of_chains_var(inputs)
+# TODO: generalize once you have "parallel parallel tempering", etc.
+number_of_chains_fixed(inputs::Inputs) = inputs.n_chains
 number_of_chains_var(inputs::Inputs) = inputs.n_chains_var_reference
