@@ -15,10 +15,11 @@ $FIELDS
     n_threads::Int = Threads.nthreads()
 
     """
-    Extra Julia `Module`s needed by the child 
+    Julia modules (if of type `Module`) or paths to include 
+    (if of type `String`) needed by the child 
     process. 
     """
-    extra_julia_modules::Vector{Module} = []
+    dependencies::Vector = []
     # eventually, detect & save which 
     # modules should be loaded? E.g. could use 
     #    https://stackoverflow.com/questions/25575406/list-of-loaded-imported-packages-in-julia
@@ -33,14 +34,21 @@ $FIELDS
     third-party target distribution which somehow 
     does not support multi-threading. 
     """
-    n_local_mpi_processes = 1
+    n_local_mpi_processes::Int = 1
 
     """
     If wait is false, the process runs asynchronously.
     When wait is false, the process' I/O streams are directed to devnull.
     """
-    wait = true
+    wait::Bool = true
+
+    """
+    Extra arguments passed to mpiexec.
+    """
+    mpiexec_args::Cmd = ``
 end 
+
+
 
 """
 $SIGNATURES 
@@ -53,32 +61,37 @@ function pigeons(pt_arguments, new_process::ChildProcess)
     julia_cmd = launch_cmd(
         pt_arguments,
         exec_folder,
-        new_process.extra_julia_modules,
+        new_process.dependencies,
         new_process.n_threads,
-        new_process.n_local_mpi_processes == 1
+        new_process.n_local_mpi_processes > 1
     )
     if new_process.n_local_mpi_processes == 1
         run(julia_cmd, wait = new_process.wait)
     else
         mpiexec() do exe
-            mpi_cmd = `$exe -n $(new_process.n_local_mpi_processes)`
-            cmd = `$mpi_cmd $julia_cmd`
+            mpi_cmd = `$exe $(new_process.mpiexec_args) -n $(new_process.n_local_mpi_processes)`
+            cmd     = `$mpi_cmd $julia_cmd`
             run(cmd, wait = new_process.wait)
         end
     end
     return Result{PT}(exec_folder)
 end
 
-function launch_cmd(pt_arguments, exec_folder, extra_julia_modules, n_threads::Int, silence_mpi::Bool)
-    julia_bin = Base.julia_cmd()
-    script_path = launch_script(pt_arguments, exec_folder, extra_julia_modules, silence_mpi)
-    return `$julia_bin 
-            --project   
-            --threads=$n_threads 
-            $script_path`
+function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_mpi::Bool)
+    script_path  = launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
+    jl_cmd       = Base.julia_cmd()
+    project_file = Base.current_project()
+    if !isnothing(project_file)
+        # forcing instantiate the project to make sure dependencies exist
+        # also, precompile to avoid issues with coordinating access to compile cache
+        project_dir = dirname(project_file)
+        jl_cmd      = `$jl_cmd --project=$project_dir`
+        run(`$jl_cmd -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
+    end
+    return `$jl_cmd --threads=$n_threads $script_path`
 end
 
-function launch_script(pt_arguments, exec_folder, extra_julia_modules, silence_mpi)
+function launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
     path_to_serialized_pt_arguments = "$exec_folder/.pt_argument.jls"
     path_to_serialized_immutables = "$exec_folder/immutables.jls"
 
@@ -86,12 +99,16 @@ function launch_script(pt_arguments, exec_folder, extra_julia_modules, silence_m
     serialize(path_to_serialized_pt_arguments, pt_arguments)
     serialize_immutables(path_to_serialized_immutables)
 
+    # if the child spawns a child via check_against_serial, 
+    # the grandchild will need to know its dependencies 
+    serialize("$exec_folder/.dependencies.jls", dependencies)
+
     code = launch_code(
         exec_folder, 
         path_to_serialized_pt_arguments, 
         path_to_serialized_immutables,
-        extra_julia_modules,
-        silence_mpi) 
+        dependencies,
+        on_mpi) 
     script_path = "$exec_folder/.launch_script.jl"
     write(script_path, code)
     return script_path
@@ -101,33 +118,36 @@ function launch_code(
         exec_folder::AbstractString, 
         path_to_serialized_pt_arguments::AbstractString, 
         path_to_serialized_immutables::AbstractString,
-        extra_julia_modules,
-        silence_mpi) 
-    modules = copy(extra_julia_modules)
+        dependencies,
+        on_mpi) 
+    modules = copy(dependencies)
     push!(modules, Serialization)
     push!(modules, Pigeons)
-    usings = 
+    dependency_declarations = 
         join(
-            map(
-                m -> "using $m", 
-                unique(modules)), 
+            map(add_dependency, unique(modules)), 
             "\n")
     # when running check_against_serial(), the 
     # child process still detects it is under MPI, so 
     # we need to force it to ignore that
-    silence_code = silence_mpi ? "Pigeons.silence_mpi[] = true" : ""
+    mpi_flag = on_mpi ? "Pigeons.mpi_active_ref[] = true" : ""
 
     # Might be better with quote? 
     # But prototype quote-based syntax seemed more messy..
     # NB: using raw".." below to work around windows problem: backslash in paths interpreted as escape, so using suggestion in https://discourse.julialang.org/t/windows-file-path-string-slash-direction-best-way-to-copy-paste/29204
     """
-    $usings
-    $silence_code
+    $dependency_declarations
+    $mpi_flag
 
     Pigeons.deserialize_immutables(raw"$path_to_serialized_immutables")
     pt_arguments = deserialize(raw"$path_to_serialized_pt_arguments")
-
     pt = PT(pt_arguments, exec_folder = raw"$exec_folder")
     pigeons(pt)
     """
+end
+
+add_dependency(dependency::Module) = "using $dependency"
+function add_dependency(dependency::String) 
+    abs_path = abspath(dependency)
+    return """include(raw"$abs_path")"""
 end

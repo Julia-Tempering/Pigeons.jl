@@ -1,7 +1,12 @@
+"""
+Abstract type for variational references.
+"""
 abstract type VarReference end
 
 """
-A variational family of reference distributions.
+A variational family of reference distributions. 
+Implementations should also satisfy the [`log_potential`](@ref) 
+contract. 
 """
 @informal var_reference begin
     
@@ -15,7 +20,7 @@ A variational family of reference distributions.
     $SIGNATURES
     Update the variational reference and the annealing path. Returns the new annealing path.
     """
-    update_reference!(reduced_recorders, var_reference) = @abstract
+    update_reference!(reduced_recorders, var_reference, state) = @abstract
 
     """
     $SIGNATURES
@@ -28,22 +33,19 @@ A variational family of reference distributions.
     Obtain one iid sample from the reference distribution specified by the variational family.
     """
     sample_iid!(var_reference::VarReference, replica) = @abstract
-
-    """
-    $SIGNATURES
-    Evaluate the log density of the variational reference at a point `x`.
-    """
-    (var_reference::VarReference)(state) = @abstract
 end
 
 
-update_path_if_needed!(path, reduced_recorders, iterators, var_reference) = 
-    activate_var_reference(var_reference, iterators) ? 
-        update_path_var_reference!(path, reduced_recorders, var_reference) : 
+function update_path_if_needed!(path, reduced_recorders, iterators, var_reference, state) 
+    if activate_var_reference(var_reference, iterators) 
+        update_path_var_reference!(path, reduced_recorders, var_reference, state) 
+    else 
         nothing
+    end
+end
 
-function update_path_var_reference!(path, reduced_recorders, var_reference)
-    update_reference!(reduced_recorders, var_reference)
+function update_path_var_reference!(path, reduced_recorders, var_reference, state)
+    update_reference!(reduced_recorders, var_reference, state)
     path = InterpolatingPath(var_reference, path.target)
 end
 

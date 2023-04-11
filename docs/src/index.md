@@ -159,7 +159,7 @@ Then we can access the information via:
 p.reduced_recorders.index_process
 
 using Plots
-Pigeons.index_process_plot(p.reduced_recorders);
+plot(p.reduced_recorders.index_process);
 savefig("index_process_plot.svg"); 
 nothing # hide
 ```
@@ -330,6 +330,11 @@ kill_job(mpi_run)
 
 The most general way to invoke Pigeons is by specifying two ingredients: a sequence of distributions, 
 ``\pi_1, \pi_2, \dots, \pi_N``, and for each ``\pi_i``, a ``\pi_i``-invariant Markov transition kernel.
+
+See [examples/general-target.jl](https://github.com/Julia-Tempering/Pigeons.jl/tree/main/examples/general-target.jl) 
+for an example of how to input an arbitrary Julia function as the 
+target distribution.
+
 Typically, ``\pi_1`` is a distribution from which we can sample i.i.d. (e.g. the prior, or a variational 
 approximation), while the last distribution coincides with the distribution of interest, 
 $\pi_N = \pi$, the target. 
@@ -357,7 +362,7 @@ posterior distributions of unidentifiable models. However, Pigeons excels in thi
 compared to traditional samplers.
 
 First, we define the Turing model.
-```@example Turing
+```@example Turing_Pigeons
 using Turing
 
 # *Unidentifiable* unconditioned coinflip model with `N` observations.
@@ -380,7 +385,7 @@ end
 Once we have defined our Turing model, it is straightforward to sample from the posterior distribution of `p1` and `p2` as follows:
 ```@example Turing_Pigeons
 using Pigeons
-model = Pigeons.flip_model_unidentifiable()
+model = flip_model_unidentifiable()
 pt = pigeons(target = TuringLogPotential(model));
 nothing # hide
 ```

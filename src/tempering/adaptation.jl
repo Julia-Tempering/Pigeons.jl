@@ -60,7 +60,7 @@ end
 @concrete struct LocalBarrier
     cumulativebarrier
 end
-(barrier::LocalBarrier)(beta) = Interpolations.gradient(cumulativebarrier, beta)[1]
+(barrier::LocalBarrier)(beta) = Interpolations.gradient(barrier.cumulativebarrier, beta)[1]
 
 is_intensity(x::AbstractArray{T}) where {T} = all(≥(zero(T)), x)
 

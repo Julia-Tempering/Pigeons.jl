@@ -4,11 +4,12 @@ $SIGNATURES
 Display the queue status for one MPI job. 
 """ 
 function queue_status(result::Result)
-    exec_folder = result.exec_folder 
-    submission_code = readline("$exec_folder/info/submission_output.txt")
+    submission_code = queue_code(result)
     run(`qstat -x $submission_code`)
     return nothing
 end
+
+queue_code(result::Result) = readline("$(result.exec_folder)/info/submission_output.txt")
 
 """ 
 $SIGNATURES 
@@ -49,31 +50,44 @@ end
 """ 
 $SIGNATURES 
 
-Print the queue status as well as the `last_n_lines` standard out 
+Print the queue status as well as the standard out 
 and error streams (merged) for the given `machine`. 
 """
-function watch(result::Result; machine = 1, last_n_lines = 20)
+function watch(result::Result; machine = 1, last = nothing, interactive = false)
+    @assert machine > 0 "using 0-index convention"
     queue_status(result)
-    output_folder = "$(result.exec_folder)/1"
+    output_folder = "$(result.exec_folder)/1" # 1 is not a bug, i.e. not hardcoded machine 1
+
+    if !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
+        println("Job not yet started, try again later.")
+        return nothing
+    end
+
     output_file_name = find_rank_file(output_folder, machine)
     stdout_file = "$output_folder/$output_file_name/stdout"
-    run(`tail -n $last_n_lines $stdout_file`) # -f is nicer but crashes
+
+    cmd = `tail`
+    if last !== nothing 
+        cmd = `$cmd -n $last`
+    end
+    if interactive
+        cmd = `$cmd -f`
+    end
+
+    run(`$cmd $stdout_file`) 
     return nothing 
 end
+
+
 
 # internal
 
 function find_rank_file(folder, machine::Int)
-    @assert machine > 0 "using 0-index convention"
     machine = machine - 1 # translate to MPI's 0-index ranks
-    try
-        for file in readdir(folder)
-            if match(Regex(".*rank.0*$machine"), file) !== nothing
-                return file
-            end
+    for file in readdir(folder)
+        if match(Regex(".*rank.0*$machine"), file) !== nothing
+            return file
         end
-    catch e 
-        @warn e 
     end
-    error("Standard out file not found (you may want to try again once the job is started)")
+    return nothing
 end
