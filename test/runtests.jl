@@ -18,7 +18,9 @@ import Pigeons: my_global_indices, LoadBalance, my_load,
 
 include("misc.jl")
 include("slice_sampler_test.jl")
+include("var_reference_test.jl")
 include("turing.jl")
+include("vector.jl")
 
 function test_load_balance(n_processes, n_tasks)
     for p in 1:n_processes
@@ -29,6 +31,12 @@ function test_load_balance(n_processes, n_tasks)
             @assert find_process(lb, g) == p
         end
     end
+end
+
+@testset "Examples directory" begin
+    # make sure the examples run correctly
+    include("../examples/custom-path.jl")
+    include("../examples/general-target.jl")
 end
 
 @testset "MPI backend" begin
@@ -220,4 +228,8 @@ end
 
 @testset "SliceSampler" begin
     test_slice_sampler()
+end
+
+@testset "Variational reference" begin
+    test_var_reference()
 end

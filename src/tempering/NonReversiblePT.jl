@@ -37,7 +37,7 @@ The adaptive non-reversible Parallel Tempering described in
 [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464). 
 """
 function NonReversiblePT(inputs::Inputs)
-    n_chains = inputs.n_chains
+    n_chains = number_of_chains(inputs)
     path = create_path(inputs.target, inputs)
     initial_schedule = equally_spaced_schedule(n_chains)
     return NonReversiblePT(path, initial_schedule, nothing)
@@ -49,15 +49,13 @@ function NonReversiblePT(path, schedule, communication_barriers)
     return NonReversiblePT(path, schedule, log_potentials, swap_graphs, communication_barriers)
 end
 
-adapt_tempering(tempering::NonReversiblePT, reduced_recorders) =
+function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference, state)
+    update_path_if_needed!(tempering.path, reduced_recorders, iterators, var_reference, state)
     NonReversiblePT(
         tempering.path, 
-        optimal_schedule(
-            reduced_recorders, 
-            tempering.schedule), 
-        communication_barriers(
-            reduced_recorders, 
-            tempering.schedule)
+        optimal_schedule(reduced_recorders, tempering.schedule), 
+        communication_barriers(reduced_recorders, tempering.schedule)
     )
+end
 
 tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]

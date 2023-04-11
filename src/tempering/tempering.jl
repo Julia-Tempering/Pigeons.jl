@@ -17,7 +17,7 @@ we also assume the presence of the following fields:
     Given a [`tempering`](@ref) and reduced [`recorders`](@ref) 
     return an updated [`tempering`](@ref).
     """
-    adapt_tempering(tempering, reduced_recorders) = @abstract
+    adapt_tempering(tempering, reduced_recorders, iterators, var_reference, state) = @abstract
     
     """
     $SIGNATURES 
@@ -42,6 +42,6 @@ create_pair_swapper(inputs, log_potentials) = inputs.fused_swaps ?
 """
 $SIGNATURES 
 
-Build the [`tempering`](@ref) need for [`communicate!()`](@ref). 
+Build the [`tempering`](@ref) needed for [`communicate!()`](@ref). 
 """
 @provides tempering create_tempering(inputs::Inputs) = NonReversiblePT(inputs)
