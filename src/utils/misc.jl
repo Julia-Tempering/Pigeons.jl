@@ -98,16 +98,6 @@ is attempted).
 macro abstract() quote error("Attempted to call an abstract function.") end end
 
 
-"""
-    @weighted(w, x) 
-
-Compute `w*x`, but if `w==0.0`, do not evaluate `x` and just return `w` (i.e. zero).
-Useful when x is computationally costly.
-"""
-macro weighted(w, x) 
-    :($(esc(w)) == zero($(esc(w))) ? $(esc(w)) : $(esc(w)) * $(esc(x)))
-end
-
 """ 
 $SIGNATURES
 
