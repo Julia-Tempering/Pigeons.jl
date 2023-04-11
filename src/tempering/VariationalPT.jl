@@ -18,6 +18,9 @@ struct VariationalPT
     
     """ The [`swap_graphs`](@ref). """
     swap_graphs
+
+    """ The [`log_potentials`](@ref). """
+    log_potentials
 end
 
 
@@ -37,20 +40,25 @@ function VariationalPT(inputs::Inputs)
     initial_schedule_var = equally_spaced_schedule(n_chains_var)
     variational_leg = NonReversiblePT(path_var, initial_schedule_var, nothing)
     swap_graphs = variational_deo(n_chains_fixed, n_chains_var)
-    return VariationalPT(fixed_leg, variational_leg, swap_graphs)
+    log_potentials = concatenate_log_potentials(fixed_leg, variational_leg, Val(:VariationalPT))
+    return VariationalPT(fixed_leg, variational_leg, swap_graphs, log_potentials)
 end
 
 function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators, var_reference)
     fixed_leg = adapt_tempering(tempering.fixed_leg, reduced_recorders, iterators, NoVarReference())
     variational_leg = adapt_tempering(tempering.variational_leg, reduced_recorders, iterators, var_reference)
-    return VariationalPT(fixed_leg, variational_leg, tempering.swap_graphs)
+    log_potentials = concatenate_log_potentials(fixed_leg, variational_leg, Val(:VariationalPT))
+    return VariationalPT(fixed_leg, variational_leg, tempering.swap_graphs, log_potentials)
+end
+
+function concatenate_log_potentials(fixed_leg::NonReversiblePT, variational_leg::NonReversiblePT, ::Val{:VariationalPT})
+    return vcat(fixed_leg.log_potentials, reverse(variational_leg.log_potentials))
+    # TODO: generalize once you have "parallel parallel tempering", > 2 references, etc.
 end
 
 tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr, log_sum_ratio]
 
-create_pair_swapper(tempering::VariationalPT, target) = 
-    vcat(tempering.fixed_leg.log_potentials, reverse(tempering.variational_leg.log_potentials))
-    # TODO: Update this to avoid unnecesary allocations
+create_pair_swapper(tempering::VariationalPT, target) = tempering.log_potentials
 
 function find_log_potential(replica, tempering::VariationalPT, shared)
     tup = shared.indexer.i2t[replica.chain]
