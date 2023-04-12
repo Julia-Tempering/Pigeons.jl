@@ -2,6 +2,7 @@
 A [`Base.@kwdef`](https://github.com/JuliaLang/julia/blob/79ceb8dbeab1b5a47c6bd664214616c19607ffab/base/util.jl#L514) struct 
 used to create Parallel Tempering algorithms. 
 
+
 Fields (see source file for default values):
 $FIELDS
 """
@@ -73,8 +74,7 @@ online_recorder_builders() = [
 ]
 
 """
-Extract the number of PT chains from `Inputs`.
-TODO: Once you implement PT with two reference distributions, update this function.
+Extract the number of Parallel Tempering chains from `Inputs`.
 """
 function number_of_chains(inputs) 
     if (inputs.n_chains > 0) && (inputs.n_chains_var_reference > 0)
