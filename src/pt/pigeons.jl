@@ -101,6 +101,7 @@ function explore!(pt, replica, explorer)
         step!(explorer, replica, pt.shared)
     end
     process_ac!(log_potential, replica, before)
+    process_log_potentials!(log_potential, replica)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
         record_if_requested!(replica.recorders, :target_online, replica.state)
     end 
@@ -117,6 +118,12 @@ process_ac!(log_potential, replica, before) =
         record!(replica.recorders[:energy_ac1], (replica.chain, SVector(before, after)))
     end
 
+process_log_potentials!(log_potential, replica) = 
+    if haskey(replica.recorders, :interpolated_log_potentials) 
+        ref = log_potential.path.ref(replica.state)
+        target = log_potential.path.target(replica.state)
+        record!(replica.recorders[:interpolated_log_potentials], (replica.chain, Pair(ref, target)))
+    end
 
 """
 $SIGNATURES 

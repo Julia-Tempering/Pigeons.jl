@@ -57,6 +57,12 @@ chain.
 """
 @provides recorder energy_ac1() = GroupBy(Int, CovMatrix(2))
 
+"""
+Trace of the log_potential visited. Assume the path is an InterpolatingPath, 
+and records the value for each of the two endpoints. 
+"""
+@provides recorder interpolated_log_potentials() = Dict{Int, Vector{Pair{Float64,Float64}}}()
+
 """ 
 Timing informations. 
 """
