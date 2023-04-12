@@ -18,3 +18,7 @@ standard annealing.
 @provides path InterpolatingPath(ref, target) = InterpolatingPath(ref, target, LinearInterpolator())
 
 interpolate(path::InterpolatingPath, beta) = InterpolatedLogPotential(path, beta)
+
+# use this extension point to create new types of interpolations, e.g. q-path, etc.
+interpolate(interpolator, ref_log_potential, target_log_potential, beta) = @abstract
+

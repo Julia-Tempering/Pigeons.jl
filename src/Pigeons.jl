@@ -38,6 +38,7 @@ using RecipesBase
 using LogDensityProblemsAD 
 using ForwardDiff
 using Roots
+using QuadGK
 
 import Serialization.serialize
 import Serialization.deserialize

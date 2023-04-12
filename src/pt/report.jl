@@ -4,6 +4,7 @@ all_reports() = [
         "  #scans  "   => pt -> n_scans_in_round(pt.shared.iterators), 
         "  rd-trip "   => pt -> n_round_trips(pt), 
         "    Λ     "   => pt -> pt.shared.tempering.communication_barriers.globalbarrier, 
+        "    Λ2    "   => pt -> global_barrier_is(pt), 
         "  time(s) "   => pt -> last_round_max_time(pt), 
         "  allc(B) "   => pt -> last_round_max_allocation(pt), 
         "  log(Z)  "   => pt -> stepping_stone(pt),
