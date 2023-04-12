@@ -39,6 +39,12 @@ end
     include("../examples/general-target.jl")
 end
 
+@testset "Check sources can be sorted automatically" begin
+    cd("..") do
+        Pigeons.sort_includes("Pigeons.jl")
+    end
+end
+
 @testset "MPI backend" begin
     @info "MPI: using $(MPIPreferences.abi) ($(MPIPreferences.binary))"
     if haskey(ENV,"JULIA_MPI_TEST_BINARY")
