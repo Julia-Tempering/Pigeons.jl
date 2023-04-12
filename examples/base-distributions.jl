@@ -17,33 +17,18 @@ Pigeons.sample_iid!(distribution::Distribution, replica) =
 Pigeons.create_state_initializer(my_potential::Distribution, ::Inputs) = my_potential
 Pigeons.initialization(distribution::Distribution, ::SplittableRandom, ::Int) = zeros(length(distribution))
 
-pt = pigeons(
-        target = Product(Normal.(zeros(dim), 10 * ones(dim))), 
-        n_rounds = 15,
-        n_chains = 50,
-        recorder_builders = [Pigeons.online_recorder_builders(); Pigeons.interpolated_log_potentials]
-    )
+# true value for Λ seems around 3.9 based on a large run
 
 pt = pigeons(
         target = Product(Normal.(zeros(dim), 10 * ones(dim))), 
         n_rounds = 15,
-        n_chains = 3,
+        n_chains = 5,
         recorder_builders = [Pigeons.online_recorder_builders(); Pigeons.interpolated_log_potentials]
     )
 
-# Steps to build height transports...
-
-# given beta, find closest grids 
+@show Pigeons.global_barrier_is(pt)
 
 
-# is = Pigeons.interpolated_log_potential_distribution(pt, 0.1)
-
-# # use formula from notes to check it agrees with standard lambda estimate..
-# barriers = Pigeons.communication_barriers(pt.reduced_recorders, pt.shared.tempering.schedule)
-
-# # TODO: currently broken
-# @show quadgk(x -> barriers.localbarrier(x), 0.0, 1.0)
-# @show quadgk(x -> Pigeons.local_barrier_is(pt, x), 0.0, 1.0)
 
 # @show pt.shared.tempering.schedule
 

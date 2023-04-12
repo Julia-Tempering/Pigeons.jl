@@ -1,20 +1,23 @@
-function closest_pair(schedule, beta)
-    search_result = searchsorted(schedule.grids, beta)
-    point = search_result.start 
-    return if isempty(search_result)
-        (point - 1):point 
-    else
-        if point > 1
-            (point - 1):point 
-        else 
-            point:(point + 1)
-        end
-    end
-end
+"""
+$SIGNATURES 
 
+Denote the path of log_potentials by ``W(x, \\beta)```. 
 
+When `order` is zero, this returns the CDF of the CDF of an 
+importance sampling approximation of ``W(X_\\beta, \\beta)``, 
+where  ``X_\\beta \\sim \\exp(W(x, \\beta))/Z_\\beta``. 
+The importance distribution is based on two chains that 
+are neighbours to beta.
 
-function interpolated_log_potential_distribution(pt, beta, degree::Int = 0)
+When `order` is one, it is the same idea but for ``W'(X_\\beta, \\beta)``
+where ``W'`` is the derivative with respect to ``\\beta``. 
+
+In both cases, the CDF is represented by a pair of vectors, 
+the first one containing the location of the atoms sorted from left 
+to right, and the second, 
+the cumulative distribution at each of the points in the same order. 
+"""
+function interpolated_log_potential_distribution(pt, beta, order::Int = 0)
     schedule = pt.shared.tempering.schedule
     interpolator = pt.shared.tempering.path.interpolator
 
@@ -27,9 +30,9 @@ function interpolated_log_potential_distribution(pt, beta, degree::Int = 0)
         for ref_target_pair in proposal_data 
             proposed = interpolate(interpolator, ref_target_pair[1], ref_target_pair[2], proposal_beta)
             target   = interpolate(interpolator, ref_target_pair[1], ref_target_pair[2], beta)
-            if degree == 0
+            if order == 0
                 push!(points, proposed)
-            elseif degree == 1 
+            elseif order == 1 
                 deriv = path_derivative(interpolator, ref_target_pair[1], ref_target_pair[2], proposal_beta)
                 push!(points, deriv)
             else
@@ -49,6 +52,31 @@ function interpolated_log_potential_distribution(pt, beta, degree::Int = 0)
     return points, cumulative_weights
 end
 
+function closest_pair(schedule, beta)
+    search_result = searchsorted(schedule.grids, beta)
+    point = search_result.start 
+    return if isempty(search_result)
+        (point - 1):point 
+    else
+        if point > 1
+            (point - 1):point 
+        else 
+            point:(point + 1)
+        end
+    end
+end
+
+"""
+$SIGNATURES 
+
+An alternative estimation of the local communication barrier based 
+on importance sampling. It is more computationally costly than the 
+Syed et al. JRSSB method, but has the property that it converges to the 
+true answer when the number of MCMC samples goes to infinity but the 
+grid size N is finite. In contrast, the Syed et al. JRSSB needs both 
+quantities to go to infinity (but performs remarkably well for finite 
+N due to its cubic error term). 
+"""
 function local_barrier_is(pt, beta)
     points, cumulative_weights = interpolated_log_potential_distribution(pt, beta, 1)
     sum = 0.0
@@ -62,52 +90,15 @@ function local_barrier_is(pt, beta)
     return sum
 end
 
+"""
+$SIGNATURES 
+
+Uses [`local_barrier_is`](@ref) and `quadgk()` to approximate 
+the global communication barrier. See [`local_barrier_is`](@ref), 
+for a description of the distinct asymptotic properties of this 
+method.
+"""
 function global_barrier_is(pt)
     quadgk(x -> local_barrier_is(pt, x), 0.0, 1.0)[1]
 end
 
-function global_barrier_trapezoid(pt)
-    sum = 0.0
-
-    schedule = pt.shared.tempering.schedule
-
-    previous = process_interpolated_log_potentials(pt, 1, 1)
-    for i in 2:pt.inputs.n_chains 
-        current = process_interpolated_log_potentials(pt, i, 1)
-        len = length(current)
-        @assert length(previous) == len "$(length(previous)) vs $len"
-
-        delta_beta = schedule.grids[i] - schedule.grids[i - 1]
-
-        for s in 2:len
-            a = current[s] - current[s - 1]
-            b = previous[s] - previous[s - 1]
-            increment = (s/len) * (1.0 - s/len) * (a + b) * delta_beta / 2.0
-            sum += increment
-            @assert increment ≥ 0.0 "$a $b $delta_beta"
-        end
-
-        previous = current
-    end
-
-    return sum
-end
-
-function process_interpolated_log_potentials(pt, dist_index, degree::Int = 0)
-    interpolator = pt.shared.tempering.path.interpolator
-    trace = pt.reduced_recorders.interpolated_log_potentials[dist_index]
-    schedule = pt.shared.tempering.schedule
-    beta = schedule.grids[dist_index]
-    result = Float64[] 
-    for ref_target_pair in trace 
-        if degree == 0
-            push!(result,     interpolate(interpolator, ref_target_pair[1], ref_target_pair[2], beta))
-        elseif degree == 1 
-            push!(result, path_derivative(interpolator, ref_target_pair[1], ref_target_pair[2], beta))
-        else
-            error()
-        end
-    end
-    sort!(result)
-    return result
-end
