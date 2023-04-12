@@ -170,3 +170,15 @@ function record!(recorder::Dict{K, Vector{V}}, value::Tuple{K, V}) where {K, V}
     end
     push!(recorder[a], b)
 end
+
+function Base.merge(recorder1::Dict{K, Vector{V}}, recorder2::Dict{K, Vector{V}}) where {K, V}
+    result = copy(recorder1) 
+    for key in keys(recorder2) 
+        if haskey(result, key)
+            append!(result[key], recorder2[key])
+        else
+            result[key] = recorder2[key]
+        end
+    end
+    return result 
+end
