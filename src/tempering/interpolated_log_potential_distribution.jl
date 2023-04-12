@@ -29,12 +29,12 @@ function interpolated_log_potential_distribution(pt, beta)
             push!(log_weights, target - proposed)
         end
     end
-    weights = exp.(log_weights - logsumexp(log_weights))
+    weights = exp.(log_weights .- logsumexp(log_weights))
 
     # sort using permuation matrix 
     p = sortperm(points) 
     points = points[p]
-    weights = points[p] 
+    weights = weights[p] 
 
     cumulative_weights = cumsum(weights) 
     return points, cumulative_weights
