@@ -102,3 +102,62 @@ function global_barrier_is(pt)
     quadgk(x -> local_barrier_is(pt, x), 0.0, 1.0)[1]
 end
 
+function interpolate_cdf(points, cumulative_prs, inverse = false)
+
+    function derivative(i::Int, xs, ys) 
+        left_point = xs[i] 
+        right_point = xs[i + 1]
+        bottom = ys[i] 
+        top = ys[i + 1] 
+        return (top - bottom) / (right_point - left_point) 
+    end
+
+    len = length(points)
+    first_point = points[1]
+    last_point = points[len - 2]
+    first_cp = cumulative_prs[1]
+    last_cp = cumulative_prs[len - 2]
+    first_deriv = derivative(1, points, cumulative_prs)
+    last_deriv = derivative(length(points) - 2, points, cumulative_prs)
+    r1 = first_deriv/first_cp
+    r2 = last_deriv/last_cp
+
+    if inverse 
+        points, cumulative_prs = cumulative_prs, points
+    else
+        cumulative_prs, points = cumulative_prs, points
+    end
+
+    # can be distinct from first_point, last_point when computing inverse
+    left_limit = points[1]
+    right_limit = points[len - 2]
+    
+    function result(x)
+        if x < left_limit
+            if inverse 
+                return first_point + log(x / first_cp) / r1
+            else
+                return first_cp * exp(r1 * (x - first_point))
+            end
+        elseif x > right_limit
+            if inverse 
+                return last_point - log((1 - x) / (1-last_cp)) / r2
+            else
+                return 1-(1-last_cp) * exp(r2  * (last_point - x))
+            end
+        else 
+            search_result = searchsorted(points, x) 
+            if isempty(search_result)
+                left_idx = search_result.start - 1
+                left_point = points[left_idx] 
+                deriv = derivative(left_idx, points, cumulative_prs)
+                bottom = cumulative_prs[left_idx] 
+                return bottom + (x - left_point) * deriv
+            else 
+                return cumulative_prs[search_result.start]
+            end
+        end
+    end
+    return result
+end
+

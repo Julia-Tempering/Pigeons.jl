@@ -21,29 +21,37 @@ Pigeons.initialization(distribution::Distribution, ::SplittableRandom, ::Int) = 
 
 pt = pigeons(
         target = Product(Normal.(zeros(dim), 10 * ones(dim))), 
-        n_rounds = 15,
+        n_rounds = 3,
         n_chains = 5,
         recorder_builders = [Pigeons.online_recorder_builders(); Pigeons.interpolated_log_potentials]
     )
 
-@show Pigeons.global_barrier_is(pt)
+#@show Pigeons.global_barrier_is(pt)
+
+points, cumulative = Pigeons.interpolated_log_potential_distribution(pt, 0.5, 0)
 
 
+points2 = [1.0, 2.0, 3.0, 4.0]
+cumulative2 = [0.3, 0.7, 0.8, 1.0]
 
-# @show pt.shared.tempering.schedule
+# points = points2 
+# cumulative = cumulative2
 
-# grid_point = 0.4109797329109476
-# grid_index = 2
-# @show barriers.localbarrier(grid_point)
-# @show Pigeons.local_barrier_is(pt, grid_point)
+fct = Pigeons.interpolate_cdf(points, cumulative)
 
+f = first(points)
+l = last(points)
 
+using Plots
+#plot(fct, 0.0:0.1:5.0)
+p1 = plot(fct, (f-5):0.1:(l+5))
 
+inv = Pigeons.interpolate_cdf(points, cumulative, true)
 
-# Next: check formula 0.5 E|V-V'| = int F (1 - F) - it has to be right...
+p2 = plot(inv, 0.00001:0.00001:0.9999)
 
-# build IS, sort, cumsum
+composition = inv ∘ fct 
 
-# create CDF and inverse CDF objects (interpolate, extrapolate)
+p3 = plot(composition, (f-5):0.1:(l+5))
 
-nothing
+plot(p1, p2, p3)
