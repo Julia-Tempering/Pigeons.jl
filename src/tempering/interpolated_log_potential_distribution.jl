@@ -58,11 +58,7 @@ function closest_pair(schedule, beta)
     return if isempty(search_result)
         (point - 1):point 
     else
-        if point > 1
-            (point - 1):point 
-        else 
-            point:(point + 1)
-        end
+        point:point
     end
 end
 

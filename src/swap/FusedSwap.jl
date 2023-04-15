@@ -11,14 +11,33 @@ function adapt_pair_swapper(::FusedSwap, pt, updated_tempering)
     cdfs = []
     icdfs = [] 
     grids = updated_tempering.schedule.grids
-    for i in eachindex(grids)
-        beta = grids[i] 
-        points, cumulative_prs = 
-            interpolated_log_potential_distribution(pt, beta)
-        push!(cdfs, interpolate_cdf(points, cumulative_prs))
-        push!(icdfs, interpolate_cdf(points, cumulative_prs, true))
+    if pt.shared.iterators.round > 5 # if not enough point, interpolation crashes
+        for i in eachindex(grids)
+            beta = grids[i] 
+            points, cumulative_prs = 
+                interpolated_log_potential_distribution(pt, beta)
+
+            #### TODO: improve this - assume smoothness of derivative of the transport?
+            shrink_by = ceil(sqrt(length(points)))
+            points = subsample(points, shrink_by)
+            cumulative_prs = subsample(cumulative_prs, shrink_by)
+            ###
+
+            push!(cdfs, interpolate_cdf(points, cumulative_prs))
+            push!(icdfs, interpolate_cdf(points, cumulative_prs, true))
+        end
     end
     return FusedSwap(log_potentials, cdfs, icdfs)
+end
+
+function subsample(array::Vector{T}, shrink_by) where {T}
+    result = T[]
+    for i in eachindex(array) 
+        if (i-1) % shrink_by == 0 
+            push!(result, array[i])
+        end
+    end
+    return result
 end
 
 struct FusedStat 
@@ -40,23 +59,63 @@ function height_mover(pair_swapper, my_chain, partner_chain)
     return T, dT
 end
 
-function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int) 
+indic(b) = b ? 1.0 : 0.0
+
+function detailed_a_height_mover(pair_swapper, my_chain, partner_chain)
+
+    target_rate = pair_swapper.log_potentials[1].path.target.rate
+
+    my_beta = pair_swapper.log_potentials[my_chain].beta
+    pa_beta = pair_swapper.log_potentials[partner_chain].beta
+
+    my_rate = (1-my_beta) * 1 + my_beta * target_rate
+    pa_rate = (1-pa_beta) * 1 + pa_beta * target_rate
+
+    #@show my_rate, pa_rate
+
+    my_cdf(x) = if x ≤ log(my_rate) 
+        exp(x - log(my_rate)) 
+    else
+        1.0
+    end
+
+    my_icdf(x) = log(pa_rate * x)
+
+
+    my_T = my_icdf ∘ my_cdf
+    my_dT(x) = ForwardDiff.derivative(my_T, x)
+    return my_T, my_dT, my_cdf, my_icdf
+end
+
+function a_height_mover(pair_swapper, my_chain, partner_chain) 
+    my_T, my_dT, _, _ = detailed_a_height_mover(pair_swapper, my_chain, partner_chain)
+    return my_T, my_dT
+end
+
+function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int)
+    
+    #println("---")
+
     # everythig will be in place, so save current location along the orbit
     current_t, mover = state_mover(pair_swapper, replica)
 
     T, dT = height_mover(pair_swapper, replica.chain, partner_chain)
+    
+    #aT, adT = a_height_mover(pair_swapper, replica.chain, partner_chain)
+    
     W_mine,  dW_mine  = log_density_slice(mover, pair_swapper.log_potentials[replica.chain])
     W_yours, dW_yours = log_density_slice(mover, pair_swapper.log_potentials[partner_chain]) 
 
     current_height  = W_mine(current_t)
     proposed_height = T(current_height)
 
+    #@show replica.state, abs(proposed_height - aT(current_height))
 
     # compute "pre-involution" i.e. proposed state move s.t. we have not checked yet that the involutive property holds
     if isnan(proposed_height)
         proposed_t = NaN 
     else
-        proposed_t     = pre_involution(W_yours, dW_yours, current_t,  proposed_height) 
+        proposed_t = pre_involution(W_yours, dW_yours, current_t,  proposed_height) 
     end
 
     if isnan(proposed_t) # i.e. root finding in pre_involution failed
@@ -74,6 +133,13 @@ function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int
 
     if fused
         log_ratio = logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
+        
+        ###
+        # naive = log_unnormalized_ratio(pair_swapper.log_potentials, partner_chain, replica.chain, replica.state)
+        # hybrid = logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
+        # @show naive, log_ratio, hybrid
+        ###
+        
         return FusedStat(log_ratio, rand(replica.rng), proposed_t)
     else # fuse line search failed... then use classical ratio:
         log_ratio = log_unnormalized_ratio(pair_swapper.log_potentials, partner_chain, replica.chain, replica.state)
@@ -116,7 +182,6 @@ function move!(mover::StateMover, to)
     mover.replica.state *= multiplier
     mover.current_t = to
 end
-
 
 function log_density_slice(mover, log_potential)
     function W(t)
