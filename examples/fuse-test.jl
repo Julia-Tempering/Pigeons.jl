@@ -7,7 +7,7 @@ using QuadGK
 
 dim = 1
 
-Pigeons.create_explorer(distribution::Distribution, ::Inputs) = Pigeons.SliceSampler()
+Pigeons.create_explorer(distribution::Distribution, ::Inputs) = Pigeons.SliceSampler(n_passes = 4)
 
 Pigeons.explorer_recorder_builders(::Distribution) = []
 Pigeons.adapt_explorer(::Distribution, _, _) = nothing
@@ -24,13 +24,14 @@ Pigeons.initialization(distribution::Distribution, ::SplittableRandom, ::Int) = 
 # true value for Λ seems around 3.9 based on a large run
 
 pt = pigeons(
-        target = Product(Normal.(zeros(dim), 10 * ones(dim))), 
-        n_rounds = 20,
+        target = Product(Normal.(zeros(dim), 2 * ones(dim))), 
+        n_rounds = 10,
         n_chains = 10,
         fused_swaps = true,
         recorder_builders = [Pigeons.online_recorder_builders(); Pigeons.interpolated_log_potentials]
     )
 
+@show mean(pt), var(pt)
 
 points, cumulative = Pigeons.interpolated_log_potential_distribution(pt, 0.5, 0)
 
