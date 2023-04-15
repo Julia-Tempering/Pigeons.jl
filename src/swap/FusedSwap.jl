@@ -1,5 +1,24 @@
 @concrete struct FusedSwap
-    log_potentials
+    log_potentials 
+    cdfs::Vector 
+    icdfs::Vector
+end
+
+FusedSwap(log_potentials) = FusedSwap(log_potentials, [], [])
+
+function adapt_pair_swapper(::FusedSwap, pt, updated_tempering)
+    log_potentials = updated_tempering.log_potentials 
+    cdfs = []
+    icdfs = [] 
+    grids = updated_tempering.schedule.grids
+    for i in eachindex(grids)
+        beta = grids[i] 
+        points, cumulative_prs = 
+            interpolated_log_potential_distribution(pt, beta)
+        push!(cdfs, interpolate_cdf(points, cumulative_prs))
+        push!(icdfs, interpolate_cdf(points, cumulative_prs, true))
+    end
+    return FusedSwap(log_potentials, cdfs, icdfs)
 end
 
 struct FusedStat 
@@ -10,6 +29,17 @@ end
 
 const fused_swap_tol = Ref(1e-5)
 
+function height_mover(pair_swapper, my_chain, partner_chain)
+    if isempty(pair_swapper.cdfs)
+        id_fct(x) = x 
+        one_fct(x) = 1
+        return id_fct, one_fct
+    end
+    T = pair_swapper.icdfs[partner_chain] ∘ pair_swapper.cdfs[my_chain]
+    dT(x) = ForwardDiff.derivative(T, x)
+    return T, dT
+end
+
 function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int) 
     # everythig will be in place, so save current location along the orbit
     current_t, mover = state_mover(pair_swapper, replica)
@@ -18,12 +48,17 @@ function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int
     W_mine,  dW_mine  = log_density_slice(mover, pair_swapper.log_potentials[replica.chain])
     W_yours, dW_yours = log_density_slice(mover, pair_swapper.log_potentials[partner_chain]) 
 
-    current_height  = W_mine(current_state)
+    current_height  = W_mine(current_t)
     proposed_height = T(current_height)
 
+
     # compute "pre-involution" i.e. proposed state move s.t. we have not checked yet that the involutive property holds
-    proposed_t     = pre_involution(W_yours, dW_yours, current_t,  proposed_height) 
-    
+    if isnan(proposed_height)
+        proposed_t = NaN 
+    else
+        proposed_t     = pre_involution(W_yours, dW_yours, current_t,  proposed_height) 
+    end
+
     if isnan(proposed_t) # i.e. root finding in pre_involution failed
         fused = false
     else
@@ -32,17 +67,19 @@ function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int
         fused = checked && proposed_t != current_t # are use doing a 'fused move' (where both x and beta change)? otherwise, classical swap where only beta's are exchanged
     end
 
-    if !fused # then use classical ratio:
-        log_ratio = log_unnormalized_ratio(log_potentials, partner_chain, replica.chain, replica.state)
-        move!(mover, current_t)
+    # go back to current point now that done with up to 2 pre_involution() calls, 
+    # will do the actual moving after the accept-reject step
+    move!(mover, current_t)
+    @assert W_mine(current_t) ≈ current_height
+
+    if fused
+        log_ratio = logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
+        return FusedStat(log_ratio, rand(replica.rng), proposed_t)
+    else # fuse line search failed... then use classical ratio:
+        log_ratio = log_unnormalized_ratio(pair_swapper.log_potentials, partner_chain, replica.chain, replica.state)
+        @assert !isnan(log_ratio) "$(replica.state)"
         return FusedStat(log_ratio, rand(replica.rng), current_t)
     end
-
-    log_ratio = logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
-    
-    # go back to current point, will do the actual moving after the accept-reject step
-    move!(mover, current_t)
-    return FusedStat(log_ratio, rand(replica.rng), proposed_t)
 end
 
 logabs(x) = log(abs(x))
@@ -50,11 +87,11 @@ logabs(x) = log(abs(x))
 function pre_involution(W, dW, start_point, proposed_height)
     shifted_W(x) = W(x) - proposed_height
     problem = ZeroProblem((shifted_W, dW), start_point)
-    return solve(problem, atol = fused_swap_tol[] / 2.0)  
+    return solve(problem, atol = fused_swap_tol[] / 2.0)
 end
 
 @concrete mutable struct StateMover
-    moved_t
+    current_t
     replica
 end
 
@@ -66,15 +103,20 @@ function state_mover(pair_swapper::FusedSwap, replica)
 end
 
 function move!(mover::StateMover, to)
-    if to == mover.moved_t
+    if abs(to) > 10 
+        return 
+    end
+    if to == mover.current_t
         return 
     end
     # current replica state is cur = exp(t) x
     # you want to got to       new = exp(t') x
     # we have: new = exp(t') x = (exp(t) / exp(t)) exp(t') x = (exp(t') / exp(t)) ( exp(t) x ) = (exp(t' - t)) cur
     multiplier = exp(to - mover.current_t)
-    scale!(mover.replica, multiplier)
+    mover.replica.state *= multiplier
+    mover.current_t = to
 end
+
 
 function log_density_slice(mover, log_potential)
     function W(t)
@@ -93,8 +135,8 @@ function directional_derivative(log_potential, x, v)
     # NB: may want to use FwdDiff with a given direction
     # seems implemented in https://github.com/JuliaDiff/SparseDiffTools.jl/blob/master/src/differentiation/jaches_products.jl#L3-L13
     # but does not have public API at the moment??? https://github.com/JuliaDiff/ForwardDiff.jl/issues/319
-    gradient = gradient(log_potential, x)
-    return dot(gradient, v)
+    grad = gradient(log_potential, x)
+    return dot(grad, v)
 end
 
 function record_swap_stats!(pair_swapper::FusedSwap, recorders, chain1::Int, stat1, chain2::Int, stat2)

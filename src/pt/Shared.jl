@@ -29,6 +29,11 @@ Only one instance maintained per process.
     See [`var_reference`](@ref)
     """
     var_reference
+
+    """ 
+    See [`pair_swapper`](@ref)
+    """
+    swapper
 end
 
 """
@@ -43,6 +48,7 @@ function Shared(inputs)
     tempering = create_tempering(inputs)
     explorer = create_explorer(inputs) 
     var_reference = create_var_reference(inputs)
-    return Shared(iterators, tempering, explorer, var_reference)
+    swapper = create_pair_swapper(inputs, tempering.log_potentials)
+    return Shared(iterators, tempering, explorer, var_reference, swapper)
 end
 

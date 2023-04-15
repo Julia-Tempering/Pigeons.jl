@@ -12,11 +12,16 @@ function gradient(log_potential::TuringLogPotential, vi, autodiff_backend = :For
     return grad
 end
 
-gradient(interpolated::InterpolatedLogPotential{InterpolatingPath{R, T, LinearInterpolator}, B}, x, autodiff_backend = :ForwardDiff) where {R, T, B} =
+function gradient(log_potential, x, autodiff_backend = :ForwardDiff) 
+    @assert autodiff_backend == :ForwardDiff
+    ForwardDiff.gradient(log_potential, x)
+end
+
+gradient(inter::InterpolatedLogPotential{InterpolatingPath{R, T, LinearInterpolator}, B}, x, autodiff_backend = :ForwardDiff) where {R, T, B} =
     interpolate(
-        inperpolated.interpolator, 
-        gradient(interpolated.path.ref.density, x, autodiff_backend),
-        gradient(interpolated.path.target.density, x, autodiff_backend),
-        interpolated.beta
+        inter.path.interpolator, 
+        gradient(inter.path.ref, x, autodiff_backend),
+        gradient(inter.path.target, x, autodiff_backend),
+        inter.beta
     )
 

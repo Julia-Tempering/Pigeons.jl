@@ -133,13 +133,25 @@ function interpolate_cdf(points, cumulative_prs, inverse = false)
     right_limit = points[len - 2]
     
     function result(x)
-        if x < left_limit
+        if isnan(x)
+            return NaN 
+        end
+        # annoyingly, we got -1e-11 when composing in at least one instance
+        if inverse 
+            if x < 0 && abs(x) < 1e-8 
+                return -x 
+            elseif x > 1 && abs(1.0 - x) < 1e-8
+                return 1 - (x - 1) 
+            end
+        end
+
+        if x <= left_limit
             if inverse 
                 return first_point + log(x / first_cp) / r1
             else
                 return first_cp * exp(r1 * (x - first_point))
             end
-        elseif x > right_limit
+        elseif x >= right_limit
             if inverse 
                 return last_point - log((1 - x) / (1-last_cp)) / r2
             else

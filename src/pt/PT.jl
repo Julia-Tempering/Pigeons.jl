@@ -51,6 +51,9 @@ function PT(inputs::Inputs; exec_folder = use_auto_exec_folder)
     return PT(inputs, replicas, shared, exec_folder, create_recorders(inputs, shared))
 end
 
+PT(pt, reduced_recorders) = 
+    PT(pt.inputs, pt.replicas, pt.shared, pt.exec_folder, reduced_recorders)
+
 pt_exec_folder(use_checkpoint, specified_exec_folder) = 
     if use_checkpoint
         if specified_exec_folder == use_auto_exec_folder

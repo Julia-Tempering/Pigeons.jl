@@ -39,6 +39,9 @@ create_pair_swapper(inputs, log_potentials) = inputs.fused_swaps ?
     FusedSwap(log_potentials) :
     log_potentials
 
+adapt_pair_swapper(old_pair_swapper, pt, updated_tempering) = 
+    updated_tempering.log_potentials
+
 """
 $SIGNATURES 
 

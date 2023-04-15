@@ -12,8 +12,8 @@ and [`run_checks()`](@ref) between rounds.
 function pigeons(pt::PT) 
     preflight_checks(pt)
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
-        reduced_recorders = run_one_round!(pt)
-        pt = adapt(pt, reduced_recorders)
+        pt = run_one_round!(pt)
+        pt = adapt(pt)
         report(pt)
         write_checkpoint(pt) 
         run_checks(pt)
@@ -45,7 +45,8 @@ function run_one_round!(pt)
         communicate!(pt)
     end
     record_timed_if_requested!(pt, :round, timed)
-    return reduce_recorders!(pt.replicas)
+    reduced_recorders = reduce_recorders!(pt.replicas)
+    return PT(pt, reduced_recorders)
 end
 
 """
@@ -57,7 +58,7 @@ inputs needed for [`swap!`](@ref).
 """
 function communicate!(pt)
     tempering = pt.shared.tempering
-    swapper = create_pair_swapper(pt.inputs, pt.shared.tempering.log_potentials)
+    swapper = pt.shared.swapper
     graph = create_swap_graph(tempering.swap_graphs, pt.shared)
     swap!(swapper, pt.replicas, graph)
 end
@@ -131,14 +132,16 @@ $SIGNATURES
 Call [`adapt_tempering()`](@ref) followed by 
 [`adapt_explorer`](@ref).
 """
-function adapt(pt, reduced_recorders)
-    updated_tempering = adapt_tempering(pt.shared.tempering, reduced_recorders, pt.shared.iterators, pt.inputs.var_reference, locals(pt.replicas)[1].state)
-    updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, updated_tempering)
+function adapt(pt)
+    updated_tempering = adapt_tempering(pt.shared.tempering, pt.reduced_recorders, pt.shared.iterators, pt.inputs.var_reference, locals(pt.replicas)[1].state)
+    updated_explorer = adapt_explorer(pt.shared.explorer, pt.reduced_recorders, updated_tempering)
+    updated_swapper = adapt_pair_swapper(pt.shared.swapper, pt, updated_tempering)
     updated_shared = Shared(
         pt.shared.iterators, 
         updated_tempering, 
         updated_explorer,
-        pt.shared.var_reference)
+        pt.shared.var_reference,
+        updated_swapper)
     updated_replicas = pt.replicas # TODO: adapt too? e.g. assign to closest from previous, leveraging checkpoints?
-    return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder, reduced_recorders)
+    return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder, pt.reduced_recorders)
 end
