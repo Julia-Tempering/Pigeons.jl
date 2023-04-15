@@ -66,3 +66,5 @@ include("targets/gradient.jl")
 include("pt/checks.jl")
 include("evidence/stepping_stone.jl")
 include("api.jl")
+include("swap/fuse-test.jl")
+
