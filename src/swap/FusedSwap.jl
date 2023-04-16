@@ -11,7 +11,7 @@ function adapt_pair_swapper(::FusedSwap, pt, updated_tempering)
     cdfs = []
     icdfs = [] 
     grids = updated_tempering.schedule.grids
-    if pt.shared.iterators.round > 5 # if not enough point, interpolation crashes
+    if pt.shared.iterators.round > 2 # if not enough point, interpolation crashes
         for i in eachindex(grids)
             beta = grids[i] 
             points, cumulative_prs = 
@@ -132,8 +132,29 @@ function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int
     @assert W_mine(current_t) ≈ current_height
 
     if fused
-        log_ratio = logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
+
+        log_ratio = proposed_height - current_height
+
+        # ### RM
+        # target_rate = pair_swapper.log_potentials[1].path.target.rate
+        # my_chain = replica.chain
+        # pa_chain = partner_chain
+        # my_beta = pair_swapper.log_potentials[my_chain].beta
+        # pa_beta = pair_swapper.log_potentials[pa_chain].beta
+        # my_rate = (1-my_beta) * 1 + my_beta * target_rate
+        # pa_rate = (1-pa_beta) * 1 + pa_beta * target_rate
+        # ###
+
+        # println("---")
+        # @show log(my_rate) - log(pa_rate)
+        # @show log_ratio
+        # @show logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t))
+        # @show logabs(dT(current_height))
+
+        log_ratio = log_ratio + logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
         
+        # @show log_ratio 
+
         ###
         # naive = log_unnormalized_ratio(pair_swapper.log_potentials, partner_chain, replica.chain, replica.state)
         # hybrid = logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
@@ -142,9 +163,8 @@ function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int
         
         return FusedStat(log_ratio, rand(replica.rng), proposed_t)
     else # fuse line search failed... then use classical ratio:
-        log_ratio = log_unnormalized_ratio(pair_swapper.log_potentials, partner_chain, replica.chain, replica.state)
-        @assert !isnan(log_ratio) "$(replica.state)"
-        return FusedStat(log_ratio, rand(replica.rng), current_t)
+        basic_log_ratio = log_unnormalized_ratio(pair_swapper.log_potentials, partner_chain, replica.chain, replica.state)      
+        return FusedStat(basic_log_ratio, rand(replica.rng), current_t)
     end
 end
 
@@ -153,7 +173,16 @@ logabs(x) = log(abs(x))
 function pre_involution(W, dW, start_point, proposed_height)
     shifted_W(x) = W(x) - proposed_height
     problem = ZeroProblem((shifted_W, dW), start_point)
-    return solve(problem, atol = fused_swap_tol[] / 2.0)
+
+    #@show solve(problem, atol = 1e-3)
+
+    result =  solve(problem, atol = fused_swap_tol[] / 2.0)
+
+    # if abs(result) > 10
+    #     @show result
+    # end
+
+    return result
 end
 
 @concrete mutable struct StateMover
