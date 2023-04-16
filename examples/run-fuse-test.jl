@@ -28,8 +28,8 @@ pt = pigeons(
             use_exp ?
                 Pigeons.ExpDist(target_rate) :
                 Product(Normal.(zeros(Pigeons.gauss_dim), 2 * ones(Pigeons.gauss_dim))), 
-        n_rounds = 15,
-        n_chains = 2,
+        n_rounds = 4,
+        n_chains = 3,
         fused_swaps = true,
         recorder_builders = [Pigeons.online_recorder_builders(); Pigeons.interpolated_log_potentials]
     )

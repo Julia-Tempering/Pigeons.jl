@@ -88,6 +88,9 @@ function detailed_a_height_mover(pair_swapper, my_chain, partner_chain)
 end
 
 function a_height_mover(pair_swapper, my_chain, partner_chain) 
+
+    @info """using analytic result""" maxlog=1 
+
     my_T, my_dT, _, _ = detailed_a_height_mover(pair_swapper, my_chain, partner_chain)
     return my_T, my_dT
 end
@@ -99,7 +102,7 @@ function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int
     # everythig will be in place, so save current location along the orbit
     current_t, mover = state_mover(pair_swapper, replica)
 
-    T, dT = height_mover(pair_swapper, replica.chain, partner_chain)
+    T, dT = a_height_mover(pair_swapper, replica.chain, partner_chain)
     
     #aT, adT = a_height_mover(pair_swapper, replica.chain, partner_chain)
     
@@ -135,25 +138,26 @@ function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int
 
         log_ratio = proposed_height - current_height
 
-        # ### RM
-        # target_rate = pair_swapper.log_potentials[1].path.target.rate
-        # my_chain = replica.chain
-        # pa_chain = partner_chain
-        # my_beta = pair_swapper.log_potentials[my_chain].beta
-        # pa_beta = pair_swapper.log_potentials[pa_chain].beta
-        # my_rate = (1-my_beta) * 1 + my_beta * target_rate
-        # pa_rate = (1-pa_beta) * 1 + pa_beta * target_rate
-        # ###
+        ### RM
+        target_rate = pair_swapper.log_potentials[1].path.target.rate
+        my_chain = replica.chain
+        pa_chain = partner_chain
+        my_beta = pair_swapper.log_potentials[my_chain].beta
+        pa_beta = pair_swapper.log_potentials[pa_chain].beta
+        my_rate = (1-my_beta) * 1 + my_beta * target_rate
+        pa_rate = (1-pa_beta) * 1 + pa_beta * target_rate
+        ###
 
-        # println("---")
-        # @show log(my_rate) - log(pa_rate)
-        # @show log_ratio
-        # @show logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t))
-        # @show logabs(dT(current_height))
+        println("---")
+        @show my_rate, pa_rate
+        @show log(my_rate) - log(pa_rate)
+        @show log_ratio
+        @show logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t))
+        @show logabs(dT(current_height))
 
         log_ratio = log_ratio + logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
         
-        # @show log_ratio 
+        @show log_ratio 
 
         ###
         # naive = log_unnormalized_ratio(pair_swapper.log_potentials, partner_chain, replica.chain, replica.state)

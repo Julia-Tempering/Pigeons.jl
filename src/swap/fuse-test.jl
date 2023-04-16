@@ -1,7 +1,7 @@
 
 
 # Black-box normal distribution
-const gauss_dim = 1
+const gauss_dim = 10
 create_explorer(::Distribution, ::Inputs) = SliceSampler(n_passes = 3)
 create_reference_log_potential(::Distribution, ::Inputs) = Product(Normal.(zeros(gauss_dim), ones(gauss_dim)))
 sample_iid!(distribution::Distribution, replica) = 
