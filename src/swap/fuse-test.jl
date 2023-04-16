@@ -1,7 +1,7 @@
 
 
 # Black-box normal distribution
-const gauss_dim = 10
+const gauss_dim = 1
 create_explorer(::Distribution, ::Inputs) = SliceSampler(n_passes = 3)
 create_reference_log_potential(::Distribution, ::Inputs) = Product(Normal.(zeros(gauss_dim), ones(gauss_dim)))
 sample_iid!(distribution::Distribution, replica) = 
@@ -14,8 +14,8 @@ struct ExpDist
     rate::Float64
 end 
 struct ExpSampler end
-(dist::ExpDist)(x) = log(dist.rate) - dist.rate * x[1]
-create_explorer(::ExpDist, ::Inputs) = ExpSampler() 
+(dist::ExpDist)(x) = x[1] < 0 ? -Inf : log(dist.rate) - dist.rate * x[1]
+create_explorer(::ExpDist, ::Inputs) = SliceSampler(n_passes = 3) # ExpSampler() 
 sample(rate, rng) = -log(rand(rng))/rate
 function step!(::ExpSampler, replica, shared) 
     potential = find_log_potential(replica, shared) 
