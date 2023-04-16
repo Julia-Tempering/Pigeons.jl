@@ -8,18 +8,20 @@ using Distributions
 
 target_rate = 2.0
 
-@show use_exp = false
+@show use_exp = true
 
 pt = pigeons(
         target = 
             use_exp ?
                 Pigeons.ExpDist(target_rate) :
                 Product(Normal.(zeros(Pigeons.gauss_dim), 2 * ones(Pigeons.gauss_dim))), 
-        n_rounds = 10,
+        n_rounds = 15,
         n_chains = 10,
         fused_swaps = false,
         recorder_builders = [Pigeons.online_recorder_builders(); Pigeons.interpolated_log_potentials]
     )
+
+@show mean(pt), var(pt)
 
 pt = pigeons(
         target = 
@@ -35,7 +37,7 @@ pt = pigeons(
 
 
 
-#@show mean(pt), var(pt)
+@show mean(pt), var(pt)
 
 beta = 1.0
 points, cumulative = Pigeons.interpolated_log_potential_distribution(pt, beta, 0)
