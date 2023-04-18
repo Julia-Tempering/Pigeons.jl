@@ -2,7 +2,11 @@
     log_potentials 
     cdfs::Vector 
     icdfs::Vector
+    box_radius::Float64 
+    tol::Float64
 end
+
+FusedSwap(log_potentials, cdfs, icdfs) = FusedSwap(log_potentials, cdfs, icdfs, 10.0, 1e-5)
 
 FusedSwap(log_potentials) = FusedSwap(log_potentials, [], [])
 
@@ -45,8 +49,6 @@ struct FusedStat
     uniform::Float64
     proposed::Float64
 end
-
-const fused_swap_tol = Ref(1e-5)
 
 function height_mover(pair_swapper, my_chain, partner_chain)
     if isempty(pair_swapper.cdfs)
@@ -97,14 +99,16 @@ end
 
 function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int)
     
-    #println("---")
+    # println("---")
+    # @show replica.chain, partner_chain 
+    # @show replica.state
 
     # everythig will be in place, so save current location along the orbit
     current_t, mover = state_mover(pair_swapper, replica)
 
-    T, dT = a_height_mover(pair_swapper, replica.chain, partner_chain)
+    T, dT = height_mover(pair_swapper, replica.chain, partner_chain)
     
-    #aT, adT = a_height_mover(pair_swapper, replica.chain, partner_chain)
+    # aT, adT = a_height_mover(pair_swapper, replica.chain, partner_chain)
     
     W_mine,  dW_mine  = log_density_slice(mover, pair_swapper.log_potentials[replica.chain])
     W_yours, dW_yours = log_density_slice(mover, pair_swapper.log_potentials[partner_chain]) 
@@ -112,52 +116,55 @@ function swap_stat(pair_swapper::FusedSwap, replica::Replica, partner_chain::Int
     current_height  = W_mine(current_t)
     proposed_height = T(current_height)
 
+    # @show current_height 
+    # @show proposed_height, aT(current_height)
+
     #@show replica.state, abs(proposed_height - aT(current_height))
 
     # compute "pre-involution" i.e. proposed state move s.t. we have not checked yet that the involutive property holds
     if isnan(proposed_height)
         proposed_t = NaN 
     else
-        proposed_t = pre_involution(W_yours, dW_yours, current_t,  proposed_height) 
+        proposed_t = pre_involution(W_yours, dW_yours, current_t, proposed_height, pair_swapper.box_radius, pair_swapper.tol) 
     end
 
     if isnan(proposed_t) # i.e. root finding in pre_involution failed
         fused = false
     else
-        reversed_t = pre_involution(W_mine,  dW_mine,  proposed_t, current_height)
-        checked = isapprox(current_t, reversed_t; atol = fused_swap_tol[]) # if reversed_t is NaN, 'checked' and hence 'fused' will be false
+        reversed_t = pre_involution(W_mine,  dW_mine,  proposed_t, current_height, pair_swapper.box_radius, pair_swapper.tol)
+        checked = isapprox(current_t, reversed_t; atol = pair_swapper.tol) # if reversed_t is NaN, 'checked' and hence 'fused' will be false
         fused = checked && proposed_t != current_t # are use doing a 'fused move' (where both x and beta change)? otherwise, classical swap where only beta's are exchanged
     end
 
     # go back to current point now that done with up to 2 pre_involution() calls, 
     # will do the actual moving after the accept-reject step
     move!(mover, current_t)
-    @assert W_mine(current_t) ≈ current_height
+    @assert W_mine(current_t) ≈ current_height "$(W_mine(current_t)) $(current_height) $fused $(replica.state)"
 
     if fused
 
-        log_ratio = proposed_height - current_height
+        heights_ratio = proposed_height - current_height
 
-        ### RM
-        target_rate = pair_swapper.log_potentials[1].path.target.rate
-        my_chain = replica.chain
-        pa_chain = partner_chain
-        my_beta = pair_swapper.log_potentials[my_chain].beta
-        pa_beta = pair_swapper.log_potentials[pa_chain].beta
-        my_rate = (1-my_beta) * 1 + my_beta * target_rate
-        pa_rate = (1-pa_beta) * 1 + pa_beta * target_rate
-        ###
+        ## RM
+        # target_rate = pair_swapper.log_potentials[1].path.target.rate
+        # my_chain = replica.chain
+        # pa_chain = partner_chain
+        # my_beta = pair_swapper.log_potentials[my_chain].beta
+        # pa_beta = pair_swapper.log_potentials[pa_chain].beta
+        # my_rate = (1-my_beta) * 1 + my_beta * target_rate
+        # pa_rate = (1-pa_beta) * 1 + pa_beta * target_rate
+        ##
 
-        println("---")
-        @show my_rate, pa_rate
-        @show log(my_rate) - log(pa_rate)
-        @show log_ratio
-        @show logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t))
-        @show logabs(dT(current_height))
-
-        log_ratio = log_ratio + logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
         
-        @show log_ratio 
+        # @show my_rate, pa_rate
+        # @show log(my_rate) - log(pa_rate)
+        # @show heights_ratio
+        # @show logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t))
+        # @show logabs(dT(current_height))
+
+        log_ratio = heights_ratio + logabs(dW_mine(current_t)) - logabs(dW_yours(proposed_t)) + logabs(dT(current_height))
+        
+        # @show log_ratio 
 
         ###
         # naive = log_unnormalized_ratio(pair_swapper.log_potentials, partner_chain, replica.chain, replica.state)
@@ -174,19 +181,28 @@ end
 
 logabs(x) = log(abs(x))
 
-function pre_involution(W, dW, start_point, proposed_height)
-    shifted_W(x) = W(x) - proposed_height
-    problem = ZeroProblem((shifted_W, dW), start_point)
+function pre_involution(W, dW, start_point, proposed_height, box_radius, tol)
+    tranf_start = log(start_point)
+    transf_W(t) = 
+        if abs(t - tranf_start) > box_radius
+            -Inf 
+        else
+            W(exp(t)) - proposed_height
+        end
+
+    dtransf_W(t) = dW(exp(t)) * exp(t)
+
+    problem = ZeroProblem((transf_W, dtransf_W), tranf_start)
 
     #@show solve(problem, atol = 1e-3)
 
-    result =  solve(problem, atol = fused_swap_tol[] / 2.0)
+    result =  solve(problem, atol = tol / 4.0)
 
     # if abs(result) > 10
     #     @show result
     # end
 
-    return result
+    return exp(result)
 end
 
 @concrete mutable struct StateMover
@@ -196,23 +212,21 @@ end
 
 function state_mover(pair_swapper::FusedSwap, replica)
     # consider set of point {exp(t) x : t in Real}
-    current_t = 0.0
+    current_t = norm(replica.state)
     mover = StateMover(current_t, replica)
     return current_t, mover
 end
 
 function move!(mover::StateMover, to)
-    if abs(to) > 10 
-        return 
-    end
+    @assert to > 0.0 && !isinf(to) "$to"
     if to == mover.current_t
         return 
     end
-    # current replica state is cur = exp(t) x
-    # you want to got to       new = exp(t') x
-    # we have: new = exp(t') x = (exp(t) / exp(t)) exp(t') x = (exp(t') / exp(t)) ( exp(t) x ) = (exp(t' - t)) cur
-    multiplier = exp(to - mover.current_t)
+    multiplier = to / mover.current_t
     mover.replica.state *= multiplier
+
+    @assert !isinf(mover.replica.state[1]) "$to $multiplier $(mover.current_t)"
+
     mover.current_t = to
 end
 
@@ -223,8 +237,7 @@ function log_density_slice(mover, log_potential)
     end 
     function dW(t)
         move!(mover, t)
-        # since the derivative of exp(t) is exp(t) this is just the directional derivative at x_t and along x_t
-        return directional_derivative(log_potential, mover.replica.state, mover.replica.state) 
+        return directional_derivative(log_potential, mover.replica.state, mover.replica.state) / t
     end
     return W, dW
 end

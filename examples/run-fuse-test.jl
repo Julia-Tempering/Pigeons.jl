@@ -8,15 +8,15 @@ using Distributions
 
 target_rate = 2.0
 
-@show use_exp = true
+@show use_exp = false
 
 pt = pigeons(
         target = 
             use_exp ?
                 Pigeons.ExpDist(target_rate) :
                 Product(Normal.(zeros(Pigeons.gauss_dim), 2 * ones(Pigeons.gauss_dim))), 
-        n_rounds = 15,
-        n_chains = 10,
+        n_rounds = 10,
+        n_chains = 5,
         fused_swaps = false,
         recorder_builders = [Pigeons.online_recorder_builders(); Pigeons.interpolated_log_potentials]
     )
@@ -28,18 +28,16 @@ pt = pigeons(
             use_exp ?
                 Pigeons.ExpDist(target_rate) :
                 Product(Normal.(zeros(Pigeons.gauss_dim), 2 * ones(Pigeons.gauss_dim))), 
-        n_rounds = 4,
+        n_rounds = 10,
         n_chains = 3,
         fused_swaps = true,
         recorder_builders = [Pigeons.online_recorder_builders(); Pigeons.interpolated_log_potentials]
     )
 
 
-
-
 @show mean(pt), var(pt)
 
-beta = 1.0
+beta = 0.8
 points, cumulative = Pigeons.interpolated_log_potential_distribution(pt, beta, 0)
 
 @show maximum(points)
@@ -61,7 +59,7 @@ analytic_iF(x) = log(analytic_rate * x)
 using Plots
 
 range = 0.0001:0.0001:0.9999 
-range2 = -10:0.1:10 # (f-5):0.1:(l+5)
+range2 = (f-5):0.1:(l+5)
 
 # p1 = plot(fct, range2)
 # plot!(analytic_F, range2)
@@ -80,6 +78,7 @@ Te, dTe = Pigeons.height_mover(pt.shared.swapper, 1, 2)
 #Ta, dTa, a, b = Pigeons.detailed_a_height_mover(pt.shared.swapper, 1, 2)
 
 p1 = plot(Te, range2)
+#plot!(range2, range2)
 #plot!(Ta, range2)
 
 p2 = plot(dTe, range2)
