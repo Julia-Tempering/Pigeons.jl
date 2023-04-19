@@ -5,7 +5,7 @@ Slice sampler based on
 @kwdef @concrete struct SliceSampler
     w = 10.0 # initial slice size
     p = 20 # slices are no larger than 2^p * w
-    n_passes = 1
+    n_passes = 3 # n_passes through all variables per exploration step
 end
 
 
@@ -22,7 +22,7 @@ explorer_recorder_builders(::SliceSampler) = []
 function step!(explorer::SliceSampler, replica, shared)
     for i in 1:explorer.n_passes
         log_potential = find_log_potential(replica, shared)
-        slice_sample!(explorer, replica.state, log_potential, replica.rng) 
+        slice_sample!(explorer, replica.state, log_potential, replica.rng)
     end
 end
 
