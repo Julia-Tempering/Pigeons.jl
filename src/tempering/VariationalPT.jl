@@ -44,9 +44,9 @@ function VariationalPT(inputs::Inputs)
     return VariationalPT(fixed_leg, variational_leg, swap_graphs, log_potentials)
 end
 
-function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators, var_reference)
-    fixed_leg = adapt_tempering(tempering.fixed_leg, reduced_recorders, iterators, NoVarReference())
-    variational_leg = adapt_tempering(tempering.variational_leg, reduced_recorders, iterators, var_reference)
+function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators, var_reference, state)
+    fixed_leg = adapt_tempering(tempering.fixed_leg, reduced_recorders, iterators, NoVarReference(), state)
+    variational_leg = adapt_tempering(tempering.variational_leg, reduced_recorders, iterators, var_reference, state)
     log_potentials = concatenate_log_potentials(fixed_leg, variational_leg, Val(:VariationalPT))
     return VariationalPT(fixed_leg, variational_leg, tempering.swap_graphs, log_potentials)
 end

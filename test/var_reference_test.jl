@@ -27,7 +27,7 @@ end
 
 
 function test_two_references()
-    model = Pigeons.flip_model_unidentifiable()
+    model = flip_model_unidentifiable()
 
     inputs = Inputs(
         target = TuringLogPotential(model),

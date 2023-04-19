@@ -33,6 +33,10 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "Variational reference" begin
+    test_var_reference()
+end
+
 @testset "Examples directory" begin
     # make sure the examples run correctly
     include("../examples/custom-path.jl")
@@ -237,6 +241,4 @@ end
     test_slice_sampler()
 end
 
-@testset "Variational reference" begin
-    test_var_reference()
-end
+
