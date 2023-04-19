@@ -16,11 +16,11 @@ function test_var_reference_Turing()
     
     # Check GaussianReference()
     inputs = Inputs(
-    target                  = target,
-    n_chains = 0,
-    n_chains_var_reference  = 10,
-    seed                    = 1,
-    var_reference            = GaussianReference()
+        target = TuringLogPotential(model),
+        n_chains = 0,
+        n_chains_var_reference  = 10,
+        seed = 1,
+        var_reference = GaussianReference()
     )
     @test_nowarn pt = pigeons(inputs)
 end
