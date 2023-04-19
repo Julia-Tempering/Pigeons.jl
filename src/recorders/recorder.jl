@@ -19,6 +19,19 @@ See also [`recorders`](@ref).
     record!(recorder, value) = @abstract 
 end
 
+"""
+Save the full trace for the target chain in memory. 
+Call copy() on each state on the target chain. Index them by 
+the (chain index, scan index). 
+"""
+@provides recorder traces() = Dict{Pair{Int, Int}, Any}() 
+
+function record!(traces::Dict{Pair{Int, Int}, T}, datum) where {T}
+    key = datum.chain => datum.scan 
+    @assert !haskey(traces, key) 
+    traces[key] = copy(datum.state)
+end
+
 """ 
 Average MH swap acceptance probabilities for each pairs 
 of interacting chains. 

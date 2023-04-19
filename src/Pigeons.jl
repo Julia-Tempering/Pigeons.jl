@@ -64,7 +64,7 @@ export pigeons, Inputs, PT,
     # targets:
     toy_mvn_target, TuringLogPotential,
     # recorders:
-    index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, 
+    index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, traces,
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     # getting information out of an execution:

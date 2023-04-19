@@ -103,6 +103,11 @@ function explore!(pt, replica, explorer)
     process_ac!(log_potential, replica, before)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
         record_if_requested!(replica.recorders, :target_online, replica.state)
+        record_if_requested!(
+            replica.recorders, 
+            :traces, 
+            (chain = replica.chain, scan = pt.shared.iterators.scan, state = replica.state, )
+        )
     end 
 end
 

@@ -138,11 +138,32 @@ a NamedTuple containing `recorder`'s which can be used to collect
 arbitary statistics computed along the execution of PT. 
 
 By default, the statistics collected use constant-memory summaries 
-(i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. 
+(i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. We provide two examples below. 
 
-For example, we show here how to plot the *index process*, a 
+As a first example, we show how to store all the samples in the reference chain in memory, using 
+the [`traces()`](@ref) `recorder`. We specify which `recorder` to use via the `recorder_builders` argument:
+
+```@example example
+p = pigeons(
+        target = toy_mvn_target(100), 
+        recorder_builders = [traces]);
+nothing # hide
+```
+
+Then we can access the sample at chain 10 (the reference) at iteration say 42 using:
+
+
+```@example example
+pt.reduced_recorders.traces[10 => 42]
+```
+
+Note that the [`traces`](@ref) recorder only stores data for reference chain(s).
+
+As a second example, we show here how to plot the *index process*, a 
 useful diagnostic to assess the efficiency of PT algorithms 
-([Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464)). We use the argument `recorder_builders` to 
+([Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464)). 
+
+Again we use the argument `recorder_builders` to 
 specify that we wish to collect the full index process:
 
 ```@example example
@@ -165,6 +186,9 @@ nothing # hide
 ```
 
 ![](index_process_plot.svg)
+
+
+
 
 Other statistics follow the same general usage, 
 see [Parallel Tempering (PT)](pt.html) for 
