@@ -89,24 +89,6 @@ function split_slice(
     return [split(rng) for i in slice]
 end
 
-"""
-    my_fct() = @abstract()
-
-Define an abstract function (i.e. which gives an error message if calling it 
-is attempted). 
-"""
-macro abstract() quote error("Attempted to call an abstract function.") end end
-
-
-"""
-    @weighted(w, x) 
-
-Compute `w*x`, but if `w==0.0`, do not evaluate `x` and just return `w` (i.e. zero).
-Useful when x is computationally costly.
-"""
-macro weighted(w, x) 
-    :($(esc(w)) == zero($(esc(w))) ? $(esc(w)) : $(esc(w)) * $(esc(x)))
-end
 
 """ 
 $SIGNATURES
