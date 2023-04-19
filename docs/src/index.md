@@ -141,7 +141,7 @@ By default, the statistics collected use constant-memory summaries
 (i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. We provide two examples below. 
 
 As a first example, we show how to store all the samples in the reference chain in memory, using 
-the [`traces()`](@ref) `recorder`. We specify which `recorder` to use via the `recorder_builders` argument:
+the `traces` `recorder`. We specify which `recorder` to use via the `recorder_builders` argument:
 
 ```@example example
 p = pigeons(
@@ -154,10 +154,10 @@ Then we can access the sample at chain 10 (the reference) at iteration say 42 us
 
 
 ```@example example
-pt.reduced_recorders.traces[10 => 42]
+p.reduced_recorders.traces[10 => 42]
 ```
 
-Note that the [`traces`](@ref) recorder only stores data for reference chain(s).
+Note that the `traces` recorder only stores data for reference chain(s).
 
 As a second example, we show here how to plot the *index process*, a 
 useful diagnostic to assess the efficiency of PT algorithms 

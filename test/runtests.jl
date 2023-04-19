@@ -35,7 +35,7 @@ end
 
 @testset "Traces" begin
     pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces]) 
-    @test length(pt.reduce_recorders.traces) == 1024 
+    @test length(pt.reduced_recorders.traces) == 1024 
     marginal = [pt.reduced_recorders.traces[10 => i][1] for i in 1:1024]
     @test abs(mean(marginal) - 0.0) < 0.05 
 end

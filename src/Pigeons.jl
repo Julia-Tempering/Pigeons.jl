@@ -59,7 +59,7 @@ const use_auto_exec_folder = ""
 include("includes.jl")
 
 export pigeons, Inputs, PT, 
-    # methods for running jobs:
+    # for running jobs:
     ChildProcess, MPI,
     # targets:
     toy_mvn_target, TuringLogPotential,
