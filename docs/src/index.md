@@ -159,7 +159,24 @@ p.reduced_recorders.traces[10 => 42]
 
 Note that the `traces` recorder only stores data for reference chain(s).
 
-As a second example, we show here how to plot the *index process*, a 
+
+As a second example, we show next how to store samples to disk:
+
+```@example example
+# save both to disk and to memory
+pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true) 
+
+# example of how to post-process the samples from disk 
+# this loads the samples one at the time so can be useful if the 
+# full trace would not fit in memory
+process_samples(pt, 10, 10) do i, sample 
+    # check the results are identical for the disk and traces recorders
+    @assert sample == pt.reduced_recorders.traces[10 => i]
+end
+nothing # hide
+```
+
+As a third example, we show here how to plot the *index process*, a 
 useful diagnostic to assess the efficiency of PT algorithms 
 ([Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464)). 
 
@@ -188,15 +205,7 @@ nothing # hide
 ![](index_process_plot.svg)
 
 
-As a last example, we show how to store samples to disk:
 
-```@example example
-pt = pigeons(target = toy_mvn_target(10), recorder_builders = [disk], checkpoint = true) 
-
-process_samples(pt, 10, 10) do i, sample 
-    println(sample)
-end
-```
 
 Other statistics follow the same general usage, 
 see [Parallel Tempering (PT)](pt.html) for 
