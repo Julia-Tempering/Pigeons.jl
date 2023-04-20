@@ -10,7 +10,7 @@ function queue_status(result::Result)
     return nothing
 end
 
-queue_code(result::Result) = readline("$(result.exec_folder)/info/submission_output.txt")
+queue_code(result::Result) = replace(readline("$(result.exec_folder)/info/submission_output.txt"), "Submitted batch job " => "")
 
 """ 
 $SIGNATURES 
@@ -24,6 +24,8 @@ function queue_status()
 end
 
 function queue_ncpus_free()
+    mpi_settings = load_mpi_settings()
+    @assert mpi_settings.submission_system == :pbs "Feature only supported on PBS at the moment"
     r = rosetta()
     n = 0
     for line in readlines(`$(r.ncpu_info)`)

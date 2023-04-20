@@ -116,7 +116,7 @@ const _rosetta = (;
     queue_concept = [:submit,   :del,     :directive, :job_name,    :output_file,   :error_file,    :submit_dir,            :job_status,    :job_status_all,    :ncpu_info],
 
     pbs           = [`qsub`,    `qdel`,   "#PBS",     "-N ",        "-o ",          "-e ",          "\$PBS_O_WORKDIR",      `qstat -x`,     `qstat -u`,         `pbsnodes -aSj -F dsv`],
-    slurm         = [`sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue`,       `squeue -u`,        `sinfo`],
+    slurm         = [`sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue --job`, `squeue -u`,        `sinfo`],
 
     custom = [] # can be used by downstream libraries/users to create custom submission commands in conjuction with dispatch on Pigeons.resource_string()
 )
