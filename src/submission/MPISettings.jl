@@ -95,7 +95,7 @@ function setup_mpi(settings::MPISettings)
         if settings.specified_lib === nothing 
             "" 
         else
-            """; library_names=[raw"$(setting.specified_lib)"]"""
+            """; library_names=[raw"$(setting.library_name)"]"""
         end
     sh( """
         source $folder/modules.sh
