@@ -2,6 +2,9 @@ function preflight_checks(pt)
     if pt.inputs.checked_round > 0 && !pt.inputs.checkpoint
         throw(ArgumentError("activate checkpoint when performing checks"))
     end
+    if disk in pt.inputs.recorder_builders && !pt.inputs.checkpoint
+        throw(ArgumentError("activate checkpoint when using the disk recorder"))
+    end
     if pt.inputs.checked_round < 0 || pt.inputs.checked_round > pt.inputs.n_rounds 
         throw(ArgumentError("set checked_round between 0 and n_rounds inclusively"))
     end

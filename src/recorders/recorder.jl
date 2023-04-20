@@ -19,6 +19,29 @@ See also [`recorders`](@ref).
     record!(recorder, value) = @abstract 
 end
 
+"""
+Save the full trace for the target chain in memory. 
+Call copy() on each state on the target chain. Index them by 
+the (chain index, scan index). 
+"""
+@provides recorder traces() = Dict{Pair{Int, Int}, Any}() 
+
+"""
+Save the full trace for the target chain to disk. 
+
+The `disk` recorders are safe to use in a multi-threaded and/or 
+distributed context as each replica uses its own file.
+
+To post-process files in the correct order, use [`process_samples`](@ref).
+"""
+@provides recorder disk() = DiskRecorder() 
+
+function record!(traces::Dict{Pair{Int, Int}, T}, datum) where {T}
+    key = datum.chain => datum.scan 
+    @assert !haskey(traces, key) 
+    traces[key] = copy(datum.state)
+end
+
 """ 
 Average MH swap acceptance probabilities for each pairs 
 of interacting chains. 
