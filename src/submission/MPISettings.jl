@@ -5,9 +5,24 @@ $FIELDS
 """
 @kwdef struct MPISettings
     """
-    E.g., for -A in PBS submission scripts.
+    E.g.: `:pbs`, `:slurm`, etc 
+
+    Use `Pigeons.supported_submission_systems()` to see the list of available options.
     """
-    allocation_code::String
+    submission_system::Symbol
+
+    """
+    Add lines to the submission scripts. 
+
+    E.g. used in UBC Sockeye for custom allocation code via 
+
+    `add_to_submission = ["#PBS -A my_user_allocation_code"]`
+
+    or in Compute Canada (optional if member of only one account, see https://docs.alliancecan.ca/wiki/Running_jobs):
+
+    `add_to_submission = ["#SBATCH --account=my_user_name"]``
+    """
+    add_to_submission::Vector{String} = []
 
     """
     "Envirnonment modules" to load (not to be confused 

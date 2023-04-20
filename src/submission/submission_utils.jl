@@ -5,7 +5,8 @@ Display the queue status for one MPI job.
 """ 
 function queue_status(result::Result)
     submission_code = queue_code(result)
-    run(`qstat -x $submission_code`)
+    r = rosetta()
+    run(`$(r.job_status) $submission_code`)
     return nothing
 end
 
@@ -17,13 +18,15 @@ $SIGNATURES
 Display the queue status for all the user's jobs. 
 """
 function queue_status()
-    run(`qstat -u $(ENV["USER"])`)
+    r = rosetta()
+    run(`$(r.job_status_all) $(ENV["USER"])`)
     return nothing
 end
 
 function queue_ncpus_free()
+    r = rosetta()
     n = 0
-    for line in readlines(`pbsnodes -aSj -F dsv`)
+    for line in readlines(`$(r.ncpu_info)`)
         for item in eachsplit(line, "|")
             m = match(r"ncpus[(]f[/]t[)][=]([0-9]+)[/].*", item)
             if m !== nothing
@@ -41,9 +44,10 @@ $SIGNATURES
 Instruct the scheduler to cancel or kill a job. 
 """ 
 function kill_job(result::Result) 
+    r = rosetta()
     exec_folder = result.exec_folder 
     submission_code = readline("$exec_folder/info/submission_output.txt")
-    run(`qdel $submission_code`)
+    run(`$(r.del) $submission_code`)
     return nothing
 end
 
