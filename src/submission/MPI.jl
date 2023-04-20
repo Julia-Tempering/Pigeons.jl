@@ -89,7 +89,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     info_folder = "$exec_folder/info"
     julia_cmd_str = join(julia_cmd, " ")
     mpi_settings = load_mpi_settings()
-    add_to_submission = join(mpi_setting.add_to_submission, "\n")
+    add_to_submission = join(mpi_settings.add_to_submission, "\n")
     r = rosetta()
     resource_str = resource_string(mpi_submission, mpi_settings.submission_system)
 
