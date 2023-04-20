@@ -92,10 +92,10 @@ function setup_mpi(settings::MPISettings)
     # call bash to set things up
     julia = join(Base.julia_cmd().exec, " ")
     specified_lib = 
-        if settings.specified_lib === nothing 
+        if settings.library_name === nothing 
             "" 
         else
-            """; library_names=[raw"$(setting.library_name)"]"""
+            """; library_names=[raw"$(settings.library_name)"]"""
         end
     sh( """
         source $folder/modules.sh
