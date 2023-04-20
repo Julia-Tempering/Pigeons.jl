@@ -33,7 +33,7 @@ function PT(source_exec_folder::AbstractString;
     fresh_exec_folder = pt_exec_folder(true, fresh_exec_folder)
     
     checkpoint_folder = "$source_exec_folder/round=$round/checkpoint"
-    deserialize_immutables("$source_exec_folder/immutables.jls")
+    deserialize_immutables!("$source_exec_folder/immutables.jls")
     shared = deserialize("$checkpoint_folder/shared.jls") 
     inputs = deserialize("$source_exec_folder/inputs.jls")
     reduced_recorders = deserialize("$checkpoint_folder/reduced_recorders.jls")
@@ -101,8 +101,6 @@ function write_checkpoint(pt)
         return 
     end
     checkpoint_folder = mkpath("$(pt.exec_folder)/round=$(pt.shared.iterators.round)/checkpoint")    
-    
-    flush_immutables!()
 
     # each process saves its replicas
     for replica in locals(pt.replicas)

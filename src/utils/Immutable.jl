@@ -43,7 +43,7 @@ Details of how serialization/deserialization is performed:
 4. Make one of the processes call [`serialize_immutables()`](@ref). 
     This serializes the `immutables` Dict.
 5. Then for de-serialization, each process should call 
-    [`deserialize_immutables()`](@ref). This restores 
+    [`deserialize_immutables!()`](@ref). This restores 
     `immutable`.
 6. Finally, call `Serialization.deserialize()` as usual. 
     When an `Immutable` instances is being deserialize, we 
@@ -77,7 +77,7 @@ $SIGNATURES
 
 See [`Immutable()`](@ref).
 """
-function deserialize_immutables(filename::AbstractString)
+function deserialize_immutables!(filename::AbstractString)
     empty!(immutables)
     merge!(immutables, deserialize(filename))
 end
@@ -90,6 +90,6 @@ end
 
 function Serialization.deserialize(s::AbstractSerializer, type::Type{Immutable{T}}) where {T}
     key = Serialization.deserialize(s)
-    @assert haskey(immutables, key) "Make sure to call deserialize_immutables(...) before rest of deserialization"
+    @assert haskey(immutables, key) "Make sure to call deserialize_immutables!(...) before rest of deserialization"
     return Immutable(immutables[key], false)
 end

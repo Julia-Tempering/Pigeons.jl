@@ -34,10 +34,15 @@ function test_load_balance(n_processes, n_tasks)
 end
 
 @testset "Traces" begin
-    pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces]) 
+    pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true) 
     @test length(pt.reduced_recorders.traces) == 1024 
     marginal = [pt.reduced_recorders.traces[10 => i][1] for i in 1:1024]
     @test abs(mean(marginal) - 0.0) < 0.05 
+
+    # check that the disk serialization gives the same result
+    Pigeons.process_samples(pt, 10, 10) do i, sample 
+        @test sample == pt.reduced_recorders.traces[10 => i]
+    end
 end
 
 @testset "Examples directory" begin

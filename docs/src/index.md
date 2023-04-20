@@ -138,7 +138,7 @@ a NamedTuple containing `recorder`'s which can be used to collect
 arbitary statistics computed along the execution of PT. 
 
 By default, the statistics collected use constant-memory summaries 
-(i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. We provide two examples below. 
+(i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. We provide three examples below. 
 
 As a first example, we show how to store all the samples in the reference chain in memory, using 
 the `traces` `recorder`. We specify which `recorder` to use via the `recorder_builders` argument:
@@ -188,7 +188,15 @@ nothing # hide
 ![](index_process_plot.svg)
 
 
+As a last example, we show how to store samples to disk:
 
+```@example example
+pt = pigeons(target = toy_mvn_target(10), recorder_builders = [disk], checkpoint = true) 
+
+process_samples(pt, 10, 10) do i, sample 
+    println(sample)
+end
+```
 
 Other statistics follow the same general usage, 
 see [Parallel Tempering (PT)](pt.html) for 

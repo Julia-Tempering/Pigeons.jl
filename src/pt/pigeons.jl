@@ -11,6 +11,7 @@ and [`run_checks()`](@ref) between rounds.
 """
 function pigeons(pt::PT) 
     preflight_checks(pt)
+    flush_immutables!() # Making sure this gets called before DiskRecorder's and write_checkpoint
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders)
