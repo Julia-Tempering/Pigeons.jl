@@ -106,7 +106,12 @@ function explore!(pt, replica, explorer)
         record_if_requested!(
             replica.recorders, 
             :traces, 
-            (chain = replica.chain, scan = pt.shared.iterators.scan, state = replica.state, )
+            (; chain = replica.chain, scan = pt.shared.iterators.scan, state = replica.state)
+        )
+        record_if_requested!(
+            replica.recorders, 
+            :disk, 
+            (; exec_folder = pt.exec_folder, round = pt.shared.iterators.round, scan = pt.shared.iterators.scan, replica)
         )
     end 
 end

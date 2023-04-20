@@ -26,6 +26,11 @@ the (chain index, scan index).
 """
 @provides recorder traces() = Dict{Pair{Int, Int}, Any}() 
 
+"""
+Save the full trace for the target chain to disk. 
+"""
+@provides recorder disk() = DiskRecorder() 
+
 function record!(traces::Dict{Pair{Int, Int}, T}, datum) where {T}
     key = datum.chain => datum.scan 
     @assert !haskey(traces, key) 

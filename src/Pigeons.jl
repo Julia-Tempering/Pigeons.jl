@@ -35,6 +35,7 @@ using StaticArrays
 using Printf
 using Statistics
 using RecipesBase
+using JLD2
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -51,6 +52,7 @@ import Base.(==)
 import Base.keys
 import Statistics.mean 
 import Statistics.var
+import Base.merge
 
 import DynamicPPL
 
