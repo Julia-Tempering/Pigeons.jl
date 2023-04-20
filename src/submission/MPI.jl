@@ -142,7 +142,7 @@ resource_string(m::MPI, ::Val{:slurm}) =
 function rosetta() 
     mpi_settings = load_mpi_settings()
     tuple_keys = Symbol[] 
-    tuple_values = String[] 
+    tuple_values = Any[] 
     concepts = _rosetta.queue_concept
     selected = _rosetta[mpi_settings.submission_system] 
     len = length(selected)
