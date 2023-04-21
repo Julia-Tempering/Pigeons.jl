@@ -47,8 +47,8 @@ type [`recorder_builder`](@ref).
         push!(tuple_keys,   Symbol(recorder_builder))
         push!(tuple_values, recorder_builder())
     end
-    recorders = (; zip(tuple_keys, tuple_values)...)
-    return recorders
+    return (; zip(tuple_keys, tuple_values)...)
+
 end
 
 """

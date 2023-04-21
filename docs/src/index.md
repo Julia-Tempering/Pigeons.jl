@@ -330,7 +330,10 @@ much more gracefully when the number of threads exceeds the number of cores).
     for details.
 
 MPI is typically available via a cluster scheduling system. At the time of 
-writing, only [PBS PRO](https://github.com/openpbs/openpbs) is supported, but more will be added. 
+writing, [PBS](https://github.com/openpbs/openpbs) and 
+[SLURM](https://slurm.schedmd.com/documentation.html) are supported, 
+and an experimental implementation of [LSF](https://www.ibm.com/docs/en/spectrum-lsf/10.1.0?topic=overview-lsf-introduction) is included. 
+Create an issue if you would like another submission system included. 
 
 Follow these instructions to run MPI over several machines:
 
