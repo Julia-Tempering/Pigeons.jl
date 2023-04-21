@@ -4,6 +4,10 @@ Simplest method: connect to server via VSCode. Then
 
 ```
 julia
+;
+cd examples
+[ctrl-c]
+]activate .
 using Pluto
 Pluto.run()
 ```
