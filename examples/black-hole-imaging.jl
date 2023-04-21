@@ -1,10 +1,13 @@
+# run from the examples directory
+
 using Pkg
 Pkg.activate(".")
 
 using Comrade
-using ComradePigeons
 using Distributions
 using Pigeons
+
+include("comrade-interface.jl")
 
 # From Comrade examples:
 obs = load_ehtim_uvfits("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits")
