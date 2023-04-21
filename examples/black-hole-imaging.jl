@@ -17,13 +17,9 @@ include("comrade-interface.jl")
 dlcamp = deserialize("data/dlcamp.jl")
 dcphase = deserialize("data/dcphase.jl")
 
+
 # From Comrade examples:
-function model(θ)
-    (;radius, width, α, β, f, σG, τG, ξG, xG, yG) = θ
-    ring = f*smoothed(stretched(MRing((α,), (β,)), radius, radius), width)
-    g = (1-f)*shifted(rotated(stretched(Gaussian(), σG, σG*(1+τG)), ξG), xG, yG)
-    return ring + g
-end
+include("comrade-model.jl")
 lklhd = RadioLikelihood(model, dlcamp, dcphase)
 prior = (
           radius = Uniform(μas2rad(10.0), μas2rad(30.0)),
