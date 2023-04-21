@@ -115,8 +115,12 @@ end
 const _rosetta = (;
     queue_concept = [:submit,   :del,     :directive, :job_name,    :output_file,   :error_file,    :submit_dir,            :job_status,    :job_status_all,    :ncpu_info],
 
+    # tested:
     pbs           = [`qsub`,    `qdel`,   "#PBS",     "-N ",        "-o ",          "-e ",          "\$PBS_O_WORKDIR",      `qstat -x`,     `qstat -u`,         `pbsnodes -aSj -F dsv`],
     slurm         = [`sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue --job`, `squeue -u`,        `sinfo`],
+    
+    # not yet tested:
+    lsf           = [`bsub`,    `bkill`,  "#BSUB",    "-J ",        "-o ",          "-e ",          "\$LSB_SUBCWD",         `bjobs`,        `bjobs -u`,         `bhosts`],
 
     custom = [] # can be used by downstream libraries/users to create custom submission commands in conjuction with dispatch on Pigeons.resource_string()
 )
@@ -138,6 +142,24 @@ resource_string(m::MPI, ::Val{:slurm}) =
     #SBATCH --cpus-per-task=$(m.n_threads)
     #SBATCH --mem-per-cpu=$(m.memory) 
     """
+
+function resource_string(m::MPI, ::Val{:lsf})
+    @assert m.n_threads == 1 "TODO: find how to specify number of threads per node with LSF"
+    """
+    #BSUB -W $(m.walltime)
+    #BSUB -n $(m.n_mpi_processes)
+    #BSUB -M $(m.memory) 
+    """
+end
+
+function resource_string(m::MPI, ::Val{:load_leveler})
+    @assert m.n_threads == 1 "TODO: find how to specify number of threads per node with LSF"
+    """
+    #BSUB -W $(m.walltime)
+    #BSUB -n $(m.n_mpi_processes)
+    #BSUB -M $(m.memory) 
+    """
+end
 
 function rosetta() 
     mpi_settings = load_mpi_settings()
