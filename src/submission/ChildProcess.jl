@@ -120,9 +120,10 @@ function launch_code(
         path_to_serialized_immutables::AbstractString,
         dependencies,
         on_mpi) 
-    modules = copy(dependencies)
+    modules = []
     push!(modules, Serialization)
     push!(modules, Pigeons)
+    append!(modules, dependencies)
     dependency_declarations = 
         join(
             map(add_dependency, unique(modules)), 
