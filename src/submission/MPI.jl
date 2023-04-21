@@ -152,15 +152,6 @@ function resource_string(m::MPI, ::Val{:lsf})
     """
 end
 
-function resource_string(m::MPI, ::Val{:load_leveler})
-    @assert m.n_threads == 1 "TODO: find how to specify number of threads per node with LSF"
-    """
-    #BSUB -W $(m.walltime)
-    #BSUB -n $(m.n_mpi_processes)
-    #BSUB -M $(m.memory) 
-    """
-end
-
 function rosetta() 
     mpi_settings = load_mpi_settings()
     tuple_keys = Symbol[] 
