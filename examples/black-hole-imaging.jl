@@ -1,4 +1,8 @@
-# run from the examples directory
+#=
+- run from the examples directory
+- if in the process of developping Pigeons, make sure to call Pkg.develop("Pigeons") so 
+    that the dep in Manifest point to the local file rather than the last published 
+=#
 
 using Pkg
 Pkg.activate(".")
@@ -6,14 +10,14 @@ Pkg.activate(".")
 using Comrade
 using Distributions
 using Pigeons
+using Serialization
 
 include("comrade-interface.jl")
 
+dlcamp = deserialize("data/dlcamp.jl")
+dcphase = deserialize("data/dcphase.jl")
+
 # From Comrade examples:
-obs = load_ehtim_uvfits("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits")
-obs = scan_average(obs.flag_uvdist(uv_min=0.1e9))
-dlcamp = extract_lcamp(obs)
-dcphase = extract_cphase(obs)
 function model(θ)
     (;radius, width, α, β, f, σG, τG, ξG, xG, yG) = θ
     ring = f*smoothed(stretched(MRing((α,), (β,)), radius, radius), width)
@@ -35,7 +39,7 @@ prior = (
         )
 post = Posterior(lklhd, prior)
 
-plp = ComradePigeons.PigeonsLogPotential(asflat(post))
-pigeons(target = plp);
+plp = PigeonsLogPotential(asflat(post))
+pt = pigeons(target = plp, n_rounds = 2);
 
 nothing;
