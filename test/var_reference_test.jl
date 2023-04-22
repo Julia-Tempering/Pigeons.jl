@@ -24,7 +24,7 @@ function test_var_reference_Turing()
     )
     @test_nowarn pt = pigeons(inputs)
     # check that a variational reference is indeed used
-    @assert pt.shared.tempering.path.ref isa GaussianReference
+    @assert pt.shared.var_reference isa GaussianReference
 end
 
 
