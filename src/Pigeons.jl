@@ -35,6 +35,7 @@ using StaticArrays
 using Printf
 using Statistics
 using RecipesBase
+using ZipFile
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -51,6 +52,7 @@ import Base.(==)
 import Base.keys
 import Statistics.mean 
 import Statistics.var
+import Base.merge
 
 import DynamicPPL
 
@@ -59,16 +61,16 @@ const use_auto_exec_folder = ""
 include("includes.jl")
 
 export pigeons, Inputs, PT, 
-    # methods for running jobs:
+    # for running jobs:
     ChildProcess, MPI,
     # targets:
     toy_mvn_target, TuringLogPotential,
     # recorders:
-    index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, 
+    index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, traces, disk,
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     # getting information out of an execution:
-    stepping_stone_pair, n_tempered_restarts, n_round_trips,
+    stepping_stone_pair, n_tempered_restarts, n_round_trips, process_samples,
     # variational references:
     GaussianReference, NoVarReference
 end # End module

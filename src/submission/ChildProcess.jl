@@ -120,9 +120,10 @@ function launch_code(
         path_to_serialized_immutables::AbstractString,
         dependencies,
         on_mpi) 
-    modules = copy(dependencies)
+    modules = []
     push!(modules, Serialization)
     push!(modules, Pigeons)
+    append!(modules, dependencies)
     dependency_declarations = 
         join(
             map(add_dependency, unique(modules)), 
@@ -132,14 +133,12 @@ function launch_code(
     # we need to force it to ignore that
     mpi_flag = on_mpi ? "Pigeons.mpi_active_ref[] = true" : ""
 
-    # Might be better with quote? 
-    # But prototype quote-based syntax seemed more messy..
     # NB: using raw".." below to work around windows problem: backslash in paths interpreted as escape, so using suggestion in https://discourse.julialang.org/t/windows-file-path-string-slash-direction-best-way-to-copy-paste/29204
     """
     $dependency_declarations
     $mpi_flag
 
-    Pigeons.deserialize_immutables(raw"$path_to_serialized_immutables")
+    Pigeons.deserialize_immutables!(raw"$path_to_serialized_immutables")
     pt_arguments = deserialize(raw"$path_to_serialized_pt_arguments")
     pt = PT(pt_arguments, exec_folder = raw"$exec_folder")
     pigeons(pt)

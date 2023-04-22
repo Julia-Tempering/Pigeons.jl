@@ -7,6 +7,7 @@ we also assume the presence of the following fields:
 - [`log_potentials`](@ref)
 - [`swap_graphs`](@ref)
 - [`communication_barriers`](@ref)
+- `path`
 """
 @informal tempering begin
     """

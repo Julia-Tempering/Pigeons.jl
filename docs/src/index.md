@@ -138,11 +138,49 @@ a NamedTuple containing `recorder`'s which can be used to collect
 arbitary statistics computed along the execution of PT. 
 
 By default, the statistics collected use constant-memory summaries 
-(i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. 
+(i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. We provide three examples below. 
 
-For example, we show here how to plot the *index process*, a 
+As a first example, we show how to store all the samples in the reference chain in memory, using 
+the `traces` `recorder`. We specify which `recorder` to use via the `recorder_builders` argument:
+
+```@example example
+p = pigeons(
+        target = toy_mvn_target(100), 
+        recorder_builders = [traces]);
+nothing # hide
+```
+
+Then we can access the sample at chain 10 (the reference) at iteration say 42 using:
+
+
+```@example example
+p.reduced_recorders.traces[10 => 42]
+```
+
+Note that the `traces` recorder only stores data for reference chain(s).
+
+
+As a second example, we show next how to store samples to disk:
+
+```@example example
+# save both to disk and to memory
+pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true) 
+
+# example of how to post-process the samples from disk 
+# this loads the samples one at the time so can be useful if the 
+# full trace would not fit in memory
+process_samples(pt, 10, 10) do i, sample 
+    # check the results are identical for the disk and traces recorders
+    @assert sample == pt.reduced_recorders.traces[10 => i]
+end
+nothing # hide
+```
+
+As a third example, we show here how to plot the *index process*, a 
 useful diagnostic to assess the efficiency of PT algorithms 
-([Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464)). We use the argument `recorder_builders` to 
+([Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464)). 
+
+Again we use the argument `recorder_builders` to 
 specify that we wish to collect the full index process:
 
 ```@example example
@@ -165,6 +203,9 @@ nothing # hide
 ```
 
 ![](index_process_plot.svg)
+
+
+
 
 Other statistics follow the same general usage, 
 see [Parallel Tempering (PT)](pt.html) for 
@@ -289,7 +330,10 @@ much more gracefully when the number of threads exceeds the number of cores).
     for details.
 
 MPI is typically available via a cluster scheduling system. At the time of 
-writing, only [PBS PRO](https://github.com/openpbs/openpbs) is supported, but more will be added. 
+writing, [PBS](https://github.com/openpbs/openpbs) and 
+[SLURM](https://slurm.schedmd.com/documentation.html) are supported, 
+and an experimental implementation of [LSF](https://www.ibm.com/docs/en/spectrum-lsf/10.1.0?topic=overview-lsf-introduction) is included. 
+Create an issue if you would like another submission system included. 
 
 Follow these instructions to run MPI over several machines:
 

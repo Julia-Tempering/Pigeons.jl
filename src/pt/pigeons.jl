@@ -11,6 +11,7 @@ and [`run_checks()`](@ref) between rounds.
 """
 function pigeons(pt::PT) 
     preflight_checks(pt)
+    flush_immutables!() # Making sure this gets called before DiskRecorder's and write_checkpoint
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders)
@@ -103,6 +104,16 @@ function explore!(pt, replica, explorer)
     process_ac!(log_potential, replica, before)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
         record_if_requested!(replica.recorders, :target_online, replica.state)
+        record_if_requested!(
+            replica.recorders, 
+            :traces, 
+            (; chain = replica.chain, scan = pt.shared.iterators.scan, state = replica.state)
+        )
+        record_if_requested!(
+            replica.recorders, 
+            :disk, 
+            (; exec_folder = pt.exec_folder, round = pt.shared.iterators.round, scan = pt.shared.iterators.scan, replica)
+        )
     end 
 end
 

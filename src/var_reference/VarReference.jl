@@ -42,17 +42,18 @@ contract.
 end
 
 
-function update_path_if_needed!(path, reduced_recorders, iterators, var_reference, state) 
+function update_path_if_needed(path, reduced_recorders, iterators, var_reference, state) 
     if activate_var_reference(var_reference, iterators) 
-        update_path_var_reference!(path, reduced_recorders, var_reference, state) 
+        return update_path_var_reference(path, reduced_recorders, var_reference, state) 
     else 
-        nothing
+        return path
     end
 end
 
-function update_path_var_reference!(path, reduced_recorders, var_reference, state)
+function update_path_var_reference(path, reduced_recorders, var_reference, state)
     update_reference!(reduced_recorders, var_reference, state)
     path = InterpolatingPath(var_reference, path.target)
+    return path
 end
 
 @provides var_reference create_var_reference(inputs) = inputs.var_reference

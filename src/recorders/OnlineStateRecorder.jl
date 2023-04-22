@@ -5,6 +5,8 @@ See [`target_online()`](@ref).
     stats::Dict{Pair{Symbol, Type}, Any} = Dict{Pair{Symbol, Type}, Any}()
 end
 
+OnlineStateRecorder(from_another::OnlineStateRecorder) = OnlineStateRecorder(copy(from_another.stats))
+
 """
 $SIGNATURES 
 """
@@ -27,10 +29,10 @@ Base.empty!(recorder::OnlineStateRecorder) = empty!(recorder.stats)
 
 function Base.merge(recorder1::OnlineStateRecorder, recorder2::OnlineStateRecorder)
     if isempty(recorder1.stats)
-        return recorder2 
+        return OnlineStateRecorder(recorder2)
     end
     if isempty(recorder2.stats)
-        return recorder1 
+        return OnlineStateRecorder(recorder1)
     end
     current_keys = keys(recorder1.stats)
     @assert current_keys == keys(recorder2.stats) 

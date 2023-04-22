@@ -3,7 +3,7 @@ using Serialization
 using Test
 
 import Pigeons: Immutable, serialize_immutables, 
-                deserialize_immutables
+                deserialize_immutables!
 
 data_serialization_name = tempname()
 fake_serialization_name = tempname()
@@ -35,7 +35,7 @@ end
 @assert error_thrown
 
 
-deserialize_immutables(data_serialization_name)
+deserialize_immutables!(data_serialization_name)
 
 println(Pigeons.immutables)
 

@@ -36,7 +36,9 @@ function test_two_references()
         var_reference = GaussianReference(),
         seed = 1
     )
-    @test_nowarn pt = pigeons(inputs)
+    pt = pigeons(inputs)
+    # check that a variational reference is indeed used
+    @assert pt.shared.tempering.path.ref isa GaussianReference
 end
 
 
