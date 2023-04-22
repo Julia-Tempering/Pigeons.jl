@@ -103,6 +103,12 @@ function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     $(r.directive) $(r.error_file)$info_folder/stderr.txt
     cd $(r.submit_dir)
     $(modules_string(mpi_settings))
+
+    # don't want many processes wasting time pre-compiling, 
+    # could also be a cause for an obscure bug encountered (non-reproducible):
+    #    MethodError(f=Core.Compiler.widenconst, args=(Symbol("#342"),), world=0x0000000000001342)
+    export JULIA_PKG_PRECOMPILE_AUTO=0
+
     mpiexec $(mpi_submission.mpiexec_args) --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
