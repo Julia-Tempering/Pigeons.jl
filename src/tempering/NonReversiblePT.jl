@@ -50,9 +50,9 @@ function NonReversiblePT(path, schedule, communication_barriers)
 end
 
 function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference, state)
-    update_path_if_needed!(tempering.path, reduced_recorders, iterators, var_reference, state)
+    new_path = update_path_if_needed(tempering.path, reduced_recorders, iterators, var_reference, state)
     NonReversiblePT(
-        tempering.path, 
+        new_path, 
         optimal_schedule(reduced_recorders, tempering.schedule), 
         communication_barriers(reduced_recorders, tempering.schedule)
     )
