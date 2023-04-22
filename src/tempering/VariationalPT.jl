@@ -45,8 +45,13 @@ function VariationalPT(inputs::Inputs)
 end
 
 function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators, var_reference, state)
-    fixed_leg = adapt_tempering(tempering.fixed_leg, reduced_recorders, iterators, NoVarReference(), state)
-    variational_leg = adapt_tempering(tempering.variational_leg, reduced_recorders, iterators, var_reference, state)
+    indexer = create_replica_indexer(tempering)
+    fixed_leg = adapt_tempering(
+        tempering.fixed_leg, reduced_recorders, iterators, 
+        NoVarReference(), state, fixed_leg_indices(indexer, tempering))
+    variational_leg = adapt_tempering(
+        tempering.variational_leg, reduced_recorders, iterators, 
+        var_reference, state, variational_leg_indices(indexer, tempering))
     log_potentials = concatenate_log_potentials(fixed_leg, variational_leg, Val(:VariationalPT))
     return VariationalPT(fixed_leg, variational_leg, tempering.swap_graphs, log_potentials)
 end
@@ -92,6 +97,12 @@ function create_replica_indexer(tempering::VariationalPT)
     end
     return Indexer(i2t)
 end
+
+fixed_leg_indices(replica_indexer, tempering::VariationalPT) = 
+    findall(x->x[2] == :fixed, replica_indexer.i2t)
+
+variational_leg_indices(replica_indexer, tempering::VariationalPT) = 
+    reverse(findall(x->x[2] == :variational, replica_indexer.i2t))
 
 global_barrier(tempering::VariationalPT) = 
     (
