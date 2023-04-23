@@ -8,14 +8,6 @@ Slice sampler based on
     n_passes = 3 # n_passes through all variables per exploration step
 end
 
-
-"""
-$SIGNATURES
-
-Current explorer for Turing models: a [`SliceSampler`](@ref).
-Slice sampler has the advantage of being not very sensitive to tuning. 
-"""
-@provides explorer create_explorer(target, inputs) = SliceSampler() 
 adapt_explorer(explorer::SliceSampler, _, _) = explorer 
 explorer_recorder_builders(::SliceSampler) = [] 
 
