@@ -50,7 +50,7 @@ function NonReversiblePT(path, schedule, communication_barriers)
 end
 
 adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference, state) = 
-    adapt_tempering(tempering, reduced_recorders, iterators, var_reference, state, 1:number_of_chains(tempering))
+    adapt_tempering(tempering, reduced_recorders, iterators, var_reference, state, 1:(number_of_chains(tempering)-1))
 
 function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference, state, chain_indices)
     new_path = update_path_if_needed(tempering.path, reduced_recorders, iterators, var_reference, state)

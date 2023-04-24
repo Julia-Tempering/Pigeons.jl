@@ -28,7 +28,7 @@ function optimal_schedule(reduced_recorders, old_schedule::Schedule, chain_indic
     optimal_schedule(
         rejections(reduced_recorders, chain_indices),
         old_schedule,
-        length(chain_indices)
+        length(chain_indices)+1
     )
 end
 
@@ -111,8 +111,9 @@ function rejections(reduced_recorders, n_chains::Int)
 end
 
 """ Similar to above except that instead of the number of chains, 
-provide the full vector of chain indices. """
+provide the full vector of chain indices.
+Note that `chain_indices` starts at the reference and ends at the chain *one before* the target. """
 function rejections(reduced_recorders, chain_indices::AbstractVector) 
     accept_recorder = reduced_recorders.swap_acceptance_pr
-    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices[1:(end-1)]] # TODO: for the second leg, is it [2:end] ?
+    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices[1:end]]
 end
