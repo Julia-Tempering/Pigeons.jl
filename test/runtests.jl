@@ -137,6 +137,7 @@ end
                 mpiexec_args = extra_mpi_args())) 
 
     # Turing:
+    RNG_old = copy(Random.GLOBAL_RNG)
     pigeons(
         target = TuringLogPotential(flip_model_unidentifiable()), 
         n_rounds = 10,
@@ -149,7 +150,8 @@ end
                 n_local_mpi_processes = n_mpis,
                 n_threads = 2,
                 mpiexec_args = extra_mpi_args()))
-
+    @assert RNG_old == copy(Random.GLOBAL_RNG)
+    
     # Blang:
     if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
         Pigeons.setup_blang("blangDemos")
