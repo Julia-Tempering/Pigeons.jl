@@ -33,6 +33,12 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "Allocs" begin
+    allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(100)))
+    allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(100)))
+    @test allocs_10_rounds == allocs_11_rounds
+end
+
 @testset "Variational reference" begin
     test_var_reference()
 end
