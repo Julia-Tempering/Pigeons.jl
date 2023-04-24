@@ -18,6 +18,9 @@ accessing statistic values.
     If the [`recorders`](@ref) contains the given `recorder_key`, 
     send the `value` to the [`recorder`](@ref) corresponding to the 
     `recorder_key`. Otherwise, do nothing.
+
+    When `value` is costly or may cause allocation,
+    use [`@record_if_requested!()`](@ref) instead.
     """
     function record_if_requested!(recorders, recorder_key::Symbol, value)
         if haskey(recorders, recorder_key)

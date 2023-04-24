@@ -94,8 +94,8 @@ record_timed_if_requested!(pt::PT, category::Symbol, timed) =
 record_timed_if_requested!(locals(pt.replicas)[1].recorders, category, timed)
 
 function record_timed_if_requested!(recorders, category::Symbol, timed)
-    record_if_requested!(recorders, :timing_extrema,     (category, timed.time))
-    record_if_requested!(recorders, :allocation_extrema, (category, timed.bytes))
+    @record_if_requested!(recorders, :timing_extrema,     (category, timed.time))
+    @record_if_requested!(recorders, :allocation_extrema, (category, timed.bytes))
 end
 
 

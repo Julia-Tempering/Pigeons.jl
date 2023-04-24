@@ -107,8 +107,8 @@ function _swap!(pair_swapper, r::Replica, my_swap_stat, partner_swap_stat, partn
     my_chain = r.chain
 
     # keep track of index process even if not performing swap
-    record_if_requested!(r.recorders, :index_process, (r.replica_index, r.chain))
-    record_if_requested!(r.recorders, :round_trip, (is_reference(swap_graph, r.chain), is_target(swap_graph, r.chain)))
+    @record_if_requested!(r.recorders, :index_process, (r.replica_index, r.chain))
+    @record_if_requested!(r.recorders, :round_trip, (is_reference(swap_graph, r.chain), is_target(swap_graph, r.chain)))
 
     if my_chain == partner_chain return nothing end
 
