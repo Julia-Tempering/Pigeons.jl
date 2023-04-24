@@ -10,10 +10,27 @@ using Comrade
 using Distributions
 using Pigeons
 using Serialization
+using LogDensityProblemsAD
+using LogDensityProblems
+
+import Pigeons.gradient
 
 struct PigeonsLogPotential{M}
     post::M
 end
+
+struct PriorPotential{M,T}
+    prior::M
+    transform::T
+    dim::Int
+    function PriorPotential(post::Comrade.TransformedPosterior)
+        t = post.transform
+        prior = post.lpost.prior
+        return new{typeof(prior), typeof(t)}(prior, t, dimension(post))
+    end
+end
+
+LogDensityProblems.dimension(pp::PriorPotential) = pp.dim
 
 # This one takes in the log jacobian of the transformation not the prior!
 function (m::PigeonsLogPotential)(x)
@@ -25,9 +42,23 @@ function Pigeons.initialization(target::PigeonsLogPotential, rng::Pigeons.Splitt
    return  Comrade.prior_sample(rng, target.post)
 end
 
-Pigeons.create_explorer(::PigeonsLogPotential, ::Inputs) = Pigeons.SliceSampler()
+Pigeons.create_explorer(::PigeonsLogPotential, ::Inputs) = Pigeons.HMC(0.1, 10, 3)
 
 Pigeons.create_reference_log_potential(target::PigeonsLogPotential, ::Inputs) = PriorPotential(target.post)
+
+function Pigeons.gradient(log_potential::PigeonsLogPotential, x) 
+    calculator = ADgradient(Pigeons.autodiff_backend[], log_potential.post)
+    _, gradient = LogDensityProblems.logdensity_and_gradient(calculator, x)
+    return gradient
+end
+
+function Pigeons.gradient(log_potential::PriorPotential, x) 
+    calculator = ADgradient(Pigeons.autodiff_backend[], log_potential)
+    _, gradient = LogDensityProblems.logdensity_and_gradient(calculator, x)
+    return gradient
+end
+
+LogDensityProblems.logdensity(pp::PriorPotential, x) = pp(x)
 
 function Pigeons.sample_iid!(target::PigeonsLogPotential, replica)
     replica.state = initialization(target, replica.rng, replica.replica_index)
@@ -35,16 +66,6 @@ end
 
 function Pigeons.sample_iid!(target::PriorPotential, replica)
     replica.state = Comrade.inverse(target.transform, rand(replica.rng, target.prior))
-end
-
-struct PriorPotential{M,T}
-    prior::M
-    transform::T
-    function PriorPotential(post::Comrade.TransformedPosterior)
-        t = post.transform
-        prior = post.lpost.prior
-        return new{typeof(prior), typeof(t)}(prior, t)
-    end
 end
 
 function (m::PriorPotential)(x)
