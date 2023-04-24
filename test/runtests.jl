@@ -33,6 +33,10 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "Variational reference" begin
+    test_var_reference()
+end
+
 @testset "Traces" begin
     pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true) 
     @test length(pt.reduced_recorders.traces) == 1024 
@@ -248,6 +252,4 @@ end
     test_slice_sampler()
 end
 
-@testset "Variational reference" begin
-    test_var_reference()
-end
+
