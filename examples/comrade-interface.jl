@@ -4,6 +4,8 @@ ComradePigeons not being published makes it harder to deploy to MPI via 'using C
 As a workaround, including the contents in this repo for now 
 =#
 
+# TODO: check with Paul if one of sample_iid!() below is not superfluous? 
+
 using Comrade
 using Distributions
 using Pigeons
@@ -31,6 +33,10 @@ function Pigeons.sample_iid!(target::PigeonsLogPotential, replica)
     replica.state = initialization(target, replica.rng, replica.replica_index)
 end
 
+function Pigeons.sample_iid!(target::PriorPotential, replica)
+    replica.state = Comrade.inverse(target.transform, rand(replica.rng, target.prior))
+end
+
 struct PriorPotential{M,T}
     prior::M
     transform::T
@@ -44,10 +50,6 @@ end
 function (m::PriorPotential)(x)
     y, lj = Comrade.transform_and_logjac(m.transform, x)
     return logdensityof(m.prior, y) + lj
-end
-
-function Pigeons.sample_iid!(target::PriorPotential, replica)
-    replica.state = Comrade.inverse(target.transform, rand(replica.rng, target.prior))
 end
 
 ### Example
