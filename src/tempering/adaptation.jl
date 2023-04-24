@@ -114,5 +114,5 @@ end
 provide the full vector of chain indices. """
 function rejections(reduced_recorders, chain_indices::AbstractVector) 
     accept_recorder = reduced_recorders.swap_acceptance_pr
-    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices[1:(end-1)]]
+    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices[1:(end-1)]] # TODO: for the second leg, is it [2:end] ?
 end
