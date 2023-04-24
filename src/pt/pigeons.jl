@@ -14,7 +14,10 @@ function pigeons(pt::PT)
     flush_immutables!() # Making sure this gets called before DiskRecorder's and write_checkpoint
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
-        pt = adapt(pt, reduced_recorders)
+        pt = adapt(pt, reduced_recorders) 
+        # NB: the local variable pt here is not type-stable b/c adapt(..), e.g. will 
+        # change type of tempering.communication_barrier from nothing to a value 
+        # but since this loop is ran only a logarithmic # of times no performance hit
         report(pt)
         write_checkpoint(pt) 
         run_checks(pt)
@@ -103,16 +106,16 @@ function explore!(pt, replica, explorer)
     end
     process_ac!(log_potential, replica, before)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
-        record_if_requested!(replica.recorders, :target_online, replica.state)
-        record_if_requested!(
+        @record_if_requested!(replica.recorders, :target_online, replica.state)
+        @record_if_requested!(
             replica.recorders, 
             :traces, 
             (; chain = replica.chain, scan = pt.shared.iterators.scan, state = replica.state)
         )
-        record_if_requested!(
+        @record_if_requested!(
             replica.recorders, 
             :disk, 
-            (; exec_folder = pt.exec_folder, round = pt.shared.iterators.round, scan = pt.shared.iterators.scan, replica)
+            (; pt, replica)
         )
     end 
 end

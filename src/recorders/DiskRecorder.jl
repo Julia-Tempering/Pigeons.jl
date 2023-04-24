@@ -6,8 +6,8 @@ DiskRecorder() = DiskRecorder(nothing)
 
 ensure_initialized!(recorder::DiskRecorder, datum) =
     if recorder.file === nothing 
-        @assert datum.exec_folder !== nothing
-        dir = "$(datum.exec_folder)/round=$(datum.round)/samples" 
+        @assert datum.pt.exec_folder !== nothing
+        dir = "$(datum.pt.exec_folder)/round=$(datum.pt.shared.iterators.round)/samples" 
         mkpath(dir) 
         path = "$dir/replica=$(datum.replica.replica_index).jls.zip" 
         recorder.file = ZipFile.Writer(path)
@@ -15,7 +15,7 @@ ensure_initialized!(recorder::DiskRecorder, datum) =
 
 function record!(recorder::DiskRecorder, datum)
     ensure_initialized!(recorder, datum) 
-    zip_internal_file = ZipFile.addfile(recorder.file, "$(datum.replica.chain)_$(datum.scan)", method=ZipFile.Deflate)
+    zip_internal_file = ZipFile.addfile(recorder.file, "$(datum.replica.chain)_$(datum.pt.shared.iterators.scan)", method=ZipFile.Deflate)
     serialize(zip_internal_file, datum.replica.state)
 end
 
