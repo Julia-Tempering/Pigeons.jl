@@ -12,8 +12,8 @@ allc(B) -- DONE
 log(Z) --
 min(alpha) -- DONE 
 mean(alpha) -- DONE 
-max|rho| -- 
-mean|rho| -- 
+max|rho| -- DONE 
+mean|rho| -- DONE 
 
 
 - Create a much better suite of tests!!
