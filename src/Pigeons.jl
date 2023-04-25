@@ -36,6 +36,7 @@ using Printf
 using Statistics
 using RecipesBase
 using ZipFile
+using ForwardDiff
 
 import Serialization.serialize
 import Serialization.deserialize

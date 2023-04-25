@@ -43,6 +43,21 @@ end
     test_var_reference()
 end
 
+@testset "Check HMC involution" begin
+    rng = SplittableRandom(1)
+    log_potential(x) =  -x[1]^3 - 2.4 * x[1]^2
+    dim = 1
+    n_leaps = 3
+    v = [randn(rng)] 
+    x = [randn(rng)]
+    start = copy(x)
+    momentum_log_potential = Pigeons.ScaledPrecisionNormalLogPotential(1.0, dim)
+    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, v, 0.1, n_leaps)
+    @test !(x ≈ start)
+    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, -v, 0.1, n_leaps)
+    @test x ≈ start
+end
+
 @testset "Traces" begin
     pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true) 
     @test length(pt.reduced_recorders.traces) == 1024 
