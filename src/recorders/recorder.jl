@@ -64,6 +64,13 @@ function explorer_mh_prs(pt)
 end
 
 """ 
+Directional second derivative information for gradient explorers.   
+"""
+@provides recorder directional_second_derivatives() = GroupBy(Int, Extrema())
+
+
+
+""" 
 Full index process stored in memory. 
 """
 @provides recorder index_process() = Dict{Int, Vector{Int}}()
