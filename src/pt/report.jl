@@ -3,7 +3,9 @@ all_reports() = [
         # width of 9     # compute that report item
         "  #scans  "   => pt -> n_scans_in_round(pt.shared.iterators), 
         "  rd-trip "   => pt -> n_round_trips(pt), 
+        " restarts "   => pt -> n_tempered_restarts(pt), 
         "    Λ     "   => pt -> global_barrier(pt.shared.tempering),
+        "  Λ_var   "   => pt -> global_barrier_variational(pt.shared.tempering),
         "  time(s) "   => pt -> last_round_max_time(pt), 
         "  allc(B) "   => pt -> last_round_max_allocation(pt), 
         "  log(Z)  "   => pt -> stepping_stone(pt),

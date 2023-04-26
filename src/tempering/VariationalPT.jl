@@ -64,6 +64,7 @@ end
 tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr, log_sum_ratio]
 
 create_pair_swapper(tempering::VariationalPT, target) = tempering.log_potentials
+create_pair_swapper(tempering::VariationalPT, target::TestSwapper) = target
 
 function find_log_potential(replica, tempering::VariationalPT, shared)
     tup = shared.indexer.i2t[replica.chain]
@@ -104,8 +105,8 @@ fixed_leg_indices(replica_indexer, tempering::VariationalPT) =
 variational_leg_indices(replica_indexer, tempering::VariationalPT) = 
     reverse(findall(x->x[2] == :variational, replica_indexer.i2t))
 
-global_barrier(tempering::VariationalPT) = 
-    (
-        tempering.fixed_leg.communication_barriers.globalbarrier, 
-        tempering.variational_leg.communication_barriers.globalbarrier
-    )
+global_barrier(tempering::VariationalPT) = tempering.fixed_leg.communication_barriers.globalbarrier
+
+global_barrier_variational(tempering::VariationalPT) = tempering.variational_leg.communication_barriers.globalbarrier
+
+global_barrier_variational(tempering) = error()
