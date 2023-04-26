@@ -12,6 +12,8 @@ using Pigeons
 using Serialization
 using LogDensityProblemsAD
 using LogDensityProblems
+using VLBIImagePriors
+
 
 import Pigeons.gradient
 
@@ -75,16 +77,31 @@ end
 
 ### Example
 
-function model(θ)
+function model(θ) 
     (;radius, width, α, β, f, σG, τG, ξG, xG, yG) = θ
     ring = f*smoothed(stretched(MRing((α,), (β,)), radius, radius), width)
     g = (1-f)*shifted(rotated(stretched(Gaussian(), σG, σG*(1+τG)), ξG), xG, yG)
     return ring + g
 end
 
+function model(θ, metadata) # From: hybrid
+    (;c, f, r, σ, ma, mp, fg, σg, τg, ξg) = θ
+    (; grid, cache) = metadata
+    ## Form the image model
+    img = IntensityMap(f*(1-fg)*c, grid)
+    mimg = ContinuousImage(img, cache)
+    ## Form the ring model
+    s,c = sincos(mp)
+    α = ma*c
+    β = ma*s
+    ring = ((1-f)*(1-fg))*smoothed(stretched(MRing(α, β), r, r),σ)
+    gauss = fg*rotated(stretched(Gaussian(), σg, σg*(1+τg)), ξg)
+    return mimg + (ring + gauss)
+end
+
 function comrade_target_example()
-    dlcamp = deserialize("data/dlcamp.jl")
-    dcphase = deserialize("data/dcphase.jl")
+    dlcamp = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.dlcamp.jl")
+    dcphase = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.dcphase.jl")
     lklhd = RadioLikelihood(model, dlcamp, dcphase)
     prior = (
             radius = Uniform(μas2rad(10.0), μas2rad(30.0)),
@@ -98,6 +115,34 @@ function comrade_target_example()
             xG = Uniform(-μas2rad(80.0), μas2rad(80.0)),
             yG = Uniform(-μas2rad(80.0), μas2rad(80.0))
             )
+    post = Posterior(lklhd, prior)
+    return PigeonsLogPotential(asflat(post))
+end
+
+function comrade_target_hybrid(npix = 6) 
+    dlcamp = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.hybrid.dlcamp.jl")
+    dcphase = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.hybrid.dcphase.jl")
+    
+    fovxy  = μas2rad(90.0)
+    grid   = imagepixels(fovxy, fovxy, npix, npix)
+    buffer = IntensityMap(zeros(npix,npix), grid)
+
+    cache  = create_cache(DFTAlg(dlcamp), buffer, BSplinePulse{3}())
+    metadata = (;grid, cache)
+    lklhd = RadioLikelihood(model, metadata, dlcamp, dcphase)
+    prior = (
+          c  = ImageDirichlet(1.0, npix, npix),
+          f  = Uniform(0.0, 1.0),
+          r  = Uniform(μas2rad(10.0), μas2rad(30.0)),
+          σ  = Uniform(μas2rad(0.5), μas2rad(20.0)),
+          ma = Uniform(0.0, 0.5),
+          mp = Uniform(0.0, 2π),
+          fg = Uniform(0.2, 1.0),
+          σg = Uniform(μas2rad(50.0), μas2rad(500.0)),
+          τg = Uniform(0.0, 1.0),
+          ξg = Uniform(0, π)
+        )
+
     post = Posterior(lklhd, prior)
     return PigeonsLogPotential(asflat(post))
 end
