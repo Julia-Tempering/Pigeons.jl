@@ -52,9 +52,9 @@ end
     x = [randn(rng)]
     start = copy(x)
     momentum_log_potential = Pigeons.ScaledPrecisionNormalLogPotential(1.0, dim)
-    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, v, 0.1, n_leaps)
+    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, v, 0.1, n_leaps, nothing)
     @test !(x ≈ start)
-    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, -v, 0.1, n_leaps)
+    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, -v, 0.1, n_leaps, nothing)
     @test x ≈ start
 end
 
