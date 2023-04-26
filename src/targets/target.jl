@@ -17,7 +17,7 @@ The probability distribution of interest.
 
     The default [`explorer`](@ref) for the given [`target`](@ref).
     """
-    default_explorer(target) = @abstract
+    default_explorer(target) = SliceSampler() 
 
     """
     $SIGNATURES 
