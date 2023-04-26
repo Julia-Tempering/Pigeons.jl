@@ -11,7 +11,6 @@ non-standard path of distribution and reference.
 # start off the same as general-target..
 struct AnotherLogPotential end
 (::AnotherLogPotential)(x) = -abs(x[1]) / 3
-Pigeons.create_explorer(::AnotherLogPotential, ::Inputs) = Pigeons.SliceSampler() 
 
 #= Example of a non-standard path of distribution.
 There are two ways to do so:

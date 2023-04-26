@@ -61,3 +61,10 @@ explorer associated with the input target distribution.
     else
         inputs.explorer 
     end
+
+"""
+$SIGNATURES 
+
+The default explorer.
+"""
+default_explorer(target) = SliceSampler() 
