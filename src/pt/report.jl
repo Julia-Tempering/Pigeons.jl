@@ -11,6 +11,8 @@ all_reports() = [
         "  mean(α) "   => pt -> mean(swap_prs(pt)),
         "  max|ρ|  "   => pt -> maximum(abs.(energy_ac1s(pt, true))),
         "  mean|ρ| "   => pt -> mean(abs.(energy_ac1s(pt, true))),
+        "  min(αₑ) "   => pt -> minimum(explorer_mh_prs(pt)), 
+        " mean(αₑ) "   => pt -> mean(explorer_mh_prs(pt)),
     ]
 
 """

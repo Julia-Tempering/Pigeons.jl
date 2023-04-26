@@ -6,9 +6,9 @@ used to create Parallel Tempering algorithms.
 Fields (see source file for default values):
 $FIELDS
 """
-@kwdef mutable struct Inputs{I, V}
+@kwdef mutable struct Inputs{T, V, E}
     """ The target distribution. """
-    target::I
+    target::T
 
     """ The master random seed. """
     seed::Int = 1
@@ -55,8 +55,10 @@ $FIELDS
     automatically determine the explorer based on the 
     type of the target. 
     """
-    explorer = nothing
+    explorer::E = nothing
 end
+
+
 
 
 """

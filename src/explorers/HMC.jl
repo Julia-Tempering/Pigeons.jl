@@ -5,10 +5,11 @@ struct HMC
 end
 
 adapt_explorer(explorer::HMC, reduced_recorders, shared) = explorer 
-explorer_recorder_builders(::HMC) = [] 
-step!(explorer::HMC, replica, shared) = step!(explorer, replica.state, replica.rng, find_log_potential(replica, shared))
+explorer_recorder_builders(::HMC) = [explorer_acceptance_pr] 
+step!(explorer::HMC, replica, shared) = step!(explorer, replica, replica.rng, find_log_potential(replica, shared))
 
-function step!(explorer::HMC, state, rng, log_potential) 
+function step!(explorer::HMC, replica, rng, log_potential) 
+    state = replica.state
     dim = length(state)
 
     # TODO: change this into adaptive matrix
@@ -22,6 +23,7 @@ function step!(explorer::HMC, state, rng, log_potential)
         hamiltonian_dynamics!(log_potential, momentum_log_potential, state, v, explorer.step_size, explorer.n_leap_frog_until_refresh)
         final_joint_log = log_potential(state) + momentum_log_potential(v)
         probability = min(1.0, exp(final_joint_log - init_joint_log))
+        @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
         if rand(rng) < probability 
             # accept 
         else

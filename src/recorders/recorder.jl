@@ -54,6 +54,16 @@ function swap_prs(pt)
 end
 
 """ 
+Average MH swap acceptance probabilities for explorers.  
+"""
+@provides recorder explorer_acceptance_pr() = GroupBy(Int, Mean())
+
+function explorer_mh_prs(pt)
+    collection = value(pt.reduced_recorders.explorer_acceptance_pr)
+    return value.(values(collection))
+end
+
+""" 
 Full index process stored in memory. 
 """
 @provides recorder index_process() = Dict{Int, Vector{Int}}()
