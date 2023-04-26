@@ -1,6 +1,6 @@
 # Paths based on interpolating two log_potential's
 
-@concrete struct InterpolatingPath
+@auto struct InterpolatingPath
     ref
     target
     interpolator

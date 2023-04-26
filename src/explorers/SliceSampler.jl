@@ -2,10 +2,10 @@
 Slice sampler based on
 [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
 """
-@kwdef @concrete struct SliceSampler
-    w = 10.0 # initial slice size
-    p = 20 # slices are no larger than 2^p * w
-    n_passes = 3 # n_passes through all variables per exploration step
+@kwdef struct SliceSampler
+    w::Float64 = 10.0 # initial slice size
+    p::Int = 20 # slices are no larger than 2^p * w
+    n_passes::Int = 3 # n_passes through all variables per exploration step
 end
 
 function step!(explorer::SliceSampler, replica, shared)

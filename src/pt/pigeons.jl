@@ -12,13 +12,14 @@ and [`run_checks()`](@ref) between rounds.
 function pigeons(pt::PT) 
     preflight_checks(pt)
     flush_immutables!() # Making sure this gets called before DiskRecorder's and write_checkpoint
+    prev_reports = nothing
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders) 
         # NB: the local variable pt here is not type-stable b/c adapt(..), e.g. will 
         # change type of tempering.communication_barrier from nothing to a value 
         # but since this loop is ran only a logarithmic # of times no performance hit
-        report(pt)
+        prev_reports = report(pt, prev_reports)
         write_checkpoint(pt) 
         run_checks(pt)
     end

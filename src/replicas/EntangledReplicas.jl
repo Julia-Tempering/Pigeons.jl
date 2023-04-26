@@ -3,7 +3,7 @@ An implementation of [`replicas`](@ref) for distributed PT.
 Contains:
 $FIELDS
 """
-@concrete struct EntangledReplicas # implements the informal interface in replica.jl
+@auto struct EntangledReplicas # implements the informal interface in replica.jl
     """
     The subset of replicas hosted in this process
     """

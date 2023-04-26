@@ -1,4 +1,5 @@
 # include()'s generated using: sort_includes!("main")
+include("utils/@auto.jl")
 include("utils/exec_folder.jl")
 include("utils/Indexer.jl")
 include("utils/misc.jl")

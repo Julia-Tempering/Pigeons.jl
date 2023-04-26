@@ -1,4 +1,4 @@
-@concrete struct TuringLogPotential
+@auto struct TuringLogPotential
     model
     only_prior::Bool
 end

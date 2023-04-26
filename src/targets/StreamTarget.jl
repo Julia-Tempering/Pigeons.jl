@@ -66,7 +66,7 @@ struct StreamPath end
 Only store beta, since the worker process
 will take care of path construction
 =#
-@concrete struct StreamPotential 
+@auto struct StreamPotential 
     beta
 end
 

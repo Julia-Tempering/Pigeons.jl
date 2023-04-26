@@ -4,7 +4,7 @@ Variables needed for the non-reversible Parallel Tempering described in
 
 $FIELDS
 """
-@concrete struct NonReversiblePT
+@auto struct NonReversiblePT
     """ The [`path`](@ref). """
     path 
 

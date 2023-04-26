@@ -3,7 +3,7 @@ Storage involved in PT algorithms:
 
 $FIELDS
 """
-@concrete struct PT
+@auto struct PT
 
     """
     The user-provided [`Inputs`](@ref) that determine 
