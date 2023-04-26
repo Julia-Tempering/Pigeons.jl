@@ -71,9 +71,7 @@ will take care of path construction
 end
 
 create_state_initializer(target::StreamTarget, ::Inputs) = target  
-create_explorer(target::StreamTarget, ::Inputs) = target 
-adapt_explorer(explorer::StreamTarget, _, _) = explorer 
-explorer_recorder_builders(::StreamTarget) = [] 
+default_explorer(target::StreamTarget) = target 
 
 #= 
 Delegate exploration to the worker process.

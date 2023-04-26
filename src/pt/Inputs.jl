@@ -48,6 +48,14 @@ $FIELDS
     False by default since it incurs an overhead. 
     """
     multithreaded::Bool = false
+
+    """ 
+    The [`explorer`](@ref) to use, or if nothing, 
+    will use [`default_explorer()`](@ref) to 
+    automatically determine the explorer based on the 
+    type of the target. 
+    """
+    explorer = nothing
 end
 
 

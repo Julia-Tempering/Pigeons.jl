@@ -11,8 +11,7 @@ create_state_initializer(target::ScaledPrecisionNormalPath, ::Inputs) = target
 initialization(target::ScaledPrecisionNormalPath, rng::SplittableRandom, _::Int64) = 
     zeros(target.dim)
 
-create_explorer(::ScaledPrecisionNormalPath, ::Inputs) = 
-    ToyExplorer()
+default_explorer(::ScaledPrecisionNormalPath) = ToyExplorer()
 
 sample_iid!(log_potential::ScaledPrecisionNormalLogPotential, replica) =
     rand!(replica.rng, replica.state, log_potential)

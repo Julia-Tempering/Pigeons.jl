@@ -15,9 +15,9 @@ The probability distribution of interest.
     """
     $SIGNATURES 
 
-    Create an [`explorer`](@ref) for the given [`target`](@ref).
+    The default [`explorer`](@ref) for the given [`target`](@ref).
     """
-    create_explorer(target, inputs::Inputs) = @abstract
+    default_explorer(target) = @abstract
 
     """
     $SIGNATURES 

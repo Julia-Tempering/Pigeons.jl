@@ -42,7 +42,7 @@ function Pigeons.initialization(target::PigeonsLogPotential, rng::Pigeons.Splitt
    return  Comrade.prior_sample(rng, target.post)
 end
 
-Pigeons.create_explorer(::PigeonsLogPotential, ::Inputs) = Pigeons.HMC(0.1, 10, 3)
+Pigeons.default_explorer(::PigeonsLogPotential) = Pigeons.HMC(0.1, 10, 3)
 
 Pigeons.create_reference_log_potential(target::PigeonsLogPotential, ::Inputs) = PriorPotential(target.post)
 

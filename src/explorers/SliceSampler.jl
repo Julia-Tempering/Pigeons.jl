@@ -8,9 +8,6 @@ Slice sampler based on
     n_passes = 3 # n_passes through all variables per exploration step
 end
 
-adapt_explorer(explorer::SliceSampler, _, _) = explorer 
-explorer_recorder_builders(::SliceSampler) = [] 
-
 function step!(explorer::SliceSampler, replica, shared)
     for i in 1:explorer.n_passes
         log_potential = find_log_potential(replica, shared)

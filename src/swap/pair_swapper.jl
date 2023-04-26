@@ -134,10 +134,8 @@ record_swap_stats!(swapper::TestSwapper, recorder, chain1::Int, stat1, chain2::I
 
 create_state_initializer(target::TestSwapper, ::Inputs) = Ref(nothing)
 
-create_explorer(::TestSwapper, ::Inputs) = nothing 
+default_explorer(::TestSwapper) = nothing 
     step!(::Nothing, replica, shared) = nothing
-    adapt_explorer(::Nothing, _, _) = nothing 
-    explorer_recorder_builders(::Nothing) = [] 
 
 sample_iid!(::TestSwapper, replica) = nothing
 

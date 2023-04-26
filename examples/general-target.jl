@@ -14,7 +14,7 @@ struct MyLogPotential end
 (::MyLogPotential)(x) = -abs(x[1]) / 3
 
 # Instruct to use the slice sampler for MyLogPotential
-Pigeons.create_explorer(::MyLogPotential, ::Inputs) = Pigeons.SliceSampler() 
+Pigeons.default_explorer(::MyLogPotential) = Pigeons.SliceSampler() 
 
 # Instruct to use a normal reference
 Pigeons.create_reference_log_potential(::MyLogPotential, ::Inputs) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)

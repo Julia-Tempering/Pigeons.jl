@@ -24,17 +24,19 @@ of Parallel Tempering.
     
     Given an [`explorer`](@ref), reduced [`recorders`](@ref) 
     and [`Shared`](@ref) return an updated [`explorer`](@ref).
+
+    By default, return the explorer without further adaptation.
     """
-    adapt_explorer(explorer, reduced_recorders, shared) = @abstract
+    adapt_explorer(explorer, reduced_recorders, shared) = explorer
     
     """ 
     $SIGNATURES
 
     What information is needed to perform [`adapt_explorer`](@ref)?
     Answer this by specifying an iterator containing [`recorder_builder`](@ref)'s. 
-    Return `[]` if none are needed. 
+    Return `[]` if none are needed (default behaviour). 
     """
-    explorer_recorder_builders(explorer) = @abstract 
+    explorer_recorder_builders(explorer) = []
 end
 
 """
@@ -48,8 +50,14 @@ find_log_potential(replica, shared) = shared.tempering.log_potentials[replica.ch
 """ 
 $SIGNATURES 
 
-Given an [`Inputs`](@ref) object, dispatch on 
-`create_explorer(inputs.target, inputs)` to construct the 
+Given an [`Inputs`](@ref) object, either use `inputs.explorer`, 
+of if it is equal to `nothing` dispatch on 
+`default_explorer(inputs.target)` to construct the 
 explorer associated with the input target distribution.
 """
-@provides explorer create_explorer(inputs) = create_explorer(inputs.target, inputs) 
+@provides explorer create_explorer(inputs) = 
+    if inputs.explorer === nothing
+        default_explorer(inputs.target) 
+    else
+        inputs.explorer 
+    end
