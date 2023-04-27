@@ -115,7 +115,7 @@ end
     @test mean(marginal) == mean(s)[1]
     @test s[1] = get_sample(pt, 10, 1)
     @test size(s)[1] = length(marginal)
-    @test "You cannot" setindex!(ss, ss[2], 1)
+    @test_throws "You cannot" setindex!(ss, ss[2], 1)
     # check that the disk serialization gives the same result
     process_samples(pt) do chain, scan, sample
         @test sample == get_sample(pt, chain, scan)
