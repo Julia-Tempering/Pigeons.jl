@@ -31,5 +31,13 @@ serialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.hybrid.dlcamp.jl"
 serialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.hybrid.dcphase.jl", dcphase)
 
 
+### For closures
 
+obs = load_ehtim_uvfits("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits")
+obs = scan_average(obs).add_fractional_noise(0.02)
+dlcamp = extract_lcamp(obs; snrcut=3.0)
+dcphase = extract_cphase(obs; snrcut=3.0)
+
+serialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dlcamp.jl", dlcamp)
+serialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dcphase.jl", dcphase)
 

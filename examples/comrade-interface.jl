@@ -99,6 +99,14 @@ function model(θ, metadata) # From: hybrid
     return mimg + (ring + gauss)
 end
 
+function model_closures(θ, metadata)
+    (;c) = θ
+    (; grid, cache) = metadata
+    ## Construct the image model
+    img = IntensityMap(c, grid)
+    return  ContinuousImage(img, cache)
+end
+
 function comrade_target_example()
     dlcamp = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.dlcamp.jl")
     dcphase = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.dcphase.jl")
@@ -119,6 +127,9 @@ function comrade_target_example()
     return PigeonsLogPotential(asflat(post))
 end
 
+"""
+Good candidate to try adaptive paths. 
+"""
 function comrade_target_hybrid(npix = 6) 
     dlcamp = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.hybrid.dlcamp.jl")
     dcphase = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.hybrid.dcphase.jl")
@@ -143,6 +154,27 @@ function comrade_target_hybrid(npix = 6)
           ξg = Uniform(0, π)
         )
 
+    post = Posterior(lklhd, prior)
+    return PigeonsLogPotential(asflat(post))
+end
+
+"""
+Explicitly identified as being multi-modal.
+"""
+function comrade_target_closures(npix = 7)
+    dlcamp = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dlcamp.jl")
+    dcphase = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dcphase.jl")
+
+    fovxy = μas2rad(77.5)
+    grid = imagepixels(fovxy, fovxy, npix, npix)
+    buffer = IntensityMap(zeros(npix,npix), grid)
+    cache = create_cache(DFTAlg(dlcamp), buffer, BSplinePulse{3}())
+    metadata = (;grid, cache)
+
+    (;X, Y) = grid
+    prior = (c = ImageDirichlet(1.0, npix, npix), )
+
+    lklhd = RadioLikelihood(model_closures, metadata, dlcamp, dcphase)
     post = Posterior(lklhd, prior)
     return PigeonsLogPotential(asflat(post))
 end
