@@ -22,7 +22,7 @@ end
 Base.size(s::SampleArray) = (length(s.pt.reduced_recorders.traces),)
 Base.IndexStyle(::Type{<:SampleArray}) = IndexLinear()
 Base.getindex(s::SampleArray, i::Int) = get_sample(s.pt, s.chain, i)
-Base.setindex!(::SampleArray, i::Int) = error("You can not set the elements of SampleArray")
+Base.setindex!(::SampleArray, v, i::Int) = error("You cannot set the elements of SampleArray")
 
 """
 $(SIGNATURES)
