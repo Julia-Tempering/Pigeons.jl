@@ -1,6 +1,9 @@
 [deps]
 Comrade = "99d987ce-9a1e-4df8-bc0b-1ea019aa547b"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+FastElliptic = "2a8b799e-c098-4961-872a-356c768d184c"
+Jube = "fc76c2bf-8a86-4218-8910-ae5660a3b929"
 LogDensityProblems = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
 LogDensityProblemsAD = "996a588d-648d-4e1f-a8f0-a84b347e47b1"
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
