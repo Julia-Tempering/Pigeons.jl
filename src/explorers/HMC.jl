@@ -56,10 +56,12 @@ function hamiltonian_dynamics!(
     # consider lines 2-3 of iteration n and line 1 of iteration n+1; notice lines 2 and 1 can be combined
     for i in 1:(n_steps - 1) 
         directional_before = dot(grad, v)
-        x .= x .- step_size .* gradient(momentum_log_potential, v) 
+        mom_grad = gradient(momentum_log_potential, v) 
+        mom_grad_norm = norm(mom_grad)
+        x .= x .- step_size .* mom_grad
         grad = gradient(target_log_potential, x) 
         directional_after = dot(grad, v) 
-        second_dir_deriv = (directional_after - directional_before) / step_size
+        second_dir_deriv = (directional_after - directional_before) / step_size / mom_grad_norm
         if replica !== nothing 
             @record_if_requested!(replica.recorders, :directional_second_derivatives, (replica.chain, second_dir_deriv))
         end
