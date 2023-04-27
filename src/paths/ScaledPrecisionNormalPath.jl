@@ -19,7 +19,7 @@ end
 (log_potential::ScaledPrecisionNormalLogPotential)(x) = 
     -0.5 * log_potential.precision * sqr_norm(x) 
 
-gradient(log_potential::ScaledPrecisionNormalLogPotential, x) = -x
+gradient(log_potential::ScaledPrecisionNormalLogPotential, x) = -log_potential.precision * x
 
 """
 $SIGNATURES
