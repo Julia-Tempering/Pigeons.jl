@@ -34,7 +34,7 @@ end
 function flip_model_unidentifiable()
     p_true = 0.5;
     N = 100;
-    data = rand(Bernoulli(p_true), N);
+    data = rand(Distributions.MersenneTwister(1), Bernoulli(p_true), N);
     return coinflip_unidentifiable(data)
 end
 

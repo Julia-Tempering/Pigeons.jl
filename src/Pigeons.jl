@@ -36,6 +36,7 @@ using Printf
 using Statistics
 using RecipesBase
 using ZipFile
+using ForwardDiff
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -70,7 +71,7 @@ export pigeons, Inputs, PT,
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     # getting information out of an execution:
-    stepping_stone_pair, n_tempered_restarts, n_round_trips, process_samples,
+    stepping_stone_pair, n_tempered_restarts, n_round_trips, process_samples, get_sample,
     # variational references:
     GaussianReference, NoVarReference
 end # End module

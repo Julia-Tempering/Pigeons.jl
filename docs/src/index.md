@@ -154,7 +154,8 @@ Then we can access the sample at chain 10 (the reference) at iteration say 42 us
 
 
 ```@example example
-p.reduced_recorders.traces[10 => 42]
+example_sample = get_sample(p, 10, 42)
+size(example_sample)
 ```
 
 Note that the `traces` recorder only stores data for reference chain(s).
@@ -169,9 +170,11 @@ pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], ch
 # example of how to post-process the samples from disk 
 # this loads the samples one at the time so can be useful if the 
 # full trace would not fit in memory
-process_samples(pt, 10, 10) do i, sample 
+# By default, only the samples from the last rounds are loaded 
+# i.e. a burn-in of 50%.
+process_samples(pt) do chain, scan, sample 
     # check the results are identical for the disk and traces recorders
-    @assert sample == pt.reduced_recorders.traces[10 => i]
+    @assert sample == get_sample(pt, chain, scan)
 end
 nothing # hide
 ```

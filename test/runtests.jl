@@ -33,6 +33,53 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "Parallelism Invariance" begin
+    n_mpis = set_n_mpis_to_one_on_windows(4)
+    recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
+
+    # test swapper 
+    pigeons(
+        target = toy_mvn_target(1), 
+        n_rounds = 10,
+        checked_round = 3, 
+        recorder_builders = recorder_builders,
+        checkpoint = true, 
+        on = ChildProcess(
+                n_local_mpi_processes = n_mpis,
+                n_threads = 2,
+                mpiexec_args = extra_mpi_args())) 
+
+    # Turing:
+    pigeons(
+        target = TuringLogPotential(flip_model_unidentifiable()), 
+        n_rounds = 10,
+        checked_round = 3, 
+        multithreaded = true,
+        recorder_builders = recorder_builders,
+        checkpoint = true, 
+        on = ChildProcess(
+                dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
+                n_local_mpi_processes = n_mpis,
+                n_threads = 2,
+                mpiexec_args = extra_mpi_args()))
+    
+    # Blang:
+    if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
+        Pigeons.setup_blang("blangDemos")
+        pigeons(; 
+            target = Pigeons.blang_ising(), 
+            n_rounds = 10,
+            checked_round = 3, 
+            recorder_builders = recorder_builders, 
+            multithreaded = true, 
+            checkpoint = true, 
+            on = ChildProcess(
+                    n_local_mpi_processes = n_mpis,
+                    n_threads = 2,
+                    mpiexec_args = extra_mpi_args()))
+    end
+end
+
 @testset "Allocs" begin
     allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(100)))
     allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(100)))
@@ -43,15 +90,30 @@ end
     test_var_reference()
 end
 
+@testset "Check HMC involution" begin
+    rng = SplittableRandom(1)
+    log_potential(x) =  -x[1]^3 - 2.4 * x[1]^2
+    dim = 1
+    n_leaps = 3
+    v = [randn(rng)] 
+    x = [randn(rng)]
+    start = copy(x)
+    momentum_log_potential = Pigeons.ScaledPrecisionNormalLogPotential(1.0, dim)
+    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, v, 0.1, n_leaps)
+    @test !(x ≈ start)
+    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, -v, 0.1, n_leaps)
+    @test x ≈ start
+end
+
 @testset "Traces" begin
     pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true) 
     @test length(pt.reduced_recorders.traces) == 1024 
-    marginal = [pt.reduced_recorders.traces[10 => i][1] for i in 1:1024]
+    marginal = [get_sample(pt, 10, i)[1] for i in 1:1024]
     @test abs(mean(marginal) - 0.0) < 0.05 
 
     # check that the disk serialization gives the same result
-    Pigeons.process_samples(pt, 10, 10) do i, sample 
-        @test sample == pt.reduced_recorders.traces[10 => i]
+    process_samples(pt) do chain, scan, sample 
+        @test sample == get_sample(pt, chain, scan)
     end
 end
 
@@ -118,54 +180,6 @@ end
     end
 end
 
-
-
-@testset "Parallelism Invariance" begin
-    n_mpis = set_n_mpis_to_one_on_windows(4)
-    recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
-
-    # test swapper 
-    pigeons(
-        target = toy_mvn_target(1), 
-        n_rounds = 10,
-        checked_round = 3, 
-        recorder_builders = recorder_builders,
-        checkpoint = true, 
-        on = ChildProcess(
-                n_local_mpi_processes = n_mpis,
-                n_threads = 2,
-                mpiexec_args = extra_mpi_args())) 
-
-    # Turing:
-    pigeons(
-        target = TuringLogPotential(flip_model_unidentifiable()), 
-        n_rounds = 10,
-        checked_round = 3, 
-        multithreaded = true,
-        recorder_builders = recorder_builders,
-        checkpoint = true, 
-        on = ChildProcess(
-                dependencies = [Distributions, DynamicPPL, LinearAlgebra, "turing.jl"],
-                n_local_mpi_processes = n_mpis,
-                n_threads = 2,
-                mpiexec_args = extra_mpi_args()))
-
-    # Blang:
-    if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
-        Pigeons.setup_blang("blangDemos")
-        pigeons(; 
-            target = Pigeons.blang_ising(), 
-            n_rounds = 10,
-            checked_round = 3, 
-            recorder_builders = recorder_builders, 
-            multithreaded = true, 
-            checkpoint = true, 
-            on = ChildProcess(
-                    n_local_mpi_processes = n_mpis,
-                    n_threads = 2,
-                    mpiexec_args = extra_mpi_args()))
-    end
-end
 
 @testset "Longer MPI" begin
     n_mpis = set_n_mpis_to_one_on_windows(4)
