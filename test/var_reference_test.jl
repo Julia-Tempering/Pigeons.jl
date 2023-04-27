@@ -43,7 +43,7 @@ function test_two_references()
 end
 
 
-function test_two_references_2()
+@testset "Two reference restarts" begin
     struct MyLogPotential end
     (::MyLogPotential)(x) = -0.5*(x[1]-1.0)^2
     Pigeons.create_explorer(::MyLogPotential, ::Inputs) = Pigeons.SliceSampler() 
@@ -92,7 +92,7 @@ function test_two_references_2()
 end
 
 
-function test_two_references_3()
+function test_two_references_2()
     n_chains = 5
     n_rounds = 15 
     seed = 1
@@ -112,5 +112,4 @@ function test_var_reference()
     test_var_reference_Turing()
     test_two_references()
     test_two_references_2()
-    test_two_references_3()
 end
