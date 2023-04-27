@@ -65,7 +65,7 @@ function recorder_builders(inputs::Inputs, shared::Shared)
     union!(result, explorer_recorder_builders(shared.explorer))
     union!(result, tempering_recorder_builders(shared.tempering))
     union!(result, inputs.recorder_builders)
-    union!(result, var_reference_recorder_builders(shared.var_reference))
+    union!(result, var_reference_recorder_builders(inputs.var_reference))
     return result
 end
 

@@ -41,7 +41,8 @@ discrete_variables(state::Union{Nothing, Pigeons.StreamState}) = []
 continuous_variables(state::Array) = SINGLETON_VAR
 discrete_variables(state::Array) = []
 function update_state!(state::Array, name::Symbol, index, value) 
-    state[name][index] = value
+    @assert name === :singleton_variable
+    state[index] = value
 end
 function variable(state::Array, name::Symbol)
     if name === :singleton_variable
