@@ -20,10 +20,12 @@ function step!(explorer::HMC, replica, rng, log_potential)
 
     for i in 1:explorer.n_refresh
         init_joint_log  = log_potential(state) + momentum_log_potential(v)
+        @assert !isnan(init_joint_log)
         hamiltonian_dynamics!(
             log_potential, momentum_log_potential, state, v, explorer.step_size, explorer.n_leap_frog_until_refresh,
             replica)
         final_joint_log = log_potential(state) + momentum_log_potential(v)
+        @assert !isnan(final_joint_log)
         probability = min(1.0, exp(final_joint_log - init_joint_log))
         @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
         if rand(rng) < probability 
@@ -57,9 +59,9 @@ function hamiltonian_dynamics!(
         x .= x .- step_size .* gradient(momentum_log_potential, v) 
         grad = gradient(target_log_potential, x) 
         directional_after = dot(grad, v) 
-        second_dir_deriv = (directional_after - direction_before) / step_size
+        second_dir_deriv = (directional_after - directional_before) / step_size
         if replica !== nothing 
-            @record_if_requested!(recorders, :directional_second_derivatives, (replica.chain, second_dir_deriv))
+            @record_if_requested!(replica.recorders, :directional_second_derivatives, (replica.chain, second_dir_deriv))
         end
         v .= v .+ step_size .* grad
     end
