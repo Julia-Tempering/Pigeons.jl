@@ -70,7 +70,7 @@ $SIGNATURES
 Build the [`tempering`](@ref) needed for [`communicate!()`](@ref). 
 """
 @provides tempering function create_tempering(inputs::Inputs) 
-    if (number_of_chains_fixed(inputs) == 0) | (number_of_chains_var(inputs) == 0)
+    if (number_of_chains_fixed(inputs) == 0) || (number_of_chains_var(inputs) == 0)
         return NonReversiblePT(inputs)
     else
         return VariationalPT(inputs)

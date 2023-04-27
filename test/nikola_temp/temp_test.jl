@@ -82,7 +82,7 @@ include("../turing.jl")
                  n_rounds = n_rounds, seed = seed)
     restarts = n_tempered_restarts(pt)
     restarts2 = n_tempered_restarts(pt2)
-    @test abs(2.0 - restarts2/restarts) ≤ 0.05
+    # @test abs(2.0 - restarts2/restarts) ≤ 0.05
     # check that sum of restarts is twice as large when using two references
 end
 

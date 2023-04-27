@@ -1,5 +1,0 @@
-TODO:
-
-log(Z) correct implementation for two-leg 
-why is number of restarts *half* instead of double?
-doesn't work with target type ScaledPrecision...

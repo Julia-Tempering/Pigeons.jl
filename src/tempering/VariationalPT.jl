@@ -64,7 +64,6 @@ end
 tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr, log_sum_ratio]
 
 create_pair_swapper(tempering::VariationalPT, target) = tempering.log_potentials
-create_pair_swapper(tempering::VariationalPT, target::TestSwapper) = target
 
 function find_log_potential(replica, tempering::VariationalPT, shared)
     tup = shared.indexer.i2t[replica.chain]
