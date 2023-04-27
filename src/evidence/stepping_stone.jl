@@ -25,7 +25,9 @@ function stepping_stone_pair(log_sum_ratios::GroupBy)
     return (estimator1, -estimator2) 
 end
 
-function stepping_stone(pt::PT)
+function stepping_stone(pt::PT, ::NonReversiblePT)
     pair = stepping_stone_pair(pt) 
     return (pair[1] + pair[2]) / 2.0
 end
+
+stepping_stone(pt::PT, ::VariationalPT) = error() # todo
