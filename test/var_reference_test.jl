@@ -12,8 +12,10 @@ function test_var_reference_Turing()
         n_chains_var_reference = 0,
         seed = 1
     )
+    RNG_old = copy(Random.GLOBAL_RNG)
     @test_nowarn pt = pigeons(inputs)
-    
+    @assert RNG_old == copy(Random.GLOBAL_RNG)
+     
     # Check GaussianReference()
     inputs = Inputs(
         target = TuringLogPotential(model),
