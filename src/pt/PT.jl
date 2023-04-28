@@ -62,11 +62,9 @@ pt_exec_folder(use_checkpoint, specified_exec_folder) =
         nothing 
     end
 
-Base.show(io::IO, pt::PT) = # contract: should give valid julia expression creating an equivalent object when possible
-    if pt.shared.iterators.round == 0
-        print(io, "PT($(pt.inputs))")
-    elseif !pt.inputs.checkpoint 
-        print(io, "PT($(pt.inputs), $(pt.replicas), $(pt.shared), nothing, $(pt.reduced_recorders)")
+Base.show(io::IO, pt::PT) = 
+    if pt.shared.iterators.round == 0 || !pt.inputs.checkpoint 
+        print(io, "PT(checkpoint = false, ...)")
     else
         print(io, "PT(\"$(pt.exec_folder)\")")
     end
