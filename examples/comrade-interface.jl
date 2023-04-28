@@ -19,9 +19,10 @@ using LinearAlgebra
 # dev https://github.com/dchang10/FastElliptic https://github.com/ptiede/Jube
 using Jube 
 using FFTW
-FFTW.set_provider!("mkl")
-LinearAlgebra.BLAS.set_num_threads(1)
-FFTW.set_num_threads(1)
+# Do not do these in the interface script: race condition when MPI'ed
+# FFTW.set_provider!("mkl")
+# LinearAlgebra.BLAS.set_num_threads(1)
+# FFTW.set_num_threads(1)
 ## end of experimental block
 
 import Pigeons.gradient
@@ -226,15 +227,17 @@ function ComradeBase.intensity_point(s::JKConeModel, p)
 
 end
 
-function comrade_target_jube() 
+function comrade_target_jube(npix = 32, use_fft::Bool = true) 
     dlcamp = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dlcamp.jl")
     dcphase = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dcphase.jl")
 
     fovxy = μas2rad(80.0)
-    npix = 32
     grid = imagepixels(fovxy, fovxy, npix, npix)
     buffer = IntensityMap(zeros(npix, npix), grid)
-    cache = create_cache(NFFTAlg(dlcamp; fftflags=FFTW.ESTIMATE), buffer, BSplinePulse{3}())
+    alg = use_fft ? 
+        NFFTAlg(dlcamp; fftflags=FFTW.ESTIMATE) :
+        DFTAlg(dlcamp)
+    cache = create_cache(alg, buffer, BSplinePulse{3}())
     metadata = (;grid, cache, nmax=1)
 
     (;X, Y) = grid
