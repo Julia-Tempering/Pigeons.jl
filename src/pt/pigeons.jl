@@ -141,7 +141,7 @@ Call [`adapt_tempering()`](@ref) followed by
 """
 function adapt(pt, reduced_recorders)
     updated_tempering = adapt_tempering(pt.shared.tempering, reduced_recorders, pt.shared.iterators, pt.inputs.var_reference, locals(pt.replicas)[1].state)
-    updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, updated_tempering)
+    updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, pt, updated_tempering)
     updated_shared = Shared(
         pt.shared.iterators, 
         updated_tempering, 

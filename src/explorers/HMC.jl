@@ -6,14 +6,30 @@
 end
 HMC() = HMC(0.01, 100, 3, nothing)
 
-function adapt_explorer(explorer::HMC, reduced_recorders, shared)
+function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_tempering)
     target_variances = get_statistic(reduced_recorders, :singleton_variable, Variance) 
+    
+    # Build an interpolation from the worst-curvature estimates
+    # logps = current_pt.shared.tempering.log_potentials 
+    # betas = current_pt.shared.tempering.schedule.grids
+    # curvature_estimates = value(reduced_recorders.directional_second_derivatives)
+    # ys = zeros(length(betas))
+    # for i in eachindex(logps) 
+    #     #j = i == 1
+    #     # if i > 1
+    #     #     println("""$(logps[i].precision) $(value(curvature_estimates[i]))""")
+    #     # end
+    # end
+    ###
+    
     return HMC(
         explorer.step_size, 
         explorer.n_leap_frog_until_refresh, 
         explorer.n_refresh, # set the momentum precisions to the target variances: 
         HetPrecisionNormalLogPotential(target_variances))
 end
+
+
 
 explorer_recorder_builders(::HMC) = [explorer_acceptance_pr, target_online, directional_second_derivatives] 
 

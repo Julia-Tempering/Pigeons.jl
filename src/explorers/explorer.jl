@@ -21,13 +21,10 @@ of Parallel Tempering.
     $SIGNATURES
 
     Called between successive rounds ([`run_one_round!`](@ref)). 
-    
-    Given an [`explorer`](@ref), reduced [`recorders`](@ref) 
-    and [`Shared`](@ref) return an updated [`explorer`](@ref).
 
     By default, return the explorer without further adaptation.
     """
-    adapt_explorer(explorer, reduced_recorders, shared) = explorer
+    adapt_explorer(explorer, reduced_recorders, current_pt, new_tempering) = explorer
     
     """ 
     $SIGNATURES
