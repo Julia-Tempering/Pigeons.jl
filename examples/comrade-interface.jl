@@ -26,6 +26,7 @@ using FFTW
 ## end of experimental block
 
 import Pigeons.gradient
+import Pigeons.instantiate_target
 
 struct PigeonsLogPotential{M}
     post::M
@@ -54,7 +55,7 @@ function Pigeons.initialization(target::PigeonsLogPotential, rng::Pigeons.Splitt
    return  Comrade.prior_sample(rng, target.post)
 end
 
-Pigeons.default_explorer(::PigeonsLogPotential) = Pigeons.HMC(0.1, 10, 3)
+Pigeons.default_explorer(::PigeonsLogPotential) = SliceSampler()
 
 Pigeons.create_reference_log_potential(target::PigeonsLogPotential, ::Inputs) = PriorPotential(target.post)
 
@@ -227,7 +228,17 @@ function ComradeBase.intensity_point(s::JKConeModel, p)
 
 end
 
-function comrade_target_jube(npix = 32, use_fft::Bool = true) 
+# Here we use a LazyTarget because we cannot serialize the FFT plan 
+
+Base.@kwdef struct JubeTarget
+    npix = 32 
+    use_fft = true
+end 
+
+function Pigeons.instantiate_target(jube::JubeTarget) 
+    npix = jube.npix 
+    use_fft = jube.use_fft
+
     dlcamp = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dlcamp.jl")
     dcphase = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dcphase.jl")
 
@@ -264,4 +275,6 @@ function comrade_target_jube(npix = 32, use_fft::Bool = true)
     return PigeonsLogPotential(asflat(post))
 end
 
+jube_target = Pigeons.LazyTarget(JubeTarget())
 
+nothing

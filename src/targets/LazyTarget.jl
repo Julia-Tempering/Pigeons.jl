@@ -3,22 +3,26 @@ Use when a target contains information that cannot
 be serialized, e.g. FFT plans 
 (https://discourse.julialang.org/t/distributing-a-function-that-uses-fftw/69564)
 so that the target is constructed just in time by each MPI node. 
+
+```
+struct MyTargetFlag end 
+import Pigeons.instantiate_target
+Pigeons.instantiate_target(flag::MyTargetFlag) = toy_mvn_target(1)
+pigeons(target = Pigeons.LazyTarget(MyTargetFlag())
+```
 """
-mutable struct LazyTarget{Flag, Actual}
-    instance::Union{Actual, Nothing} 
-    LazyTarget(Flag, Actual) = new{Flag, Actual}(nothing)
+mutable struct LazyTarget{FlagType, ActualType}
+    flag::FlagType
+    instance::Union{ActualType, Nothing} 
+    LazyTarget(flag::FlagType) where {FlagType} = 
+        new{FlagType, typeof(instantiate_target(flag))}(flag, nothing)
 end
 
-instantiate_target(::Type{Flag}) where {Flag} = @abstract 
+instantiate_target(flag) = @abstract 
 
-## Example 
-struct MyTargetFlag end 
-instantiate_target(::Type{MyTargetFlag}) = toy_mvn_target(1)
-# then use pigeons(target = LazyTarget(MyTargetFlag, typeof(toy_mvn_target(1))))
-
-ensure_instantiated(lazy::LazyTarget{F, A}) where {F, A} =
+ensure_instantiated(lazy) =
     if lazy.instance === nothing 
-        lazy.instance = instantiate_target(F)
+        lazy.instance = instantiate_target(lazy.flag)
     end
 
 function create_state_initializer(lazy::LazyTarget, inputs::Inputs) 
