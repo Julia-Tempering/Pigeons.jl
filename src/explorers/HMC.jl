@@ -1,19 +1,62 @@
-struct HMC
+@concrete struct HMC
     step_size::Float64 
     n_leap_frog_until_refresh::Int
     n_refresh::Int
+    adapted_momentum
+end
+HMC() = HMC(0.01, 100, 3, nothing)
+
+function adapt_explorer(explorer::HMC, reduced_recorders, shared)
+    target_variances = get_statistic(reduced_recorders, :singleton_variable, Variance) 
+    return HMC(
+        explorer.step_size, 
+        explorer.n_leap_frog_until_refresh, 
+        explorer.n_refresh, # set the momentum precisions to the target variances: 
+        HetPrecisionNormalLogPotential(target_variances))
 end
 
-adapt_explorer(explorer::HMC, reduced_recorders, shared) = explorer 
-explorer_recorder_builders(::HMC) = [explorer_acceptance_pr] 
-step!(explorer::HMC, replica, shared) = step!(explorer, replica, replica.rng, find_log_potential(replica, shared))
+explorer_recorder_builders(::HMC) = [explorer_acceptance_pr, target_online, directional_second_derivatives] 
 
-function step!(explorer::HMC, replica, rng, log_potential) 
+struct HetPrecisionNormalLogPotential 
+    precisions::Vector{Float64}
+end
+HetPrecisionNormalLogPotential(dim::Int) = HetPrecisionNormalLogPotential(ones(dim))
+
+function gradient(log_potential::HetPrecisionNormalLogPotential, x) 
+    len = length(x)
+    @assert len == length(log_potential.precisions) 
+    result = zeros(len)
+    for i in 1:len 
+        result[i] = -log_potential.precisions[i] * x[i] 
+    end
+    return result
+end
+
+function (log_potential::HetPrecisionNormalLogPotential)(x) 
+    len = length(x)
+    @assert len == length(log_potential.precisions)
+    sum = 0.0
+    for i in 1:len 
+        sum += log_potential.precisions[i] * x[i]
+    end
+    -0.5 * sum
+end
+
+function step!(explorer::HMC, replica, shared)   
+    rng = replica.rng
+    log_potential = find_log_potential(replica, shared)
+
+    # TODO: at the moment only support when the state is a vector
     state = replica.state
     dim = length(state)
 
     # TODO: change this into adaptive matrix
-    momentum_log_potential = ScaledPrecisionNormalLogPotential(1.0, dim)
+    momentum_log_potential = 
+        if explorer.adapted_momentum === nothing
+            ScaledPrecisionNormalLogPotential(1.0, dim)
+        else
+            explorer.adapted_momentum
+        end
 
     # init v
     v = randn(rng, dim)
