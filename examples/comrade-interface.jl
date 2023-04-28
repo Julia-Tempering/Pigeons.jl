@@ -19,20 +19,14 @@ using LinearAlgebra
 # dev https://github.com/dchang10/FastElliptic https://github.com/ptiede/Jube
 using Jube 
 using FFTW
-# Do not do these in the interface script: race condition when MPI'ed
-# FFTW.set_provider!("mkl")
-LinearAlgebra.BLAS.set_num_threads(1)
-FFTW.set_num_threads(Threads.nthreads())
 
-if FFTW.get_provider() == "mkl" && FFTW.get_num_threads() > 1 
-    @warn   """
-            We have observed non-determinism problems with 
-            multi-threaded MKL. It may be safe to setup fftw via  
-            FFTW.set_provider!("fftw")
-            or to use a single thread. 
-            """
-end
-## end of experimental block
+# Do not do the line below in the interface script: race condition when MPI'ed
+# FFTW.set_provider!("mkl")
+
+LinearAlgebra.BLAS.set_num_threads(1)
+
+# Setting this to one thread, otherwise crashes (see crash-comrade-multithreaded-fft.txt in devnotes)
+FFTW.set_num_threads(1) # Threads.nthreads())
 
 import Pigeons.gradient
 import Pigeons.instantiate_target
@@ -203,14 +197,17 @@ end
 
 #### Jube 
 
-function model_jube(θ, metadata)
+model_jube(θ, metadata) = model_jube(θ, metadata, false)
+model_jube_mt(θ, metadata) = model_jube(θ, metadata, true)
+
+function model_jube(θ, metadata, multithreaded_modelimage)
     (;m_d, spin, θo, rpeak, pa, p1, p2, χ, ι, βv, spec_index, cross_spec_index) = θ
     θs = π/2
     acc = Jube.JuKeBOX(metadata.nmax, spin, spec_index, cross_spec_index, rpeak, p1, p2, βv, χ, ι, χ+π)
     observer = Jube.AssymptoticObserver(1, θo)
     m = JKConeModel(acc, θs, observer)
     mm = modify(m, Stretch(μas2rad(m_d), μas2rad(m_d)), Rotate(pa))
-    mimg = Comrade.modelimage(mm, metadata.cache, false)
+    mimg = Comrade.modelimage(mm, metadata.cache, multithreaded_modelimage)
     return mimg
 end
 
@@ -242,11 +239,13 @@ end
 Base.@kwdef struct JubeTarget
     npix = 32 
     use_fft = true
+    multithreaded_modelimage = false
 end 
 
 function Pigeons.instantiate_target(jube::JubeTarget) 
     npix = jube.npix 
     use_fft = jube.use_fft
+    multithreaded_modelimage = jube.multithreaded_modelimage
 
     dlcamp = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dlcamp.jl")
     dcphase = deserialize("data/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits.closures.dcphase.jl")
@@ -277,13 +276,15 @@ function Pigeons.instantiate_target(jube::JubeTarget)
 
     )
 
-    lklhd = RadioLikelihood(model_jube, metadata, dlcamp, dcphase)
+    lklhd = RadioLikelihood(
+        multithreaded_modelimage ? model_jube_mt : model_jube, 
+        metadata, dlcamp, dcphase)
     post = Posterior(lklhd, prior)
 
-    tpost = asflat(post)
     return PigeonsLogPotential(asflat(post))
 end
 
 jube_target = Pigeons.LazyTarget(JubeTarget())
+jube_target_mti = Pigeons.LazyTarget(JubeTarget(multithreaded_modelimage = true))
 
 nothing
