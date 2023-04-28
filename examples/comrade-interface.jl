@@ -22,7 +22,7 @@ using FFTW
 # Do not do these in the interface script: race condition when MPI'ed
 # FFTW.set_provider!("mkl")
 # LinearAlgebra.BLAS.set_num_threads(1)
-# FFTW.set_num_threads(1)
+FFTW.set_num_threads(Threads.nthreads())
 ## end of experimental block
 
 import Pigeons.gradient
