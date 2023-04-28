@@ -11,20 +11,18 @@ import Pigeons.instantiate_target
 Pigeons.instantiate_target(flag::MyTargetFlag) = toy_mvn_target(1)
 
 # to run
-pigeons(target = Pigeons.LazyTarget(MyTargetFlag(), on = ChildProcess(dependencies = ["script.jl"]))
+pigeons(target = Pigeons.LazyTarget(MyTargetFlag()), on = ChildProcess(dependencies = ["script.jl"]))
 ```
-
-Note: should only be used in the context of ChildProcess() / MPI() 
-as it assumes that a single call to pigeons() will be made in the 
-lifetime of the process. 
 """
 struct LazyTarget{FlagType}
     flag::FlagType
 end
 
+### Implementation details below
+
 # Note: we keep that in a global rather than in the LazyTarget 
 # b/c we dont want type info of the product to leak into the 
-# serialization; leading it untyped fails too at serialization time
+# serialization; leaving it untyped fails too at serialization time
 const _lazy_singleton_cache = Dict{Any, Any}()
 
 instantiate_target(flag) = @abstract 
