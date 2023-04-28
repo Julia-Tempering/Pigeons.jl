@@ -58,6 +58,9 @@ $SIGNATURES
 
 Print the queue status as well as the standard out 
 and error streams (merged) for the given `machine`. 
+
+Note: when using control-c on interactive = true, 
+        julia tends to crash as of version 1.8. 
 """
 function watch(result::Result; machine = 1, last = 40, interactive = false)
     @assert machine > 0 "using 0-index convention"
@@ -65,6 +68,7 @@ function watch(result::Result; machine = 1, last = 40, interactive = false)
 
     if !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
         println("Job not yet started, try again later.")
+        println("Hint: see also queue_status(result)")
         return nothing
     end
 
