@@ -21,8 +21,17 @@ using Jube
 using FFTW
 # Do not do these in the interface script: race condition when MPI'ed
 # FFTW.set_provider!("mkl")
-# LinearAlgebra.BLAS.set_num_threads(1)
+LinearAlgebra.BLAS.set_num_threads(1)
 FFTW.set_num_threads(Threads.nthreads())
+
+if FFTW.get_provider() == "mkl" && FFTW.get_num_threads() > 1 
+    @warn   """
+            We have observed non-determinism problems with 
+            multi-threaded MKL. It may be safe to setup fftw via  
+            FFTW.set_provider!("fftw")
+            or to use a single thread. 
+            """
+end
 ## end of experimental block
 
 import Pigeons.gradient
