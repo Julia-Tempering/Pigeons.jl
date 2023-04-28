@@ -59,7 +59,7 @@ $SIGNATURES
 Print the queue status as well as the standard out 
 and error streams (merged) for the given `machine`. 
 """
-function watch(result::Result; machine = 1, last = nothing, interactive = false)
+function watch(result::Result; machine = 1, last = 40, interactive = false)
     @assert machine > 0 "using 0-index convention"
     output_folder = "$(result.exec_folder)/1" # 1 is not a bug, i.e. not hardcoded machine 1
 
