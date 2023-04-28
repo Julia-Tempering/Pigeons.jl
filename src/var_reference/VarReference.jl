@@ -56,4 +56,4 @@ function update_path_var_reference(path, reduced_recorders, var_reference, state
     return path
 end
 
-@provides var_reference create_var_reference(inputs) = inputs.var_reference
+create_var_reference(inputs) = inputs.var_reference
