@@ -11,11 +11,10 @@ Pigeons.instantiate_target(flag::MyTargetFlag) = toy_mvn_target(1)
 pigeons(target = Pigeons.LazyTarget(MyTargetFlag())
 ```
 """
-mutable struct LazyTarget{FlagType, ActualType}
-    flag::FlagType
-    instance::Union{ActualType, Nothing} 
-    LazyTarget(flag::FlagType) where {FlagType} = 
-        new{FlagType, typeof(instantiate_target(flag))}(flag, nothing)
+mutable struct LazyTarget # {FlagType, ActualType} - NO: omitting types on purpose: they could leak non-serializability
+    flag
+    instance
+    LazyTarget(flag) = new(flag, nothing)
 end
 
 instantiate_target(flag) = @abstract 
