@@ -79,6 +79,7 @@ function watch(result::Result; machine = 1, last = 40, interactive = false)
         cmd = `$cmd -f`
     end
 
+    println("Hint: showing only last $last lines; use 'last' argument to change")
     run(`$cmd $stdout_file`) 
     return nothing 
 end
