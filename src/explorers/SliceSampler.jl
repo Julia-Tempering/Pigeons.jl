@@ -142,8 +142,8 @@ function slice_shrink!(h::SliceSampler, state, z, L, R, lp_L, lp_R, pointer, log
 
     while true
         new_position = draw_new_position(Lbar, Rbar, rng, typeof(pointer[]))
-        new_lp = log_potential(state)
         pointer[] = new_position 
+        new_lp = log_potential(state)
         consider = z < new_lp
         pointer[] = old_position
         if consider && slice_accept(h, state, new_position, z, L, R, lp_L, lp_R, pointer, log_potential)
