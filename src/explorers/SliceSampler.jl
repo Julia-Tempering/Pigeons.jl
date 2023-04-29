@@ -12,9 +12,10 @@ adapt_explorer(explorer::SliceSampler, _, _) = explorer
 explorer_recorder_builders(::SliceSampler) = [] 
 
 function step!(explorer::SliceSampler, replica, shared)
+    log_potential = find_log_potential(replica, shared)
+    cached_lp = log_potential(replica.state)
     for i in 1:explorer.n_passes
-        log_potential = find_log_potential(replica, shared)
-        slice_sample!(explorer, replica.state, log_potential, replica.rng)
+        cached_lp = slice_sample!(explorer, replica.state, log_potential, cached_lp, replica.rng)
     end
 end
 
@@ -23,21 +24,20 @@ end
 $SIGNATURES
 Slice sample one point.
 """
-function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, rng)
-    for c in 1:length(state) # update *every* coordinate
-        g_x0 = log_potential(state)
+function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, rng)
+    for c in 1:length(state) # update every coordinate
         pointer = Ref(state, c)
-        slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
+        cached_lp = slice_sample_coord!(h, state, pointer, log_potential, cached_lp, rng)
     end
+    return cached_lp
 end
 
-function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, rng)
+function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, rng)
     on_transformed_space(state, log_potential) do
         for i in 1:length(state.metadata)
             for c in 1:length(state.metadata[i].vals)
-                g_x0 = log_potential(state)
                 pointer = Ref(state.metadata[i].vals, c)
-                slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
+                cached_lp = slice_sample_coord!(h, state, pointer, log_potential, cached_lp, rng)
             end
         end
     end
@@ -55,25 +55,35 @@ function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log
     end
 end
 
-function slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
+function slice_sample_coord!(h, state, pointer, log_potential, cached_lp, rng)
     if pointer[] isa Bool
-        Bernoulli_sample_coord!(state, pointer, log_potential, rng) # don't slice sample for {0,1} variables
+        cached_lp = Bernoulli_sample_coord!(state, pointer, log_potential, cached_lp, rng) # don't slice sample for {0,1} variables
     else
-        z = g_x0 - rand(rng, Exponential(1.0)) # log(vertical draw)
-        L, R = slice_double(h, state, z, pointer, log_potential, rng)
-        pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, rng)
+        z = cached_lp - rand(rng, Exponential(1.0)) # log(vertical draw)
+        L, R, lp_L, lp_R = slice_double(h, state, z, pointer, log_potential, cached_lp, rng)
+        pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, cached_lp, rng)
     end
+    return cached_lp
 end
 
-function Bernoulli_sample_coord!(state, pointer, log_potential, rng)
-    pointer[] = Bool(0)
-    log_potent_0 = log_potential(state)
-    pointer[] = Bool(1)
-    log_potent_1 = log_potential(state)
-    log_ratio = log_potent_0 - log_potent_1
-    if rand(rng) < log_ratio/(1+log_ratio)
+function Bernoulli_sample_coord!(state, pointer, log_potential, cached_lp, rng)
+    if pointer[] == Bool(0)
+        lp0 = cached_lp
+        pointer[] = Bool(1)
+        lp1 = log_potential(state) 
+    else
+        lp1 = cached_lp
         pointer[] = Bool(0)
-    end # otherwise already set to 1
+        lp0 = log_potential(state)
+    end
+
+    if rand(rng) < exp(lp0-lp1)/(1.0 + exp(lp0-lp1))
+        pointer[] = Bool(0)
+        return lp0
+    else
+        pointer[] = Bool(1)
+        return lp1
+    end
 end
 
 """
