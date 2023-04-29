@@ -1,4 +1,4 @@
-import Pigeons: SliceSampler, slice_sample!
+import Pigeons: SliceSampler, slice_sample!, get_initial_logp
 
 include("turing.jl")
 
@@ -13,7 +13,7 @@ function test_slice_sampler_vector()
     state = Number[0, 0.0]
     n = 1000
     states = Vector{typeof(state)}(undef, n)
-    cached_lp = log_potential(state)
+    cached_lp = get_initial_logp(state, log_potential) 
     for i in 1:n
         cached_lp = slice_sample!(h, state, log_potential, cached_lp, rng)
         states[i] = copy(state)
@@ -30,7 +30,7 @@ function test_slice_sampler_Turing()
     vi = DynamicPPL.VarInfo(rng, model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
     n = 100
     states = Vector{Float64}(undef, n)
-    cached_lp = log_potential(vi.metadata[1].vals[1])
+    cached_lp = get_initial_logp(vi, log_potential)
     for i in 1:n
         cached_lp = slice_sample!(h, vi, log_potential, cached_lp, rng)
         states[i] = vi.metadata[1].vals[1]
