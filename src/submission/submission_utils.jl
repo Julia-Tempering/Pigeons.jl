@@ -5,12 +5,23 @@ Display the queue status for one MPI job.
 """ 
 function queue_status(result::Result)
     submission_code = queue_code(result)
+    if submission_code === nothing 
+        return nothing
+    end
     r = rosetta()
     run(`$(r.job_status) $submission_code`)
     return nothing
 end
 
-queue_code(result::Result) = replace(readline("$(result.exec_folder)/info/submission_output.txt"), "Submitted batch job " => "")
+function queue_code(result::Result)
+    file = "$(result.exec_folder)/info/submission_output.txt"
+    if !isfile(file)
+        println("Submission output not found at: $file")
+        println("Maybe this exec was not submitted to a queue system?")
+        return nothing
+    end
+    return replace(readline(file), "Submitted batch job " => "")
+end
 
 """ 
 $SIGNATURES 
@@ -84,6 +95,7 @@ function watch(result::Result; machine = 1, last = 40, interactive = false)
     end
 
     println("Hint: showing only last $last lines; use 'last' argument to change")
+    println("Watching: $stdout_file")
     run(`$cmd $stdout_file`) 
     return nothing 
 end
