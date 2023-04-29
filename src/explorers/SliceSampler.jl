@@ -60,8 +60,8 @@ function slice_sample_coord!(h, state, pointer, log_potential, cached_lp, rng)
         cached_lp = Bernoulli_sample_coord!(state, pointer, log_potential, cached_lp, rng) # don't slice sample for {0,1} variables
     else
         z = cached_lp - rand(rng, Exponential(1.0)) # log(vertical draw)
-        L, R, lp_L, lp_R = slice_double(h, state, z, pointer, log_potential, cached_lp, rng)
-        pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, cached_lp, rng)
+        L, R, lp_L, lp_R = slice_double(h, state, z, pointer, log_potential, rng)
+        cached_lp = slice_shrink!(h, state, z, L, R, lp_L, lp_R, pointer, log_potential, rng)
     end
     return cached_lp
 end
@@ -114,20 +114,20 @@ function slice_double(h::SliceSampler, state, z, pointer, log_potential, rng)
         K = K - 1
     end
     pointer[] = old_position # return the state back to where it was before
-    return(; L, R)
+    return (L, R, potent_L, potent_R)
 end
 
 function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: AbstractFloat
     L = pointer[] - width * rand(rng)
     R = L + width
-    return(; L, R)
+    return (L, R)
 end
 
 function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: Integer
     width = convert(T, ceil(width))
     L = pointer[] - rand(rng, 0:width)
     R = L + width 
-    return(; L, R)
+    return (L, R)
 end
 
 
@@ -135,18 +135,20 @@ end
 $SIGNATURES
 Shrink the current slice.
 """
-function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, rng)
+function slice_shrink!(h::SliceSampler, state, z, L, R, lp_L, lp_R, pointer, log_potential, rng)
     old_position = pointer[]
     Lbar = L
     Rbar = R
 
     while true
         new_position = draw_new_position(Lbar, Rbar, rng, typeof(pointer[]))
+        new_lp = log_potential(state)
         pointer[] = new_position 
-        consider = z < log_potential(state)
+        consider = z < new_lp
         pointer[] = old_position
-        if consider && slice_accept(h, state, new_position, z, L, R, pointer, log_potential)
-            return new_position
+        if consider && slice_accept(h, state, new_position, z, L, R, lp_L, lp_R, pointer, log_potential)
+            pointer[] = new_position
+            return new_lp
         end
         if new_position < pointer[]
             Lbar = new_position
@@ -154,7 +156,10 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
             Rbar = new_position
         end
     end
-    return new_position
+    # code should never get here...
+    # TODO do we need these lines for some sort of output type stability or something?
+    pointer[] = new_position
+    return new_lp
 end
 
 draw_new_position(L, R, rng, ::Type{T}) where T <: AbstractFloat = L + rand(rng) * (R-L)
@@ -165,19 +170,12 @@ draw_new_position(L, R, rng, ::Type{T}) where T <: Integer = rand(rng, L:R)
 $SIGNATURES
 Test whether to accept the current slice.
 """
-function slice_accept(h::SliceSampler, state, new_position, z, L, R, pointer, log_potential)
+function slice_accept(h::SliceSampler, state, new_position, z, L, R, lp_L, lp_R, pointer, log_potential)
     old_position = pointer[]
     Lhat = L
     Rhat = R
-
-    pointer[] = L # trick to avoid memory allocation
-    neg_potent_L = log_potential(state)
-    pointer[] = R 
-    neg_potent_R = log_potential(state)
     
     D = false
-    acceptable = true
-    
     while Rhat - Lhat > 1.1 * h.w
         M = (Lhat + Rhat)/2.0
         if ((old_position < M) && (new_position >= M)) || ((old_position >= M) && (new_position < M))
@@ -187,18 +185,18 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, pointer, lo
         if new_position < M
             Rhat = M
             pointer[] = Rhat
-            neg_potent_R = log_potential(state)
+            lp_R = log_potential(state)
         else
             Lhat = M
             pointer[] = Lhat
-            neg_potent_L = log_potential(state)
+            lp_L = log_potential(state)
         end
         
-        if (D && (z >= neg_potent_L) && (z >= neg_potent_R))
+        if (D && (z >= lp_L) && (z >= lp_R))
             pointer[] = old_position 
             return false
         end
     end
     pointer[] = old_position
-    return acceptable
+    return true
 end
