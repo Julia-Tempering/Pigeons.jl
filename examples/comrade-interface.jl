@@ -20,9 +20,6 @@ using LinearAlgebra
 using Jube 
 using FFTW
 
-# Do not do the line below in the interface script: race condition when MPI'ed
-# FFTW.set_provider!("mkl")
-
 LinearAlgebra.BLAS.set_num_threads(1)
 
 # Setting this to one thread, otherwise crashes (see crash-comrade-multithreaded-fft.txt in devnotes)
@@ -235,6 +232,12 @@ function ComradeBase.intensity_point(s::JKConeModel, p)
 end
 
 # Here we use a LazyTarget because we cannot serialize the FFT plan 
+
+# NB: current issue with jube is that it is not working in 
+# multithreading. Simplest example:
+#   pigeons(Inputs(target = jube_target, multithreaded = true, n_chains = 4))
+
+# **Update:** the problem is not jube but rather the use of FFTW+multi-threads
 
 Base.@kwdef struct JubeTarget
     npix = 32 
