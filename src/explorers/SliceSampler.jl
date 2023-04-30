@@ -221,7 +221,7 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, lp_L, lp_R,
                 lp_R = log_potential(state)
                 Rstale = false
             end
-            if  (z >= lp_L) && (z >= lp_R))
+            if  ((z >= lp_L) && (z >= lp_R))
                 pointer[] = old_position 
                 return false
             end
