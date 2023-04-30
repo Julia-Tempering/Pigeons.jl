@@ -173,10 +173,10 @@ function slice_shrink!(h::SliceSampler, state, z, L, R, lp_L, lp_R, pointer, log
             Rbar = new_position
         end
     end
-    # code should never get here...
-    # TODO do we need these lines for some sort of output type stability or something?
-    pointer[] = new_position
-    return new_lp
+    # code should never get here, because eventually
+    # shrinkage should produce an acceptable point
+    error()
+    return 0.0
 end
 
 draw_new_position(L, R, rng, ::Type{T}) where T <: AbstractFloat = L + rand(rng) * (R-L)
