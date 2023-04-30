@@ -191,6 +191,9 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, lp_L, lp_R,
     old_position = pointer[]
     Lhat = L
     Rhat = R
+    # tracks whether lp_R,lp_L need to be recomputed
+    Rstale = false
+    Lstale = false
     
     D = false
     while Rhat - Lhat > 1.1 * h.w
@@ -201,17 +204,27 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, lp_L, lp_R,
         
         if new_position < M
             Rhat = M
-            pointer[] = Rhat
-            lp_R = log_potential(state)
+            Rstale = true
         else
             Lhat = M
-            pointer[] = Lhat
-            lp_L = log_potential(state)
+            Lstale = true
         end
-        
-        if (D && (z >= lp_L) && (z >= lp_R))
-            pointer[] = old_position 
-            return false
+
+        if D
+            if Lstale
+                pointer[] = Lhat
+                lp_L = log_potential(state)
+                Lstale = false
+            end
+            if Rstale
+                pointer[] = Rhat
+                lp_R = log_potential(state)
+                Rstale = false
+            end
+            if  (z >= lp_L) && (z >= lp_R))
+                pointer[] = old_position 
+                return false
+            end
         end
     end
     pointer[] = old_position
