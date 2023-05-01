@@ -13,32 +13,27 @@ explorer_recorder_builders(::SliceSampler) = []
 
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared)
-    cached_lp = get_initial_logp(replica.state, log_potential)
+    # TODO: each step starts with a recomputation of the logprob
+    # indicated by -Inf (safe b/c -Inf would be an invalid state that should be caught earlier)
+    # consider at some point having an input cached_lp to step! that stores across steps
+    cached_lp = -Inf
     for i in 1:explorer.n_passes
         cached_lp = slice_sample!(explorer, replica.state, log_potential, cached_lp, replica.rng)
     end
 end
-
 
 """
 $SIGNATURES
 Slice sample one point.
 """
 
-function get_initial_logp(state::AbstractVector, log_potential)
-    return log_potential(state)
-end
-
-function get_initial_logp(state::DynamicPPL.TypedVarInfo, log_potential)
-    # for Turing, need to transform to get initial logp for caching
-    cached_lp = on_transformed_space(state, log_potential) do
-        return log_potential(state)
-    end
-    return cached_lp
-end
-
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, rng)
-    for c in 1:length(state) # update every coordinate
+    # if there is no cached logprob, compute it from scratch
+    if cached_lp == -Inf
+        cached_lp = log_potential(state)
+    end
+    # iterate over coordinates
+    for c in 1:length(state) 
         pointer = Ref(state, c)
         cached_lp = slice_sample_coord!(h, state, pointer, log_potential, cached_lp, rng)
     end
@@ -47,7 +42,7 @@ end
 
 function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, rng)
     cached_lp = on_transformed_space(state, log_potential) do
-        cl_cached_lp = cached_lp
+        cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
         for i in 1:length(state.metadata)
             for c in 1:length(state.metadata[i].vals)
                 pointer = Ref(state.metadata[i].vals, c)
