@@ -1,10 +1,33 @@
-import Pigeons: SliceSampler, slice_sample!, get_initial_logp
+import Pigeons: SliceSampler, slice_sample!
 
 include("turing.jl")
 
 """
 Run from runtests.jl
 """
+
+function test_slice_sampler_logprob_counts()
+    rng = SplittableRandom(1)
+    ct = [0]
+    log_potential = function (x)
+                        ret = sum(logpdf.(Normal(0.0, 1.0), x))
+                        ct[1] += 1
+                        return ret
+                    end
+    h = SliceSampler()
+    D = 10
+    state = zeros(D)
+    n = 1000
+    states = Vector{typeof(state)}(undef, n)
+    cached_lp = -Inf
+    for i in 1:n
+        cached_lp = slice_sample!(h, state, log_potential, cached_lp, rng)
+        states[i] = copy(state)
+    end
+    println("Total logprob evals: $(ct[1])")
+    @test all(abs.(mean(states) - zeros(D)) .≤ 0.2)
+    @test all(abs.(std(states) - ones(D)) .≤ 0.2)
+end
 
 function test_slice_sampler_vector()
     rng = SplittableRandom(1)
@@ -41,4 +64,5 @@ end
 function test_slice_sampler()
     test_slice_sampler_vector()
     test_slice_sampler_Turing()
+    test_slice_sampler_logprob_counts()
 end
