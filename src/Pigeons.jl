@@ -37,6 +37,7 @@ using Statistics
 using RecipesBase
 using ZipFile
 using ForwardDiff
+using BSplineKit
 
 import Serialization.serialize
 import Serialization.deserialize

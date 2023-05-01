@@ -3,33 +3,35 @@
     n_leap_frog_until_refresh::Int
     n_refresh::Int
     adapted_momentum
+    interpolated_curvatures
+    step_size_scalings
 end
-HMC() = HMC(0.01, 100, 3, nothing)
+HMC() = HMC(0.01, 100, 3, nothing, nothing, nothing)
 
 function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_tempering)
     target_variances = get_statistic(reduced_recorders, :singleton_variable, Variance) 
     
     # Build an interpolation from the worst-curvature estimates
-    # logps = current_pt.shared.tempering.log_potentials 
-    # betas = current_pt.shared.tempering.schedule.grids
-    # curvature_estimates = value(reduced_recorders.directional_second_derivatives)
-    # ys = zeros(length(betas))
-    # for i in eachindex(logps) 
-    #     #j = i == 1
-    #     # if i > 1
-    #     #     println("""$(logps[i].precision) $(value(curvature_estimates[i]))""")
-    #     # end
-    # end
-    ###
+    logps = current_pt.shared.tempering.log_potentials 
+    betas = current_pt.shared.tempering.schedule.grids
+    curvature_estimates = value(reduced_recorders.directional_second_derivatives)
+    ys = zeros(length(betas))
+    for i in eachindex(betas) 
+        j = i == 1 ? 2 : i # TODO: will need to change for 2 refs 
+        ys[i] = maximum(curvature_estimates[j])
+    end
+    interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4))
+    step_size_scalings = 1.0 ./ sqrt.(interpolated.(new_tempering.schedule.grids))
     
     return HMC(
-        explorer.step_size, 
-        explorer.n_leap_frog_until_refresh, 
-        explorer.n_refresh, # set the momentum precisions to the target variances: 
-        HetPrecisionNormalLogPotential(target_variances))
+            explorer.step_size, 
+            explorer.n_leap_frog_until_refresh, 
+            explorer.n_refresh, # set the momentum precisions to the target variances: 
+            HetPrecisionNormalLogPotential(target_variances), 
+            interpolated,
+            step_size_scalings
+        )
 end
-
-
 
 explorer_recorder_builders(::HMC) = [explorer_acceptance_pr, target_online, directional_second_derivatives] 
 
