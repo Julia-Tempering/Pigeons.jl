@@ -33,19 +33,9 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
-@testset "Allocs" begin
-    allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(100)))
-    allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(100)))
-    @test allocs_10_rounds == allocs_11_rounds
-end
-
-@testset "Variational reference" begin
-    test_var_reference()
-end
-
 @testset "Check HMC involution" begin
     rng = SplittableRandom(1)
-    log_potential(x) =  -x[1]^3 - 2.4 * x[1]^2
+    log_potential(x) =  -x[1]^4 - 2.4 * x[1]^2
     dim = 1
     n_leaps = 3
     v = [randn(rng)] 
@@ -56,6 +46,32 @@ end
     @test !(x ≈ start)
     Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, -v, 0.1, n_leaps, nothing)
     @test x ≈ start
+end
+
+@testset "Check HMC involution out of support" begin
+    rng = SplittableRandom(1)
+    log_potential(x) = x[1] < 0.0 ? -Inf : -x[1]^2
+    dim = 1
+    n_leaps = 100
+    v = [-2.0] 
+    x = [2.1]
+    start = copy(x)
+    momentum_log_potential = Pigeons.ScaledPrecisionNormalLogPotential(1.0, dim)
+    success, n_steps_to_revert = Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, v, 0.1, n_leaps, nothing)
+    @test !success
+    success, n_steps_to_revert = Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, -v, 0.1, n_steps_to_revert, nothing)
+    @test x ≈ start
+    @test success
+end
+
+@testset "Allocs" begin
+    allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(100)))
+    allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(100)))
+    @test allocs_10_rounds == allocs_11_rounds
+end
+
+@testset "Variational reference" begin
+    test_var_reference()
 end
 
 @testset "Traces" begin

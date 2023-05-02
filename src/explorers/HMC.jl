@@ -115,6 +115,7 @@ function step!(explorer::HMC, replica, shared)
                     log_potential, momentum_log_potential, state, v, step_size, n_steps_to_go_back, 
                     nothing)
                 @assert success
+                @assert init_joint_log ≈ log_potential(state) + momentum_log_potential(v)
             end
         else
             # we encountered a NaN or -Inf along the trajectory
@@ -123,6 +124,7 @@ function step!(explorer::HMC, replica, shared)
                     log_potential, momentum_log_potential, state, v, step_size, n_steps_to_go_back, 
                     nothing)
             @assert success
+            @assert init_joint_log ≈ log_potential(state) + momentum_log_potential(v)
         end
 
         # refreshment
