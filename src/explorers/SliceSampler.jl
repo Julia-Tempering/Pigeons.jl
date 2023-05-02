@@ -12,7 +12,7 @@ adapt_explorer(explorer::SliceSampler, _, _) = explorer
 explorer_recorder_builders(::SliceSampler) = [] 
 
 function step!(explorer::SliceSampler, replica, shared)
-    log_potential = find_log_potential(replica, shared)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
     # TODO: each step starts with a recomputation of the logprob
     # indicated by -Inf (safe b/c -Inf would be an invalid state that should be caught earlier)
     # consider at some point having an input cached_lp to step! that stores across steps

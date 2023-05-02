@@ -87,6 +87,7 @@ end
 
 swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
 
+
 """
 For testing/benchmarking purposes, a simple 
 [`pair_swapper`](@ref) where all swaps have equal 
@@ -145,3 +146,4 @@ create_path(testSwapper::TestSwapper, ::Inputs) = testSwapper
     interpolate(testSwapper::TestSwapper, beta) = testSwapper
 
 create_pair_swapper(tempering, target::TestSwapper) = target
+create_pair_swapper(tempering::VariationalPT, target::TestSwapper) = target
