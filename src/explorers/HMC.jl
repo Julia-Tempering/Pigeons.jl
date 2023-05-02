@@ -1,18 +1,27 @@
 @concrete struct HMC
-    step_size::Float64 
-    n_leap_frog_until_refresh::Int
+    # public
+    base_step_size::Float64 
+    trajectory_length::Float64
     n_refresh::Int
+
+    # private
     adapted_momentum
     interpolated_curvatures
     step_size_scalings
 end
-HMC() = HMC(0.01, 100, 3, nothing, nothing, nothing)
+
+HMC() = HMC(0.01, 1.0, 3, nothing, nothing, nothing)
+adapted(old::HMC, adapted_momentum, interpolated_curvatures, step_size_scalings) = 
+    HMC(
+        old.base_step_size, 
+        old.trajectory_length,
+        old.n_refresh,
+        adapted_momentum, interpolated_curvatures, step_size_scalings)
 
 function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_tempering)
     target_variances = get_statistic(reduced_recorders, :singleton_variable, Variance) 
     
     # Build an interpolation from the worst-curvature estimates
-    logps = current_pt.shared.tempering.log_potentials 
     betas = current_pt.shared.tempering.schedule.grids
     curvature_estimates = value(reduced_recorders.directional_second_derivatives)
     ys = zeros(length(betas))
@@ -21,13 +30,14 @@ function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_temper
         ys[i] = maximum(curvature_estimates[j])
     end
     interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4))
+
+    # heuristic based on R. Neal 2012, 'MCMC using Hamiltonian dynamics' just below equation (4.7)
     step_size_scalings = 1.0 ./ sqrt.(interpolated.(new_tempering.schedule.grids))
     
-    return HMC(
-            explorer.step_size, 
-            explorer.n_leap_frog_until_refresh, 
-            explorer.n_refresh, # set the momentum precisions to the target variances: 
-            HetPrecisionNormalLogPotential(target_variances), 
+    return adapted(
+            explorer, 
+            # set the momentum precisions to the target variances: see e.g. R. Neal 2012, p.22
+            HetPrecisionNormalLogPotential(target_variances), # not a bug, momentum_variance = 1/estimated_target_variance
             interpolated,
             step_size_scalings
         )
@@ -68,9 +78,9 @@ function step!(explorer::HMC, replica, shared)
     state = replica.state
     dim = length(state)
 
-    # TODO: change this into adaptive matrix
     momentum_log_potential = 
         if explorer.adapted_momentum === nothing
+            # before adaptation kicks in at the second round:
             ScaledPrecisionNormalLogPotential(1.0, dim)
         else
             explorer.adapted_momentum
@@ -79,23 +89,43 @@ function step!(explorer::HMC, replica, shared)
     # init v
     v = randn(rng, dim)
 
+    step_size = explorer.base_step_size * dim^(-0.25) 
+    if explorer.step_size_scalings !== nothing 
+        step_size *= step_size_scalings[replica.chain]
+    end
+    n_leap_frog_until_refresh = ceil(Int, explorer.trajectory_length / step_size)
+
     for i in 1:explorer.n_refresh
         init_joint_log  = log_potential(state) + momentum_log_potential(v)
-        @assert !isnan(init_joint_log)
-        hamiltonian_dynamics!(
-            log_potential, momentum_log_potential, state, v, explorer.step_size, explorer.n_leap_frog_until_refresh,
+        @assert isfinite(init_joint_log)
+        success, n_steps_to_go_back = hamiltonian_dynamics!(
+            log_potential, momentum_log_potential, state, v, step_size, n_leap_frog_until_refresh,
             replica)
-        final_joint_log = log_potential(state) + momentum_log_potential(v)
-        @assert !isnan(final_joint_log)
-        probability = min(1.0, exp(final_joint_log - init_joint_log))
-        @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
-        if rand(rng) < probability 
-            # accept 
+
+        if success # by success, we mean no NaN or -Inf were encountered along the trajectory
+            final_joint_log = log_potential(state) + momentum_log_potential(v)
+            @assert isfinite(final_joint_log)
+            probability = min(1.0, exp(final_joint_log - init_joint_log))
+            @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
+            if rand(rng) < probability 
+                # accept: nothing to do, we work in-place
+            else
+                flip!(v)
+                success, _ = hamiltonian_dynamics!(
+                    log_potential, momentum_log_potential, state, v, step_size, n_steps_to_go_back, 
+                    nothing)
+                @assert success
+            end
         else
-            hamiltonian_dynamics!(
-                log_potential, momentum_log_potential, state, -v, explorer.step_size, explorer.n_leap_frog_until_refresh, 
-                nothing)
+            # we encountered a NaN or -Inf along the trajectory
+            flip!(v)
+            success, _ = hamiltonian_dynamics!(
+                    log_potential, momentum_log_potential, state, v, step_size, n_steps_to_go_back, 
+                    nothing)
+            @assert success
         end
+
+        # refreshment
         randn!(rng, v)
     end
 end
@@ -109,27 +139,50 @@ function hamiltonian_dynamics!(
         momentum_log_potential, 
         x, v, step_size, n_steps, 
         replica)
-    # first line of first iteration
-    grad = gradient(target_log_potential, x)
+    # See e.g., R. Neal, p.14. 
+    # we add statistics collection for adaptation and tricks to make it 
+    # non-allocating
+
+    # keep previous grad to get directional curvature statistics
+    grad = gradient(target_log_potential, x) 
+
+    # first half-step
     v .= v .+ (step_size/2) .* grad
 
-    # to reduce number of gradient evaluations 
-    # consider lines 2-3 of iteration n and line 1 of iteration n+1; notice lines 2 and 1 can be combined
-    for i in 1:(n_steps - 1) 
+    for i in 1:n_steps 
+        # more setup for directional curvature stats
         mom_grad = gradient(momentum_log_potential, v) 
         directional_before = dot(grad, mom_grad)
         mom_grad_norm = norm(mom_grad)
+
+        # full step on position
         x .= x .- step_size .* mom_grad
+
+        # support unwinding a trajectory taking us to numerical badness
+        if !isfinite(target_log_potential(x))
+            # we are in the middle of a step, undo it 
+            x .= x .+ step_size .* mom_grad
+            v .= v .- (step_size/2) .* grad
+            # the other (full) leap frogs will be undone from the caller
+            return false, (i-1)  # meaning: (failure, number of leap frogs after a flip to go back to starting point)
+        end
+
+        # compute and record directional curvature data point
         grad = gradient(target_log_potential, x) 
         directional_after = dot(grad, mom_grad) 
         second_dir_deriv = abs(directional_after - directional_before) / step_size / mom_grad_norm^2
         if replica !== nothing 
             @record_if_requested!(replica.recorders, :directional_second_derivatives, (replica.chain, second_dir_deriv))
         end
-        v .= v .+ step_size .* grad
+
+        # trick to merge successive half-steps
+        if i != n_steps 
+            v .= v .+ step_size .* grad
+        end
     end
 
-    # last two lines of last iteration 
-    x .= x .- step_size .* gradient(momentum_log_potential, v) 
+    # last half-step
     v .= v .+ (step_size/2) .* gradient(target_log_potential, x)
+
+    return true, n_steps # meaning: (success, number of leap frogs to take after a flip if rejected)
 end
