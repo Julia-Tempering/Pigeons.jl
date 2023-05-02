@@ -1,6 +1,5 @@
-abstract type AbstractOddEven end
 """ Provides a [`swap_graph`](@ref). """
-struct OddEven <: AbstractOddEven
+struct OddEven
     even::Bool
     n_chains::Int
 end
@@ -21,7 +20,7 @@ struct VariationalOddEven
     n_chains::Int 
 end
 
-function partner_chain(swap_graph::Union{AbstractOddEven, VariationalOddEven}, chain::Int)
+function partner_chain(swap_graph::Union{OddEven, VariationalOddEven}, chain::Int)
     @assert 1 ≤ chain ≤ swap_graph.n_chains
     direction = (iseven(chain) == swap_graph.even ? 1 : -1)
     proposed = chain + direction
