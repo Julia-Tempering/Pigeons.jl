@@ -20,3 +20,5 @@ nowellpack
 tmp.jl
 Manifest.toml
 examples/.CondaPkg
+*.swp
+*.swo
