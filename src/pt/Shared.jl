@@ -26,16 +26,19 @@ Only one instance maintained per process.
     explorer
 
     """
-    See [`var_reference`](@ref)
+    See [`var_reference`](@ref).
     """
     var_reference
+
+    """
+    See [`Indexer`](@ref).
+    """
+    indexer
 end
 
 """
 $SIGNATURES 
-
 Create a [`Shared`](@ref) struct based on an [`Inputs`](@ref). 
-
 Uses [`create_tempering()`](@ref) and [`create_explorer()`](@ref).
 """
 function Shared(inputs)
@@ -43,6 +46,7 @@ function Shared(inputs)
     tempering = create_tempering(inputs)
     explorer = create_explorer(inputs) 
     var_reference = create_var_reference(inputs)
-    return Shared(iterators, tempering, explorer, var_reference)
+    indexer = create_replica_indexer(tempering)
+    return Shared(iterators, tempering, explorer, var_reference, indexer)
 end
 
