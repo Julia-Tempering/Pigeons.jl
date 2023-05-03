@@ -1,37 +1,36 @@
 
 using Pigeons
-import Pigeons.HetPrecisionNormalLogPotential
 using SplittableRandoms
+using Test
+using OnlineStats
 
-const dim = 2
+rng = SplittableRandom(1)
 
-iso() = HetPrecisionNormalLogPotential(dim)
+my_target = Pigeons.HetPrecisionNormalLogPotential([5.0, 1.1]) 
+my_target_variance = 1.0 ./ my_target.precisions 
+my_target_std_dev = sqrt.(my_target_variance)
+some_cond = 
+    #[1.0, 1.0] 
+    [2.3, 0.8]
 
-Pigeons.create_reference_log_potential(
-    target::HetPrecisionNormalLogPotential, ::Inputs) = 
-        target
+x = randn(rng, 2)
 
-Pigeons.create_state_initializer(my_potential::HetPrecisionNormalLogPotential, ::Inputs) = my_potential
-Pigeons.initialization(::HetPrecisionNormalLogPotential, ::SplittableRandom, ::Int) = zeros(dim)
-    
-function Pigeons.sample_iid!(my_potential::HetPrecisionNormalLogPotential, replica)
-    d = length(replica.state)
-    @assert d == length(my_potential.precisions)
-    for i in 1:d 
-        replica.state[i] = randn(replica.rng) / sqrt(my_potential.precisions[i])
-    end
+
+n_leaps = 40
+
+recorders = (; directional_second_derivatives =  GroupBy(Int, Extrema()))
+
+replica = Pigeons.Replica(nothing, 1, rng, recorders, 1)
+
+v = randn(rng, 2)
+for i in 1:100
+    Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps, replica)
+    global v = randn(rng, 2)
 end
 
-# 2d iso: 0.997 on HMC(0.2, 1.0, 3)
-pigeons(target = iso(), explorer = HMC(0.2, 1.0, 3, nothing, nothing, nothing), n_chains = 2, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
+@show replica.recorders.directional_second_derivatives
 
 
-
-# ill-conditioned: 0.869 
-bad_target = HetPrecisionNormalLogPotential([50.0, 1.0])
-pigeons(target = bad_target, explorer = HMC(0.2, 1.0, 3, nothing, nothing, nothing), n_chains = 2, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
+return nothing
 
 
-# now using the pre-conditioning
-std_devs = 1.0 ./ sqrt.(bad_target.precisions)
-pigeons(target = bad_target, explorer = HMC(0.2, 1.0, 3, std_devs, nothing, nothing), n_chains = 2, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
