@@ -47,6 +47,13 @@ hmc(target, std_devs = nothing) =
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
+@testset "HMC dimensional autoscale" begin
+    for i in 0:3
+        d = 10^i
+        @test mean_mh_accept(hmc(toy_mvn_target(d))) > 0.98
+    end
+end
+
 @testset "Check HMC pre-conditioning" begin
     tol = 1e-5
     iso = Pigeons.HetPrecisionNormalLogPotential(2) 
