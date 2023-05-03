@@ -165,7 +165,7 @@ function hamiltonian_dynamics!(
 
         directional_after = -dot(grad, v) 
 
-        second_dir_deriv = abs(directional_after - directional_before) / step_size / norm(v)^2
+        second_dir_deriv = abs(directional_after - directional_before) / step_size / sqr_norm(v)
         if replica !== nothing 
             @record_if_requested!(replica.recorders, :directional_second_derivatives, (replica.chain, second_dir_deriv))
         end

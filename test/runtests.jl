@@ -79,6 +79,30 @@ end
     @test x ≈ start
 end
 
+@testset "Curvature estimation check" begin
+    rng = SplittableRandom(1)
+
+    estimated = 5.0
+    residual = 1.1
+    my_target = Pigeons.HetPrecisionNormalLogPotential([estimated, residual]) 
+    # say we are able to capture part of the shape of the 
+    # target (here, first component), can we estimate residual?
+    partly_estimated_std_devs = [1.0 / sqrt(estimated), 1.0]
+
+    x = randn(rng, 2)
+    n_leaps = 40
+    recorders = (; directional_second_derivatives =  GroupBy(Int, Extrema()))
+    replica = Pigeons.Replica(nothing, 1, rng, recorders, 1)
+
+    v = randn(rng, 2)
+    for i in 1:100
+        Pigeons.hamiltonian_dynamics!(my_target, partly_estimated_std_devs, x, v, 0.1, n_leaps, replica)
+        v = randn(rng, 2)
+    end
+
+    @test maximum(replica.recorders.directional_second_derivatives[1]) ≈ residual
+end
+
 @testset "Allocs" begin
     allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(100)))
     allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(100)))
