@@ -3,14 +3,14 @@ struct HetPrecisionNormalLogPotential
 end
 HetPrecisionNormalLogPotential(dim::Int) = HetPrecisionNormalLogPotential(ones(dim))
 
-create_reference_log_potential(
+Pigeons.create_reference_log_potential(
     target::HetPrecisionNormalLogPotential, ::Inputs) = 
         target
 
-create_state_initializer(my_potential::HetPrecisionNormalLogPotential, ::Inputs) = my_potential
-initialization(target::HetPrecisionNormalLogPotential, ::SplittableRandom, ::Int) = zeros(length(target.precisions))
+Pigeons.create_state_initializer(my_potential::HetPrecisionNormalLogPotential, ::Inputs) = my_potential
+Pigeons.initialization(target::HetPrecisionNormalLogPotential, ::SplittableRandom, ::Int) = zeros(length(target.precisions))
     
-function sample_iid!(my_potential::HetPrecisionNormalLogPotential, replica)
+function Pigeons.sample_iid!(my_potential::HetPrecisionNormalLogPotential, replica)
     d = length(replica.state)
     @assert d == length(my_potential.precisions)
     for i in 1:d 
@@ -18,7 +18,7 @@ function sample_iid!(my_potential::HetPrecisionNormalLogPotential, replica)
     end
 end
 
-function gradient(log_potential::HetPrecisionNormalLogPotential, x) 
+function Pigeons.gradient(log_potential::HetPrecisionNormalLogPotential, x) 
     len = length(x)
     @assert len == length(log_potential.precisions) 
     result = zeros(len)

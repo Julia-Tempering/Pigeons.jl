@@ -21,6 +21,7 @@ include("slice_sampler_test.jl")
 include("var_reference_test.jl")
 include("turing.jl")
 include("vector.jl")
+include("supporting/HetPrecisionNormalLogPotential.jl")
 
 function test_load_balance(n_processes, n_tasks)
     for p in 1:n_processes
@@ -66,10 +67,10 @@ end
 
 @testset "Check HMC pre-conditioning" begin
     tol = 1e-5
-    iso = Pigeons.HetPrecisionNormalLogPotential(2) 
+    iso = HetPrecisionNormalLogPotential(2) 
     before = mean_mh_accept(hmc(iso))
 
-    bad_conditioning_target = Pigeons.HetPrecisionNormalLogPotential([50.0, 1.0])
+    bad_conditioning_target = HetPrecisionNormalLogPotential([50.0, 1.0])
     bad = mean_mh_accept(hmc(bad_conditioning_target))
     @test abs(before - bad) > tol
 
@@ -81,7 +82,7 @@ end
 @testset "Check HMC involution" begin
     rng = SplittableRandom(1)
 
-    my_target = Pigeons.HetPrecisionNormalLogPotential([5.0, 1.1]) 
+    my_target = HetPrecisionNormalLogPotential([5.0, 1.1]) 
     some_cond = [2.3, 0.8]
 
     x = randn(rng, 2)
@@ -101,7 +102,7 @@ end
 
     estimated = 5.0
     residual = 1.1
-    my_target = Pigeons.HetPrecisionNormalLogPotential([estimated, residual]) 
+    my_target = HetPrecisionNormalLogPotential([estimated, residual]) 
     # say we are able to capture part of the shape of the 
     # target (here, first component), can we estimate residual?
     partly_estimated_std_devs = [1.0 / sqrt(estimated), 1.0]
