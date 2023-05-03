@@ -33,6 +33,12 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+@testset "Allocs-HMC" begin
+    allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(1), explorer = HMC()))
+    allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(1), explorer = HMC()))
+    @test allocs_10_rounds == allocs_11_rounds
+end
+
 @testset "Check HMC involution" begin
     rng = SplittableRandom(1)
     log_potential(x) =  -x[1]^4 - 2.4 * x[1]^2
