@@ -107,6 +107,7 @@ function step!(explorer::HMC, replica, shared)
                 state .= state_start
             end
         else
+            # we encountered something not finite along the trajectory
             state .= state_start
         end
 
