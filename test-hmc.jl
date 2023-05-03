@@ -8,10 +8,13 @@ rng = SplittableRandom(1)
 
 my_target = Pigeons.HetPrecisionNormalLogPotential([5.0, 1.1]) 
 my_target_variance = 1.0 ./ my_target.precisions 
-my_target_std_dev = sqrt.(my_target_variance)
+@show my_target_std_dev = sqrt.(my_target_variance)
+hybrid = [1.0/sqrt(5.0), 1.0]
+
 some_cond = 
     #[1.0, 1.0] 
-    [2.3, 0.8]
+    #my_target_std_dev
+    hybrid
 
 x = randn(rng, 2)
 
