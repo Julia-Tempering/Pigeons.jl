@@ -1,20 +1,23 @@
 staticHMC(base_step_size::Float64, trajectory_length::Float64, n_refresh::Int, target_std_deviations = nothing) =
-    HMC(base_step_size, trajectory_length, n_refresh, false, target_std_deviations, nothing,  nothing)
+    HMC(base_step_size, trajectory_length, n_refresh, false, false, target_std_deviations, nothing,  nothing)
 
-adaptiveHMC() = HMC(0.2, 1.0, 3, true, nothing, nothing, nothing)
+adaptiveHMC() = HMC(0.1, 1.0, 3, true, true, nothing, nothing, nothing)
 
 
 ### Internal
 
-@concrete struct HMC
+@auto struct HMC
     # those are determined at the beginning:
     base_step_size::Float64 
     trajectory_length::Float64
     n_refresh::Int
-    adaptive::Bool
+    adaptive_diag_mass_mtx::Bool 
+    adaptive_epsilon::Bool
 
-    # those get updated if adaptation is enabled:
+    # this gets updated if adaptive_diag_mass_mtx is enabled (set to 'nothing' until adapted)
     target_std_deviations
+
+    # these get updated if  adaptive_epsilon is enabled (both set to 'nothing' until adapted)
     interpolated_curvatures
     step_size_scalings
 end
@@ -24,42 +27,57 @@ adapted(old::HMC, target_std_deviations, interpolated_curvatures, step_size_scal
         old.base_step_size, 
         old.trajectory_length,
         old.n_refresh,
+        old.adaptive_diag_mass_mtx, 
+        old.adaptive_epsilon, 
         target_std_deviations, interpolated_curvatures, step_size_scalings)
 
 function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_tempering)
-    if !explorer.adaptive
+    if !explorer.adaptive_diag_mass_mtx && !explorer.adaptive_epsilon
         return explorer
     end
 
-    target_variances = get_statistic(reduced_recorders, :singleton_variable, Variance) 
+    target_std_dev = 
+        explorer.adaptive_diag_mass_mtx ? 
+            get_statistic(reduced_recorders, :singleton_variable, Variance) : 
+            nothing
     
-    # Build an interpolation from the worst-curvature estimates
-    betas = current_pt.shared.tempering.schedule.grids
-    curvature_estimates = value(reduced_recorders.directional_second_derivatives)
-    ys = zeros(length(betas))
-    for i in eachindex(betas) 
-        j = i == 1 ? 2 : i # TODO: will need to change for 2 refs 
-        ys[i] = maximum(curvature_estimates[j])
-    end
-    interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4))
+    if explorer.adaptive_epsilon
+        # Build an interpolation from the worst-curvature estimates
+        betas = current_pt.shared.tempering.schedule.grids
+        curvature_estimates = value(reduced_recorders.directional_second_derivatives)
+        ys = zeros(length(betas))
+        for i in eachindex(betas) 
+            j = i == 1 ? 2 : i # TODO: will need to change for 2 refs 
+            ys[i] = maximum(curvature_estimates[j])
+        end
+        interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4))
 
-    # heuristic based on R. Neal 2012, 'MCMC using Hamiltonian dynamics' just below equation (4.7)
-    step_size_scalings = 1.0 ./ sqrt.(interpolated.(new_tempering.schedule.grids))
+        # heuristic based on R. Neal 2012, 'MCMC using Hamiltonian dynamics' just below equation (4.7)
+        step_size_scalings = 1.0 ./ sqrt.(interpolated.(new_tempering.schedule.grids))
+    else
+        interpolated = nothing
+        step_size_scalings = nothing
+    end
     
     return adapted(
             explorer, 
-            sqrt.(target_variances), 
+            target_std_dev, 
             interpolated,
             step_size_scalings
         )
 end
 
-explorer_recorder_builders(hmc::HMC) = 
-    if hmc.adaptive
-        [explorer_acceptance_pr, target_online, directional_second_derivatives] 
-    else
-        [explorer_acceptance_pr] 
+function explorer_recorder_builders(hmc::HMC) 
+    result = Function[]
+    push!(result, explorer_acceptance_pr)
+    if hmc.adaptive_diag_mass_mtx
+        push!(result, target_online)
     end
+    if hmc.adaptive_epsilon
+        push!(result, directional_second_derivatives)
+    end
+    return result
+end
 
 function step!(explorer::HMC, replica, shared)   
     rng = replica.rng

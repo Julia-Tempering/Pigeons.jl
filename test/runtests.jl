@@ -47,6 +47,16 @@ hmc(target, std_devs = nothing) =
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
+@testset "HMC epsilon" begin
+    hmc_adapt_only_eps() = HMC(0.2, 1.0, 3, false, true, nothing, nothing, nothing)
+    hmc_no_adapt()       = HMC(0.2, 1.0, 3, false, false, nothing, nothing, nothing)
+
+    target = Pigeons.ScaledPrecisionNormalPath(1.0, 100.0, 1)
+
+    @test mean_mh_accept(pigeons(; target, explorer = hmc_adapt_only_eps())) > 0.9
+    @test mean_mh_accept(pigeons(; target, explorer = hmc_no_adapt())) < 0.9
+end
+
 @testset "HMC dimensional autoscale" begin
     for i in 0:3
         d = 10^i

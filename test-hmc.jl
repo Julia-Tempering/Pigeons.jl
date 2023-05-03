@@ -6,14 +6,12 @@ using OnlineStats
 
 rng = SplittableRandom(1)
 
+hmc_adapt_only_eps() = HMC(0.2, 1.0, 3, false, true, nothing, nothing, nothing)
 
-for i in 0:3
-    d = 10^i
 
-    pigeons(target = toy_mvn_target(d), 
-        explorer = Pigeons.staticHMC(0.2, 1.0, 3), 
-        recorder_builders = Pigeons.online_recorder_builders())
-end
+pt = pigeons(target = Pigeons.ScaledPrecisionNormalPath(1.0, 100.0, 1), 
+        recorder_builders = Pigeons.online_recorder_builders(), 
+        explorer = hmc_adapt_only_eps())
 
 
 return nothing
