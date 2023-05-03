@@ -6,32 +6,14 @@ using OnlineStats
 
 rng = SplittableRandom(1)
 
-my_target = Pigeons.HetPrecisionNormalLogPotential([5.0, 1.1]) 
-my_target_variance = 1.0 ./ my_target.precisions 
-@show my_target_std_dev = sqrt.(my_target_variance)
-hybrid = [1.0/sqrt(5.0), 1.0]
 
-some_cond = 
-    #[1.0, 1.0] 
-    #my_target_std_dev
-    hybrid
+for i in 0:3
+    d = 10^i
 
-x = randn(rng, 2)
-
-
-n_leaps = 40
-
-recorders = (; directional_second_derivatives =  GroupBy(Int, Extrema()))
-
-replica = Pigeons.Replica(nothing, 1, rng, recorders, 1)
-
-v = randn(rng, 2)
-for i in 1:100
-    Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps, replica)
-    global v = randn(rng, 2)
+    pigeons(target = toy_mvn_target(d), 
+        explorer = Pigeons.staticHMC(0.2, 1.0, 3), 
+        recorder_builders = Pigeons.online_recorder_builders())
 end
-
-@show replica.recorders.directional_second_derivatives
 
 
 return nothing
