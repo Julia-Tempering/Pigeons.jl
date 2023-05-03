@@ -38,7 +38,7 @@ function partner_chain(swap_graph::OddEven, chain::Int)
     else                                        return proposed
     end
 end
-is_reference(::OddEven, chain::Int) = chain == 1
-is_target(deo::OddEven, chain::Int) = chain == deo.n_chains
+is_reference(oe::OddEven, chain::Int) = chain == 1 && oe.n_chains > 1
+is_target(oe::OddEven, chain::Int) = chain == oe.n_chains
 
 

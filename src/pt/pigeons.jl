@@ -50,7 +50,7 @@ function run_one_round!(pt)
         communicate!(pt)
     end
     record_timed_if_requested!(pt, :round, timed)
-    return reduce_recorders!(pt.replicas)
+    return reduce_recorders!(pt, pt.replicas)
 end
 
 """
