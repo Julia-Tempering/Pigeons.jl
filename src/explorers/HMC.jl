@@ -45,32 +45,6 @@ end
 
 explorer_recorder_builders(::HMC) = [explorer_acceptance_pr, target_online, directional_second_derivatives] 
 
-struct HetPrecisionNormalLogPotential 
-    precisions::Vector{Float64}
-end
-HetPrecisionNormalLogPotential(dim::Int) = HetPrecisionNormalLogPotential(ones(dim))
-
-function gradient(log_potential::HetPrecisionNormalLogPotential, x) 
-    len = length(x)
-    @assert len == length(log_potential.precisions) 
-    result = zeros(len)
-    for i in 1:len 
-        result[i] = -log_potential.precisions[i] * x[i] 
-    end
-    return result
-end
-
-function (log_potential::HetPrecisionNormalLogPotential)(x) 
-    len = length(x)
-    @assert len == length(log_potential.precisions)
-    sum = 0.0
-    for i in 1:len 
-        sum += log_potential.precisions[i] * x[i]^2
-    end
-    -0.5 * sum
-end
-
-
 function step!(explorer::HMC, replica, shared)   
     rng = replica.rng
     log_potential = find_log_potential(replica, shared)

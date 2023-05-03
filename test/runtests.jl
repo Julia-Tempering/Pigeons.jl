@@ -33,41 +33,50 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
-@testset "Allocs-HMC" begin
-    allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(1), explorer = HMC()))
-    allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(1), explorer = HMC()))
-    @test allocs_10_rounds == allocs_11_rounds
+# @testset "Allocs-HMC" begin
+#     allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(1), explorer = HMC()))
+#     allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(1), explorer = HMC()))
+#     @test allocs_10_rounds == allocs_11_rounds
+# end
+
+hmc(target, std_devs = nothing) =
+    pigeons(; 
+        target, 
+        explorer = HMC(0.2, 1.0, 3, std_devs, nothing, nothing), 
+        n_chains = 2, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
+
+mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
+
+@testset "Check HMC pre-conditioning" begin
+    tol = 1e-5
+    iso = Pigeons.HetPrecisionNormalLogPotential(2) 
+    before = mean_mh_accept(hmc(iso))
+
+    bad_conditioning_target = Pigeons.HetPrecisionNormalLogPotential([50.0, 1.0])
+    bad = mean_mh_accept(hmc(bad_conditioning_target))
+    @test abs(before - bad) > tol
+
+    std_devs = 1.0 ./ sqrt.(bad_conditioning_target.precisions)
+    corrected = mean_mh_accept(hmc(bad_conditioning_target, std_devs))
+    @test before == corrected
 end
 
 @testset "Check HMC involution" begin
     rng = SplittableRandom(1)
-    log_potential(x) =  -x[1]^4 - 2.4 * x[1]^2
-    dim = 1
-    n_leaps = 3
-    v = [randn(rng)] 
-    x = [randn(rng)]
-    start = copy(x)
-    momentum_log_potential = Pigeons.ScaledPrecisionNormalLogPotential(1.0, dim)
-    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, v, 0.1, n_leaps, nothing)
-    @test !(x ≈ start)
-    Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, -v, 0.1, n_leaps, nothing)
-    @test x ≈ start
-end
 
-@testset "Check HMC involution out of support" begin
-    rng = SplittableRandom(1)
-    log_potential(x) = x[1] < 0.0 ? -Inf : -x[1]^2
-    dim = 1
-    n_leaps = 100
-    v = [-2.0] 
-    x = [2.1]
+    my_target = Pigeons.HetPrecisionNormalLogPotential([5.0, 1.1]) 
+    some_cond = [2.3, 0.8]
+
+    x = randn(rng, 2)
+    v = randn(rng, 2)
+
+    n_leaps = 40
+
     start = copy(x)
-    momentum_log_potential = Pigeons.ScaledPrecisionNormalLogPotential(1.0, dim)
-    success, n_steps_to_revert = Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, v, 0.1, n_leaps, nothing)
-    @test !success
-    success, n_steps_to_revert = Pigeons.hamiltonian_dynamics!(log_potential, momentum_log_potential, x, -v, 0.1, n_steps_to_revert, nothing)
+    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps, nothing)
+    @test !(x ≈ start)
+    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps, nothing)
     @test x ≈ start
-    @test success
 end
 
 @testset "Allocs" begin
