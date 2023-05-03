@@ -1,16 +1,24 @@
+staticHMC(base_step_size::Float64, trajectory_length::Float64, n_refresh::Int, target_std_deviations = nothing) =
+    HMC(base_step_size, trajectory_length, n_refresh, false, target_std_deviations, nothing,  nothing)
+
+adaptiveHMC() = HMC(0.2, 1.0, 3, true, nothing, nothing, nothing)
+
+
+### Internal
+
 @concrete struct HMC
-    # public
+    # those are determined at the beginning:
     base_step_size::Float64 
     trajectory_length::Float64
     n_refresh::Int
+    adaptive::Bool
 
-    # private
+    # those get updated if adaptation is enabled:
     target_std_deviations
     interpolated_curvatures
     step_size_scalings
 end
 
-HMC() = HMC(0.2, 1.0, 3, nothing, nothing, nothing)
 adapted(old::HMC, target_std_deviations, interpolated_curvatures, step_size_scalings) = 
     HMC(
         old.base_step_size, 
@@ -19,31 +27,39 @@ adapted(old::HMC, target_std_deviations, interpolated_curvatures, step_size_scal
         target_std_deviations, interpolated_curvatures, step_size_scalings)
 
 function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_tempering)
-    return explorer
-    # target_variances = get_statistic(reduced_recorders, :singleton_variable, Variance) 
-    
-    # # Build an interpolation from the worst-curvature estimates
-    # betas = current_pt.shared.tempering.schedule.grids
-    # curvature_estimates = value(reduced_recorders.directional_second_derivatives)
-    # ys = zeros(length(betas))
-    # for i in eachindex(betas) 
-    #     j = i == 1 ? 2 : i # TODO: will need to change for 2 refs 
-    #     ys[i] = maximum(curvature_estimates[j])
-    # end
-    # interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4))
+    if !explorer.adaptive
+        return explorer
+    end
 
-    # # heuristic based on R. Neal 2012, 'MCMC using Hamiltonian dynamics' just below equation (4.7)
-    # step_size_scalings = 1.0 ./ sqrt.(interpolated.(new_tempering.schedule.grids))
+    target_variances = get_statistic(reduced_recorders, :singleton_variable, Variance) 
     
-    # return adapted(
-    #         explorer, 
-    #         sqrt.(target_variances), 
-    #         interpolated,
-    #         step_size_scalings
-    #     )
+    # Build an interpolation from the worst-curvature estimates
+    betas = current_pt.shared.tempering.schedule.grids
+    curvature_estimates = value(reduced_recorders.directional_second_derivatives)
+    ys = zeros(length(betas))
+    for i in eachindex(betas) 
+        j = i == 1 ? 2 : i # TODO: will need to change for 2 refs 
+        ys[i] = maximum(curvature_estimates[j])
+    end
+    interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4))
+
+    # heuristic based on R. Neal 2012, 'MCMC using Hamiltonian dynamics' just below equation (4.7)
+    step_size_scalings = 1.0 ./ sqrt.(interpolated.(new_tempering.schedule.grids))
+    
+    return adapted(
+            explorer, 
+            sqrt.(target_variances), 
+            interpolated,
+            step_size_scalings
+        )
 end
 
-explorer_recorder_builders(::HMC) = [explorer_acceptance_pr, target_online, directional_second_derivatives] 
+explorer_recorder_builders(hmc::HMC) = 
+    if hmc.adaptive
+        [explorer_acceptance_pr, target_online, directional_second_derivatives] 
+    else
+        [explorer_acceptance_pr] 
+    end
 
 function step!(explorer::HMC, replica, shared)   
     rng = replica.rng
@@ -63,9 +79,9 @@ function step!(explorer::HMC, replica, shared)
     state_start = copy(state)
 
     step_size = explorer.base_step_size * dim^(-0.25) 
-    # if explorer.step_size_scalings !== nothing 
-    #     step_size *= explorer.step_size_scalings[replica.chain]
-    # end
+    if explorer.step_size_scalings !== nothing 
+        step_size *= explorer.step_size_scalings[replica.chain]
+    end
     n_leap_frog_until_refresh = ceil(Int, explorer.trajectory_length / step_size)
 
     hamiltonian() = log_potential(state) - 0.5 * sqr_norm(v)

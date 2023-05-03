@@ -42,7 +42,7 @@ end
 hmc(target, std_devs = nothing) =
     pigeons(; 
         target, 
-        explorer = HMC(0.2, 1.0, 3, std_devs, nothing, nothing), 
+        explorer = Pigeons.staticHMC(0.2, 1.0, 3, std_devs), 
         n_chains = 2, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
