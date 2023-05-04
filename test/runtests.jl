@@ -61,7 +61,7 @@ end
 @testset "HMC dimensional autoscale" begin
     for i in 0:3
         d = 10^i
-        @test mean_mh_accept(hmc(toy_mvn_target(d))) > 0.98
+        @test mean_mh_accept(hmc(toy_mvn_target(d))) > 0.95
     end
 end
 

@@ -14,7 +14,7 @@
     step_size_scalings
 end
 
-n_steps(base_step_size, dim) = ceil(Int, 1.0 / base_step_size / dim^(-0.25))
+max_n_steps(base_step_size, dim) = ceil(Int, 1.0 / base_step_size / dim^(-0.25))
 
 """
 $SIGNATURES 
@@ -89,6 +89,8 @@ end
 function step!(explorer::HMC, replica, shared)   
     rng = replica.rng
     log_potential = find_log_potential(replica, shared)
+    
+    shared_rng = rng_shared_by_all_replicas(shared.iterators)
 
     # TODO: at the moment only support when the state is a vector
     state = replica.state
@@ -108,18 +110,18 @@ function step!(explorer::HMC, replica, shared)
         step_size *= explorer.step_size_scalings[replica.chain]
     end
 
-    # TODO: randomize the trajectory length using a separate SplittableRandom
-    # TODO: switch back from traj length into L..
-
-    n_leap_frog_until_refresh = n_steps(explorer.base_step_size, dim)
+    max_n_steps_between_refresh = max_n_steps(explorer.base_step_size, dim)
 
     hamiltonian() = log_potential(state) - 0.5 * sqr_norm(v)
 
     for i in 1:explorer.n_refresh
+
+        n_steps = rand(shared_rng, 1:max_n_steps_between_refresh)
+
         init_joint_log  = hamiltonian()
         @assert isfinite(init_joint_log)
         success = hamiltonian_dynamics!(
-            log_potential, target_std_deviations, state, v, step_size, n_leap_frog_until_refresh,
+            log_potential, target_std_deviations, state, v, step_size, n_steps,
             replica)
 
         if success # by success, we mean no NaN or -Inf were encountered along the trajectory
@@ -211,3 +213,12 @@ function hamiltonian_dynamics!(
 
     return true
 end
+
+# build a shared rng to sync up the randomized number of steps 
+# size across all replicas. This is not the highest quality 
+# rng but good enough since it's for a relatively minor aspect 
+# of sampling. Other solutions do not work because the reference 
+# chain does not get step!() called. Also certainly don't want 
+# to make shared writteable. 
+rng_shared_by_all_replicas(iterators) = 
+    SplittableRandom(11 + 7 * iterators.round + 3 * iterators.scan) 
