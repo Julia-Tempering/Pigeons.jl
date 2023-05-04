@@ -1,11 +1,3 @@
-staticHMC(base_step_size::Float64, trajectory_length::Float64, n_refresh::Int, target_std_deviations = nothing) =
-    HMC(base_step_size, trajectory_length, n_refresh, false, false, target_std_deviations, nothing,  nothing)
-
-adaptiveHMC() = HMC(0.1, 1.0, 3, true, true, nothing, nothing, nothing)
-
-
-### Internal
-
 @auto struct HMC
     # those are determined at the beginning:
     base_step_size::Float64 
@@ -21,6 +13,25 @@ adaptiveHMC() = HMC(0.1, 1.0, 3, true, true, nothing, nothing, nothing)
     interpolated_curvatures
     step_size_scalings
 end
+
+
+"""
+$SIGNATURES 
+
+By default, adaptive schemes for a diagonal matrix and step size 
+are enabled.
+"""
+HMC() = HMC(0.1, 1.0, 3, true, true, nothing, nothing, nothing)
+
+
+static_HMC(base_step_size::Float64, trajectory_length::Float64, n_refresh::Int, target_std_deviations = nothing) =
+    HMC(base_step_size, trajectory_length, n_refresh, false, false, target_std_deviations, nothing,  nothing)
+
+
+
+### Internal
+
+
 
 adapted(old::HMC, target_std_deviations, interpolated_curvatures, step_size_scalings) = 
     HMC(
