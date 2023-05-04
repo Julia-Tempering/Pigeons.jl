@@ -43,14 +43,14 @@ end
 hmc(target, std_devs = nothing) =
     pigeons(; 
         target, 
-        explorer = Pigeons.static_HMC(0.2, 1.0, 3, std_devs), 
+        explorer = Pigeons.static_HMC(0.2, 3, std_devs), 
         n_chains = 1, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
 @testset "HMC epsilon" begin
-    hmc_adapt_only_eps() = HMC(0.2, 1.0, 3, false, true, nothing, nothing, nothing)
-    hmc_no_adapt()       = HMC(0.2, 1.0, 3, false, false, nothing, nothing, nothing)
+    hmc_adapt_only_eps() = HMC(0.2, 3, false, true, nothing, nothing, nothing)
+    hmc_no_adapt()       = HMC(0.2, 3, false, false, nothing, nothing, nothing)
 
     target = Pigeons.ScaledPrecisionNormalPath(1.0, 100.0, 1)
 

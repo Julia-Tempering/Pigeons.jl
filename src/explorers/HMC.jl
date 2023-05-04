@@ -1,8 +1,8 @@
 @auto struct HMC
     # those are determined at the beginning:
     base_step_size::Float64 
-    trajectory_length::Float64
-    n_refresh::Int
+    n_refresh::Int  # per exploration step
+
     adaptive_diag_mass_mtx::Bool 
     adaptive_epsilon::Bool
 
@@ -14,6 +14,7 @@
     step_size_scalings
 end
 
+n_steps(base_step_size, dim) = ceil(Int, 1.0 / base_step_size / dim^(-0.25))
 
 """
 $SIGNATURES 
@@ -21,15 +22,14 @@ $SIGNATURES
 By default, adaptive schemes for a diagonal matrix and step size 
 are enabled.
 """
-HMC() = HMC(0.1, 1.0, 3, true, true, nothing, nothing, nothing)
+HMC(base_step_size = 0.1, n_refresh = 3) = HMC(base_step_size, n_refresh, true, true, nothing, nothing, nothing)
 
-static_HMC(base_step_size::Float64, trajectory_length::Float64, n_refresh::Int, target_std_deviations = nothing) =
-    HMC(base_step_size, trajectory_length, n_refresh, false, false, target_std_deviations, nothing,  nothing)
+static_HMC(base_step_size = 0.1, n_refresh = 3, target_std_deviations = nothing) =
+    HMC(base_step_size, n_refresh, false, false, target_std_deviations, nothing,  nothing)
 
 adapted(old::HMC, target_std_deviations, interpolated_curvatures, step_size_scalings) = 
     HMC(
         old.base_step_size, 
-        old.trajectory_length,
         old.n_refresh,
         old.adaptive_diag_mass_mtx, 
         old.adaptive_epsilon, 
@@ -100,7 +100,7 @@ function step!(explorer::HMC, replica, shared)
             explorer.target_std_deviations
 
     # init v
-    v = randn(rng, dim) # !!!! TODO: make this non-alloc
+    v = randn(rng, dim) # !!!! TODO: make this non-alloc, same for gradient, state_start, etc
     state_start = copy(state)
 
     step_size = explorer.base_step_size * dim^(-0.25) 
@@ -109,8 +109,9 @@ function step!(explorer::HMC, replica, shared)
     end
 
     # TODO: randomize the trajectory length using a separate SplittableRandom
+    # TODO: switch back from traj length into L..
 
-    n_leap_frog_until_refresh = ceil(Int, explorer.trajectory_length / step_size)
+    n_leap_frog_until_refresh = n_steps(explorer.base_step_size, dim)
 
     hamiltonian() = log_potential(state) - 0.5 * sqr_norm(v)
 

@@ -13,7 +13,7 @@ function bivariate_normal(std_dev_1, std_dev_2, rho)
     @assert std_dev_1 > 0 
     @assert std_dev_2 > 0
     @assert -1 ≤ rho ≤ 1
-    MvNormal([
+    return MvNormal([
         std_dev_1^2                   rho * std_dev_1 * std_dev_2
         rho * std_dev_1 * std_dev_2   std_dev_2^2
     ])
