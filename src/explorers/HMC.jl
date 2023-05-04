@@ -44,7 +44,7 @@ function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_temper
 
     target_std_dev = 
         explorer.adaptive_diag_mass_mtx ? 
-            get_statistic(reduced_recorders, :singleton_variable, Variance) : 
+            sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance)) : 
             nothing
     
     if explorer.adaptive_epsilon
