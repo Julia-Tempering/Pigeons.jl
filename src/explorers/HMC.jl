@@ -48,12 +48,13 @@ function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_temper
         ys = zeros(length(betas))
         for i in eachindex(betas) 
             j = i == 1 ? 2 : i # TODO: will need to change for 2 refs 
-            ys[i] = maximum(curvature_estimates[j])
+            # we will fit the spline in log scale, then exp.() after interpolation to ensure positivity
+            ys[i] = log(maximum(curvature_estimates[j])) 
         end
         interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4))
 
         # heuristic based on R. Neal 2012, 'MCMC using Hamiltonian dynamics' just below equation (4.7)
-        step_size_scalings = 1.0 ./ sqrt.(interpolated.(new_tempering.schedule.grids))
+        step_size_scalings = 1.0 ./ sqrt.(exp.(interpolated.(new_tempering.schedule.grids)))
     else
         interpolated = nothing
         step_size_scalings = nothing
@@ -100,6 +101,9 @@ function step!(explorer::HMC, replica, shared)
     if explorer.step_size_scalings !== nothing 
         step_size *= explorer.step_size_scalings[replica.chain]
     end
+
+    # TODO: randomize the trajectory length using a separate SplittableRandom
+
     n_leap_frog_until_refresh = ceil(Int, explorer.trajectory_length / step_size)
 
     hamiltonian() = log_potential(state) - 0.5 * sqr_norm(v)
@@ -184,7 +188,8 @@ function hamiltonian_dynamics!(
         directional_after = -dot(grad, v) 
 
         second_dir_deriv = abs(directional_after - directional_before) / step_size / sqr_norm(v)
-        if replica !== nothing 
+        if replica !== nothing && 
+            isfinite(second_dir_deriv) # in case e.g. norm of v is very small
             @record_if_requested!(replica.recorders, :directional_second_derivatives, (replica.chain, second_dir_deriv))
         end
 

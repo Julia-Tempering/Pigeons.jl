@@ -3,15 +3,17 @@ using Pigeons
 using SplittableRandoms
 using Test
 using OnlineStats
+using Distributions 
 
-rng = SplittableRandom(1)
+rho = 0.995
 
-hmc_adapt_only_eps() = HMC(0.2, 1.0, 3, false, true, nothing, nothing, nothing)
+pigeons(target = Pigeons.bivariate_normal(1.0, 1.0, rho), 
+    explorer = Pigeons.staticHMC(0.1, 1.0, 3), 
+    recorder_builders = Pigeons.online_recorder_builders())
 
-
-pt = pigeons(target = Pigeons.ScaledPrecisionNormalPath(1.0, 100.0, 1), 
-        recorder_builders = Pigeons.online_recorder_builders(), 
-        explorer = hmc_adapt_only_eps())
+pigeons(target = Pigeons.bivariate_normal(1.0, 1.0, rho), 
+    explorer = Pigeons.adaptiveHMC(), 
+    recorder_builders = Pigeons.online_recorder_builders())
 
 
 return nothing

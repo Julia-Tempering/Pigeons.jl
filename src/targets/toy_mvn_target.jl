@@ -20,6 +20,3 @@ Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::ScaledPrecision
     for i in eachindex(x)
         x[i] = randn(rng) / sqrt(log_potential.precision)
     end
-
-create_path(target::MultivariateNormal, ::Inputs) = 
-    target # a bit of a special case here: the target is also a path
