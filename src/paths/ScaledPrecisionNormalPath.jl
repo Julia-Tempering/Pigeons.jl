@@ -21,6 +21,11 @@ end
 
 gradient(log_potential::ScaledPrecisionNormalLogPotential, x) = -log_potential.precision * x
 
+function gradient!!(log_potential::ScaledPrecisionNormalLogPotential, x::T, buffer::T) where {T}
+    buffer .= -log_potential.precision .* x
+    return buffer
+end
+
 """
 $SIGNATURES
 

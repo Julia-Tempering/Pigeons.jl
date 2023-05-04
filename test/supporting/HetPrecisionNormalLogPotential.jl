@@ -18,14 +18,12 @@ function Pigeons.sample_iid!(my_potential::HetPrecisionNormalLogPotential, repli
     end
 end
 
-function Pigeons.gradient(log_potential::HetPrecisionNormalLogPotential, x) 
+function Pigeons.gradient!!(log_potential::HetPrecisionNormalLogPotential, x::T, buffer::T) where {T}
     len = length(x)
     @assert len == length(log_potential.precisions) 
-    result = zeros(len)
-    for i in 1:len 
-        result[i] = -log_potential.precisions[i] * x[i] 
-    end
-    return result
+    @assert len == length(buffer)
+    buffer .= -log_potential.precisions .* x
+    return buffer
 end
 
 function (log_potential::HetPrecisionNormalLogPotential)(x) 

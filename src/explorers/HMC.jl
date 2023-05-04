@@ -76,7 +76,13 @@ end
 
 function explorer_recorder_builders(hmc::HMC) 
     result = Function[]
+
     push!(result, explorer_acceptance_pr)
+    push!(result, momentum_buffer)
+    push!(result, state_buffer)
+    push!(result, gradient_buffer)
+    push!(result, ones_buffer)
+
     if hmc.adaptive_diag_mass_mtx
         push!(result, target_online)
     end
@@ -96,14 +102,19 @@ function step!(explorer::HMC, replica, shared)
     state = replica.state
     dim = length(state)
 
-    target_std_deviations = 
-        explorer.target_std_deviations === nothing ? 
-            ones(dim) :
-            explorer.target_std_deviations
+    momentum = get_buffer(replica.recorders.momentum_buffer, dim) 
+    ones_buffer = get_buffer(replica.recorders.ones_buffer, dim)
+    gradient_buffer = get_buffer(replica.recorders.gradient_buffer, dim)
+    state_start = get_buffer(replica.recorders.state_buffer, dim)
+    state_start .= state
 
-    # init v
-    v = randn(rng, dim) # !!!! TODO: make this non-alloc, same for gradient, state_start, etc
-    state_start = copy(state)
+    target_std_deviations = 
+        if explorer.target_std_deviations === nothing 
+            ones_buffer .= 1.0
+            ones_buffer
+        else 
+            explorer.target_std_deviations
+        end
 
     step_size = explorer.base_step_size * dim^(-0.25) 
     if explorer.step_size_scalings !== nothing 
@@ -112,17 +123,25 @@ function step!(explorer::HMC, replica, shared)
 
     max_n_steps_between_refresh = max_n_steps(explorer.base_step_size, dim)
 
-    hamiltonian() = log_potential(state) - 0.5 * sqr_norm(v)
+    hamiltonian() = log_potential(state) - 0.5 * sqr_norm(momentum)
 
     for i in 1:explorer.n_refresh
 
-        n_steps = rand(shared_rng, 1:max_n_steps_between_refresh)
+        # refreshment
+        randn!(rng, momentum)
+
+        # The natural thing would be:
+        # n_steps = rand(shared_rng, 1:max_n_steps_between_refresh)
+        # but it is creating allocations (!)
+        n_steps = ceil(Int, rand(shared_rng) * max_n_steps_between_refresh)
 
         init_joint_log  = hamiltonian()
         @assert isfinite(init_joint_log)
-        success = hamiltonian_dynamics!(
-            log_potential, target_std_deviations, state, v, step_size, n_steps,
-            replica)
+
+        success = 
+            hamiltonian_dynamics!(
+                log_potential, target_std_deviations, state, momentum, step_size, n_steps,
+                replica, gradient_buffer)
 
         if success # by success, we mean no NaN or -Inf were encountered along the trajectory
             final_joint_log = hamiltonian()
@@ -141,17 +160,17 @@ function step!(explorer::HMC, replica, shared)
             # we encountered something not finite along the trajectory
             state .= state_start
         end
-
-        # refreshment
-        randn!(rng, v)
     end
 end
 
+# See e.g., R. Neal, p.14. 
+# we add statistics collection for adaptation and tricks to make it 
+# non-allocating
 function hamiltonian_dynamics!(
         target_log_potential, 
         target_std_deviations, 
-        x, v, step_size, n_steps, 
-        replica)
+        state, momentum, step_size, n_steps, 
+        replica, gradient_buffer)
 
     # We use an implicit linear transformation rescaling  
     # component i with 1/target_std_deviations[i]
@@ -160,56 +179,48 @@ function hamiltonian_dynamics!(
     # formulation so that we can estimate the residual curvature induced 
     # by correlations not captured by matching the componentwise 
     # moments. 
-    conditioned_target_gradient() = 
-        gradient(target_log_potential, x) .* 
-            target_std_deviations 
-
-    # See e.g., R. Neal, p.14. 
-    # we add statistics collection for adaptation and tricks to make it 
-    # non-allocating
+    function conditioned_target_gradient!()
+        gradient_buffer .= gradient!!(target_log_potential, state, gradient_buffer) 
+        gradient_buffer .= gradient_buffer .* target_std_deviations 
+    end
 
     # keep previous grad to get directional curvature statistics
-    grad = conditioned_target_gradient()
+    conditioned_target_gradient!()
 
-    # first half-step
-    v .= v .+ (step_size/2) .* grad
+    # # first half-step
+    momentum .= momentum .+ (step_size/2) .* gradient_buffer
 
     for i in 1:n_steps 
         # more setup for directional curvature stats
-        directional_before = -dot(grad, v)
+        directional_before = -dot(gradient_buffer, momentum)
 
         # full step on position
-        x .= x .+ step_size .* v .* target_std_deviations
+        state .= state .+ step_size .* momentum .* target_std_deviations
 
         # TODO: bounce
-        if !isfinite(target_log_potential(x))
+        if !isfinite(target_log_potential(state))
             return false
-            # # we are in the middle of a step, undo it 
-            # x .= x .+ step_size .* mom_grad
-            # v .= v .- (step_size/2) .* grad
-            # # the other (full) leap frogs will be undone from the caller
-            # return false, (i-1)  # meaning: (failure, number of leap frogs after a flip to go back to starting point)
         end
 
         # compute and record directional curvature data point
-        grad = conditioned_target_gradient()
+        conditioned_target_gradient!()
+        directional_after = -dot(gradient_buffer, momentum) 
 
-        directional_after = -dot(grad, v) 
-
-        second_dir_deriv = abs(directional_after - directional_before) / step_size / sqr_norm(v)
+        second_dir_deriv = abs(directional_after - directional_before) / step_size / sqr_norm(momentum)
         if replica !== nothing && 
-            isfinite(second_dir_deriv) # in case e.g. norm of v is very small
+            isfinite(second_dir_deriv) # in case e.g. norm of momentum is very small
             @record_if_requested!(replica.recorders, :directional_second_derivatives, (replica.chain, second_dir_deriv))
         end
 
         # Neal's trick to merge successive half-steps
         if i != n_steps 
-            v .= v .+ step_size .* grad
+            momentum .= momentum .+ step_size .* gradient_buffer
         end
     end
 
     # last half-step
-    v .= v .+ (step_size/2) .* conditioned_target_gradient()
+    conditioned_target_gradient!()
+    momentum .= momentum .+ (step_size/2) .* gradient_buffer
 
     return true
 end
@@ -222,3 +233,15 @@ end
 # to make shared writteable. 
 rng_shared_by_all_replicas(iterators) = 
     SplittableRandom(11 + 7 * iterators.round + 3 * iterators.scan) 
+
+momentum_buffer() = Augmentation{Vector{Float64}}() 
+state_buffer() = Augmentation{Vector{Float64}}()
+gradient_buffer() = Augmentation{Vector{Float64}}()
+ones_buffer() = Augmentation{Vector{Float64}}()
+
+function get_buffer(augmentation, dim::Int)::Vector{Float64}
+    if augmentation.contents === nothing 
+        augmentation.contents = zeros(dim) 
+    end
+    return augmentation.contents
+end

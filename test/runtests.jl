@@ -34,11 +34,11 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
-# @testset "Allocs-HMC" begin
-#     allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(1), explorer = HMC()))
-#     allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(1), explorer = HMC()))
-#     @test allocs_10_rounds == allocs_11_rounds
-# end
+@testset "Allocs-HMC" begin
+    allocs_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 13, target = toy_mvn_target(1), explorer = HMC()))
+    allocs_rounds_longer = Pigeons.last_round_max_allocation(pigeons(n_rounds = 14, target = toy_mvn_target(1), explorer = HMC()))
+    @test allocs_rounds == allocs_rounds_longer
+end
 
 hmc(target, std_devs = nothing) =
     pigeons(; 
@@ -91,9 +91,9 @@ end
     n_leaps = 40
 
     start = copy(x)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps, nothing)
+    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps, nothing, zeros(2))
     @test !(x ≈ start)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps, nothing)
+    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps, nothing, zeros(2))
     @test x ≈ start
 end
 
@@ -114,7 +114,7 @@ end
 
     v = randn(rng, 2)
     for i in 1:100
-        Pigeons.hamiltonian_dynamics!(my_target, partly_estimated_std_devs, x, v, 0.1, n_leaps, replica)
+        Pigeons.hamiltonian_dynamics!(my_target, partly_estimated_std_devs, x, v, 0.1, n_leaps, replica, zeros(2))
         v = randn(rng, 2)
     end
 
