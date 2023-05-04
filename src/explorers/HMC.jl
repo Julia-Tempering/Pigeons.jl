@@ -23,15 +23,8 @@ are enabled.
 """
 HMC() = HMC(0.1, 1.0, 3, true, true, nothing, nothing, nothing)
 
-
 static_HMC(base_step_size::Float64, trajectory_length::Float64, n_refresh::Int, target_std_deviations = nothing) =
     HMC(base_step_size, trajectory_length, n_refresh, false, false, target_std_deviations, nothing,  nothing)
-
-
-
-### Internal
-
-
 
 adapted(old::HMC, target_std_deviations, interpolated_curvatures, step_size_scalings) = 
     HMC(
@@ -41,6 +34,8 @@ adapted(old::HMC, target_std_deviations, interpolated_curvatures, step_size_scal
         old.adaptive_diag_mass_mtx, 
         old.adaptive_epsilon, 
         target_std_deviations, interpolated_curvatures, step_size_scalings)
+
+step_size_scalings(interpolated, points) = 1.0 ./ sqrt.(exp.(interpolated.(points)))
 
 function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_tempering)
     if !explorer.adaptive_diag_mass_mtx && !explorer.adaptive_epsilon
@@ -65,17 +60,17 @@ function adapt_explorer(explorer::HMC, reduced_recorders, current_pt, new_temper
         interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4))
 
         # heuristic based on R. Neal 2012, 'MCMC using Hamiltonian dynamics' just below equation (4.7)
-        step_size_scalings = 1.0 ./ sqrt.(exp.(interpolated.(new_tempering.schedule.grids)))
+        step_size_scalings_ = step_size_scalings(interpolated, new_tempering.schedule.grids)
     else
         interpolated = nothing
-        step_size_scalings = nothing
+        step_size_scalings_ = nothing
     end
     
     return adapted(
             explorer, 
             target_std_dev, 
             interpolated,
-            step_size_scalings
+            step_size_scalings_
         )
 end
 
