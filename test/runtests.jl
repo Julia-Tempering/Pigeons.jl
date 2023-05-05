@@ -34,23 +34,37 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
+pt = pigeons(target = bad_conditioning_target, explorer = HMC(0.1), n_chains = 1, n_rounds = 15)
+
+mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
+
+@testset "Mass-matrix" begin
+    bad_conditioning_target = HetPrecisionNormalLogPotential([500.0, 1.0])
+    pt = pigeons(target = bad_conditioning_target, explorer = HMC(), n_chains = 1, n_rounds = 10)
+    @test abs(pt.shared.explorer.target_std_deviations[1] - 1/sqrt(500)) < 0.01
+    @test mean_mh_accept(pt) > 0.8
+
+    pt = pigeons(target = bad_conditioning_target, explorer = static_HMC(), n_chains = 1, n_rounds = 10)
+    @test mean_mh_accept(pt) < 0.7
+end
+
 @testset "Allocs-HMC" begin
     allocs_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 13, target = toy_mvn_target(1), explorer = HMC()))
     allocs_rounds_longer = Pigeons.last_round_max_allocation(pigeons(n_rounds = 14, target = toy_mvn_target(1), explorer = HMC()))
     @test allocs_rounds == allocs_rounds_longer
 end
 
-hmc(target, std_devs = nothing) =
+hmc(target) =
     pigeons(; 
         target, 
-        explorer = Pigeons.static_HMC(0.2, 3, std_devs), 
+        explorer = Pigeons.static_HMC(0.2, 3), 
         n_chains = 1, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
 
-mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
+
 
 @testset "HMC epsilon" begin
-    hmc_adapt_only_eps() = HMC(0.2, 3, false, true, nothing, nothing, nothing)
-    hmc_no_adapt()       = HMC(0.2, 3, false, false, nothing, nothing, nothing)
+    hmc_adapt_only_eps() = HMC(0.2, 3, 0.0, 1.0, nothing, nothing, nothing)
+    hmc_no_adapt()       = HMC(0.2, 3, 0.0, 0.0, nothing, nothing, nothing)
 
     target = Pigeons.ScaledPrecisionNormalPath(1.0, 100.0, 1)
 
@@ -63,20 +77,6 @@ end
         d = 10^i
         @test mean_mh_accept(hmc(toy_mvn_target(d))) > 0.95
     end
-end
-
-@testset "Check HMC pre-conditioning" begin
-    tol = 1e-5
-    iso = HetPrecisionNormalLogPotential(2) 
-    before = mean_mh_accept(hmc(iso))
-
-    bad_conditioning_target = HetPrecisionNormalLogPotential([50.0, 1.0])
-    bad = mean_mh_accept(hmc(bad_conditioning_target))
-    @test abs(before - bad) > tol
-
-    std_devs = 1.0 ./ sqrt.(bad_conditioning_target.precisions)
-    corrected = mean_mh_accept(hmc(bad_conditioning_target, std_devs))
-    @test before == corrected
 end
 
 @testset "Check HMC involution" begin
