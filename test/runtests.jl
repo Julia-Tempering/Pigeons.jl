@@ -25,7 +25,7 @@ include("supporting/HetPrecisionNormalLogPotential.jl")
 
 function test_load_balance(n_processes, n_tasks)
     for p in 1:n_processes
-        lb = LoadBalance(p, n_processes, n_tasks)        
+        lb = LoadBalance(p, n_processes, n_tasks)
         globals = my_global_indices(lb)
         @assert length(globals) == my_load(lb)
         for g in globals
@@ -132,13 +132,18 @@ end
 end
 
 @testset "Traces" begin
-    pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true) 
-    @test length(pt.reduced_recorders.traces) == 1024 
+    pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true)
+    @test length(pt.reduced_recorders.traces) == 1024
     marginal = [get_sample(pt, 10, i)[1] for i in 1:1024]
-    @test abs(mean(marginal) - 0.0) < 0.05 
-
+    s = get_sample(pt, 10)
+    @test marginal == first.(s)
+    @test abs(mean(marginal) - 0.0) < 0.05
+    @test mean(marginal) ≈ mean(s)[1]
+    @test s[1] == get_sample(pt, 10, 1)
+    @test size(s)[1] == length(marginal)
+    @test_throws "You cannot" setindex!(s, s[2], 1)
     # check that the disk serialization gives the same result
-    process_samples(pt) do chain, scan, sample 
+    process_samples(pt) do chain, scan, sample
         @test sample == get_sample(pt, chain, scan)
     end
 end
@@ -180,9 +185,9 @@ end
 @testset "Round trips" begin
     n_chains = 4
     n_rounds = 5
-    
+
     pt = pigeons(; target = Pigeons.TestSwapper(1.0), recorder_builders = [Pigeons.round_trip], n_chains, n_rounds);
-    
+
     len = 2^(n_rounds)
     truth = 0.0
     for i in 0:(n_chains-1)
@@ -199,14 +204,12 @@ end
         for i in eachindex(m)
             @test abs(m[i] - 0.0) < 0.001
         end
-        v = var(pt, var_name) 
-        for i in eachindex(v) 
-            @test abs(v[i] - 0.1) < 0.001 
+        v = var(pt, var_name)
+        for i in eachindex(v)
+            @test abs(v[i] - 0.1) < 0.001
         end
     end
 end
-
-
 
 @testset "Parallelism Invariance" begin
     n_mpis = set_n_mpis_to_one_on_windows(4)
@@ -255,21 +258,23 @@ end
     end
 end
 
+
+
 @testset "Longer MPI" begin
     n_mpis = set_n_mpis_to_one_on_windows(4)
     recorder_builders = []
     pigeons(
-        target = Pigeons.TestSwapper(0.5), 
+        target = Pigeons.TestSwapper(0.5),
         n_rounds = 14,
-        checked_round = 12, 
+        checked_round = 12,
         n_chains = 200,
         multithreaded = false,
         recorder_builders = recorder_builders,
-        checkpoint = true, 
+        checkpoint = true,
         on = ChildProcess(
                 n_local_mpi_processes = n_mpis,
                 n_threads = 2,
-                mpiexec_args = extra_mpi_args())) 
+                mpiexec_args = extra_mpi_args()))
 end
 
 @testset "Entanglement" begin
@@ -297,7 +302,7 @@ end
 
 @testset "LogSum" begin
     m = Pigeons.LogSum()
-    
+
     fit!(m, 2.1)
     fit!(m, 4)
     v1 = value(m)
@@ -306,7 +311,7 @@ end
 
     fit!(m, 2.1)
     fit!(m, 4)
-    m2 = Pigeons.LogSum() 
+    m2 = Pigeons.LogSum()
     fit!(m2, 50.1)
     combined = merge(m, m2)
     @assert value(combined) ≈ log(exp(v1) + exp(50.1))
@@ -345,5 +350,3 @@ end
 @testset "SliceSampler" begin
     test_slice_sampler()
 end
-
-
