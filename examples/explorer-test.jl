@@ -4,10 +4,12 @@ using SplittableRandoms
 using Plots
 rng = SplittableRandom(1)
 
+
 logp = comrade_target_example()
 #Pigeons.Pigeons.ScaledPrecisionNormalLogPotential(1.0, 10) #
 
-state = [
+state = #zeros(10)
+[
     0.29949544751832907
     -0.47786489256752973
     -1.1094748964162686
@@ -21,11 +23,49 @@ state = [
 ]
 
 
+
 dim = length(state)
 
 momentum = randn(rng, dim)
 target_std_deviations = ones(dim)
 gradient_buffer = zeros(dim)
+
+# check behaviour of V(X)
+
+
+xs = []
+for i in 1:50000
+    
+    push!(xs, logp(state))
+
+    Pigeons.leaf_frog!(
+        logp, 
+        target_std_deviations, 
+        state, momentum, 0.00005,
+        gradient_buffer)  
+
+end
+
+plot(xs)
+
+momentum = randn(rng, dim)
+
+xs = []
+for i in 1:50000
+    
+    push!(xs, logp(state))
+
+    Pigeons.leaf_frog!(
+        logp, 
+        target_std_deviations, 
+        state, momentum, 0.00005,
+        gradient_buffer)  
+
+end
+
+plot!(xs)
+
+
 
 # ### debug...
 
@@ -52,49 +92,49 @@ gradient_buffer = zeros(dim)
 
 # ###
 
-println("before: $(Pigeons.hamiltonian(logp, state, momentum))")
+# println("before: $(Pigeons.hamiltonian(logp, state, momentum))")
 
-obj1 = Pigeons.adaptive_leap_frog_objective(
-    logp, 
-    target_std_deviations, 
-    state, momentum, 
-    gradient_buffer)
+# obj1 = Pigeons.adaptive_leap_frog_objective(
+#     logp, 
+#     target_std_deviations, 
+#     state, momentum, 
+#     gradient_buffer)
 
-p = plot(obj1, 0.0:0.0001:0.012)
+# p = plot(obj1, 0.0:0.0001:0.012)
 
-step_size = Pigeons.adaptive_leap_frog!(
-    logp,
-    target_std_deviations, 
-    state, momentum, 
-    gradient_buffer)
+# step_size = Pigeons.adaptive_leap_frog!(
+#     logp,
+#     target_std_deviations, 
+#     state, momentum, 
+#     gradient_buffer)
 
-@show step_size
-println()
+# @show step_size
+# println()
 
-momentum .*= -1.0
+# momentum .*= -1.0
 
-obj2 = Pigeons.adaptive_leap_frog_objective(
-    logp, 
-    target_std_deviations, 
-    state, momentum, 
-    gradient_buffer)
+# obj2 = Pigeons.adaptive_leap_frog_objective(
+#     logp, 
+#     target_std_deviations, 
+#     state, momentum, 
+#     gradient_buffer)
 
-@show obj2(step_size)
+# @show obj2(step_size)
 
-p = plot!(obj2)
+# p = plot!(obj2)
 
-step_size2 = Pigeons.adaptive_leap_frog!(
-    logp,
-    target_std_deviations, 
-    state, momentum, 
-    gradient_buffer)
+# step_size2 = Pigeons.adaptive_leap_frog!(
+#     logp,
+#     target_std_deviations, 
+#     state, momentum, 
+#     gradient_buffer)
 
-@show step_size2
+# @show step_size2
 
-@show state
+# @show state
 
 
-return p
+# return p
 
 # state = Pigeons.initialization(logp, rng, -1)
 # obj2 = Pigeons.adaptive_leap_frog_objective(
@@ -136,6 +176,13 @@ Just use existing? But tricky in PT context
 
 https://github.com/tpapp/DynamicHMC.jl/blob/master/test/test_diagnostics.jl
 https://github.com/TuringLang/AdvancedHMC.jl/blob/master/src/adaptation/stepsize.jl
+
+
+
+
+New plan
+
+- 
 
 
 =#

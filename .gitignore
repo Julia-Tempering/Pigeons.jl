@@ -22,3 +22,4 @@ nowellpack
 tmp.jl
 Manifest.toml
 examples/.CondaPkg
+test.pdf
