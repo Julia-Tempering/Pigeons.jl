@@ -150,6 +150,7 @@ function step!(explorer::HMC, replica, shared)
     use_mass_matrix_adapt = adapt_choice_draw < explorer.adaptive_diag_mass_mtx_pr
     use_step_size_adapt = adapt_choice_draw < explorer.adaptive_step_size_pr
 
+    # TODO: should not have to do that, generalize the stuff to take in nothing
     target_std_deviations = 
         if explorer.target_std_deviations === nothing || !use_mass_matrix_adapt
             # we won't use diagonal mass matrix
@@ -206,6 +207,94 @@ function step!(explorer::HMC, replica, shared)
         end
     end
 end
+
+function adaptive_leap_frog_objective(
+        target_log_potential, 
+        target_std_deviations, 
+        state, momentum, 
+        gradient_buffer)
+
+    # TODO: pass those as buffers
+    state_before = copy(state)
+    momentum_before = copy(momentum)
+
+    h_before = hamiltonian(target_log_potential, state, momentum)
+
+    function objective(step_size)
+        leaf_frog!(target_log_potential, target_std_deviations, state, momentum, step_size, gradient_buffer)
+        h_after = hamiltonian(target_log_potential, state, momentum)
+        state .= state_before 
+        momentum .= momentum_before
+        return h_after - h_before
+    end
+
+    return objective
+end
+
+function adaptive_leap_frog!(
+        target_log_potential, 
+        target_std_deviations, 
+        state, momentum, 
+        gradient_buffer)
+    obj = adaptive_leap_frog_objective(
+            target_log_potential, 
+            target_std_deviations, 
+            state, momentum, 
+            gradient_buffer)
+    step_size = 
+        # if adaptive_leap_frog_objective_derivative_sign(obj) > 0.0
+        #     find_zero(obj)
+        # else
+            find_target(obj, 0.05) 
+        # end
+    leaf_frog!(target_log_potential, target_std_deviations, state, momentum, step_size, gradient_buffer)
+    return step_size
+end
+
+function find_zero(obj)
+    right = 1.0
+    while obj(right) > 0.0 
+        right *= 2.0 
+    end
+    return Roots.find_zero(obj, (1e-5, right))
+end
+
+function find_target(obj, alpha) 
+    @assert alpha > 0.0
+    right = 1.0 
+    while abs(obj(right)) < alpha 
+        right *= 2.0
+    end
+    target_alpha = sign(obj(right)) * alpha 
+    translated(x) = obj(x) - target_alpha 
+    return Roots.find_zero(translated, (0.0, right))
+
+    # translated(x) = obj(x) + alpha 
+    # right = 1.0 
+    # while translated(right) > 0.0 
+    #     right *= 2.0 
+    # end
+    # return Roots.find_zero(translated, (0.0, right))
+end
+
+function adaptive_leap_frog_objective_derivative_sign(obj)
+    # TODO: fix ForwardDiff or write close form expression 
+    return sign(obj(1e-5))
+end
+
+
+leaf_frog!(
+        target_log_potential, 
+        target_std_deviations, 
+        state, momentum, step_size,
+        gradient_buffer) =
+    # TODO: implement directly if settle here 
+    hamiltonian_dynamics!(
+        target_log_potential, 
+        target_std_deviations, 
+        state, momentum, step_size, 1, 
+        nothing, gradient_buffer)
+
 
 # See e.g., R. Neal, p.14. 
 # we add a cheap curvature estimator for adaptation and tricks to make it 
