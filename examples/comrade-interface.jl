@@ -45,14 +45,16 @@ end
 
 LogDensityProblems.dimension(pp::PriorPotential) = pp.dim
 
-# This one takes in the log jacobian of the transformation not the prior!
 function (m::PigeonsLogPotential)(x)
-    return logdensityof(m.post, x)
+    # This one takes in the log jacobian of the transformation not the prior!
+    # i.e. (after clarification with Paul) the log Jacobian is not added twice!
+    logdensityof(m.post, x) 
 end
 
 Pigeons.create_state_initializer(target::PigeonsLogPotential, ::Inputs) = target
 function Pigeons.initialization(target::PigeonsLogPotential, rng::Pigeons.SplittableRandom, _::Int64)
-   return  Comrade.prior_sample(rng, target.post)
+    prior_pot = PriorPotential(target.post)
+    return Comrade.inverse(prior_pot.transform, rand(rng, prior_pot.prior))
 end
 
 Pigeons.default_explorer(::PigeonsLogPotential) = SliceSampler()
@@ -72,10 +74,6 @@ function Pigeons.gradient(log_potential::PriorPotential, x)
 end
 
 LogDensityProblems.logdensity(pp::PriorPotential, x) = pp(x)
-
-function Pigeons.sample_iid!(target::PigeonsLogPotential, replica)
-    replica.state = initialization(target, replica.rng, replica.replica_index)
-end
 
 function Pigeons.sample_iid!(target::PriorPotential, replica)
     replica.state = Comrade.inverse(target.transform, rand(replica.rng, target.prior))
@@ -289,5 +287,7 @@ end
 
 jube_target = Pigeons.LazyTarget(JubeTarget())
 jube_target_mti = Pigeons.LazyTarget(JubeTarget(multithreaded_modelimage = true))
+
+
 
 nothing
