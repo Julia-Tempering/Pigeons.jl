@@ -56,6 +56,11 @@ $FIELDS
     type of the target. 
     """
     explorer::E = nothing
+
+    """
+    Show or hide sampling report. 
+    """
+    show_report::Bool = true
 end
 
 """

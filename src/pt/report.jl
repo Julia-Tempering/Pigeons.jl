@@ -21,6 +21,9 @@ $SIGNATURES
 Report summary information on the progress of [`pigeons()`](@ref).
 """
 report(pt, prev_header) = only_one_process(pt) do
+    if !pt.inputs.show_report
+        return nothing
+    end
     reports = reports_available(pt)
     if pt.shared.iterators.round == 1
         header(reports)
