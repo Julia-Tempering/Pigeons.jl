@@ -130,7 +130,7 @@ end
 
 hamiltonian(logp, state, momentum) = logp(state) - 0.5 * sqr_norm(momentum)
 
-function step!(explorer::HMC, replica, shared)   
+function step!(explorer::HMC, replica, shared, step_size_ = nothing, n_steps_ = nothing)   
     rng = replica.rng
     log_potential = find_log_potential(replica, shared)
     
@@ -160,11 +160,15 @@ function step!(explorer::HMC, replica, shared)
             explorer.target_std_deviations
         end
 
-    step_size = explorer.base_step_size * dim^(-0.25) 
-    if explorer.step_size_scalings !== nothing && use_step_size_adapt
-        # the mass matrix misses some of the curvature, 
-        # this attempts to correct it
-        step_size *= explorer.step_size_scalings[replica.chain]
+    if step_size_ === nothing
+        step_size = explorer.base_step_size * dim^(-0.25) 
+        if explorer.step_size_scalings !== nothing && use_step_size_adapt
+            # the mass matrix misses some of the curvature, 
+            # this attempts to correct it
+            step_size *= explorer.step_size_scalings[replica.chain]
+        end
+    else
+        step_size = step_size_
     end
 
     max_n_steps_between_refresh = max_n_steps(explorer.base_step_size, dim)
@@ -177,7 +181,11 @@ function step!(explorer::HMC, replica, shared)
         # The natural thing would be:
         # n_steps = rand(shared_rng, 1:max_n_steps_between_refresh)
         # but it is creating allocations (!)
-        n_steps = ceil(Int, rand(shared_rng) * max_n_steps_between_refresh)
+        if n_steps_ === nothing
+            n_steps = ceil(Int, rand(shared_rng) * max_n_steps_between_refresh)
+        else 
+            n_steps = n_steps_
+        end
 
         init_joint_log  = hamiltonian(log_potential, state, momentum)
         @assert isfinite(init_joint_log)
@@ -290,10 +298,10 @@ leaf_frog!(
         gradient_buffer) =
     # TODO: implement directly if settle here 
     hamiltonian_dynamics!(
-        target_log_potential, 
-        target_std_deviations, 
-        state, momentum, step_size, 1, 
-        nothing, gradient_buffer)
+            target_log_potential, 
+            target_std_deviations, 
+            state, momentum, step_size, 1, 
+            nothing, gradient_buffer)
 
 
 # See e.g., R. Neal, p.14. 
