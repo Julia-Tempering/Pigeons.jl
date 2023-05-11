@@ -23,6 +23,10 @@ using MCMCChains
 using Statistics
 using Plots 
 
+using Random
+
+Random.seed!(123)
+
 # Define the target distribution using the `LogDensityProblem` interface
 struct LogTargetDensity
     dim::Int
@@ -65,8 +69,8 @@ function nuts(D)
     vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
 
     # estimate cost per ESS
-    @show n_steps = sum(map(s -> s.n_steps, stats))
-    @show ess_value = compute_ess(vs)
+    n_steps = sum(map(s -> s.n_steps, stats))
+    ess_value = compute_ess(vs)
     return D*n_steps/ess_value
 end
 
@@ -76,6 +80,7 @@ function hit_run(D)
             target = toy_mvn_target(D),
             n_chains = 1, 
             n_rounds = nr,
+            seed = rand(Int),
             show_report = false,
             explorer = Pigeons.AHR(), 
             recorder_builders = [traces])
@@ -84,8 +89,50 @@ function hit_run(D)
     logp = LogTargetDensity(D)
     vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
 
-    @show n_steps = 2^nr 
-    @show ess_value = compute_ess(vs) 
+    n_steps = 2^nr 
+    ess_value = compute_ess(vs) 
+    return D*n_steps/ess_value
+end
+
+function optimal_mala(D)
+    step_size = 0.1 / D^(1.0/3.0)
+    nr = 10 + ceil(Int, log(D))
+    p = pigeons(
+            target = toy_mvn_target(D),
+            n_chains = 1, 
+            n_rounds = nr,
+            seed = rand(Int),
+            show_report = false,
+            explorer = Pigeons.MALA(step_size, 3),
+            recorder_builders = [traces])
+    samples = get_sample(p, 1) 
+
+    logp = LogTargetDensity(D)
+    vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
+
+    n_steps = 2^nr 
+    ess_value = compute_ess(vs) 
+    return D*n_steps/ess_value
+end
+
+function optimal_hmc(D)
+    step_size = 0.1 # / D^(1.0/4.0) - dim auto scaled by current adator in static_HMC
+    nr = 10 #+ ceil(Int, log(D))
+    p = pigeons(
+            target = toy_mvn_target(D),
+            n_chains = 1, 
+            n_rounds = nr,
+            seed = rand(Int),
+            show_report = false,
+            explorer = Pigeons.static_HMC(step_size),
+            recorder_builders = [traces])
+    samples = get_sample(p, 1) 
+
+    logp = LogTargetDensity(D)
+    vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
+
+    n_steps = 2^nr * Pigeons.max_n_steps(step_size, D)
+    ess_value = compute_ess(vs) 
     return D*n_steps/ess_value
 end
 
@@ -98,6 +145,7 @@ function slicer(D, sparse::Bool)
             target = toy_mvn_target(D),
             n_chains = 1, 
             n_rounds = nr,
+            seed = rand(Int),
             show_report = false,
             explorer = Pigeons.SliceSampler(), 
             recorder_builders = [traces])
@@ -106,29 +154,42 @@ function slicer(D, sparse::Bool)
     logp = LogTargetDensity(D)
     vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
 
-    @show n_steps = 2^nr 
-    @show ess_value = compute_ess(vs) 
+    n_steps = 2^nr 
+    ess_value = compute_ess(vs) 
     return (sparse ? D : D^2)*n_steps/ess_value
 end
 
 function compute_ess(vs) 
     ess_df = ess(Chains(vs, [:V]))
-    return ess_df.nt.ess[1]
+    result = ess_df.nt.ess[1]
+    if result < 100 
+        @warn "Low ESS: $result"
+    end
+    return result
 end
 
-function scaling_plot(max, n_replicates = 1)
-    sampling_fcts = [sparse_slicer, dense_slicer, nuts, hit_run]
+function scaling_plot(
+            max, 
+            n_replicates = 1, 
+            sampling_fcts = [
+                sparse_slicer, 
+                dense_slicer, 
+                nuts, 
+                hit_run, 
+                optimal_mala,
+                optimal_hmc])
     p = plot()
     data = Dict()
     for sampling_fct in sampling_fcts
         sampler_symbol = Symbol(sampling_fct)
         sampler_name = String(sampler_symbol)
+        println()
         println("Sampler: $(sampler_name)")
         dims = Float64[]
         costs = Float64[]
         for i in 0:max
             @show D = 2^i
-            replicates = [sampling_fct(D) for j in 1:n_replicates]
+            @time replicates = [sampling_fct(D) for j in 1:n_replicates]
             push!(dims, D)
             push!(costs, mean(replicates))
         end
