@@ -3,15 +3,20 @@ using BridgeStan
 const BS = BridgeStan
 
 # BS.set_bridgestan_path!("../")
+# bernoulli_stan = joinpath(@__DIR__, "../test_models/bernoulli/bernoulli.stan")
+# bernoulli_data = joinpath(@__DIR__, "../test_models/bernoulli/bernoulli.data.json")
 
 bernoulli_stan = joinpath(BS.get_bridgestan_path(), "test_models/bernoulli/bernoulli.stan")
-bernoulli_data = joinpath(BS.get_bridgestan_path(), "../test_models/bernoulli/bernoulli.data.json")
+bernoulli_data = joinpath(BS.get_bridgestan_path(), "test_models/bernoulli/bernoulli.data.json")
 
-smb = BS.StanModel(stan_file = bernoulli_stan, data = bernoulli_data)
+smb = BS.StanModel(stan_file = bernoulli_stan, data = bernoulli_data);
 
-# x = rand(BS.param_unc_num(smb));
-# q = @. log(x / (1 - x)); # unconstrained scale
+println("This model's name is $(BS.name(smb)).")
+println("It has $(BS.param_num(smb)) parameters.")
 
-# lp, grad = BS.log_density_gradient(smb, q, jacobian = false)
+x = rand(BS.param_unc_num(smb));
+q = @. log(x / (1 - x)); # unconstrained scale
 
-# println("log_density and gradient of Bernoulli model: $((lp, grad))")
+lp, grad = BS.log_density_gradient(smb, q, jacobian = false)
+
+println("log_density and gradient of Bernoulli model: $((lp, grad))")
