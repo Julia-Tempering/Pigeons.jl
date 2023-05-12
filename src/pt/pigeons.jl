@@ -111,7 +111,18 @@ function explore!(pt, replica, explorer)
         @record_if_requested!(
             replica.recorders, 
             :traces, 
-            (; chain = replica.chain, scan = pt.shared.iterators.scan, state = replica.state)
+            (; 
+                chain = replica.chain, 
+                scan = pt.shared.iterators.scan, 
+                contents = 
+                    if pt.inputs.trace_type == :samples
+                        copy(replica.state)
+                    elseif pt.inputs.trace_type == :log_potential 
+                        log_potential(replica.state) 
+                    else
+                        error()
+                    end
+            )
         )
         @record_if_requested!(
             replica.recorders, 

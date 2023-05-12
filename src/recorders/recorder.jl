@@ -39,7 +39,7 @@ To post-process files in the correct order, use [`process_samples`](@ref).
 function record!(traces::Dict{Pair{Int, Int}, T}, datum) where {T}
     key = datum.chain => datum.scan 
     @assert !haskey(traces, key) 
-    traces[key] = copy(datum.state)
+    traces[key] = datum.contents
 end
 
 """ 

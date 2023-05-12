@@ -58,9 +58,17 @@ $FIELDS
     explorer::E = nothing
 
     """
-    Show or hide sampling report. 
+    Show sampling report?
     """
     show_report::Bool = true
+
+    """
+    Type of traces to collect:
+
+    - `:samples` - `copy()` is called on the state, or
+    - `:log_potential` - `log_potential()` is called on the state
+    """
+    trace_type::Symbol = :samples
 end
 
 """
