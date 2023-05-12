@@ -71,7 +71,7 @@ function nuts(D)
     # estimate cost per ESS
     n_steps = sum(map(s -> s.n_steps, stats))
     ess_value = compute_ess(vs)
-    return D*n_steps/ess_value
+    return D, n_steps, ess_value
 end
 
 function single_chain_pigeons_mvn(D, explorer)
@@ -85,28 +85,31 @@ function single_chain_pigeons_mvn(D, explorer)
         trace_type = :log_potential
     )
     vs = get_sample(pt, 1) 
-    ess_value = compute_ess(vs) 
-    n_steps = Pigeons.explorer_n_steps(pt)[1]
-    return D*n_steps/ess_value
+    @show ess_value = compute_ess(vs) 
+    @show n_steps = Pigeons.explorer_n_steps(pt)[1]
+    return n_steps, ess_value
 end
 
 function hit_run(D)
-    n_steps = D^(1.5)
-    explorer = Pigeons.AHR(n_passes = n_steps)
-    return single_chain_pigeons_mvn(D, explorer)
+    n_passes = ceil(Int, D^(1))
+    explorer = Pigeons.AHR(n_passes = n_passes)
+    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    return D, n_steps, ess_value
 end
 
 function optimal_mala(D)
     step_size = 0.5 / D^(1.0/3.0)
-    n_steps = ceil(Int, 100/step_size)
-    explorer = Pigeons.MALA(step_size, n_steps)
-    return single_chain_pigeons_mvn(D, explorer)
+    n_passes = ceil(Int, 100/step_size)
+    explorer = Pigeons.MALA(step_size, n_passes)
+    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    return D, n_steps, ess_value
 end
 
 function optimal_hmc(D)
     step_size = 0.1 # / D^(1.0/4.0) - dim auto scaled by current adator in static_HMC
     explorer = Pigeons.static_HMC(step_size)
-    return single_chain_pigeons_mvn(D, explorer)
+    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    return D, n_steps, ess_value
 end
 
 sparse_slicer(D) = slicer(D, true) 
@@ -114,14 +117,15 @@ dense_slicer(D) = slicer(D, false)
 
 function slicer(D, sparse::Bool)
     explorer = Pigeons.SliceSampler() 
-    return single_chain_pigeons_mvn(D, explorer) / (sparse ? D : 1)
+    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    return (sparse ? 1 : D), n_steps, ess_value
 end
 
 function compute_ess(vs) 
     ess_df = ess(Chains(vs, [:V]))
     result = ess_df.nt.ess[1]
     if result < 100 
-        error("Low ESS: $result")
+        @warn "Low ESS: $result"
     end
     return result
 end
@@ -136,7 +140,8 @@ function scaling_plot(
                 hit_run, 
                 optimal_mala,
                 optimal_hmc])
-    p = plot()
+    cost_plot = plot()
+    ess_plot = plot()
     data = Dict()
     for sampling_fct in sampling_fcts
         sampler_symbol = Symbol(sampling_fct)
@@ -145,19 +150,36 @@ function scaling_plot(
         println("Sampler: $(sampler_name)")
         dims = Float64[]
         costs = Float64[]
+        ess = Float64[]
         for i in 0:max
             @show D = 2^i
             @time replicates = [sampling_fct(D) for j in 1:n_replicates]
             push!(dims, D)
-            push!(costs, mean(replicates))
+
+            cost_and_ess = mean(
+                map(replicates) do replicate 
+                    @show cost_per_step, n_steps, ess_value = replicate 
+                    cost = cost_per_step * n_steps / ess_value
+                    [cost, ess_value]
+                end
+            )
+
+            push!(costs, cost_and_ess[1])
+            push!(ess, cost_and_ess[2])
         end
         sampler_name = String(Symbol(sampling_fct))
-        p = plot!(dims, costs, 
+        plot!(cost_plot, dims, costs, 
                 xaxis=:log, yaxis=:log, 
                 legend = :outertopleft,
                 xlabel = "dimensionality", 
                 ylabel = "evals per ESS", 
                 label = sampler_name)
+        plot!(ess_plot, dims, ess, 
+                xaxis=:log, yaxis=:log, 
+                legend = :outertopleft,
+                xlabel = "dimensionality", 
+                ylabel = "ESS", 
+                label = sampler_name) 
         data[sampler_symbol] = (; dims, costs)
     end
 
@@ -172,7 +194,8 @@ function scaling_plot(
         end
     end
 
-    savefig(p, "$filename_prefix.pdf")
+    savefig(cost_plot, "$filename_prefix.pdf")
+    savefig(ess_plot, "$(filename_prefix)_ess.pdf")
 
-    return p
+    return cost_plot
 end
