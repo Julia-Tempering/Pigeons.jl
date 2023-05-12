@@ -19,11 +19,18 @@ optimal_schedule(
         new_schedule_n_chains::Int) = 
     optimal_schedule(
         rejections(
-            reduced_recorders, 
-            n_chains(old_schedule)), 
+            reduced_recorders, n_chains(old_schedule)), 
         old_schedule, 
         new_schedule_n_chains
     )
+
+function optimal_schedule(reduced_recorders, old_schedule::Schedule, chain_indices::AbstractVector)
+    optimal_schedule(
+        rejections(reduced_recorders, chain_indices),
+        old_schedule,
+        length(chain_indices)+1
+    )
+end
 
 optimal_schedule(intensity_or_recorders, old_schedule::Schedule) = 
     optimal_schedule(
@@ -31,6 +38,9 @@ optimal_schedule(intensity_or_recorders, old_schedule::Schedule) =
         old_schedule, 
         n_chains(old_schedule)
     )
+
+
+
 
 """
 $SIGNATURES
@@ -85,17 +95,25 @@ function optimal_schedule(intensity::AbstractVector, old_schedule::AbstractVecto
     return [0.0; generator.(uniform_grid); 1.0]
 end
 
-communication_barriers(reduced_recorders, schedule::Schedule) =
+communication_barriers(reduced_recorders, schedule::Schedule, chain_indices::AbstractVector) =
     communication_barriers(
         rejections(
             reduced_recorders, 
-            n_chains(schedule)), 
+            chain_indices), 
         schedule.grids
     )
 
-function rejections(reduced_recorders, n_chains)
+function rejections(reduced_recorders, n_chains::Int)
     accept_recorder = reduced_recorders.swap_acceptance_pr
     max_index = n_chains - 1
                         # we use defaults since in the first round, not all swaps are attempted, use 0.5 for missing entries
     return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in 1:max_index] 
+end
+
+""" Similar to above except that instead of the number of chains, 
+provide the full vector of chain indices.
+Note that `chain_indices` starts at the reference and ends at the chain *one before* the target. """
+function rejections(reduced_recorders, chain_indices::AbstractVector) 
+    accept_recorder = reduced_recorders.swap_acceptance_pr
+    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices[1:end]]
 end

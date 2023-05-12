@@ -1,9 +1,7 @@
 *.jl.*.cov
 *.jl.cov
 *.jl.mem
-/Manifest.toml
 /docs/build/
-/docs/Manifest.toml
 .vscode/settings.json
 build
 .interfaces.md
@@ -22,4 +20,5 @@ nowellpack
 tmp.jl
 Manifest.toml
 examples/.CondaPkg
-test.pdf
+*.swp
+*.swo

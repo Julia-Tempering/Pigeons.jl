@@ -9,35 +9,46 @@ Slice sampler based on
 end
 
 function step!(explorer::SliceSampler, replica, shared)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
+    # TODO: each step starts with a recomputation of the logprob
+    # indicated by -Inf (safe b/c -Inf would be an invalid state that should be caught earlier)
+    # consider at some point having an input cached_lp to step! that stores across steps
+    cached_lp = -Inf
     for i in 1:explorer.n_passes
-        log_potential = find_log_potential(replica, shared)
-        slice_sample!(explorer, replica.state, log_potential, replica.rng)
+        cached_lp = slice_sample!(explorer, replica.state, log_potential, cached_lp, replica.rng)
     end
 end
-
 
 """
 $SIGNATURES
 Slice sample one point.
 """
-function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, rng)
-    for c in 1:length(state) # update *every* coordinate
-        g_x0 = log_potential(state)
-        pointer = Ref(state, c)
-        slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
+
+function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, rng)
+    # if there is no cached logprob, compute it from scratch
+    if cached_lp == -Inf
+        cached_lp = log_potential(state)
     end
+    # iterate over coordinates
+    for c in 1:length(state) 
+        pointer = Ref(state, c)
+        cached_lp = slice_sample_coord!(h, state, pointer, log_potential, cached_lp, rng)
+    end
+    return cached_lp
 end
 
-function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, rng)
-    on_transformed_space(state, log_potential) do
+function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, rng)
+    cached_lp = on_transformed_space(state, log_potential) do
+        cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
         for i in 1:length(state.metadata)
             for c in 1:length(state.metadata[i].vals)
-                g_x0 = log_potential(state)
                 pointer = Ref(state.metadata[i].vals, c)
-                slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
+                cl_cached_lp = slice_sample_coord!(h, state, pointer, log_potential, cl_cached_lp, rng)
             end
         end
+        return cl_cached_lp
     end
+    return cached_lp
 end
 
 function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
@@ -46,31 +57,42 @@ function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log
         DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
         transform_back = true # transform it back after log_potential evaluation
     end
-    sampling_task()
+    ret = sampling_task()
     if transform_back
         DynamicPPL.invlink!!(state, turing_model(log_potential)) # transform back to constrained space
     end
+    return ret
 end
 
-function slice_sample_coord!(h, state, pointer, log_potential, g_x0, rng)
+function slice_sample_coord!(h, state, pointer, log_potential, cached_lp, rng)
     if pointer[] isa Bool
-        Bernoulli_sample_coord!(state, pointer, log_potential, rng) # don't slice sample for {0,1} variables
+        cached_lp = Bernoulli_sample_coord!(state, pointer, log_potential, cached_lp, rng) # don't slice sample for {0,1} variables
     else
-        z = g_x0 - rand(rng, Exponential(1.0)) # log(vertical draw)
-        L, R = slice_double(h, state, z, pointer, log_potential, rng)
-        pointer[] = slice_shrink(h, state, z, L, R, pointer, log_potential, rng)
+        z = cached_lp - rand(rng, Exponential(1.0)) # log(vertical draw)
+        L, R, lp_L, lp_R = slice_double(h, state, z, pointer, log_potential, rng)
+        cached_lp = slice_shrink!(h, state, z, L, R, lp_L, lp_R, pointer, log_potential, rng)
     end
+    return cached_lp
 end
 
-function Bernoulli_sample_coord!(state, pointer, log_potential, rng)
-    pointer[] = Bool(0)
-    log_potent_0 = log_potential(state)
-    pointer[] = Bool(1)
-    log_potent_1 = log_potential(state)
-    log_ratio = log_potent_0 - log_potent_1
-    if rand(rng) < log_ratio/(1+log_ratio)
+function Bernoulli_sample_coord!(state, pointer, log_potential, cached_lp, rng)
+    if pointer[] == Bool(0)
+        lp0 = cached_lp
+        pointer[] = Bool(1)
+        lp1 = log_potential(state) 
+    else
+        lp1 = cached_lp
         pointer[] = Bool(0)
-    end # otherwise already set to 1
+        lp0 = log_potential(state)
+    end
+
+    if rand(rng) < exp(lp0-lp1)/(1.0 + exp(lp0-lp1))
+        pointer[] = Bool(0)
+        return lp0
+    else
+        pointer[] = Bool(1)
+        return lp1
+    end
 end
 
 """
@@ -101,20 +123,20 @@ function slice_double(h::SliceSampler, state, z, pointer, log_potential, rng)
         K = K - 1
     end
     pointer[] = old_position # return the state back to where it was before
-    return(; L, R)
+    return (L, R, potent_L, potent_R)
 end
 
 function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: AbstractFloat
     L = pointer[] - width * rand(rng)
     R = L + width
-    return(; L, R)
+    return (L, R)
 end
 
 function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: Integer
     width = convert(T, ceil(width))
     L = pointer[] - rand(rng, 0:width)
     R = L + width 
-    return(; L, R)
+    return (L, R)
 end
 
 
@@ -122,7 +144,7 @@ end
 $SIGNATURES
 Shrink the current slice.
 """
-function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, rng)
+function slice_shrink!(h::SliceSampler, state, z, L, R, lp_L, lp_R, pointer, log_potential, rng)
     old_position = pointer[]
     Lbar = L
     Rbar = R
@@ -130,10 +152,12 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
     while true
         new_position = draw_new_position(Lbar, Rbar, rng, typeof(pointer[]))
         pointer[] = new_position 
-        consider = z < log_potential(state)
+        new_lp = log_potential(state)
+        consider = z < new_lp
         pointer[] = old_position
-        if consider && slice_accept(h, state, new_position, z, L, R, pointer, log_potential)
-            return new_position
+        if consider && slice_accept(h, state, new_position, z, L, R, lp_L, lp_R, pointer, log_potential)
+            pointer[] = new_position
+            return new_lp
         end
         if new_position < pointer[]
             Lbar = new_position
@@ -141,7 +165,10 @@ function slice_shrink(h::SliceSampler, state, z, L, R, pointer, log_potential, r
             Rbar = new_position
         end
     end
-    return new_position
+    # code should never get here, because eventually
+    # shrinkage should produce an acceptable point
+    error()
+    return 0.0
 end
 
 draw_new_position(L, R, rng, ::Type{T}) where T <: AbstractFloat = L + rand(rng) * (R-L)
@@ -152,19 +179,15 @@ draw_new_position(L, R, rng, ::Type{T}) where T <: Integer = rand(rng, L:R)
 $SIGNATURES
 Test whether to accept the current slice.
 """
-function slice_accept(h::SliceSampler, state, new_position, z, L, R, pointer, log_potential)
+function slice_accept(h::SliceSampler, state, new_position, z, L, R, lp_L, lp_R, pointer, log_potential)
     old_position = pointer[]
     Lhat = L
     Rhat = R
-
-    pointer[] = L # trick to avoid memory allocation
-    neg_potent_L = log_potential(state)
-    pointer[] = R 
-    neg_potent_R = log_potential(state)
+    # tracks whether lp_R,lp_L need to be recomputed
+    Rstale = false
+    Lstale = false
     
     D = false
-    acceptable = true
-    
     while Rhat - Lhat > 1.1 * h.w
         M = (Lhat + Rhat)/2.0
         if ((old_position < M) && (new_position >= M)) || ((old_position >= M) && (new_position < M))
@@ -173,19 +196,29 @@ function slice_accept(h::SliceSampler, state, new_position, z, L, R, pointer, lo
         
         if new_position < M
             Rhat = M
-            pointer[] = Rhat
-            neg_potent_R = log_potential(state)
+            Rstale = true
         else
             Lhat = M
-            pointer[] = Lhat
-            neg_potent_L = log_potential(state)
+            Lstale = true
         end
-        
-        if (D && (z >= neg_potent_L) && (z >= neg_potent_R))
-            pointer[] = old_position 
-            return false
+
+        if D
+            if Lstale
+                pointer[] = Lhat
+                lp_L = log_potential(state)
+                Lstale = false
+            end
+            if Rstale
+                pointer[] = Rhat
+                lp_R = log_potential(state)
+                Rstale = false
+            end
+            if  ((z >= lp_L) && (z >= lp_R))
+                pointer[] = old_position 
+                return false
+            end
         end
     end
     pointer[] = old_position
-    return acceptable
+    return true
 end

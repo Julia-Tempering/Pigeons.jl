@@ -56,21 +56,4 @@ function update_path_var_reference(path, reduced_recorders, var_reference, state
     return path
 end
 
-function use_var_reference(inputs)
-    if (inputs.n_chains_var_reference > 0)
-        inputs.n_chains == 0 ? true : error("Two reference distributions have not yet been implemented.")
-    else 
-        return false
-    end
-end
-
-"""
-Create a variational reference.
-"""
-function create_var_reference(inputs) 
-    if use_var_reference(inputs)
-        var_reference = inputs.var_reference
-    else 
-       var_reference = NoVarReference()
-    end 
-end
+create_var_reference(inputs) = inputs.var_reference

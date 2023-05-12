@@ -77,7 +77,7 @@ default_explorer(target::StreamTarget) = target
 Delegate exploration to the worker process.
 =#
 function step!(explorer::StreamTarget, replica, shared)
-    log_potential = find_log_potential(replica, shared)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
     call_sampler!(log_potential, replica.state)
 end
 

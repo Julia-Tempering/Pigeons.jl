@@ -21,7 +21,7 @@ The following features should be implemented according to the timeline given bel
 - Sampling on discrete state spaces: January 2023 :heavy_check_mark:
 - Parallel tempering with a variational reference: April 2023 :heavy_check_mark:
 - "Parallel parallel" tempering (multiple copies of parallel tempering): TBD
-- Parallel tempering on optimized paths: TBD
+
 
 ## Funding and acknowledgments 
 

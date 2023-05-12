@@ -8,7 +8,7 @@ step!(::ToyExplorer, replica, shared) =
     rand!(
         replica.rng, 
         replica.state, 
-        find_log_potential(replica, shared)
+        find_log_potential(replica, shared.tempering, shared)
     )
 
 explorer_recorder_builders(::ToyExplorer) = [] 

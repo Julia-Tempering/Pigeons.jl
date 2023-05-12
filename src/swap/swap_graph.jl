@@ -8,9 +8,6 @@ Canonical example is the standard Odd and Even swap. Extension point for e.g.
 - parallel parallel tempering,
 - variational methods with more than 2 legs,
 - PT algorithms dealing with more than one target simultaneously for the purpose of model selection. 
-
-Should implement the methods below, in addition to [`is_reference()`](@ref) and 
-[`is_target()`](@ref).
 """
 @informal swap_graph begin
     """
@@ -19,26 +16,19 @@ Should implement the methods below, in addition to [`is_reference()`](@ref) and
     Convention: if a chain is not interacting, return its index.
     """
     partner_chain(swap_graph, chain::Int) = @abstract
+
+    """
+    $SIGNATURES
+    For a given [`swap_graph`](@ref) and input `chain` index, is the current chain a reference distribution?
+    """
+    is_reference(swap_graph, chain::Int) = @abstract 
+    
+    """
+    $SIGNATURES
+    For a given [`swap_graph`](@ref) and input `chain` index, is the current chain a target distribution?
+    """
+    is_target(swap_graph, chain::Int) = @abstract
 end
 
-struct OddEven
-    even::Bool
-    n_chains::Int
-end
-odd(n_chains::Int) =  OddEven(false, n_chains)
-even(n_chains::Int) = OddEven(true, n_chains)
-
-n_chains(swap_graph::OddEven) = swap_graph.n_chains
-function partner_chain(swap_graph::OddEven, chain::Int)
-    @assert 1 ≤ chain ≤ swap_graph.n_chains
-    direction = (iseven(chain) == swap_graph.even ? 1 : -1)
-    proposed = chain + direction
-    if      proposed == 0                       return 1
-    elseif  proposed == swap_graph.n_chains + 1 return swap_graph.n_chains
-    else                                        return proposed
-    end
-end
-is_reference(oe::OddEven, chain::Int) = chain == 1 && oe.n_chains > 1
-is_target(oe::OddEven, chain::Int) = chain == oe.n_chains
 
 

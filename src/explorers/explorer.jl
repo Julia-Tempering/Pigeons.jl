@@ -36,14 +36,6 @@ of Parallel Tempering.
     explorer_recorder_builders(explorer) = []
 end
 
-"""
-$SIGNATURES 
-
-Find the [`log_potential`](@ref) for the chain 
-the replica is at, based on the [`Shared`](@ref) object.  
-"""
-find_log_potential(replica, shared) = shared.tempering.log_potentials[replica.chain]
-
 """ 
 $SIGNATURES 
 

@@ -28,3 +28,4 @@ function Indexer(i2t::AbstractVector{T}) where {T}
     end
     return Indexer(Vector(i2t), t2i)
 end
+
