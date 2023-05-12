@@ -136,7 +136,7 @@ hamiltonian(logp, state, momentum) = logp(state) - 0.5 * sqr_norm(momentum)
 
 function step!(explorer::HMC, replica, shared, step_size_ = nothing, n_steps_ = nothing)   
     rng = replica.rng
-    log_potential = find_log_potential(replica, shared)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
     
     shared_rng = rng_shared_by_all_replicas(shared.iterators)
 

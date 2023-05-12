@@ -90,13 +90,11 @@ function single_chain_pigeons_mvn(D, explorer)
     return D*n_steps/ess_value
 end
 
-# function hit_run(D)
-#     p = pigeons(inputs(D, Pigeons.AHR(n_passes = ), nr))
-#     vs = get_sample(p, 1) 
-#     n_steps = 2^nr 
-#     ess_value = compute_ess(vs) 
-#     return D*n_steps/ess_value
-# end
+function hit_run(D)
+    n_steps = D^(1.5)
+    explorer = Pigeons.AHR(n_passes = n_steps)
+    return single_chain_pigeons_mvn(D, explorer)
+end
 
 function optimal_mala(D)
     step_size = 0.5 / D^(1.0/3.0)
@@ -115,23 +113,8 @@ sparse_slicer(D) = slicer(D, true)
 dense_slicer(D) = slicer(D, false)
 
 function slicer(D, sparse::Bool)
-    nr = 10
-    p = pigeons(
-            target = toy_mvn_target(D),
-            n_chains = 1, 
-            n_rounds = nr,
-            seed = rand(Int),
-            show_report = false,
-            explorer = Pigeons.SliceSampler(), 
-            recorder_builders = [traces])
-    samples = get_sample(p, 1) 
-
-    logp = LogTargetDensity(D)
-    vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
-
-    n_steps = 2^nr 
-    ess_value = compute_ess(vs) 
-    return (sparse ? D : D^2)*n_steps/ess_value
+    explorer = Pigeons.SliceSampler() 
+    return single_chain_pigeons_mvn(D, explorer) / (sparse ? D : 1)
 end
 
 function compute_ess(vs) 
