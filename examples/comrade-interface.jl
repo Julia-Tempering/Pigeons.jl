@@ -60,11 +60,11 @@ end
 
 LogDensityProblems.logdensity(pp::PriorPotential, x) = pp(x)
 
-function Pigeons.sample_iid!(target::PigeonsLogPotential, replica)
+function Pigeons.sample_iid!(target::PigeonsLogPotential, replica, shared)
     replica.state = initialization(target, replica.rng, replica.replica_index)
 end
 
-function Pigeons.sample_iid!(target::PriorPotential, replica)
+function Pigeons.sample_iid!(target::PriorPotential, replica, shared)
     replica.state = Comrade.inverse(target.transform, rand(replica.rng, target.prior))
 end
 

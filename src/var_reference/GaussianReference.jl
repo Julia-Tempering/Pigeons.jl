@@ -27,7 +27,7 @@ function update_reference!(reduced_recorders, var_reference::GaussianReference, 
     end
 end
 
-function sample_iid!(var_reference::GaussianReference, replica)
+function sample_iid!(var_reference::GaussianReference, replica, shared)
     for var_name in continuous_variables(replica.state)
         for i in eachindex(var_reference.μ[var_name])
             val = randn(replica.rng) * var_reference.σ[var_name][i] + var_reference.μ[var_name][i]

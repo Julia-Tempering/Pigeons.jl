@@ -100,7 +100,7 @@ function explore!(pt, replica, explorer)
     log_potential = find_log_potential(replica, pt.shared.tempering, pt.shared)
     before = eval_if_ac_requested(log_potential, replica)
     if is_reference(pt.shared.tempering.swap_graphs, replica.chain)
-        sample_iid!(log_potential, replica)
+        sample_iid!(log_potential, replica, pt.shared)
     else
         step!(explorer, replica, pt.shared)
     end

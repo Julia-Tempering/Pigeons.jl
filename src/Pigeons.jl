@@ -37,6 +37,7 @@ using Statistics
 using RecipesBase
 using ZipFile
 using ForwardDiff
+using BridgeStan
 
 import Serialization.serialize
 import Serialization.deserialize
@@ -65,7 +66,7 @@ export pigeons, Inputs, PT,
     # for running jobs:
     ChildProcess, MPI,
     # targets:
-    toy_mvn_target, TuringLogPotential,
+    toy_mvn_target, TuringLogPotential, StanLogPotential,
     # recorders:
     index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, traces, disk,
     # utils to run on scheduler:

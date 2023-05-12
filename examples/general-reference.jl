@@ -18,7 +18,7 @@ struct MyReferenceLogPotential end
 (::MyReferenceLogPotential)(x) = -1/(2*(100^2+1)) * (x[1])^2
 # normal reference with mean 0 and standard deviation sqrt(100^2+1)
 Pigeons.create_reference_log_potential(::MyLogPotential, ::Inputs) = MyReferenceLogPotential()
-Pigeons.sample_iid!(log_potential::MyReferenceLogPotential, replica) =
+Pigeons.sample_iid!(log_potential::MyReferenceLogPotential, replica, shared) =
     rand!(replica.rng, replica.state, log_potential)
 Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::MyReferenceLogPotential) =
     for i in eachindex(x)

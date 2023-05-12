@@ -140,7 +140,7 @@ create_explorer(::TestSwapper, ::Inputs) = nothing
     adapt_explorer(::Nothing, _, _) = nothing 
     explorer_recorder_builders(::Nothing) = [] 
 
-sample_iid!(::TestSwapper, replica) = nothing
+sample_iid!(::TestSwapper, replica, shared) = nothing
 
 create_path(testSwapper::TestSwapper, ::Inputs) = testSwapper
     interpolate(testSwapper::TestSwapper, beta) = testSwapper

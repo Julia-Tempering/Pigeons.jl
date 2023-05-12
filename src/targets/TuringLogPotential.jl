@@ -37,6 +37,6 @@ create_explorer(::TuringLogPotential, ::Inputs) = SliceSampler()
 create_reference_log_potential(target::TuringLogPotential, ::Inputs) = 
     TuringLogPotential(target.model, true)
 
-function sample_iid!(log_potential::TuringLogPotential, replica) 
+function sample_iid!(log_potential::TuringLogPotential, replica, shared) 
     replica.state = initialization(log_potential, replica.rng, replica.replica_index)
 end
