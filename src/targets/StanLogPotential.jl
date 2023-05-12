@@ -22,10 +22,11 @@ Given a `StanModel` from BridgeStan, create a
 """
 @provides target StanLogPotential(model::BridgeStan.StanModel, model_only_prior::BridgeStan.StanModel) = 
     StanLogPotential(model, model_only_prior, false)
+# TODO: at the moment, the user needs to input the "model/data" for the prior, as well.
 
 create_state_initializer(target::StanLogPotential, ::Inputs) = target  
 initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64) = 
-    @abstract # todo # DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
+    @abstract # TODO # DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
 
 create_explorer(::StanLogPotential, ::Inputs) = SliceSampler()
 
