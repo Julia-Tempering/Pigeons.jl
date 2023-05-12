@@ -64,6 +64,16 @@ function explorer_mh_prs(pt)
 end
 
 """ 
+Number of steps used by explorers.
+"""
+@provides recorder explorer_n_steps() = GroupBy(Int, Sum())
+
+function explorer_n_steps(pt)
+    collection = value(pt.reduced_recorders.explorer_n_steps)
+    return value.(values(collection))
+end
+
+""" 
 Directional second derivative information for gradient explorers.   
 """
 @provides recorder directional_second_derivatives() = GroupBy(Int, Extrema())

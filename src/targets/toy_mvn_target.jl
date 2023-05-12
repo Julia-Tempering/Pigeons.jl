@@ -9,7 +9,7 @@ such that i.i.d. sampling is possible at all chains (via [`ToyExplorer`](@ref)).
 
 create_state_initializer(target::ScaledPrecisionNormalPath, ::Inputs) = target 
 initialization(target::ScaledPrecisionNormalPath, rng::SplittableRandom, _::Int64) = 
-    zeros(target.dim)
+    randn(rng, target.dim)
 
 default_explorer(::ScaledPrecisionNormalPath) = ToyExplorer()
 

@@ -114,10 +114,13 @@ function explorer_recorder_builders(hmc::HMC)
     result = Function[]
 
     push!(result, explorer_acceptance_pr)
+    push!(result, explorer_n_steps)
+
     push!(result, momentum_buffer)
     push!(result, state_buffer)
     push!(result, gradient_buffer)
     push!(result, ones_buffer)
+    
 
     if hmc.adaptive_diag_mass_mtx_pr > 0.0
         push!(result, target_online)
@@ -201,7 +204,8 @@ function step!(explorer::HMC, replica, shared, step_size_ = nothing, n_steps_ = 
             @assert isfinite(final_joint_log)
             probability = min(1.0, exp(final_joint_log - init_joint_log))
             @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
-            
+            @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, n_steps)) 
+
             # TODO: add optional reversibility check
             
             if rand(rng) < probability 
