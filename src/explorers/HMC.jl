@@ -128,6 +128,7 @@ function explorer_recorder_builders(hmc::HMC)
     return result
 end
 
+# TODO: rename as it is a negative Hamiltonian technically -> log_joint_hmc
 hamiltonian(logp, state, momentum) = logp(state) - 0.5 * sqr_norm(momentum)
 
 function step!(explorer::HMC, replica, shared, step_size_ = nothing, n_steps_ = nothing)   
@@ -265,6 +266,24 @@ function find_zero(obj)
         right *= 2.0 
     end
     return Roots.find_zero(obj, (1e-5, right))
+end
+
+# function unadjusted_langevin()
+#   TODO: use find_step_size_for_given_mala_accept
+#   Follow unadjusted until V(X) stops improving
+# end
+
+function find_step_size_for_given_mala_accept(obj, accept_pr)
+    @assert 0.0 < accept_pr < 1.0 
+    alpha = log(accept_pr) 
+    left = 0.0
+    right = 1.0 
+    while obj(right) > alpha 
+        left = right
+        right *= 2.0
+    end
+    translated(x) = obj(x) + alpha 
+    return Roots.find_zero(translated, (left, right))
 end
 
 function find_target(obj, alpha) 
