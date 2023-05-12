@@ -39,7 +39,7 @@ LogDensityProblems.capabilities(::Type{LogTargetDensity}) = LogDensityProblems.L
 
 function nuts(D)
     # Choose parameter dimensionality and initial parameter value
-    initial_θ = rand(D)
+    initial_θ = randn(D)
     logp = LogTargetDensity(D)
 
     # Set the number of samples to draw and warmup iterations
@@ -74,66 +74,41 @@ function nuts(D)
     return D*n_steps/ess_value
 end
 
-function hit_run(D)
-    nr = 10 + ceil(Int, log(D))
-    p = pigeons(
-            target = toy_mvn_target(D),
-            n_chains = 1, 
-            n_rounds = nr,
-            seed = rand(Int),
-            show_report = false,
-            explorer = Pigeons.AHR(), 
-            recorder_builders = [traces])
-    samples = get_sample(p, 1) 
-
-    logp = LogTargetDensity(D)
-    vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
-
-    n_steps = 2^nr 
+function single_chain_pigeons_mvn(D, explorer)
+    pt = pigeons(;
+        target = toy_mvn_target(D),
+        n_chains = 1, 
+        seed = rand(Int),
+        show_report = false,
+        explorer, 
+        recorder_builders = [traces],
+        trace_type = :log_potential
+    )
+    vs = get_sample(pt, 1) 
     ess_value = compute_ess(vs) 
+    n_steps = Pigeons.explorer_n_steps(pt)[1]
     return D*n_steps/ess_value
 end
 
+# function hit_run(D)
+#     p = pigeons(inputs(D, Pigeons.AHR(n_passes = ), nr))
+#     vs = get_sample(p, 1) 
+#     n_steps = 2^nr 
+#     ess_value = compute_ess(vs) 
+#     return D*n_steps/ess_value
+# end
+
 function optimal_mala(D)
-    step_size = 0.1 / D^(1.0/3.0)
-    nr = 10 + ceil(Int, log(D))
-    p = pigeons(
-            target = toy_mvn_target(D),
-            n_chains = 1, 
-            n_rounds = nr,
-            seed = rand(Int),
-            show_report = false,
-            explorer = Pigeons.MALA(step_size, 3),
-            recorder_builders = [traces])
-    samples = get_sample(p, 1) 
-
-    logp = LogTargetDensity(D)
-    vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
-
-    n_steps = 2^nr 
-    ess_value = compute_ess(vs) 
-    return D*n_steps/ess_value
+    step_size = 0.5 / D^(1.0/3.0)
+    n_steps = ceil(Int, 100/step_size)
+    explorer = Pigeons.MALA(step_size, n_steps)
+    return single_chain_pigeons_mvn(D, explorer)
 end
 
 function optimal_hmc(D)
     step_size = 0.1 # / D^(1.0/4.0) - dim auto scaled by current adator in static_HMC
-    nr = 10 #+ ceil(Int, log(D))
-    p = pigeons(
-            target = toy_mvn_target(D),
-            n_chains = 1, 
-            n_rounds = nr,
-            seed = rand(Int),
-            show_report = false,
-            explorer = Pigeons.static_HMC(step_size),
-            recorder_builders = [traces])
-    samples = get_sample(p, 1) 
-
-    logp = LogTargetDensity(D)
-    vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
-
-    n_steps = 2^nr * Pigeons.max_n_steps(step_size, D)
-    ess_value = compute_ess(vs) 
-    return D*n_steps/ess_value
+    explorer = Pigeons.static_HMC(step_size)
+    return single_chain_pigeons_mvn(D, explorer)
 end
 
 sparse_slicer(D) = slicer(D, true) 
@@ -163,7 +138,7 @@ function compute_ess(vs)
     ess_df = ess(Chains(vs, [:V]))
     result = ess_df.nt.ess[1]
     if result < 100 
-        @warn "Low ESS: $result"
+        error("Low ESS: $result")
     end
     return result
 end
