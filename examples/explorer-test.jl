@@ -92,7 +92,7 @@ plot!(xs)
 
 # ###
 
-# println("before: $(Pigeons.hamiltonian(logp, state, momentum))")
+# println("before: $(Pigeons.log_joint(logp, state, momentum))")
 
 # obj1 = Pigeons.adaptive_leap_frog_objective(
 #     logp, 

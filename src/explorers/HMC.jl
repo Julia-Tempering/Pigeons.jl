@@ -132,7 +132,7 @@ function explorer_recorder_builders(hmc::HMC)
 end
 
 # TODO: rename as it is a negative Hamiltonian technically -> log_joint_hmc
-hamiltonian(logp, state, momentum) = logp(state) - 0.5 * sqr_norm(momentum)
+log_joint(logp, state, momentum) = logp(state) - 0.5 * sqr_norm(momentum)
 
 function step!(explorer::HMC, replica, shared, step_size_ = nothing, n_steps_ = nothing)   
     rng = replica.rng
@@ -191,7 +191,7 @@ function step!(explorer::HMC, replica, shared, step_size_ = nothing, n_steps_ = 
             n_steps = n_steps_
         end
 
-        init_joint_log  = hamiltonian(log_potential, state, momentum)
+        init_joint_log  = log_joint(log_potential, state, momentum)
         @assert isfinite(init_joint_log)
 
         success = 
@@ -200,7 +200,7 @@ function step!(explorer::HMC, replica, shared, step_size_ = nothing, n_steps_ = 
                 replica, gradient_buffer)
 
         if success # by success, we mean no NaN or -Inf were encountered along the trajectory
-            final_joint_log = hamiltonian(log_potential, state, momentum)
+            final_joint_log = log_joint(log_potential, state, momentum)
             @assert isfinite(final_joint_log)
             probability = min(1.0, exp(final_joint_log - init_joint_log))
             @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
@@ -231,11 +231,11 @@ function adaptive_leap_frog_objective(
     state_before = copy(state)
     momentum_before = copy(momentum)
 
-    h_before = hamiltonian(target_log_potential, state, momentum)
+    h_before = log_joint(target_log_potential, state, momentum)
 
     function objective(step_size)
         leaf_frog!(target_log_potential, target_std_deviations, state, momentum, step_size, gradient_buffer)
-        h_after = hamiltonian(target_log_potential, state, momentum)
+        h_after = log_joint(target_log_potential, state, momentum)
         state .= state_before 
         momentum .= momentum_before
         return h_after - h_before
@@ -357,12 +357,10 @@ function hamiltonian_dynamics!(
     for i in 1:n_steps 
         # more setup for directional curvature stats
         directional_before = -dot(gradient_buffer, momentum)
-
         # full step on position
         state .= state .+ step_size .* momentum .* target_std_deviations
-
         # TODO: bounce
-        if !isfinite(hamiltonian(target_log_potential, state, momentum))
+        if !isfinite(log_joint(target_log_potential, state, momentum))
             return false
         end
 
@@ -385,7 +383,7 @@ function hamiltonian_dynamics!(
     # last half-step
     momentum .= momentum .+ (step_size/2) .* gradient_buffer
 
-    if !isfinite(hamiltonian(target_log_potential, state, momentum))
+    if !isfinite(log_joint(target_log_potential, state, momentum))
         return false
     end
 
@@ -397,7 +395,7 @@ end
 # rng but good enough since it's for a relatively minor aspect 
 # of sampling. Other solutions do not work because the reference 
 # chain does not get step!() called. Also certainly don't want 
-# to make shared writteable. 
+# to make the Shared struct writteable. 
 rng_shared_by_all_replicas(iterators) = 
     SplittableRandom(11 + 7 * iterators.round + 3 * iterators.scan) 
 

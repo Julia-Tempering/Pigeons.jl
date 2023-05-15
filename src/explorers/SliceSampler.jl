@@ -154,17 +154,19 @@ $SIGNATURES
 Shrink the current slice.
 """
 function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, log_potential)
+   
     rng = replica.rng
     state = replica.state
     old_position = pointer[]
     Lbar = L
     Rbar = R
     n = 1
+
     while true
         new_position = draw_new_position(Lbar, Rbar, rng, typeof(pointer[]))
         pointer[] = new_position 
         new_lp = log_potential(state)
-        consider = z < new_lp
+        consider = z < new_lp 
         pointer[] = old_position
         if consider && slice_accept(h, replica, new_position, z, L, R, lp_L, lp_R, pointer, log_potential)
             pointer[] = new_position
@@ -176,7 +178,25 @@ function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, l
         else
             Rbar = new_position
         end
+
         n += 1
+
+        if abs(Lbar - Rbar) < 1e-8
+
+            function obj(x)
+                pointer[] = x 
+                return log_potential(state)
+            end
+            global dbg = obj 
+            error()
+
+            @show "bad!"
+            pointer[] = old_position 
+            @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, n))  
+            @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, 0.0))
+            lp = log_potential(state)
+            return lp
+        end
     end
     # code should never get here, because eventually
     # shrinkage should produce an acceptable point
