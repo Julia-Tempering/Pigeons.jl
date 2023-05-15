@@ -314,7 +314,7 @@ function adaptive_leap_frog_objective_derivative_sign(obj)
 end
 
 
-leaf_frog!(
+leap_frog!(
         target_log_potential, 
         target_std_deviations, 
         state, momentum, step_size,
