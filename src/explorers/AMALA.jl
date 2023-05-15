@@ -5,35 +5,31 @@ struct AMALA
     initial_step_size::Float64
 end
 
-explorer_recorder_builders(explorer::AMALA) = [explorer_acceptance_pr, explorer_n_steps]
-
 function step!(explorer::AMALA, replica, shared)
 
     rng = replica.rng
     target_log_potential = find_log_potential(replica, shared.tempering, shared)
     
-    # TODO REMOVE THIS! ###########################
-    rand!(rng, replica.state, target_log_potential)
-    ###############################################
+    # TODO: need to init? maybe let the prior do its things...?
 
     state = replica.state
     dim = length(state)
 
-    # TODO: get those from buffers (AVOID CLASH WITH auto_step_size's buffers)
-    momentum = zeros(dim)
-    target_std_deviations = ones(dim) # TODO: adapt those 
-    gradient_buffer = zeros(dim)
+    momentum = get_buffer(replica.recorders.am_momentum_buffer, dim)
+    target_std_deviations = 
+        begin  # TODO: if adapt .. else
+            ones = get_buffer(replica.recorders.am_ones_buffer, dim)
+            ones .= 1.0
+            ones
+        end
+    gradient_buffer = get_buffer(replica.recorders.am_gradient_buffer, dim)
 
-    start_state = zeros(dim)
-    start_mom = zeros(dim)
+    start_state = get_buffer(replica.recorders.am_state_buffer, dim)
 
     for i in 1:explorer.n_refresh
-
+        start_state .= state 
         randn!(rng, momentum)
         init_joint_log = log_joint(target_log_potential, state, momentum)
-
-        start_state .= state 
-        start_mom .= momentum
 
         a = rand(rng)
         b = rand(rng)
@@ -86,9 +82,7 @@ function step!(explorer::AMALA, replica, shared)
             # go back 
             # TODO: add a *extra* buffer 
             state .= start_state 
-            momentum .= start_mom
         end
-
     end
 end
 
@@ -109,32 +103,39 @@ function auto_step_size(
 
     initial_difference = log_joint_difference(initial_step_size) 
 
-    if initial_difference < lower_bound 
-        return shrink_step_size(log_joint_difference, initial_step_size, lower_bound) 
-    elseif initial_difference > upper_bound 
-        return grow_step_size(log_joint_difference, initial_step_size, upper_bound)
-    else
-        return initial_step_size
-    end
+    n_steps, step_size = 
+        if initial_difference < lower_bound 
+            shrink_step_size(log_joint_difference, initial_step_size, lower_bound) 
+        elseif initial_difference > upper_bound 
+            grow_step_size(log_joint_difference, initial_step_size, upper_bound)
+        else
+            0, initial_step_size
+        end
+    @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 1+n_steps)) 
+    return step_size
 end
 
 function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
     step_size = initial_step_size
+    n = 1
     while true 
         step_size /= 2.0 
         if log_joint_difference(step_size) > lower_bound 
-            return step_size
+            return n, step_size
         end
+        n += 1
     end
 end
 
 function grow_step_size(log_joint_difference, initial_step_size, upper_bound) 
     step_size = initial_step_size 
+    n = 1
     while true 
         step_size *= 2.0 
         if log_joint_difference(step_size) < upper_bound 
-            return step_size / 2.0 # one less step, to avoid a potential cliff-like drop in acceptance
+            return n, step_size / 2.0 # one less step, to avoid a potential cliff-like drop in acceptance
         end
+        n += 1
     end
 end
 
@@ -144,16 +145,20 @@ function log_joint_difference_function(
             state, momentum, 
             replica, gradient_buffer)
 
-    # TODO: pass those as buffers
-    state_before = copy(state)
-    momentum_before = copy(momentum)
+    dim = length(state)
+
+    state_before = get_buffer(replica.recorders.am_ljdf_state_before_buffer, dim)
+    state_before .= state 
+
+    momentum_before = get_buffer(replica.recorders.am_ljdf_momentum_before_buffer, dim)
+    momentum_before .= momentum
+
     h_before = log_joint(target_log_potential, state, momentum)
     function result(step_size)
-        hamiltonian_dynamics!(
+        leap_frog!(
             target_log_potential, target_std_deviations, 
             state, momentum, step_size, 
-            1, # 1 step, i.e. a single leap frog
-            replica, gradient_buffer)
+            gradient_buffer)
         h_after = log_joint(target_log_potential, state, momentum)
         state .= state_before 
         momentum .= momentum_before
@@ -161,3 +166,22 @@ function log_joint_difference_function(
     end
     return result
 end
+
+am_ljdf_state_before_buffer() = Augmentation{Vector{Float64}}() 
+am_ljdf_momentum_before_buffer() = Augmentation{Vector{Float64}}()
+
+am_momentum_buffer() = Augmentation{Vector{Float64}}() 
+am_state_buffer() = Augmentation{Vector{Float64}}()
+am_gradient_buffer() = Augmentation{Vector{Float64}}()
+am_ones_buffer() = Augmentation{Vector{Float64}}()
+
+explorer_recorder_builders(explorer::AMALA) = [
+    explorer_acceptance_pr, 
+    explorer_n_steps,
+    am_ljdf_state_before_buffer,
+    am_ljdf_momentum_before_buffer,
+    am_momentum_buffer,
+    am_state_buffer,
+    am_gradient_buffer,
+    am_ones_buffer
+]

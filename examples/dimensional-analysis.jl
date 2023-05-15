@@ -97,9 +97,24 @@ function hit_run(D)
     return D, n_steps, ess_value
 end
 
+function auto_mala(D)
+    n_passes = ceil(Int, 2 * D^(1.0/3.0))
+    explorer = Pigeons.AMALA(n_passes, 1.0)
+    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    return D, n_steps, ess_value
+end
+
 function optimal_mala(D)
     step_size = 0.5 / D^(1.0/3.0)
-    n_passes = ceil(Int, 100/step_size)
+    n_passes = ceil(Int, 2 * D^(1.0/3.0))
+    explorer = Pigeons.MALA(step_size, n_passes)
+    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    return D, n_steps, ess_value
+end
+
+function fixed_step_size_mala(D)
+    step_size = 0.5 # if set to one, crashes too soon!
+    n_passes = ceil(Int, 2 * D^(1.0/3.0))
     explorer = Pigeons.MALA(step_size, n_passes)
     n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
     return D, n_steps, ess_value
@@ -139,6 +154,7 @@ function scaling_plot(
                 nuts, 
                 hit_run, 
                 optimal_mala,
+                auto_mala,
                 optimal_hmc])
     cost_plot = plot()
     ess_plot = plot()
