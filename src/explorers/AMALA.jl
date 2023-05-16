@@ -107,15 +107,17 @@ function auto_step_size(
 
     initial_difference = log_joint_difference(initial_step_size) 
 
-    n_steps, step_size = 
+    n_steps, exponent = 
         if initial_difference < lower_bound 
             shrink_step_size(log_joint_difference, initial_step_size, lower_bound) 
         elseif initial_difference > upper_bound 
             grow_step_size(log_joint_difference, initial_step_size, upper_bound)
         else
-            0, initial_step_size
+            0, 0
         end
+    step_size = initial_step_size * 2.0^exponent
     @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 1+n_steps)) 
+    @record_if_requested!(replica.recorders, :am_exponents, (replica.chain, exponent)) 
     return step_size
 end
 
@@ -125,7 +127,7 @@ function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
     while true 
         step_size /= 2.0 
         if log_joint_difference(step_size) > lower_bound 
-            return n, step_size
+            return n, -n
         end
         n += 1
     end
@@ -137,7 +139,7 @@ function grow_step_size(log_joint_difference, initial_step_size, upper_bound)
     while true 
         step_size *= 2.0 
         if log_joint_difference(step_size) < upper_bound 
-            return n, step_size / 2.0 # one less step, to avoid a potential cliff-like drop in acceptance
+            return n, n - 1 # one less step, to avoid a potential cliff-like drop in acceptance
         end
         n += 1
     end
@@ -179,9 +181,12 @@ am_state_buffer() = Augmentation{Vector{Float64}}()
 am_gradient_buffer() = Augmentation{Vector{Float64}}()
 am_ones_buffer() = Augmentation{Vector{Float64}}()
 
+am_exponents() = GroupBy(Int, Mean())
+
 explorer_recorder_builders(explorer::AMALA) = [
     explorer_acceptance_pr, 
     explorer_n_steps,
+    am_exponents,
     am_ljdf_state_before_buffer,
     am_ljdf_momentum_before_buffer,
     am_momentum_buffer,
