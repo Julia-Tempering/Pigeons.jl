@@ -62,26 +62,30 @@ function step!(explorer::AMALA, replica, shared)
             replica, gradient_buffer,
             explorer.initial_step_size, lower_bound, upper_bound)
 
+        # NB:   in the transient phase, the rejection rate for the 
+        #       reversibility check can be high, so skip it 
+        #       for a few initial iteration. 
+        # TODO: improve this
+        if shared.iterators.round < 5
+            reversed_step_size = proposed_step_size
+        end
+
         probability = 
             if reversed_step_size == proposed_step_size 
                 final_joint_log = log_joint(target_log_potential, state, momentum)
-                #@show proposed_step_size
                 min(1.0, exp(final_joint_log - init_joint_log)) 
             else
-                #@show proposed_step_size, reversed_step_size
                 0.0 
             end
 
         @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
 
-        uniform = rand(rng) 
-
-        if uniform < probability 
+        if rand(rng) < probability 
             # accept: nothing to do, we work in-place
         else
-            # go back 
-            # TODO: add a *extra* buffer 
+            # reject: go back to start state
             state .= start_state 
+            # no need to reset momentum as it will get resampled next
         end
     end
 end
