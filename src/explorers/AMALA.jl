@@ -64,9 +64,8 @@ function step!(explorer::AMALA, replica, shared)
 
         # NB:   in the transient phase, the rejection rate for the 
         #       reversibility check can be high, so skip it 
-        #       for a few initial iteration. 
-        # TODO: improve this
-        if shared.iterators.round < 5
+        #       for the initial scan of each round
+        if shared.iterators.scan == 1
             reversed_step_size = proposed_step_size
         end
 
