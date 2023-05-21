@@ -6,20 +6,6 @@
 end
 
 
-@auto struct Ray 
-    start
-    state
-    direction 
-end
-
-function Base.setindex!(ptr::Ray, value)
-    ptr.state .= ptr.start .+ ptr.direction .* value
-    return nothing
-end
-
-Base.getindex(ptr::Ray) =
-    (ptr.state[1] - ptr.start[1]) / ptr.direction[1]
-
 function step!(explorer::AHR, replica, shared) 
 
     slicer = SliceSampler(explorer.w, explorer.p, 1)
@@ -42,7 +28,7 @@ function step!(explorer::AHR, replica, shared)
     end
 end
 
-explorer_recorder_builders(hmc::AHR) = 
+explorer_recorder_builders(::AHR) = 
     [ahr_state_buffer, ahr_direction_buffer, explorer_acceptance_pr, explorer_n_steps]
 
 ahr_state_buffer() = Augmentation{Vector{Float64}}()
