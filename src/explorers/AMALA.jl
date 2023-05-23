@@ -1,9 +1,19 @@
-
-
-struct AMALA 
+@auto struct AMALA 
     n_refresh::Int
     initial_step_size::Float64
+
+    # this gets updated if adaptive_diag_mass_mtx is enabled (set to 'nothing' until adapted)
+    target_std_deviations
 end
+
+AMALA(n_refresh = 3, initial_step_size = 1.0) = AMALA(n_refresh, initial_step_size, nothing)
+
+function adapt_explorer(explorer::AMALA, reduced_recorders, current_pt, new_tempering)
+    target_std_dev = 
+        sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance))
+    return AMALA(explorer.n_refresh, explorer.initial_step_size, target_std_dev)
+end
+
 
 function step!(explorer::AMALA, replica, shared)
 
@@ -16,12 +26,13 @@ function step!(explorer::AMALA, replica, shared)
     dim = length(state)
 
     momentum = get_buffer(replica.recorders.am_momentum_buffer, dim)
-    target_std_deviations = 
-        begin  # TODO: if adapt .. else
-            ones = get_buffer(replica.recorders.am_ones_buffer, dim)
-            ones .= 1.0
-            ones
-        end
+    target_std_deviations = get_buffer(replica.recorders.am_ones_buffer, dim)
+    target_std_deviations .= 1.0
+    mix = rand(rng) # random interpolation b/w unit and estimated for robustness
+    if explorer.target_std_deviations !== nothing
+        target_std_deviations .= mix .* target_std_deviations .+ (1.0 - mix) .* explorer.target_std_deviations
+    end
+
     gradient_buffer = get_buffer(replica.recorders.am_gradient_buffer, dim)
 
     start_state = get_buffer(replica.recorders.am_state_buffer, dim)
@@ -55,19 +66,20 @@ function step!(explorer::AMALA, replica, shared)
         momentum .*= -1.0 
 
         # reversibility check 
-        reversed_step_size = auto_step_size(
-            target_log_potential, 
-            target_std_deviations, 
-            state, momentum, 
-            replica, gradient_buffer,
-            explorer.initial_step_size, lower_bound, upper_bound)
-
-        # NB:   in the transient phase, the rejection rate for the 
-        #       reversibility check can be high, so skip it 
-        #       for the initial scan of each round
-        if shared.iterators.scan == 1
-            reversed_step_size = proposed_step_size
-        end
+        reversed_step_size = 
+            if shared.iterators.scan == 1
+                # in the transient phase, the rejection rate for the 
+                # reversibility check can be high, so skip it 
+                # for the initial scan of each round
+                proposed_step_size
+            else
+                auto_step_size(
+                    target_log_potential, 
+                    target_std_deviations, 
+                    state, momentum, 
+                    replica, gradient_buffer,
+                    explorer.initial_step_size, lower_bound, upper_bound)
+            end
 
         probability = 
             if reversed_step_size == proposed_step_size 
@@ -183,6 +195,7 @@ am_ones_buffer() = Augmentation{Vector{Float64}}()
 am_exponents() = GroupBy(Int, Mean())
 
 explorer_recorder_builders(explorer::AMALA) = [
+    target_online, # for mass matrix adaptation
     explorer_acceptance_pr, 
     explorer_n_steps,
     am_exponents,
