@@ -1,5 +1,5 @@
-#using CairoMakie
-using GLMakie
+using CairoMakie
+#using GLMakie
 using PairPlots
 using Pigeons
 
