@@ -1,15 +1,3 @@
-
-
-#=
-
-Cf on increasing d, the behaviour of V(X)
-
-- adaptive hit and run 
-- HMC 
-
-=#
-
-
 using AdvancedHMC, ForwardDiff
 using LogDensityProblems
 using LinearAlgebra
@@ -35,8 +23,7 @@ LogDensityProblems.logdensity(p::LogTargetDensity, θ) = -sum(abs2, θ) / 2  # s
 LogDensityProblems.dimension(p::LogTargetDensity) = p.dim
 LogDensityProblems.capabilities(::Type{LogTargetDensity}) = LogDensityProblems.LogDensityOrder{0}()
 
-
-
+# Based off AdvancedHMC README:
 function nuts(D)
     # Choose parameter dimensionality and initial parameter value
     initial_θ = randn(D)

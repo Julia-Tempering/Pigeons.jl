@@ -1,10 +1,6 @@
 #=
-Copied from https://github.com/ptiede/Comrade.jl/blob/main/lib/ComradePigeons/src/ComradePigeons.jl 
-ComradePigeons not being published makes it harder to deploy to MPI via 'using ComradePigeons'
-As a workaround, including the contents in this repo for now 
+Based on https://github.com/ptiede/Comrade.jl/blob/main/lib/ComradePigeons/src/ComradePigeons.jl 
 =#
-
-# TODO: check with Paul if one of sample_iid!() below is not superfluous? 
 
 using Comrade
 using Distributions
@@ -20,10 +16,13 @@ using LinearAlgebra
 using Jube 
 using FFTW
 
-LinearAlgebra.BLAS.set_num_threads(1)
+if Threads.nthreads() > 1
+    error("Some comrade likelihood evaluation may not work under multithreading (FFT stuff)")
+end
 
-# Setting this to one thread, otherwise crashes (see crash-comrade-multithreaded-fft.txt in devnotes)
-FFTW.set_num_threads(1) # Threads.nthreads())
+# Can crash in multithreading even when those are used (see crash-comrade-multithreaded-fft.txt in devnotes)
+FFTW.set_num_threads(1) 
+LinearAlgebra.BLAS.set_num_threads(1)
 
 import Pigeons.gradient
 import Pigeons.instantiate_target

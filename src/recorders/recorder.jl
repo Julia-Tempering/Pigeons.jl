@@ -39,7 +39,7 @@ To post-process files in the correct order, use [`process_samples`](@ref).
 function record!(traces::Dict{Pair{Int, Int}, T}, datum) where {T}
     key = datum.chain => datum.scan 
     @assert !haskey(traces, key) 
-    traces[key] = datum.contents
+    traces[key] = datum.contents # copy is called if needed by caller in pigeons.jl/explore!()
 end
 
 """ 
@@ -72,13 +72,6 @@ function explorer_n_steps(pt)
     collection = value(pt.reduced_recorders.explorer_n_steps)
     return value.(values(collection))
 end
-
-""" 
-Directional second derivative information for gradient explorers.   
-"""
-@provides recorder directional_second_derivatives() = GroupBy(Int, Extrema())
-
-
 
 """ 
 Full index process stored in memory. 
