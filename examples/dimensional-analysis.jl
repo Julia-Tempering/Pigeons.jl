@@ -98,7 +98,7 @@ function hit_run(D)
 end
 
 function auto_mala(D)
-    explorer = Pigeons.AutoMALA(10, 0.5)
+    explorer = Pigeons.AutoMALA(1, 0.5)
     n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
     return D, n_steps, ess_value
 end
