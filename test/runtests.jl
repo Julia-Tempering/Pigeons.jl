@@ -81,9 +81,9 @@ end
     n_leaps = 40
 
     start = copy(x)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps, nothing, zeros(2))
+    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps, zeros(2))
     @test !(x ≈ start)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps, nothing, zeros(2))
+    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps, zeros(2))
     @test x ≈ start
 end
 
