@@ -1,21 +1,21 @@
-@auto struct AMALA 
+@auto struct AutoMALA 
     n_refresh::Int
     initial_step_size::Float64
 
-    # this gets updated if adaptive_diag_mass_mtx is enabled (set to 'nothing' until adapted)
+    # this gets updated after first iteration; initially nothing
     target_std_deviations
 end
 
-AMALA(n_refresh = 3, initial_step_size = 1.0) = AMALA(n_refresh, initial_step_size, nothing)
+AutoMALA(n_refresh = 10, initial_step_size = 1.0) = AutoMALA(n_refresh, initial_step_size, nothing)
 
-function adapt_explorer(explorer::AMALA, reduced_recorders, current_pt, new_tempering)
+function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
     target_std_dev = 
         sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance))
-    return AMALA(explorer.n_refresh, explorer.initial_step_size, target_std_dev)
+    return AutoMALA(explorer.n_refresh, explorer.initial_step_size, target_std_dev)
 end
 
 
-function step!(explorer::AMALA, replica, shared)
+function step!(explorer::AutoMALA, replica, shared)
 
     rng = replica.rng
     target_log_potential = find_log_potential(replica, shared.tempering, shared)
@@ -194,7 +194,7 @@ am_ones_buffer() = Augmentation{Vector{Float64}}()
 
 am_exponents() = GroupBy(Int, Mean())
 
-explorer_recorder_builders(explorer::AMALA) = [
+explorer_recorder_builders(explorer::AutoMALA) = [
     target_online, # for mass matrix adaptation
     explorer_acceptance_pr, 
     explorer_n_steps,
