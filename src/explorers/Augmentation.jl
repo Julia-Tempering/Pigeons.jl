@@ -8,6 +8,13 @@ mutable struct Augmentation{T}
     serialize::Bool
 end
 
+function get_buffer(augmentation, dim::Int)::Vector{Float64}
+    if augmentation.contents === nothing 
+        augmentation.contents = zeros(dim) 
+    end
+    return augmentation.contents
+end
+
 Augmentation{T}() where {T} = Augmentation{T}(nothing, false)
 
 Base.merge(a1::Augmentation{T}, a2::Augmentation{T}) where {T} = 

@@ -36,22 +36,4 @@ plot(pt.shared.tempering.communication_barriers.localbarrier)
     return x, y
 end  
 
-"""
-```@example 
-using Pigeons
-using Plots 
-pt = pigeons(
-        target = Pigeons.bivariate_normal(1.0, 1.0, 0.99), 
-        explorer = Pigeons.HMC())
-plot(pt.explorer)
-```
-"""
-@recipe function plot_hmc_adapt(hmc::HMC) 
-    xlabel --> "β"
-    ylabel --> "constant x ϵ(β)"
-    legend := false
-    x = range(0.0, 1.0, length=100)
-    y = step_size_scalings(hmc.interpolated_curvatures, x)
-    return x, y
-end
 

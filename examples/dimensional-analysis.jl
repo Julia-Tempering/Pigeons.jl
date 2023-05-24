@@ -90,12 +90,6 @@ function single_chain_pigeons_mvn(D, explorer)
     return n_steps, ess_value
 end
 
-function hit_run(D)
-    n_passes = ceil(Int, D^(1))
-    explorer = Pigeons.AHR(n_passes = n_passes)
-    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
-    return D, n_steps, ess_value
-end
 
 function auto_mala(D)
     explorer = Pigeons.AutoMALA(1, 0.5)
@@ -103,13 +97,6 @@ function auto_mala(D)
     return D, n_steps, ess_value
 end
 
-function optimal_mala(D)
-    step_size = 0.5 / D^(1.0/3.0)
-    n_passes = ceil(Int, 2 * D^(1.0/3.0))
-    explorer = Pigeons.MALA(step_size, n_passes)
-    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
-    return D, n_steps, ess_value
-end
 
 function fixed_step_size_mala(D)
     step_size = 0.5 # if set to one, crashes too soon!
@@ -119,12 +106,6 @@ function fixed_step_size_mala(D)
     return D, n_steps, ess_value
 end
 
-function optimal_hmc(D)
-    step_size = 0.1 # / D^(1.0/4.0) - dim auto scaled by current adator in static_HMC
-    explorer = Pigeons.static_HMC(step_size)
-    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
-    return D, n_steps, ess_value
-end
 
 sparse_slicer(D) = slicer(D, true) 
 dense_slicer(D) = slicer(D, false)
@@ -151,10 +132,7 @@ function scaling_plot(
                 sparse_slicer, 
                 dense_slicer, 
                 nuts, 
-                hit_run, 
-                optimal_mala,
-                auto_mala,
-                optimal_hmc])
+                auto_mala])
     cost_plot = plot()
     ess_plot = plot()
     data = Dict()

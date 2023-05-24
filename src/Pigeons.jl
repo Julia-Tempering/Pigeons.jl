@@ -76,7 +76,7 @@ export pigeons, Inputs, PT,
     # variational references:
     GaussianReference, NoVarReference, 
     # samplers 
-    SliceSampler, HMC, AutoMALA
+    SliceSampler, AutoMALA
 end # End module
 
 
