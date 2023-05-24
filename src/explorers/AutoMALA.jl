@@ -9,13 +9,15 @@ end
 
 AutoMALA(base_n_refresh = 10, exponent_n_refresh = 0.5, initial_step_size = 1.0) = AutoMALA(base_n_refresh, exponent_n_refresh, initial_step_size, nothing)
 
-adapted(old::AutoMALA, target_std_deviations) = AutoMALA(old.base_n_refresh, old.exponent_n_refresh, old.initial_step_size,  target_std_deviations)
-
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
     adapted_target_std_dev = 
         sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance))
-    
-    return adapted(explorer, adapted_target_std_dev)
+    # use the mean across chains of the mean shrink/grow exponent to compute a new baseline stepsize
+    updated_initial_step_size = explorer.initial_step_size * 2.0^mean(mean.(values(value(reduced_recorders.am_exponents))))
+    return AutoMALA(
+                explorer.base_n_refresh, explorer.exponent_n_refresh,
+                updated_initial_step_size,
+                adapted_target_std_dev)
 end
 
 function step!(explorer::AutoMALA, replica, shared)
@@ -55,7 +57,7 @@ function step!(explorer::AutoMALA, replica, shared)
                 state, momentum, 
                 replica, gradient_buffer,
                 explorer.initial_step_size, lower_bound, upper_bound)
-        proposed_step_size = initial_step_size * 2.0^exponent
+        proposed_step_size = explorer.initial_step_size * 2.0^proposed_exponent
 
         # move to proposed point
         leap_frog!(
