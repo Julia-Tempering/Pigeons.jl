@@ -21,7 +21,9 @@ function main()
     slp_prior = StanLogPotential(smb, smb_prior, true, q)
 
     # run Pigeons
-    pt = pigeons(target = slp)
+    pt = pigeons(target = slp, n_rounds = 2)
+    # todo: check out pigeons.jl line 94. when you run this line, 
+    # *all* replicas are updated at once (instead of just one by one...)
     nothing
 end
 

@@ -34,8 +34,8 @@ a generalized version of Algorithm 1 in
 
 Alternates between [`communicate!()`](@ref), 
 which consists of any pairwise communicating 
-moves and [`explore!()`], which consists in 
-moves independ to each chain. 
+moves and [`explore!()`], which consists of  
+moves independent to each chain. 
 
 Concrete specification of how to communicate and 
 explore are specified by the field of type [`Shared`](@ref) 
