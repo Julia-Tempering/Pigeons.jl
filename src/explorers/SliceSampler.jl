@@ -107,7 +107,7 @@ Double the current slice.
 function slice_double(h::SliceSampler, replica, z, pointer, log_potential)
     rng = replica.rng
     state = replica.state
-    old_position = pointer[] # store old position (trick to avoid memory allocation)
+    old_position = pointer[] # store old position while avoiding memory allocation
     L, R = initialize_slice_endpoints(h.w, pointer, rng, typeof(pointer[])) # dispatch on either float or int
     K = h.p
     
