@@ -1,4 +1,0 @@
-auto_mala: 1.4385399631780182
-optimal_hmc: 1.2484968829545342
-fixed_step_size_mala: NaN
-optimal_mala: 1.5052106904706046
