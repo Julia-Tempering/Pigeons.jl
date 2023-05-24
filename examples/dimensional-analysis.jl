@@ -98,8 +98,7 @@ function hit_run(D)
 end
 
 function auto_mala(D)
-    n_passes = ceil(Int, 2 * D^(1.0/3.0))
-    explorer = Pigeons.AutoMALA(n_passes, 1.0)
+    explorer = Pigeons.AutoMALA(10, 0.5)
     n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
     return D, n_steps, ess_value
 end

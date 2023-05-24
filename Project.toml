@@ -4,7 +4,6 @@ authors = ["Alexandre Bouchard-Côté <bouchard@stat.ubc.ca>, Nikola Surjanovic 
 version = "0.1.1"
 
 [deps]
-BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
 CRC32c = "8bf52ea8-c179-5cab-976a-9e18b702a9bc"
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"

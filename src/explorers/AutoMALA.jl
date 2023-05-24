@@ -1,40 +1,22 @@
 @auto struct AutoMALA 
-    n_refresh::Int
-    initial_step_size::Float64
+    base_n_refresh::Int           # gets multiplied by ceil(Int, dim^(exponent_n_refresh))
+    exponent_n_refresh::Float64   # defaults to 0.5, a bit more than 1/3 for added robustness
+    initial_step_size::Float64    # starting point for the automatic step size algorithm
 
     # this gets updated after first iteration; initially nothing
     adapted_target_std_deviations # estimates of target standard deviations
-    adapted_step_sizes
 end
 
-AutoMALA(n_refresh = 10, initial_step_size = 1.0) = AutoMALA(n_refresh, initial_step_size, nothing, nothing)
+AutoMALA(base_n_refresh = 10, exponent_n_refresh = 0.5, initial_step_size = 1.0) = AutoMALA(base_n_refresh, exponent_n_refresh, initial_step_size, nothing)
 
-adapted(old::AutoMALA, target_std_deviations, adapted_step_sizes) = AutoMALA(old.n_refresh, old.initial_step_size,  target_std_deviations, adapted_step_sizes)
+adapted(old::AutoMALA, target_std_deviations) = AutoMALA(old.base_n_refresh, old.exponent_n_refresh, old.initial_step_size,  target_std_deviations)
 
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
     adapted_target_std_dev = 
         sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance))
     
-    betas = current_pt.shared.tempering.schedule.grids
-    exponent_estimates = value(reduced_recorders.am_exponents)
-    ys = zeros(length(betas))
-    # TODO: generalize for arbitrary swap schemes 
-    ys[1] = 0.0
-    len = length(betas)
-    for i in 2:len
-        ys[i] = mean(exponent_estimates[i])
-    end
-    if len == 1 
-        # a single chain: "interpolation" is just a constant function
-        interpolated(_) = ys[1]
-    else
-        interpolated = BSplineKit.interpolate(betas, ys, BSplineOrder(4)) # order 4 is a cubic spine in BSplineOrder
-    end
-    adapted_step_sizes = interpolated.(new_tempering.schedule.grids)
-    
-    return adapted(explorer, adapted_target_std_dev, adapted_step_sizes)
+    return adapted(explorer, adapted_target_std_dev)
 end
-
 
 function step!(explorer::AutoMALA, replica, shared)
 
@@ -55,7 +37,8 @@ function step!(explorer::AutoMALA, replica, shared)
     gradient_buffer = get_buffer(replica.recorders.am_gradient_buffer, dim)
     start_state = get_buffer(replica.recorders.am_state_buffer, dim)
 
-    for i in 1:explorer.n_refresh
+    n_refresh = explorer.base_n_refresh * ceil(Int, dim^explorer.exponent_n_refresh)
+    for i in 1:n_refresh
         start_state .= state 
         randn!(rng, momentum)
         init_joint_log = log_joint(target_log_potential, state, momentum)
