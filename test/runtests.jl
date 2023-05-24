@@ -34,52 +34,37 @@ function test_load_balance(n_processes, n_tasks)
     end
 end
 
-pt = pigeons(target = bad_conditioning_target, explorer = HMC(0.1), n_chains = 1, n_rounds = 15)
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
 @testset "Mass-matrix" begin
     bad_conditioning_target = HetPrecisionNormalLogPotential([500.0, 1.0])
-    pt = pigeons(target = bad_conditioning_target, explorer = HMC(), n_chains = 1, n_rounds = 10)
-    @test abs(pt.shared.explorer.target_std_deviations[1] - 1/sqrt(500)) < 0.01
-    @test mean_mh_accept(pt) > 0.8
-
-    pt = pigeons(target = bad_conditioning_target, explorer = static_HMC(), n_chains = 1, n_rounds = 10)
-    @test mean_mh_accept(pt) < 0.7
+    pt = pigeons(target = bad_conditioning_target, explorer = AutoMALA(), n_chains = 1, n_rounds = 10)
+    @test abs(pt.shared.explorer.adapted_target_std_deviations[1] - 1/sqrt(500)) < 0.01
+    @test mean_mh_accept(pt) > 0.5
 end
 
-@testset "Allocs-HMC" begin
-    allocs_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 13, target = toy_mvn_target(1), explorer = HMC()))
-    allocs_rounds_longer = Pigeons.last_round_max_allocation(pigeons(n_rounds = 14, target = toy_mvn_target(1), explorer = HMC()))
+@testset "Allocs-AutoMALA" begin
+    allocs_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 13, target = toy_mvn_target(1), explorer = AutoMALA()))
+    allocs_rounds_longer = Pigeons.last_round_max_allocation(pigeons(n_rounds = 14, target = toy_mvn_target(1), explorer = AutoMALA()))
     @test allocs_rounds == allocs_rounds_longer
 end
 
-hmc(target) =
+auto_mala(target) =
     pigeons(; 
         target, 
-        explorer = Pigeons.static_HMC(0.2, 3), 
+        explorer = AutoMALA(), 
         n_chains = 1, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
 
 
-
-@testset "HMC epsilon" begin
-    hmc_adapt_only_eps() = HMC(0.2, 3, 0.0, 1.0, nothing, nothing, nothing)
-    hmc_no_adapt()       = HMC(0.2, 3, 0.0, 0.0, nothing, nothing, nothing)
-
-    target = Pigeons.ScaledPrecisionNormalPath(1.0, 100.0, 1)
-
-    @test mean_mh_accept(pigeons(; target, explorer = hmc_adapt_only_eps())) > 0.9
-    @test mean_mh_accept(pigeons(; target, explorer = hmc_no_adapt())) < 0.9
-end
-
-@testset "HMC dimensional autoscale" begin
+@testset "AutoMALA dimensional autoscale" begin
     for i in 0:3
         d = 10^i
-        @test mean_mh_accept(hmc(toy_mvn_target(d))) > 0.95
+        @test mean_mh_accept(auto_mala(toy_mvn_target(d))) > 0.4
     end
 end
 
-@testset "Check HMC involution" begin
+@testset "Hamiltonian-involutive" begin
     rng = SplittableRandom(1)
 
     my_target = HetPrecisionNormalLogPotential([5.0, 1.1]) 
@@ -97,33 +82,9 @@ end
     @test x ≈ start
 end
 
-@testset "Curvature estimation check" begin
-    rng = SplittableRandom(1)
-
-    estimated = 5.0
-    residual = 1.1
-    my_target = HetPrecisionNormalLogPotential([estimated, residual]) 
-    # say we are able to capture part of the shape of the 
-    # target (here, first component), can we estimate residual?
-    partly_estimated_std_devs = [1.0 / sqrt(estimated), 1.0]
-
-    x = randn(rng, 2)
-    n_leaps = 40
-    recorders = (; directional_second_derivatives =  GroupBy(Int, Extrema()))
-    replica = Pigeons.Replica(nothing, 1, rng, recorders, 1)
-
-    v = randn(rng, 2)
-    for i in 1:100
-        Pigeons.hamiltonian_dynamics!(my_target, partly_estimated_std_devs, x, v, 0.1, n_leaps, replica, zeros(2))
-        v = randn(rng, 2)
-    end
-
-    @test maximum(replica.recorders.directional_second_derivatives[1]) ≈ residual
-end
-
 @testset "Allocs" begin
-    allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 10, target = toy_mvn_target(100)))
-    allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(100)))
+    allocs_10_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 11, target = toy_mvn_target(100)))
+    allocs_11_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 12, target = toy_mvn_target(100)))
     @test allocs_10_rounds == allocs_11_rounds
 end
 

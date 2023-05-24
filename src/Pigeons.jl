@@ -68,6 +68,7 @@ export pigeons, Inputs, PT,
     toy_mvn_target, TuringLogPotential,
     # recorders:
     index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, traces, disk,
+    online_recorder_builders,
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     # getting information out of an execution:
@@ -75,7 +76,7 @@ export pigeons, Inputs, PT,
     # variational references:
     GaussianReference, NoVarReference, 
     # samplers 
-    SliceSampler, HMC
+    SliceSampler, HMC, AutoMALA
 end # End module
 
 
