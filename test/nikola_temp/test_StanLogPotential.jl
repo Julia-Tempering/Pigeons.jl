@@ -3,6 +3,7 @@ using BridgeStan
 const BS = BridgeStan
 using Random 
 using SplittableRandoms
+using Plots
 
 function main()
     # settings
@@ -25,15 +26,19 @@ function main()
 
     # test slicer 
     h = Pigeons.SliceSampler()
-    n = 10
+    n = 100_000
     states = Vector{typeof(q)}(undef, n)
+    states_transf = copy(states)
     cached_lp = -Inf
     for i in 1:n
         cached_lp = Pigeons.slice_sample!(h, q, slp_prior, cached_lp, rng)
         states[i] = copy(q)
-        # todo: transform to constrained (original) space
+        states_transf[i] = param_constrain(smb_prior, states[i])
     end
-    println(states)
+    # println(states_transf)
+    states_transf_vec = map((x) -> x[1], states_transf)
+    p = histogram(states_transf_vec)
+    display(p)
 end
 
 main()
