@@ -1,3 +1,5 @@
+# Creates a log-log plot of ESS/eval as function of dim to benchmark explorers
+
 using AdvancedHMC, ForwardDiff
 using LogDensityProblems
 using LinearAlgebra

@@ -1,11 +1,19 @@
 """
 Slice sampler based on
 [Neal, 2003](https://projecteuclid.org/journals/annals-of-statistics/volume-31/issue-3/Slice-sampling/10.1214/aos/1056562461.full).
+
+Fields:
+$FIELDS
 """
 @kwdef struct SliceSampler
-    w::Float64 = 10.0 # initial slice size
-    p::Int = 20 # slices are no larger than 2^p * w
-    n_passes::Int = 3 # n_passes through all variables per exploration step
+    """ Initial slice size. """
+    w::Float64 = 10.0 
+
+    """ Slices are no larger than 2^p * w """
+    p::Int = 20 
+
+    """ Number of passes through all variables per exploration step. """
+    n_passes::Int = 3  
 end
 
 explorer_recorder_builders(::SliceSampler) = [explorer_acceptance_pr, explorer_n_steps]
@@ -20,11 +28,6 @@ function step!(explorer::SliceSampler, replica, shared)
         cached_lp = slice_sample!(explorer, replica.state, log_potential, cached_lp, replica)
     end
 end
-
-"""
-$SIGNATURES
-Slice sample one point.
-"""
 
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, replica)
     # if there is no cached logprob, compute it from scratch
@@ -100,10 +103,6 @@ function Bernoulli_sample_coord!(replica, pointer, log_potential, cached_lp)
     end
 end
 
-"""
-$SIGNATURES
-Double the current slice.
-"""
 function slice_double(h::SliceSampler, replica, z, pointer, log_potential)
     rng = replica.rng
     state = replica.state
@@ -148,11 +147,6 @@ function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: I
     return (L, R)
 end
 
-
-"""
-$SIGNATURES
-Shrink the current slice.
-"""
 function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, log_potential)
    
     rng = replica.rng
@@ -190,10 +184,6 @@ draw_new_position(L, R, rng, ::Type{T}) where T <: AbstractFloat = L + rand(rng)
 draw_new_position(L, R, rng, ::Type{T}) where T <: Integer = rand(rng, L:R)
 
 
-"""
-$SIGNATURES
-Test whether to accept the current slice.
-"""
 function slice_accept(h::SliceSampler, replica, new_position, z, L, R, lp_L, lp_R, pointer, log_potential)
     state = replica.state
     old_position = pointer[]

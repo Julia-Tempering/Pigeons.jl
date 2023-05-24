@@ -1,13 +1,32 @@
+"""
+A state augmentation used by explorers. 
+
+Internally, hijacks the recorders machinery to 
+store it in a Replica. 
+"""
 mutable struct Augmentation{T}
+    """
+    The payload, initially nothing until 
+    [`get_buffer()`](@ref) is called.
+    """
     contents::Union{T,Nothing}
     
-    # when it is volatile, i.e. can be 
-    # reconstructed on the fly and is only 
-    # stored for efficiency purpose, it is 
-    # not worth serialialinzing it
+    """
+    When it is volatile, i.e. can be 
+    reconstructed on the fly and is only 
+    stored for efficiency purpose, it is 
+    not worth serialialinzing it
+    """
     serialize::Bool
 end
 
+"""
+$SIGNATURES 
+
+Return a Vector of length dim. Allocating only the first 
+time, after that the buffer is recycled and stored in the 
+Replica's explorers object. 
+"""
 function get_buffer(augmentation, dim::Int)::Vector{Float64}
     if augmentation.contents === nothing 
         augmentation.contents = zeros(dim) 

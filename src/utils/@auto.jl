@@ -1,5 +1,11 @@
 # Based on ConcreteStruct.jl
 
+"""
+Based on ConcreteStruct.jl, but (1) with a more descriptive name and  
+(2) outputs elided type information 
+(ConcreteStruct.jl has this feature but does not seem to work at the 
+moment). 
+"""
 macro auto(expr)
 
     expr, struct_name, type_params = _concretize(expr)

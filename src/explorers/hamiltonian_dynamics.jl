@@ -4,16 +4,16 @@ log_joint(logp, state, momentum) = logp(state) - 0.5 * sqr_norm(momentum)
 # we add tricks to make it non-allocating
 function hamiltonian_dynamics!(
             target_log_potential, 
-            target_std_deviations, 
+            estimated_target_std_dev, 
             state, momentum, step_size, n_steps, 
             gradient_buffer)
 
     # We use an implicit linear transformation rescaling  
-    # component i with 1/target_std_deviations[i]
+    # component i with 1/estimated_target_std_dev[i]
     # and use an isotropic normal momentum. 
     function conditioned_target_gradient!()
         gradient_buffer .= gradient!!(target_log_potential, state, gradient_buffer) 
-        gradient_buffer .= gradient_buffer .* target_std_deviations 
+        gradient_buffer .= gradient_buffer .* estimated_target_std_dev 
     end
 
     # first half-step
@@ -23,7 +23,7 @@ function hamiltonian_dynamics!(
     for i in 1:n_steps 
 
         # full step on position
-        state .= state .+ step_size .* momentum .* target_std_deviations
+        state .= state .+ step_size .* momentum .* estimated_target_std_dev
         # TODO: bounce
         if !isfinite(log_joint(target_log_potential, state, momentum))
             return false
@@ -49,11 +49,11 @@ end
 
 leap_frog!(
         target_log_potential, 
-        target_std_deviations, 
+        estimated_target_std_dev, 
         state, momentum, step_size,
         gradient_buffer) =
     hamiltonian_dynamics!(
             target_log_potential, 
-            target_std_deviations, 
+            estimated_target_std_dev, 
             state, momentum, step_size, 1, 
             gradient_buffer)

@@ -45,7 +45,7 @@ end
 @testset "Mass-matrix" begin
     bad_conditioning_target = HetPrecisionNormalLogPotential([500.0, 1.0])
     pt = pigeons(target = bad_conditioning_target, explorer = AutoMALA(), n_chains = 1, n_rounds = 10)
-    @test abs(pt.shared.explorer.adapted_target_std_deviations[1] - 1/sqrt(500)) < 0.01
+    @test abs(pt.shared.explorer.estimated_target_std_deviations[1] - 1/sqrt(500)) < 0.01
     @test mean_mh_accept(pt) > 0.5
 end
 

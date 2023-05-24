@@ -4,20 +4,39 @@
     initial_step_size::Float64    # starting point for the automatic step size algorithm
 
     # this gets updated after first iteration; initially nothing
-    adapted_target_std_deviations # estimates of target standard deviations
+    estimated_target_std_deviations
 end
 
+""" 
+$SIGNATURES
+
+The Metropolis-Adjusted Langevin Algorithm with 
+automatic step size selection. 
+
+Briefly, at each iteration, the step size is exponentially shrunk or 
+grown until the acceptance rate is in a reasonable range. A reversibility 
+check ensures that the move is reversible with respect to the target. 
+The process is started at `initial_step_size`, which at the end of each 
+round is set to the average exponent used across all chains. 
+
+The number of steps per exploration is set to 
+`base_n_refresh * ceil(Int, dim^exponent_n_refresh)`. 
+
+At each round, an empirical diagonal marginal standard deviation matrix is estimated. At each step, 
+a random interpolation between the identity and the estimated standard deviation is used to 
+condition the problem. 
+"""
 AutoMALA(base_n_refresh = 10, exponent_n_refresh = 0.5, initial_step_size = 1.0) = AutoMALA(base_n_refresh, exponent_n_refresh, initial_step_size, nothing)
 
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
-    adapted_target_std_dev = 
+    estimated_target_std_dev = 
         sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance))
     # use the mean across chains of the mean shrink/grow exponent to compute a new baseline stepsize
     updated_initial_step_size = explorer.initial_step_size * 2.0^mean(mean.(values(value(reduced_recorders.am_exponents))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh,
                 updated_initial_step_size,
-                adapted_target_std_dev)
+                estimated_target_std_dev)
 end
 
 function step!(explorer::AutoMALA, replica, shared)
@@ -29,11 +48,11 @@ function step!(explorer::AutoMALA, replica, shared)
     dim = length(state)
 
     momentum = get_buffer(replica.recorders.am_momentum_buffer, dim)
-    target_std_deviations = get_buffer(replica.recorders.am_ones_buffer, dim)
-    target_std_deviations .= 1.0
+    estimated_target_std_dev = get_buffer(replica.recorders.am_ones_buffer, dim)
+    estimated_target_std_dev .= 1.0
     mix = rand(rng) # random interpolation b/w unit and estimated for robustness
-    if !isnothing(explorer.adapted_target_std_deviations)
-        target_std_deviations .= mix .* target_std_deviations .+ (1.0 - mix) .* explorer.adapted_target_std_deviations
+    if !isnothing(explorer.estimated_target_std_deviations)
+        estimated_target_std_dev .= mix .* estimated_target_std_dev .+ (1.0 - mix) .* explorer.estimated_target_std_deviations
     end
     
     gradient_buffer = get_buffer(replica.recorders.am_gradient_buffer, dim)
@@ -53,7 +72,7 @@ function step!(explorer::AutoMALA, replica, shared)
         proposed_exponent = 
             auto_step_size(
                 target_log_potential, 
-                target_std_deviations, 
+                estimated_target_std_dev, 
                 state, momentum, 
                 replica, gradient_buffer,
                 explorer.initial_step_size, lower_bound, upper_bound)
@@ -62,7 +81,7 @@ function step!(explorer::AutoMALA, replica, shared)
         # move to proposed point
         leap_frog!(
             target_log_potential, 
-            target_std_deviations, 
+            estimated_target_std_dev, 
             state, momentum, proposed_step_size,
             gradient_buffer
         )
@@ -78,7 +97,7 @@ function step!(explorer::AutoMALA, replica, shared)
             reversed_exponent = 
                 auto_step_size(
                     target_log_potential, 
-                    target_std_deviations, 
+                    estimated_target_std_dev, 
                     state, momentum, 
                     replica, gradient_buffer,
                     explorer.initial_step_size, lower_bound, upper_bound)
@@ -103,7 +122,7 @@ end
 
 function auto_step_size(
         target_log_potential, 
-        target_std_deviations, 
+        estimated_target_std_dev, 
         state, momentum, 
         replica, gradient_buffer,
         initial_step_size, lower_bound, upper_bound)
@@ -113,7 +132,7 @@ function auto_step_size(
     log_joint_difference = 
         log_joint_difference_function(
             target_log_potential, 
-            target_std_deviations, 
+            estimated_target_std_dev, 
             state, momentum, 
             replica, gradient_buffer)
 
@@ -159,7 +178,7 @@ end
 
 function log_joint_difference_function(
             target_log_potential, 
-            target_std_deviations, 
+            estimated_target_std_dev, 
             state, momentum, 
             replica, gradient_buffer)
 
@@ -174,7 +193,7 @@ function log_joint_difference_function(
     h_before = log_joint(target_log_potential, state, momentum)
     function result(step_size)
         leap_frog!(
-            target_log_potential, target_std_deviations, 
+            target_log_potential, estimated_target_std_dev, 
             state, momentum, step_size, 
             gradient_buffer)
         h_after = log_joint(target_log_potential, state, momentum)

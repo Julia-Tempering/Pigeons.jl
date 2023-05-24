@@ -189,7 +189,7 @@ end
 
 
 
-#### Jube 
+#### Jube: relativistic ray tracing based likelihood model
 
 model_jube(θ, metadata) = model_jube(θ, metadata, false)
 model_jube_mt(θ, metadata) = model_jube(θ, metadata, true)
