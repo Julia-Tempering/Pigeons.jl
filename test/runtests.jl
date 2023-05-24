@@ -37,6 +37,11 @@ end
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
+@testset "SliceSampler" begin
+    test_slice_sampler()
+end
+
+
 @testset "Mass-matrix" begin
     bad_conditioning_target = HetPrecisionNormalLogPotential([500.0, 1.0])
     pt = pigeons(target = bad_conditioning_target, explorer = AutoMALA(), n_chains = 1, n_rounds = 10)
@@ -136,12 +141,16 @@ end
     mpi_test(2, "gc_test.jl")
 end
 
-@testset "Stepping stone" begin
-    pt = pigeons(target = toy_mvn_target(100));
-    p = stepping_stone_pair(pt)
-    truth = Pigeons.analytic_lognormalization(toy_mvn_target(100))
-    @test abs(p[1] - truth) < 1
-    @test abs(p[2] - truth) < 1
+@testset "Stepping-stone+explorers" begin
+    for explorer in [AutoMALA(), SliceSampler()]
+        pt = pigeons(; target = toy_mvn_target(10), explorer, n_rounds = 15);
+        p = stepping_stone_pair(pt)
+        # truth ≈ -11.51292546497023
+        truth = Pigeons.analytic_lognormalization(toy_mvn_target(10))
+        # calibrated so that e.g. skipping the AutoMALA reversibility check would yield an error
+        @test abs(p[1] - truth) < 0.2 
+        @test abs(p[2] - truth) < 0.2
+    end
 end
 
 @testset "Round trips" begin
@@ -310,6 +319,3 @@ end
     mpi_test(1, "serialization_test.jl")
 end
 
-@testset "SliceSampler" begin
-    test_slice_sampler()
-end
