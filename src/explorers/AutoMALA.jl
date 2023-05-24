@@ -30,10 +30,10 @@ function step!(explorer::AutoMALA, replica, shared)
     target_std_deviations = get_buffer(replica.recorders.am_ones_buffer, dim)
     target_std_deviations .= 1.0
     mix = rand(rng) # random interpolation b/w unit and estimated for robustness
-    if explorer.adapted_target_std_deviations !== nothing
+    if !isnothing(explorer.adapted_target_std_deviations)
         target_std_deviations .= mix .* target_std_deviations .+ (1.0 - mix) .* explorer.adapted_target_std_deviations
     end
-
+    
     gradient_buffer = get_buffer(replica.recorders.am_gradient_buffer, dim)
     start_state = get_buffer(replica.recorders.am_state_buffer, dim)
 
@@ -48,12 +48,14 @@ function step!(explorer::AutoMALA, replica, shared)
         lower_bound = log(min(a, b))
         upper_bound = log(max(a, b))
         
-        proposed_step_size = auto_step_size(
-            target_log_potential, 
-            target_std_deviations, 
-            state, momentum, 
-            replica, gradient_buffer,
-            explorer.initial_step_size, lower_bound, upper_bound)
+        proposed_exponent = 
+            auto_step_size(
+                target_log_potential, 
+                target_std_deviations, 
+                state, momentum, 
+                replica, gradient_buffer,
+                explorer.initial_step_size, lower_bound, upper_bound)
+        proposed_step_size = initial_step_size * 2.0^exponent
 
         # move to proposed point
         leap_frog!(
@@ -63,41 +65,36 @@ function step!(explorer::AutoMALA, replica, shared)
             gradient_buffer
         )
 
-        # flip
-        momentum .*= -1.0 
-
-        # reversibility check 
-        reversed_step_size = 
-            if shared.iterators.scan == 1
-                # in the transient phase, the rejection rate for the 
-                # reversibility check can be high, so skip it 
-                # for the initial scan of each round
-                proposed_step_size
-            else
+        is_first_scan_of_round = shared.iterators.scan == 1
+        if is_first_scan_of_round 
+            # in the transient phase, the rejection rate for the 
+            # reversibility check can be high, so skip accept-rejct 
+            # for the initial scan of each round
+        else
+            # flip
+            momentum .*= -1.0 
+            reversed_exponent = 
                 auto_step_size(
                     target_log_potential, 
                     target_std_deviations, 
                     state, momentum, 
                     replica, gradient_buffer,
                     explorer.initial_step_size, lower_bound, upper_bound)
-            end
-
-        probability = 
-            if reversed_step_size == proposed_step_size 
-                final_joint_log = log_joint(target_log_potential, state, momentum)
-                min(1.0, exp(final_joint_log - init_joint_log)) 
+            probability = 
+                if reversed_exponent == proposed_exponent 
+                    final_joint_log = log_joint(target_log_potential, state, momentum)
+                    min(1.0, exp(final_joint_log - init_joint_log)) 
+                else
+                    0.0 
+                end
+            @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
+            if rand(rng) < probability 
+                # accept: nothing to do, we work in-place
             else
-                0.0 
+                # reject: go back to start state
+                state .= start_state 
+                # no need to reset momentum as it will get resampled at beginning of the loop
             end
-
-        @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
-
-        if rand(rng) < probability 
-            # accept: nothing to do, we work in-place
-        else
-            # reject: go back to start state
-            state .= start_state 
-            # no need to reset momentum as it will get resampled next
         end
     end
 end
@@ -111,11 +108,12 @@ function auto_step_size(
 
     @assert initial_step_size > 0
     @assert lower_bound < upper_bound
-    log_joint_difference = log_joint_difference_function(
-                        target_log_potential, 
-                        target_std_deviations, 
-                        state, momentum, 
-                        replica, gradient_buffer)
+    log_joint_difference = 
+        log_joint_difference_function(
+            target_log_potential, 
+            target_std_deviations, 
+            state, momentum, 
+            replica, gradient_buffer)
 
     initial_difference = log_joint_difference(initial_step_size) 
 
@@ -127,10 +125,10 @@ function auto_step_size(
         else
             0, 0
         end
-    step_size = initial_step_size * 2.0^exponent
+    
     @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 1+n_steps)) 
     @record_if_requested!(replica.recorders, :am_exponents, (replica.chain, exponent)) 
-    return step_size
+    return exponent
 end
 
 function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
