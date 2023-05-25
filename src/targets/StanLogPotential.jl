@@ -27,12 +27,12 @@ Given a `StanModel` from BridgeStan, create a
 
 create_state_initializer(target::StanLogPotential, ::Inputs) = target  
 initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64) = 
-    target.initial_values # TODO: make this cleaner 
+    copy(target.initial_values) # TODO: make this cleaner 
 
 create_explorer(::StanLogPotential, ::Inputs) = SliceSampler()
 
 create_reference_log_potential(target::StanLogPotential, ::Inputs) = 
-    StanLogPotential(target.model, target.model_only_prior, true)
+    StanLogPotential(target.model, target.model_only_prior, true, target.initial_values)
 
 function sample_iid!(log_potential::StanLogPotential, replica, shared) 
     # TODO: at the moment it's not clear how to obtain iid samples from the prior with BridgeStan 

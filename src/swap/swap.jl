@@ -12,7 +12,6 @@ function swap!(pair_swapper, replicas::Vector{R}, swap_graph) where R
             partner_replica = replicas[partner_chain]
             @assert partner_replica.chain == partner_chain
             my_swap_stat      = swap_stat(pair_swapper, my_replica, partner_chain)
-        println(my_swap_stat) # debug
             partner_swap_stat = partner_chain == my_chain ? 
                 my_swap_stat :
                 swap_stat(pair_swapper, partner_replica, my_chain)
