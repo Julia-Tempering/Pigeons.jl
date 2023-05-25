@@ -1,5 +1,5 @@
 # A recorder which is skipped in checks.jl, e.g. timing info and alloc
-@concrete struct NonReproducible
+@auto struct NonReproducible
     contents
 end
 

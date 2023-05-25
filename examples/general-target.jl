@@ -13,9 +13,6 @@ struct MyLogPotential end
 # https://julia-tempering.github.io/Pigeons.jl/dev/reference/#Pigeons.create_path-Tuple{Any,%20Inputs}
 (::MyLogPotential)(x) = -abs(x[1]) / 3
 
-# Instruct to use the slice sampler for MyLogPotential
-Pigeons.create_explorer(::MyLogPotential, ::Inputs) = Pigeons.SliceSampler() 
-
 # Instruct to use a normal reference
 Pigeons.create_reference_log_potential(::MyLogPotential, ::Inputs) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
 

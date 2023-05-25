@@ -7,13 +7,7 @@ inf(T::Type{Float16}) = Inf16
 inf(T::Type{Float32}) = Inf32 
 inf(T::Type{Float64}) = Inf
 
-function sqr_norm(x) 
-    sum = 0.0
-    for i in eachindex(x)
-        sum += x[i]^2
-    end
-    return sum 
-end
+sqr_norm(x) = sum(abs2, x)
 
 function cmd_exists(cmd)
     try 

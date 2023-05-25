@@ -6,9 +6,9 @@ used to create Parallel Tempering algorithms.
 Fields (see source file for default values):
 $FIELDS
 """
-@kwdef mutable struct Inputs{I, V}
+@kwdef mutable struct Inputs{T, V, E}
     """ The target distribution. """
-    target::I
+    target::T
 
     """ The master random seed. """
     seed::Int = 1
@@ -49,19 +49,27 @@ $FIELDS
     """
     multithreaded::Bool = false
 
-    function Inputs(target::I, seed, n_rounds, n_chains, n_chains_var_reference,
-                    var_reference::V, checkpoint, recorder_builders, checked_round, multithreaded) where {I, V}
-        @assert (n_chains ≥ 0) & (n_chains_var_reference ≥ 0) & (n_chains + n_chains_var_reference ≥ 2)
-        if (n_chains_var_reference == 0)
-            @assert isa(var_reference, NoVarReference)
-        end
-        return new{I,V}(
-            target, seed, n_rounds, n_chains, n_chains_var_reference,
-            var_reference, checkpoint, recorder_builders, checked_round, multithreaded
-        )
-    end
-end
+    """ 
+    The [`explorer`](@ref) to use, or if nothing, 
+    will use [`default_explorer()`](@ref) to 
+    automatically determine the explorer based on the 
+    type of the target. 
+    """
+    explorer::E = nothing
 
+    """
+    Show sampling report?
+    """
+    show_report::Bool = true
+
+    """
+    Type of traces to collect:
+
+    - `:samples` - `copy()` is called on the state, or
+    - `:log_potential` - `log_potential()` is called on the state
+    """
+    trace_type::Symbol = :samples
+end
 
 """
 Set of recorders with no measurable impact on performance. 

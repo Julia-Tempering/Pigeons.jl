@@ -137,7 +137,7 @@ function setup_blang(
     auto_install_folder = mkpath(mpi_settings_folder())
     repo_path = "$auto_install_folder/$repo_name"
     if isdir(repo_path)
-        @info "it seems setup_blang() was alrady ran for $repo_name; to force re-runing the setup for $repo_name, first remove the folder $repo_path"
+        @info "it seems setup_blang() was already ran for $repo_name; to force re-runing the setup for $repo_name, first remove the folder $repo_path"
         return nothing
     end
 

@@ -9,10 +9,9 @@ such that i.i.d. sampling is possible at all chains (via [`ToyExplorer`](@ref)).
 
 create_state_initializer(target::ScaledPrecisionNormalPath, ::Inputs) = target 
 initialization(target::ScaledPrecisionNormalPath, rng::SplittableRandom, _::Int64) = 
-    zeros(target.dim)
+    randn(rng, target.dim) / sqrt(target.precision1)
 
-create_explorer(::ScaledPrecisionNormalPath, ::Inputs) = 
-    ToyExplorer()
+default_explorer(::ScaledPrecisionNormalPath) = ToyExplorer()
 
 sample_iid!(log_potential::ScaledPrecisionNormalLogPotential, replica) =
     rand!(replica.rng, replica.state, log_potential)
@@ -21,6 +20,3 @@ Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::ScaledPrecision
     for i in eachindex(x)
         x[i] = randn(rng) / sqrt(log_potential.precision)
     end
-
-create_path(target::MultivariateNormal, ::Inputs) = 
-    target # a bit of a special case here: the target is also a path

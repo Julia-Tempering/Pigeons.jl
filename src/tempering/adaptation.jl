@@ -67,7 +67,7 @@ function communication_barriers(intensity::AbstractVector, schedule::AbstractVec
     return (; localbarrier, cumulativebarrier, globalbarrier)
 end
 
-@concrete struct LocalBarrier
+@auto struct LocalBarrier
     cumulativebarrier
 end
 (barrier::LocalBarrier)(beta) = Interpolations.gradient(barrier.cumulativebarrier, beta)[1]

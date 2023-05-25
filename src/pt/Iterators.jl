@@ -22,8 +22,6 @@ $FIELDS
     Set to zero when run_one_round!() is not yet started. 
     """
     scan::Int = 0
-
-    # TODO: store round timing
 end
 
 function next_round!(pt)

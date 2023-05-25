@@ -388,7 +388,7 @@ $\pi_N = \pi$, the target.
 We use an informal interface called [`target`](@ref) to orchestrate the creation of the ingredients 
 needed by parallel tempering algorithms. 
 The main pieces to specify are [`create_state_initializer()`](@ref), to provide initial states, 
-[`create_explorer`](@ref), to construct [`explorer`](@ref)'s 
+[`default_explorer`](@ref), to construct [`explorer`](@ref)'s 
 which are ``\pi_i``-invariant Markov transition kernel, 
 and finally, [`create_reference_log_potential()`](@ref), 
 to construct ``\pi_1``. 

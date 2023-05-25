@@ -5,12 +5,23 @@ Display the queue status for one MPI job.
 """ 
 function queue_status(result::Result)
     submission_code = queue_code(result)
+    if submission_code === nothing 
+        return nothing
+    end
     r = rosetta()
     run(`$(r.job_status) $submission_code`)
     return nothing
 end
 
-queue_code(result::Result) = replace(readline("$(result.exec_folder)/info/submission_output.txt"), "Submitted batch job " => "")
+function queue_code(result::Result)
+    file = "$(result.exec_folder)/info/submission_output.txt"
+    if !isfile(file)
+        println("Submission output not found at: $file")
+        println("Maybe this exec was not submitted to a queue system?")
+        return nothing
+    end
+    return replace(readline(file), "Submitted batch job " => "")
+end
 
 """ 
 $SIGNATURES 
@@ -58,13 +69,17 @@ $SIGNATURES
 
 Print the queue status as well as the standard out 
 and error streams (merged) for the given `machine`. 
+
+Note: when using control-c on interactive = true, 
+        julia tends to crash as of version 1.8. 
 """
-function watch(result::Result; machine = 1, last = nothing, interactive = false)
+function watch(result::Result; machine = 1, last = 40, interactive = false)
     @assert machine > 0 "using 0-index convention"
     output_folder = "$(result.exec_folder)/1" # 1 is not a bug, i.e. not hardcoded machine 1
 
     if !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
         println("Job not yet started, try again later.")
+        println("Hint: see also queue_status(result)")
         return nothing
     end
 
@@ -79,6 +94,8 @@ function watch(result::Result; machine = 1, last = nothing, interactive = false)
         cmd = `$cmd -f`
     end
 
+    println("Hint: showing only last $last lines; use 'last' argument to change")
+    println("Watching: $stdout_file")
     run(`$cmd $stdout_file`) 
     return nothing 
 end

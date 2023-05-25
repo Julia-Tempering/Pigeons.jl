@@ -1,4 +1,4 @@
-import Pigeons: SliceSampler, slice_sample!
+import Pigeons: SliceSampler, slice_sample!, Replica
 
 include("turing.jl")
 
@@ -21,7 +21,8 @@ function test_slice_sampler_logprob_counts()
     states = Vector{typeof(state)}(undef, n)
     cached_lp = -Inf
     for i in 1:n
-        cached_lp = slice_sample!(h, state, log_potential, cached_lp, rng)
+        replica = Replica(state, 1, rng, (;), 1)
+        cached_lp = slice_sample!(h, state, log_potential, cached_lp, replica)
         states[i] = copy(state)
     end
     println("Total logprob evals: $(ct[1])")
@@ -38,7 +39,8 @@ function test_slice_sampler_vector()
     states = Vector{typeof(state)}(undef, n)
     cached_lp = -Inf
     for i in 1:n
-        cached_lp = slice_sample!(h, state, log_potential, cached_lp, rng)
+        replica = Replica(state, 1, rng, (;), 1)
+        cached_lp = slice_sample!(h, state, log_potential, cached_lp, replica)
         states[i] = copy(state)
     end
     @test all(abs.(mean(states) - [0.5, 0.0]) .≤ 0.2)
@@ -55,7 +57,8 @@ function test_slice_sampler_Turing()
     states = Vector{Float64}(undef, n)
     cached_lp = -Inf
     for i in 1:n
-        cached_lp = slice_sample!(h, vi, log_potential, cached_lp, rng)
+        replica = Replica(vi, 1, rng, (;), 1)
+        cached_lp = slice_sample!(h, vi, log_potential, cached_lp, replica)
         states[i] = vi.metadata[1].vals[1]
     end
     @test abs(mean(states) - 0.5) ≤ 0.2

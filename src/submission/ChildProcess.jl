@@ -138,8 +138,15 @@ function launch_code(
     $dependency_declarations
     $mpi_flag
 
-    Pigeons.deserialize_immutables!(raw"$path_to_serialized_immutables")
-    pt_arguments = deserialize(raw"$path_to_serialized_pt_arguments")
+    pt_arguments = 
+        try
+            Pigeons.deserialize_immutables!(raw"$path_to_serialized_immutables")
+            deserialize(raw"$path_to_serialized_pt_arguments")
+        catch e
+            println("Hint: probably missing dependencies, use the dependencies argument in MPI() or ChildProcess()")
+            rethrow(e)
+        end
+
     pt = PT(pt_arguments, exec_folder = raw"$exec_folder")
     pigeons(pt)
     """

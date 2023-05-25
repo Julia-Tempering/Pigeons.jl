@@ -13,8 +13,5 @@ in Distributions.jl.
 """
 @informal log_potential begin end
 
-# Toy example:
-(d::Distribution)(x) = logpdf(d, x) 
-
 
 

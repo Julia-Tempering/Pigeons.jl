@@ -9,7 +9,7 @@ $FIELDS
 
 Only one instance maintained per process. 
 """
-@concrete struct Shared
+@auto struct Shared
     """
     See [`Iterators`](@ref).
     """

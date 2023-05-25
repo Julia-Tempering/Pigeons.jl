@@ -1,5 +1,8 @@
 const autodiff_backend = Ref(:ForwardDiff)
 
+# If gradient!! not specified, ignore the buffer and use gradient()
+gradient!!(log_potential, x, buffer) = gradient(log_potential, x)
+
 function gradient(log_potential::TuringLogPotential, vi)
     current_point = DynamicPPL.getall(vi) # NB: this will also get the discrete params (are the gradients always set to zero for them?)
     context = log_potential.only_prior ? DynamicPPL.PriorContext() : DynamicPPL.DefaultContext()

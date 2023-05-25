@@ -1,7 +1,13 @@
 """
-$SIGNATURES
-
-A plot `@recipe` for an index process. 
+```@example 
+using Pigeons
+using Plots 
+pt = pigeons(
+        target = toy_mvn_target(1), 
+        recorder_builders = [index_process], 
+        n_rounds = 5)
+plot(pt.reduced_recorders.index_process)
+```
 """
 @recipe function plot_index_process(index_process::Dict{Int, Vector{Int}})
     xlabel --> "iteration"
@@ -13,6 +19,14 @@ A plot `@recipe` for an index process.
     return nothing
 end
 
+""" 
+```@example 
+using Pigeons
+using Plots 
+pt = pigeons(target = toy_mvn_target(1))
+plot(pt.shared.tempering.communication_barriers.localbarrier)
+```
+"""
 @recipe function plot_local_barrier(barrier::LocalBarrier)
     xlabel --> "β"
     ylabel --> "λ(β)" 
@@ -22,10 +36,4 @@ end
     return x, y
 end  
 
-# @recipe function plot_local_barrier(barrier::LocalBarrier)
-#     return plot_barrier(barrier)
-# end
 
-# @recipe function plot_global_barrier(barrier::Interpolations.MonotonicInterpolation)
-#     return plot_barrier(barrier)
-# end
