@@ -64,6 +64,7 @@ function step!(explorer::AutoMALA, replica, shared)
         randn!(rng, momentum)
         init_joint_log = log_joint(target_log_potential, state, momentum)
 
+        # Define a random "reasonable" (log) MH accept pr 
         a = rand(rng)
         b = rand(rng)
         lower_bound = log(min(a, b))
