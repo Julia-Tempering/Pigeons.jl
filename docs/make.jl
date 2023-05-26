@@ -1,3 +1,14 @@
+using Pkg
+
+# make sure we are using the version contained 
+# in the whatever state the parent directory is; 
+# this is the intended behaviour both for CI and 
+# local development
+script_dir = @__DIR__
+parent_dir = dirname(script_dir)
+Pkg.develop(PackageSpec(path=parent_dir))
+
+
 using Pigeons
 using Documenter
 using DocStringExtensions 
