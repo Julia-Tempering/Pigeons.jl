@@ -200,14 +200,15 @@ Then we can access the information via:
 p.reduced_recorders.index_process
 
 using Plots
-plot(p.reduced_recorders.index_process);
-savefig("index_process_plot.svg"); 
+plotlyjs()
+myplot = plot(p.reduced_recorders.index_process);
+savefig(myplot, "index_process_plot.html"); 
 nothing # hide
 ```
 
-![](index_process_plot.svg)
-
-
+```@raw html
+<iframe src="index_process_plot.html" style="height:500px;width:100%;"></iframe>
+```
 
 
 Other statistics follow the same general usage, 

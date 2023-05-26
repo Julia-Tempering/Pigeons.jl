@@ -14,6 +14,11 @@ using Documenter
 using DocStringExtensions 
 using Plots
 
+# based on: https://github.com/JuliaPlots/PlotlyJS.jl/blob/master/docs/make.jl
+using PlotlyJS
+using PlotlyBase
+PlotlyJS.set_default_renderer(PlotlyJS.DOCS)
+
 DocMeta.setdocmeta!(Pigeons, :DocTestSetup, :(using Pigeons); recursive=true)
 
 makedocs(;
