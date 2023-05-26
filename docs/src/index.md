@@ -200,6 +200,7 @@ Then we can access the information via:
 p.reduced_recorders.index_process
 
 using Plots
+# Using plotly in the doc to workaround Issue #60
 plotlyjs()
 myplot = plot(p.reduced_recorders.index_process);
 savefig(myplot, "index_process_plot.html"); 
