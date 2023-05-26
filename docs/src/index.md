@@ -412,7 +412,7 @@ compared to traditional samplers.
 
 First, we define the Turing model.
 ```@example Turing_Pigeons
-using Turing
+using Distributions, DistributionsAD, DynamicPPL
 
 # *Unidentifiable* unconditioned coinflip model with `N` observations.
 @model function coinflip_unidentifiable(; N::Int)
