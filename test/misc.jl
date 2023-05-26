@@ -1,7 +1,7 @@
 function mpi_test(n_processes::Int, test_file::String; options = [])
     n_processes = set_n_mpis_to_one_on_windows(n_processes)
     jl_cmd = Pigeons.julia_cmd_no_start_up()
-    project_folder = dirname(Base.current_project())
+    project_folder = dirname(Base.active_project())
     run(`$jl_cmd --project=$(project_folder) -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
     # handle 2 different "modes" that tests can be ran (for julia 1.0,1.1 vs. >1.1)
     resolved_test_file = 

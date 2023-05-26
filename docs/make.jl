@@ -1,7 +1,7 @@
 using Pkg
 
 # make sure we are using the version contained 
-# in the whatever state the parent directory is; 
+# in whatever state the parent directory is; 
 # this is the intended behaviour both for CI and 
 # local development
 script_dir = @__DIR__

@@ -67,7 +67,8 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         new_process.n_local_mpi_processes > 1
     )
     if new_process.n_local_mpi_processes == 1
-        # method used to investigate the bug:
+        # # workaround used to investigate Documenter.jl bugs
+        # # (Documenter.jl gobbles the stdout/stderr)
         # c2 = Cmd(julia_cmd; ignorestatus = true)
         # oc = OutputCollector(c2; verbose = false)
         # write("output.txt", merge(oc))
