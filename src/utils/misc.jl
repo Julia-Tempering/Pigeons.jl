@@ -18,6 +18,9 @@ function cmd_exists(cmd)
     end
 end
 
+julia_cmd_no_start_up() = `$(Base.julia_cmd()) --startup-file=no --banner=no`
+
+
 """
     winsorized_mean(x; α)
 

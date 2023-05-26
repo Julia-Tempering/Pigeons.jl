@@ -90,7 +90,7 @@ function setup_mpi(settings::MPISettings)
     write("$folder/modules.sh", modules_string(settings))
 
     # call bash to set things up
-    julia = join(Base.julia_cmd().exec, " ")
+    julia = join(julia_cmd_no_start_up().exec, " ")
     specified_lib = 
         if settings.library_name === nothing 
             "" 

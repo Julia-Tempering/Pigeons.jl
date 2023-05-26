@@ -57,6 +57,7 @@ Run Parallel Tempering in a new process.
 See [`ChildProcess`](@ref).
 """
 function pigeons(pt_arguments, new_process::ChildProcess)
+
     exec_folder = next_exec_folder() 
     julia_cmd = launch_cmd(
         pt_arguments,
@@ -66,6 +67,10 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         new_process.n_local_mpi_processes > 1
     )
     if new_process.n_local_mpi_processes == 1
+        # method used to investigate the bug:
+        # c2 = Cmd(julia_cmd; ignorestatus = true)
+        # oc = OutputCollector(c2; verbose = false)
+        # write("output.txt", merge(oc))
         run(julia_cmd, wait = new_process.wait)
     else
         mpiexec() do exe
@@ -79,8 +84,8 @@ end
 
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_mpi::Bool)
     script_path  = launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
-    jl_cmd       = Base.julia_cmd()
-    project_file = Base.current_project()
+    jl_cmd       = julia_cmd_no_start_up()
+    project_file = Base.active_project()
     if !isnothing(project_file)
         # forcing instantiate the project to make sure dependencies exist
         # also, precompile to avoid issues with coordinating access to compile cache
