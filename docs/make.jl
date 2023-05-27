@@ -1,7 +1,23 @@
+using Pkg
+
+# make sure we are using the version contained 
+# in whatever state the parent directory is; 
+# this is the intended behaviour both for CI and 
+# local development
+script_dir = @__DIR__
+parent_dir = dirname(script_dir)
+Pkg.develop(PackageSpec(path=parent_dir))
+
+
 using Pigeons
 using Documenter
 using DocStringExtensions 
 using Plots
+
+# based on: https://github.com/JuliaPlots/PlotlyJS.jl/blob/master/docs/make.jl
+using PlotlyJS
+using PlotlyBase
+PlotlyJS.set_default_renderer(PlotlyJS.DOCS)
 
 DocMeta.setdocmeta!(Pigeons, :DocTestSetup, :(using Pigeons); recursive=true)
 
