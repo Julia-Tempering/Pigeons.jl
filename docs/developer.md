@@ -12,11 +12,9 @@ test
 
 ## How to create doc locally
 
-To build the docs locally: `cd` to the `docs` directory, then:
+From the root of the Pigeons repo:
 
 ```
 julia
-]activate .
-[ctrl-c]
-include("make.jl")
+include("docs/make.jl")
 ```

@@ -4,6 +4,7 @@
 # local development
 using Pkg
 script_dir = @__DIR__
+Pkg.activate(script_dir)
 parent_dir = dirname(script_dir)
 Pkg.develop(PackageSpec(path=parent_dir))
 
