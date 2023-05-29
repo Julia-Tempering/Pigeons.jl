@@ -1,3 +1,5 @@
+include("supporting/mpi_test_utils.jl")
+
 @testset "Longer MPI" begin
     n_mpis = set_n_mpis_to_one_on_windows(4)
     recorder_builders = []
