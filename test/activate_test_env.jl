@@ -16,7 +16,7 @@ project_root_dir = dirname(test_dir)
 Pkg.develop(PackageSpec(path=project_root_dir))
 
 # import/using statements
-include("common_includes.jl")
+include("supporting/setup.jl")
 
 @info   """
         next time you call `test` from the parent project 

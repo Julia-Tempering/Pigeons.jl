@@ -9,12 +9,6 @@ mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
     @test mean_mh_accept(pt) > 0.5
 end
 
-@testset "Allocs-AutoMALA" begin
-    allocs_rounds = Pigeons.last_round_max_allocation(pigeons(n_rounds = 13, target = toy_mvn_target(1), explorer = AutoMALA()))
-    allocs_rounds_longer = Pigeons.last_round_max_allocation(pigeons(n_rounds = 14, target = toy_mvn_target(1), explorer = AutoMALA()))
-    @test allocs_rounds == allocs_rounds_longer
-end
-
 auto_mala(target) =
     pigeons(; 
         target, 

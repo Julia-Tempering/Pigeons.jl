@@ -1,6 +1,6 @@
-"""
-Run from runtests.jl
-"""
+using DynamicPPL
+
+include("supporting/turing_models.jl")
 
 function test_var_reference_Turing()
     model = flip_model_unidentifiable()
@@ -29,7 +29,6 @@ function test_var_reference_Turing()
     @assert pt.shared.tempering.path.ref isa GaussianReference
 end
 
-
 function test_two_references()
     model = flip_model_unidentifiable()
 
@@ -44,6 +43,30 @@ function test_two_references()
     @assert pt.shared.tempering.variational_leg.path.ref isa GaussianReference
 end
 
+function test_two_references_2()
+    n_chains = 5
+    n_rounds = 15 
+    seed = 1
+    pt = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
+                 n_chains = n_chains, n_rounds = n_rounds, seed = seed)
+    pt2 = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
+                 n_chains = n_chains, n_chains_var_reference = n_chains, var_reference = NoVarReference(), 
+                 n_rounds = n_rounds, seed = seed)
+    restarts = n_tempered_restarts(pt)
+    restarts2 = n_tempered_restarts(pt2)
+    @test abs(2.0 - restarts2/restarts) ≤ 0.05
+    # check that sum of restarts is twice as large when using two references
+end
+
+function test_var_reference()
+    test_var_reference_Turing()
+    test_two_references()
+    test_two_references_2()
+end
+
+@testset "Variational reference" begin
+    test_var_reference()
+end
 
 @testset "Two reference restarts" begin
     struct MyLogPotential end
@@ -91,27 +114,4 @@ end
     pt = pigeons(inputs)
     @test abs(GCB_fixed - Pigeons.global_barrier(pt.shared.tempering)) ≤ 0.05
     # check that VPT fixed leg ≈ single-leg PT fixed leg
-end
-
-
-function test_two_references_2()
-    n_chains = 5
-    n_rounds = 15 
-    seed = 1
-    pt = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
-                 n_chains = n_chains, n_rounds = n_rounds, seed = seed)
-    pt2 = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
-                 n_chains = n_chains, n_chains_var_reference = n_chains, var_reference = NoVarReference(), 
-                 n_rounds = n_rounds, seed = seed)
-    restarts = n_tempered_restarts(pt)
-    restarts2 = n_tempered_restarts(pt2)
-    @test abs(2.0 - restarts2/restarts) ≤ 0.05
-    # check that sum of restarts is twice as large when using two references
-end
-
-
-function test_var_reference()
-    test_var_reference_Turing()
-    test_two_references()
-    test_two_references_2()
 end

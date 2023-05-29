@@ -1,10 +1,7 @@
 import Pigeons: SliceSampler, slice_sample!, Replica
+using DynamicPPL
 
-include("turing.jl")
-
-"""
-Run from runtests.jl
-"""
+include("supporting/turing_models.jl")
 
 function test_slice_sampler_logprob_counts()
     rng = SplittableRandom(1)
@@ -68,4 +65,8 @@ function test_slice_sampler()
     test_slice_sampler_vector()
     test_slice_sampler_Turing()
     test_slice_sampler_logprob_counts()
+end
+
+@testset "SliceSampler" begin
+    test_slice_sampler()
 end
