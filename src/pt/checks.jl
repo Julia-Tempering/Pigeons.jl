@@ -144,7 +144,8 @@ Base.:(==)(a::NonReproducible, b::NonReproducible) = true
 # TODO: maybe move this to a sub-module in which == is nicer by default?
 # mutable (incl imm with mut fields) structs do not have a nice ===, overload those:
 Base.:(==)(a::SplittableRandom, b::SplittableRandom) = recursive_equal(a, b)
-Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b)    
+Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b) 
+Base.:(==)(a::Augmentation, b::Augmentation) = recursive_equal(a, b)    
 Base.:(==)(a::Iterators, b::Iterators) = recursive_equal(a, b) 
 Base.:(==)(a::Schedule, b::Schedule) = recursive_equal(a, b)
 Base.:(==)(a::DEO, b::DEO) = recursive_equal(a, b)
