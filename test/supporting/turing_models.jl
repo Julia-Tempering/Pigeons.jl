@@ -57,7 +57,7 @@ function flip_mixture()
     p_true = 0.5;
     N = 100;
     data = rand(Bernoulli(p_true), N);
-    return coinflip_mixture(y)
+    return coinflip_mixture(data)
 end
 
 @model function turing_normal()
