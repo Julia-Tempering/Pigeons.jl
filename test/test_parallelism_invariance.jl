@@ -25,7 +25,7 @@ include("supporting/mpi_test_utils.jl")
     # Turing:
     for model in [flip_model_unidentifiable(), flip_mixture()]
         pigeons(
-            target = TuringLogPotential(flip_model_unidentifiable()), 
+            target = TuringLogPotential(model), 
             n_rounds = 4,
             checked_round = 3, 
             multithreaded = true,
