@@ -1,6 +1,6 @@
-# For developers
+# Tests
 
-## How to run tests locally 
+## Running the tests locally
 
 To activate the test environment, from the root of the Pigeons repo, type:
 
@@ -25,11 +25,3 @@ include("test/test_allocs.jl")
 ```
 
 
-## How to create doc locally
-
-From the root of the Pigeons repo:
-
-```
-julia
-include("docs/make.jl")
-```
