@@ -1,6 +1,3 @@
-using Pigeons
-using Serialization
-using Test
 
 import Pigeons: Immutable, serialize_immutables, 
                 deserialize_immutables!
@@ -24,21 +21,21 @@ function test_serialize()
     return fake
 end
 
-before = test_serialize()
+@testset "Serialization" begin
+    before = test_serialize()
 
-error_thrown = false
-try
-    deserialize(fake_serialization_name)
-catch e
-    global error_thrown = true
-end
-@assert error_thrown
+    error_thrown = false
+    try
+        deserialize(fake_serialization_name)
+    catch e
+        error_thrown = true
+    end
+    @test error_thrown
 
+    deserialize_immutables!(data_serialization_name)
+    println(Pigeons.immutables)
 
-deserialize_immutables!(data_serialization_name)
+    after = deserialize(fake_serialization_name)
+    @test string(before) == string(after)
+end 
 
-println(Pigeons.immutables)
-
-after = deserialize(fake_serialization_name)
-
-@assert string(before) == string(after)
