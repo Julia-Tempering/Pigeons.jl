@@ -1,4 +1,4 @@
-@testset "Stepping-stone+explorers" begin
+@testset "Stepping-stone" begin
     for explorer in [AutoMALA(), SliceSampler()]
         pt = pigeons(; target = toy_mvn_target(10), explorer, n_rounds = 15);
         p = stepping_stone_pair(pt)
