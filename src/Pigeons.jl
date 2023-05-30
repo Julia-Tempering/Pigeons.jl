@@ -44,7 +44,6 @@ import Base.@kwdef
 import Base.show 
 import Base.print 
 import Base.Threads.@threads
-import CRC32c.crc32c
 import OnlineStats._fit!
 import OnlineStats.value
 import OnlineStats._merge!
