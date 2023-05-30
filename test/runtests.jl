@@ -4,7 +4,7 @@ include("supporting/setup.jl")
 test_dir = @__DIR__ 
 @assert basename(test_dir) == "test"
 project_root_dir = dirname(test_dir)
-@assert pathof(Pigeons) == joinpath(project_root_dir, "src/Pigeons.jl") "$(pathof(Pigeons)) vs $(joinpath(project_root_dir, "src/Pigeons.jl"))"
+@assert pathof(Pigeons) == joinpath(project_root_dir, "src", "Pigeons.jl") 
 
 # load all files starting with "test_"
 for test_name in filter(x -> startswith(x, "test_") && endswith(x, ".jl"), readdir(test_dir)) 
