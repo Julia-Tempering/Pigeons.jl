@@ -1,41 +1,37 @@
 @concrete struct StanLogPotential
     model
-    model_only_prior
-    only_prior::Bool
-    initial_values
+    initialization_std
 end
 
 stan_model(log_potential::StanLogPotential) = log_potential.model 
 stan_model(log_potential::InterpolatedLogPotential) = log_potential.path.target.model
 
-function (log_potential::StanLogPotential)(x)
-    if log_potential.only_prior
-        BridgeStan.log_density(log_potential.model_only_prior, x; propto = true, jacobian = true)
-    else  
-        BridgeStan.log_density(log_potential.model, x; propto = true, jacobian = true)
-    end
-end
+(log_potential::StanLogPotential)(x) = 
+    BridgeStan.log_density(log_potential.model, x; propto = true, jacobian = true)
 
 """
 $SIGNATURES 
 Given a `StanModel` from BridgeStan, create a 
 `StanLogPotential` conforming to both [`target`](@ref) and [`log_potential`](@ref).
 """
-@provides target StanLogPotential(model::BridgeStan.StanModel, model_only_prior::BridgeStan.StanModel, initial_values) = 
-    StanLogPotential(model, model_only_prior, false, initial_values)
-# TODO: at the moment, the user needs to input the "model/data" for the prior, as well.
+@provides target StanLogPotential(model::BridgeStan.StanModel) = 
+    StanLogPotential(model, 1e3) # TODO: find a good default
 
 create_state_initializer(target::StanLogPotential, ::Inputs) = target  
-initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64) = 
-    copy(target.initial_values) # TODO: make this cleaner, and rescale to go from unconstrained to constrained... 
+function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64)
+    d_unc = BridgeStan.param_unc_num(target.model) # number of unconstrained parameters 
+    init_unc = randn(rng, d_unc) * target.initialization_std
+    init = BridgeStan.param_constrain(target.model, init_unc)
+    return init
+end
 
 create_explorer(::StanLogPotential, ::Inputs) = SliceSampler()
 
 create_reference_log_potential(target::StanLogPotential, ::Inputs) = 
-    StanLogPotential(target.model, target.model_only_prior, true, target.initial_values)
+    StanLogPotential(target.model) # set reference = target for first few tuning rounds
 
 function sample_iid!(log_potential::StanLogPotential, replica, shared) 
-    # TODO: at the moment it's not clear how to obtain iid samples from the prior with BridgeStan 
-    # default to slicer as the explorer in the reference
+    # it's not clear whether we can obtain iid samples from the prior with BridgeStan 
+    # we therefore default to slicer as the explorer in the reference
     step!(SliceSampler(), replica, shared)
 end

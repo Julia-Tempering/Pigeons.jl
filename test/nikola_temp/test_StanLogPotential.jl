@@ -17,14 +17,12 @@ using Plots
 
     # create Stan models
     smb = BS.StanModel(stan_file = bernoulli_stan, data = bernoulli_data)
-    smb_prior = BS.StanModel(stan_file = bernoulli_stan, data = bernoulli_data_prior)
     x = rand(BS.param_unc_num(smb)) # constrained scale
-    slp = StanLogPotential(smb, smb_prior, x)
-    slp_prior = StanLogPotential(smb, smb_prior, true, x)
+    slp = StanLogPotential(smb)
 
     # run Pigeons
     pt = pigeons(
-        target = slp_prior, n_rounds = n_rounds, n_chains = n_chains, 
+        target = slp, n_rounds = n_rounds, n_chains = n_chains, 
         recorder_builders = [traces])
     s = get_sample(pt, n_chains)
     samples_vec = map((x) -> x[1], s)
