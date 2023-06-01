@@ -27,7 +27,7 @@ Given a `StanModel` from BridgeStan, create a
 
 create_state_initializer(target::StanLogPotential, ::Inputs) = target  
 initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64) = 
-    copy(target.initial_values) # TODO: make this cleaner 
+    copy(target.initial_values) # TODO: make this cleaner, and rescale to go from unconstrained to constrained... 
 
 create_explorer(::StanLogPotential, ::Inputs) = SliceSampler()
 
