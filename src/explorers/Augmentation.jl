@@ -28,7 +28,10 @@ time, after that the buffer is recycled and stored in the
 Replica's explorers object. 
 """
 function get_buffer(augmentation, dim::Int)::Vector{Float64}
-    if augmentation.contents === nothing 
+    if isnothing(augmentation) 
+        return zeros(dim) 
+    end 
+    if isnothing(augmentation.contents)
         augmentation.contents = zeros(dim) 
     end
     return augmentation.contents

@@ -6,7 +6,7 @@ Same behaviour as [`record_if_requested!`](@ref) but only evaluate
 """
 macro record_if_requested!(recorders, recorder_key, value)
     return quote
-        if haskey($(esc(recorders)), $(esc(recorder_key)))
+        if !isnothing($(esc(recorders))) && haskey($(esc(recorders)), $(esc(recorder_key)))
             record!($(esc(recorders))[$(esc(recorder_key))], $(esc(value)))
         end
     end

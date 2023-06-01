@@ -19,12 +19,35 @@ end
 (log_potential::ScaledPrecisionNormalLogPotential)(x) = 
     -0.5 * log_potential.precision * sqr_norm(x) 
 
-gradient(log_potential::ScaledPrecisionNormalLogPotential, x) = -log_potential.precision * x
-
-function gradient!!(log_potential::ScaledPrecisionNormalLogPotential, x::T, buffer::T) where {T}
-    buffer .= -log_potential.precision .* x
-    return buffer
+# Make it conform the LogDensityProblems interface
+LogDensityProblems.logdensity(log_potential::ScaledPrecisionNormalLogPotential, x) = log_potential(x)
+LogDensityProblems.dimension(log_potential::ScaledPrecisionNormalLogPotential) = log_potential.dim
+function LogDensityProblems.capabilities(::Type{<:ScaledPrecisionNormalLogPotential})
+    LogDensityProblems.LogDensityOrder{1}() # can do gradient
 end
+
+@auto struct Buffered
+    enclosed
+    buffer
+end
+LogDensityProblems.logdensity(buffered::Buffered, x) = LogDensityProblems.logdensity(buffered.enclosed, x)
+LogDensityProblems.dimension(buffered::Buffered) = LogDensityProblems.dimension(buffered.enclosed)
+
+LogDensityProblemsAD.ADgradient(::Symbol, log_potential::ScaledPrecisionNormalLogPotential; buffer::Vector{Float64}) = 
+    Buffered(log_potential, buffer)
+
+function LogDensityProblems.logdensity_and_gradient(log_potential::Buffered{ScaledPrecisionNormalLogPotential, Vector{Float64}}, x)
+    logdens = log_potential.enclosed(x)
+    log_potential.buffer .= -log_potential.enclosed.precision .* x
+    logdens, log_potential.buffer
+end
+
+# gradient(log_potential::ScaledPrecisionNormalLogPotential, x) = -log_potential.precision * x
+
+# function gradient!!(log_potential::ScaledPrecisionNormalLogPotential, x::T, buffer::T) where {T}
+#     buffer .= -log_potential.precision .* x
+#     return buffer
+# end
 
 """
 $SIGNATURES
