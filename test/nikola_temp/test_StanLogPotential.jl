@@ -22,8 +22,9 @@ using Plots
 
     # run Pigeons
     pt = pigeons(
-        target = slp, n_rounds = n_rounds, n_chains = n_chains, 
-        recorder_builders = [traces])
+        target = slp, n_rounds = n_rounds, n_chains = 0, # set to 0 for now until bug is fixed
+        recorder_builders = [traces], n_chains_var_reference = n_chains, 
+        var_reference = GaussianReference())
     s = get_sample(pt, n_chains)
     samples_vec = map((x) -> x[1], s)
     p = Plots.histogram(samples_vec, bins = -3:0.1:3)
