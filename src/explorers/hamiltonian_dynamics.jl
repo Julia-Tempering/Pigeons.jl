@@ -6,10 +6,9 @@ log_joint(logp, momentum) = logp - 0.5 * sqr_norm(momentum)
 # and use an isotropic normal momentum. 
 # This is equivalent to having a mass matrix but simplifies the code a little bit.
 function conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
-    grad = target_log_potential.buffer
-    gradient(target_log_potential, state, grad) 
+    logdens, grad = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
     grad .= grad .* estimated_target_std_dev 
-    return grad
+    return logdens, grad
 end
 
 # See e.g., R. Neal, p.14. 
@@ -20,7 +19,7 @@ function hamiltonian_dynamics!(
             state, momentum, step_size, n_steps)
 
     # first half-step
-    grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
+    _, grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
     momentum .= momentum .+ (step_size/2) .* grad
 
     for i in 1:n_steps 
@@ -28,9 +27,9 @@ function hamiltonian_dynamics!(
         # full step on position
         state .= state .+ step_size .* momentum .* estimated_target_std_dev
 
-        grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
+        logp, grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
         
-        if !isfinite(log_joint(target_log_potential, state, momentum))
+        if !isfinite(log_joint(logp, momentum))
             # TODO: implement bouncing
             return false
         end
