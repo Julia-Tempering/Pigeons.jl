@@ -22,3 +22,5 @@ Manifest.toml
 examples/.CondaPkg
 *.swp
 *.swo
+test/nikola_temp/eight_schools_centered.hpp
+test/nikola_temp/eight_schools_centered_model.so
