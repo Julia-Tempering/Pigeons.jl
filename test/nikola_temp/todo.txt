@@ -1,0 +1,4 @@
+currently the var reference for stan seems to be putting the gaussian on the constrained space?
+-- try to put it on the unconstrained space and then constrain your vector afterwards
+
+is the slicer with the stan model exploring on the constrained space?
