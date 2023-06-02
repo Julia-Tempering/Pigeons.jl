@@ -9,7 +9,6 @@ using Plots
     # settings
     bernoulli_stan = "test/nikola_temp/bernoulli.stan"
     bernoulli_data = "test/nikola_temp/bernoulli.data.json"
-    bernoulli_data_prior = "test/nikola_temp/bernoulli_only_prior.data.json"
 
     # PT settings
     n_rounds = 10
