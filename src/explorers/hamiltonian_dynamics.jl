@@ -1,8 +1,15 @@
 log_joint(target, state, momentum) = log_joint(LogDensityProblems.logdensity(target, state), momentum)
 log_joint(logp, momentum) = logp - 0.5 * sqr_norm(momentum)
 
-function test_grad_allocs() 
-    
+# We use an implicit linear transformation rescaling  
+# component i with 1/estimated_target_std_dev[i]
+# and use an isotropic normal momentum. 
+# This is equivalent to having a mass matrix but simplifies the code a little bit.
+function conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
+    grad = target_log_potential.buffer
+    gradient(target_log_potential, state, grad) 
+    grad .= grad .* estimated_target_std_dev 
+    return grad
 end
 
 # See e.g., R. Neal, p.14. 
@@ -12,20 +19,8 @@ function hamiltonian_dynamics!(
             estimated_target_std_dev, 
             state, momentum, step_size, n_steps)
 
-    grad = target_log_potential.buffer
-
-
-    # We use an implicit linear transformation rescaling  
-    # component i with 1/estimated_target_std_dev[i]
-    # and use an isotropic normal momentum. 
-    # This is equivalent to having a mass matrix but simplifies the code a little bit.
-    function conditioned_target_gradient()
-        grad .= gradient(target_log_potential, state, grad) 
-        grad .= grad .* estimated_target_std_dev 
-    end
-
     # first half-step
-    conditioned_target_gradient()
+    grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
     momentum .= momentum .+ (step_size/2) .* grad
 
     for i in 1:n_steps 
@@ -33,7 +28,7 @@ function hamiltonian_dynamics!(
         # full step on position
         state .= state .+ step_size .* momentum .* estimated_target_std_dev
 
-        conditioned_target_gradient()
+        grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
         
         if !isfinite(log_joint(target_log_potential, state, momentum))
             # TODO: implement bouncing
