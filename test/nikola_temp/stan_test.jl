@@ -24,9 +24,8 @@ using Plots
         recorder_builders = [traces], n_chains_var_reference = n_chains, 
         var_reference = GaussianReference())
     s = get_sample(pt, n_chains)
-    nothing 
-    # samples_vec = map((x) -> x[1], s)
-    # p = Plots.histogram(samples_vec, bins = -3:0.1:3)
+    samples_vec = map((x) -> x[1], s)
+    p = Plots.histogram(samples_vec, bins = -3:0.1:3)
     # display(p)
     # nothing
 # end
