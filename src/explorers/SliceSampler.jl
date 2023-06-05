@@ -26,7 +26,6 @@ end
 $SIGNATURES
 Slice sample one point.
 """
-
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, rng)
     # if there is no cached logprob, compute it from scratch
     if cached_lp == -Inf
@@ -54,17 +53,16 @@ function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_pote
     return cached_lp
 end
 
-function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
-    transform_back = false
-    if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
-        DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
-        transform_back = true # transform it back after log_potential evaluation
+function slice_sample!(h::SliceSampler, state::StanState, log_potential, cached_lp, rng)
+    cached_lp = on_transformed_space(state, log_potential) do
+        cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
+        for i in eachindex(state.x)
+            pointer = Ref(state.x, i)
+            cl_cached_lp = slice_sample_coord!(h, state, pointer, log_potential, cl_cached_lp, rng)
+        end
+        return cl_cached_lp
     end
-    ret = sampling_task()
-    if transform_back
-        DynamicPPL.invlink!!(state, turing_model(log_potential)) # transform back to constrained space
-    end
-    return ret
+    return cached_lp
 end
 
 function slice_sample_coord!(h, state, pointer, log_potential, cached_lp, rng)

@@ -1,4 +1,5 @@
-understand how get_samples and [traces] works
+simplify user interface so that people don't need to create the stan model 
+
 
 currently the var reference for stan seems to be putting the gaussian on the constrained space?
 -- try to put it on the unconstrained space and then constrain your vector afterwards

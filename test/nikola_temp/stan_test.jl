@@ -5,7 +5,7 @@ using Random
 using SplittableRandoms
 using Plots
 
-# function main()
+function main()
     # settings
     bernoulli_stan = "test/nikola_temp/bernoulli.stan"
     bernoulli_data = "test/nikola_temp/bernoulli.data.json"
@@ -20,14 +20,18 @@ using Plots
 
     # run Pigeons
     pt = pigeons(
-        target = slp, n_rounds = n_rounds, n_chains = n_chains, # set to 0 for now until bug is fixed
-        recorder_builders = [traces], n_chains_var_reference = n_chains, 
-        var_reference = GaussianReference())
+        target = slp, 
+        n_rounds = n_rounds, 
+        n_chains = n_chains, 
+        recorder_builders = [traces], 
+        n_chains_var_reference = n_chains, 
+        var_reference = NoVarReference()
+    )
     s = get_sample(pt, n_chains)
     samples_vec = map((x) -> x[1], s)
     p = Plots.histogram(samples_vec, bins = -3:0.1:3)
-    # display(p)
-    # nothing
-# end
+    display(p)
+    nothing
+end
 
-# main()
+main()

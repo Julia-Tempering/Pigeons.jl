@@ -61,6 +61,7 @@ end
 continuous_variables(state::StreamState) = []
 
 
+# DynamicPPL ----------
 continuous_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)
 discrete_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, Integer)
 variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = state.metadata[name].vals
@@ -77,4 +78,44 @@ function variables(state::DynamicPPL.TypedVarInfo, type::DataType)
     end
     return var_names
 end
+
+function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
+    transform_back = false
+    if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
+        DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
+        transform_back = true # transform it back after log_potential evaluation
+    end
+    ret = sampling_task()
+    if transform_back
+        DynamicPPL.invlink!!(state, turing_model(log_potential)) # transform back to constrained space
+    end
+    return ret
+end
+# end DynamicPPL ----------
+
+
+# Stan ----------
+@concrete mutable struct StanState 
+    x # vector of constrained or unconstrained parameters
+    constrained::Bool
+end
+
+continuous_variables(state::StanState) = SINGLETON_VAR # all Stan variables should be continuous 
+discrete_variables(state::StanState) = []
+
+function on_transformed_space(sampling_task, state::StanState, log_potential)
+    transform_back = false
+    if state.constrained
+        BridgeStan.param_unconstrain!(stan_model(log_potential), state.x, state.x)
+        state.constrained = false
+        transform_back = true 
+    end
+    ret = sampling_task()
+    if transform_back
+        BridgeStan.param_constrain!(stan_model(log_potential), state.x, state.x)
+        state.constrained = true
+    end
+    return ret
+end
+# end Stan ----------
 
