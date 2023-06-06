@@ -3,7 +3,6 @@ simplify user interface so that people don't need to create the stan model
 currently the var reference for stan seems to be putting the gaussian on the constrained space?
 -- try to put it on the unconstrained space and then constrain your vector afterwards
 
-the evaluation of the determinant for the transformation might slow things down?
-
 problem: number of constrained + unconstrained params might not be equal
 -- what happens in that case as you apply the transformation in-place to the vector?
+-- possible solution: pad one of the vectors with nans?

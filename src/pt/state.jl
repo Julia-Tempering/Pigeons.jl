@@ -127,5 +127,18 @@ function on_transformed_space(sampling_task, state::StanState, log_potential)
 end
 
 Base.copy(state::StanState) = StanState(state.x, state.constrained)
+
+function update_state!(state::StanState, name::Symbol, index, value) 
+    @assert name === :singleton_variable
+    state.x[index] = value
+end
+
+function variable(state::StanState, name::Symbol)
+    if name === :singleton_variable
+        state.x
+    else
+        error()
+    end
+end
 # end Stan ----------
 
