@@ -21,7 +21,7 @@ Given a `StanModel` from BridgeStan, create a
 `StanLogPotential` conforming to both [`target`](@ref) and [`log_potential`](@ref).
 """
 @provides target StanLogPotential(model::BridgeStan.StanModel) = 
-    StanLogPotential(model, 1e3) # TODO: find a good default
+    StanLogPotential(model, 1e1) # TODO: find a good default
 
 create_state_initializer(target::StanLogPotential, ::Inputs) = target  
 function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64)

@@ -1,14 +1,18 @@
 using Pigeons 
-using BridgeStan
-const BS = BridgeStan
+using DynamicPPL
+using Distributions
+include("../turing.jl")
 
-bernoulli_stan = "test/nikola_temp/bernoulli.stan"
-bernoulli_data = "test/nikola_temp/bernoulli_prior.data.json"
-smb = BS.StanModel(stan_file = bernoulli_stan, data = bernoulli_data)
+model = flip_model_unidentifiable()
+ 
+# Check NoVarReference()
+inputs = Inputs(
+    target = TuringLogPotential(model),
+    n_chains = 10,
+    n_chains_var_reference = 0,
+    seed = 1,
+    recorder_builders = [traces]
+)
 
-x = [0.9]
-q = @. log(x/(1-x))
-println(q)
-log_density(smb, q; propto = true, jacobian = true)
-
-param_constrain!(smb, q, q)
+pt = pigeons(inputs)
+nothing
