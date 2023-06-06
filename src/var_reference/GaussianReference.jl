@@ -4,7 +4,7 @@ A Gaussian mean-field variational reference (i.e., with a diagonal covariance ma
 @kwdef mutable struct GaussianReference <: VarReference
     μ::Dict{Symbol, Any} = Dict{Symbol, Any}() # means
     σ::Dict{Symbol, Any} = Dict{Symbol, Any}() # standard deviations
-    first_tuning_round::Int  = 6
+    first_tuning_round::Int = 6
 
     function GaussianReference(μ, σ, first_tuning_round)
         @assert length(μ) == length(σ)

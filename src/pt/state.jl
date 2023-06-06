@@ -126,7 +126,7 @@ function on_transformed_space(sampling_task, state::StanState, log_potential)
     return ret
 end
 
-Base.copy(state::StanState) = StanState(state.x, state.constrained)
+Base.copy(state::StanState) = StanState(copy(state.x), state.constrained)
 
 function update_state!(state::StanState, name::Symbol, index, value) 
     @assert name === :singleton_variable

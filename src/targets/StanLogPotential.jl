@@ -10,8 +10,13 @@ stan_model(log_potential::InterpolatedLogPotential) = log_potential.path.target.
 Evaluate the log potential at a given point `x` of type `StanState`.
 """
 function (log_potential::StanLogPotential)(state::StanState)
-    on_transformed_space(state, log_potential) do # convert to unconstrained (transformed) space  
-        BridgeStan.log_density(log_potential.model, state.x; propto = true, jacobian = true)
+    try 
+        on_transformed_space(state, log_potential) do # convert to unconstrained (transformed) space  
+            BridgeStan.log_density(log_potential.model, state.x; propto = true, jacobian = true)
+        end
+    catch
+        return -Inf # TODO: assumes that the error is because you are out of bounds
+        # error("Unknown error in evaluation of the Stan log_potential.")
     end
 end
 
