@@ -4,7 +4,7 @@ Variables needed for the non-reversible Parallel Tempering described in
 
 $FIELDS
 """
-@concrete struct NonReversiblePT
+@auto struct NonReversiblePT
     """ The [`path`](@ref). """
     path 
 
@@ -49,12 +49,16 @@ function NonReversiblePT(path, schedule, communication_barriers)
     return NonReversiblePT(path, schedule, log_potentials, swap_graphs, communication_barriers)
 end
 
-adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference, state) = 
+function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference, state)  
+    if length(tempering.schedule.grids) == 1
+        return tempering
+    end
     adapt_tempering(tempering, reduced_recorders, iterators, var_reference, state, 1:(number_of_chains(tempering)-1))
+end
 
 function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference, state, chain_indices)
     new_path = update_path_if_needed(tempering.path, reduced_recorders, iterators, var_reference, state)
-    NonReversiblePT(
+    return NonReversiblePT(
         new_path, 
         optimal_schedule(reduced_recorders, tempering.schedule, chain_indices), 
         communication_barriers(reduced_recorders, tempering.schedule, chain_indices)

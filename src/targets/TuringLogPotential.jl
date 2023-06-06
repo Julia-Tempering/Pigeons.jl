@@ -1,4 +1,4 @@
-@concrete struct TuringLogPotential
+@auto struct TuringLogPotential
     model
     only_prior::Bool
 end
@@ -32,7 +32,7 @@ create_state_initializer(target::TuringLogPotential, ::Inputs) = target
 initialization(target::TuringLogPotential, rng::SplittableRandom, _::Int64) = 
     DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
 
-create_explorer(::TuringLogPotential, ::Inputs) = SliceSampler()
+default_explorer(::TuringLogPotential) = SliceSampler()
 
 create_reference_log_potential(target::TuringLogPotential, ::Inputs) = 
     TuringLogPotential(target.model, true)

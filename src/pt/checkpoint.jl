@@ -2,10 +2,9 @@
 $SIGNATURES
 
 Create a [`PT`](@ref) struct from a saved 
-checkpoint. The path [`checkpoint_folder`] 
-should point to a folder with the name 
-`checkpoint` found under 
-`results/all/[exec_folder]/round=x`.
+checkpoint. The input `source_exec_folder`
+should point to a folder of the form 
+`results/all/[exec_folder]`.
 
 The checkpoint carries all the information stored in 
 a [`PT`](@ref) struct. It is possible for an MPI-based 
@@ -26,8 +25,9 @@ function PT(source_exec_folder::AbstractString;
         throw(ArgumentError("round should be positive"))
     end
     
-    if source_exec_folder == "results/latest"
-        source_exec_folder = "results/$(readlink(source_exec_folder))"
+    if source_exec_folder == "results/latest" || source_exec_folder == "results/latest/"
+        resolved = readlink("results/latest")
+        source_exec_folder = "results/$resolved"
     end 
 
     fresh_exec_folder = pt_exec_folder(true, fresh_exec_folder)

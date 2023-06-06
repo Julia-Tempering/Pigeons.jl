@@ -12,13 +12,14 @@ and [`run_checks()`](@ref) between rounds.
 function pigeons(pt::PT) 
     preflight_checks(pt)
     flush_immutables!() # Making sure this gets called before DiskRecorder's and write_checkpoint
+    prev_reports = nothing
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
         pt = adapt(pt, reduced_recorders) 
         # NB: the local variable pt here is not type-stable b/c adapt(..), e.g. will 
         # change type of tempering.communication_barrier from nothing to a value 
         # but since this loop is ran only a logarithmic # of times no performance hit
-        report(pt)
+        prev_reports = report(pt, prev_reports)
         write_checkpoint(pt) 
         run_checks(pt)
     end
@@ -49,7 +50,7 @@ function run_one_round!(pt)
         communicate!(pt)
     end
     record_timed_if_requested!(pt, :round, timed)
-    return reduce_recorders!(pt.replicas)
+    return reduce_recorders!(pt, pt.replicas)
 end
 
 """
@@ -110,7 +111,18 @@ function explore!(pt, replica, explorer)
         @record_if_requested!(
             replica.recorders, 
             :traces, 
-            (; chain = replica.chain, scan = pt.shared.iterators.scan, state = replica.state)
+            (; 
+                chain = replica.chain, 
+                scan = pt.shared.iterators.scan, 
+                contents = 
+                    if pt.inputs.trace_type == :samples
+                        copy(replica.state)
+                    elseif pt.inputs.trace_type == :log_potential 
+                        log_potential(replica.state) 
+                    else
+                        error()
+                    end
+            )
         )
         @record_if_requested!(
             replica.recorders, 
@@ -140,7 +152,7 @@ Call [`adapt_tempering()`](@ref) followed by
 """
 function adapt(pt, reduced_recorders)
     updated_tempering = adapt_tempering(pt.shared.tempering, reduced_recorders, pt.shared.iterators, pt.inputs.var_reference, locals(pt.replicas)[1].state)
-    updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, updated_tempering)
+    updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, pt, updated_tempering)
     updated_shared = Shared(
         pt.shared.iterators, 
         updated_tempering, 

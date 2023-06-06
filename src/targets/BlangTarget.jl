@@ -105,18 +105,6 @@ blang_ising(model_options) =
         `$(blang_executable("blangDemos", "blang.validation.internals.fixtures.Ising")) $model_options`
     )
 
-blang_bhcd(model_options) = 
-    BlangTarget(
-        `$(blang_executable("blangBHCD", "bhcd.BHCD")) $model_options`
-    )
-
-blang_bhcd() = blang_bhcd(`
-    --model.graph.file $(blang_repo_path("blangBHCD"))/data/metabolic/links_tpa_reduced.csv 
-    --treatNaNAsNegativeInfinity true 
-    --checkIsDAG false 
-    --model.variant BINOM
-`)
-
 """
 $SIGNATURES 
 
@@ -137,7 +125,7 @@ function setup_blang(
     auto_install_folder = mkpath(mpi_settings_folder())
     repo_path = "$auto_install_folder/$repo_name"
     if isdir(repo_path)
-        @info "it seems setup_blang() was alrady ran for $repo_name; to force re-runing the setup for $repo_name, first remove the folder $repo_path"
+        @info "it seems setup_blang() was already ran for $repo_name; to force re-runing the setup for $repo_name, first remove the folder $repo_path"
         return nothing
     end
 

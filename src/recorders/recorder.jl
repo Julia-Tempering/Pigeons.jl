@@ -39,7 +39,7 @@ To post-process files in the correct order, use [`process_samples`](@ref).
 function record!(traces::Dict{Pair{Int, Int}, T}, datum) where {T}
     key = datum.chain => datum.scan 
     @assert !haskey(traces, key) 
-    traces[key] = copy(datum.state)
+    traces[key] = datum.contents # copy is called if needed by caller in pigeons.jl/explore!()
 end
 
 """ 
@@ -50,6 +50,26 @@ of interacting chains.
 
 function swap_prs(pt)
     collection = value(pt.reduced_recorders.swap_acceptance_pr)
+    return value.(values(collection))
+end
+
+""" 
+Average MH swap acceptance probabilities for explorers.  
+"""
+@provides recorder explorer_acceptance_pr() = GroupBy(Int, Mean())
+
+function explorer_mh_prs(pt)
+    collection = value(pt.reduced_recorders.explorer_acceptance_pr)
+    return value.(values(collection))
+end
+
+""" 
+Number of steps used by explorers.
+"""
+@provides recorder explorer_n_steps() = GroupBy(Int, Sum())
+
+function explorer_n_steps(pt)
+    collection = value(pt.reduced_recorders.explorer_n_steps)
     return value.(values(collection))
 end
 

@@ -7,68 +7,9 @@ inf(T::Type{Float16}) = Inf16
 inf(T::Type{Float32}) = Inf32 
 inf(T::Type{Float64}) = Inf
 
-function sqr_norm(x) 
-    sum = 0.0
-    for i in eachindex(x)
-        sum += x[i]^2
-    end
-    return sum 
-end
+sqr_norm(x) = sum(abs2, x)
 
-function cmd_exists(cmd)
-    try 
-        read(Cmd(`$cmd`, ignorestatus = true), String)
-        return true
-    catch 
-        return false
-    end
-end
-
-"""
-    winsorized_mean(x; α)
-
-Compute the winsorized mean from an input `x`, which is assumed to be a vector of vectors. 
-`α` denotes the percentage of observations to winsorize at the bottom and the top 
-so that we use 1 - 2α observations and winsorize the rest.
-"""
-function winsorized_mean(x; α=0.1)
-    dim_x = length(x[1])
-    out = Vector{Float64}(undef, dim_x)
-    n = length(x)
-    n_lower = convert(Int64, floor(α*n))
-
-    for j in 1:dim_x
-        y = sort(map((i) -> x[i][j], 1:n))
-        out[j] = 1/n * (n_lower * y[n_lower] + sum(y[(n_lower + 1):(n - n_lower)]) + n_lower * y[n - n_lower + 1])
-    end
-
-    return out
-end
-
-
-"""
-    winsorized_std(x; α)
-
-Compute the winsorized standard deviation. The parameters are the same 
-as those for `winsorized_mean()`.
-"""
-function winsorized_std(x; α=0.1)
-    dim_x = length(x[1])
-    out = Vector{Float64}(undef, dim_x)
-    n = length(x)
-    n_lower = convert(Int64, floor(α*n))
-
-    for j in 1:dim_x
-        y = map((i) -> x[i][j], 1:n)
-        y2 = y .^ 2
-        y2 = sort(y2)
-        y2_mean = 1/n * (n_lower * y2[n_lower] + sum(y2[(n_lower + 1):(n - n_lower)]) + n_lower * y2[n - n_lower + 1]) # winsorized estimate of E[Y[j]^2]
-        out[j] = sqrt(y2_mean - winsorized_mean(y; α=α)[1]^2)
-    end
-    
-    return out
-end
-
+julia_cmd_no_start_up() = `$(Base.julia_cmd()) --startup-file=no --banner=no`
 
 
 """
@@ -89,22 +30,6 @@ function split_slice(
     return [split(rng) for i in slice]
 end
 
-
-""" 
-$SIGNATURES
-
-Given a filename path, compute a `crc32c()` checksum 
-in constant memory. 
-"""
-function checksum(filename::AbstractString, blocksize=16384)
-    crc = zero(UInt32)
-    open(filename, "r") do f
-        while !eof(f)
-            crc = crc32c(read(f, blocksize), crc)
-        end
-    end
-    return crc
-end
 
 """
 $SIGNATURES 

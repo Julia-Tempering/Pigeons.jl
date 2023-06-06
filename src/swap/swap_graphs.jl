@@ -11,15 +11,15 @@ iteration.
     """
     create_swap_graph(swap_graphs, shared) = @abstract
 
-    """
-    $SIGNATURES
-    """
-    is_reference(swap_graphs, chain::Int) = @abstract 
+    # """
+    # $SIGNATURES
+    # """
+    # is_reference(swap_graphs, chain::Int) = @abstract 
 
-    """
-    $SIGNATURES
-    """
-    is_target(swap_graphs, chain::Int) = @abstract
+    # """
+    # $SIGNATURES
+    # """
+    # is_target(swap_graphs, chain::Int) = @abstract
 end
 
 

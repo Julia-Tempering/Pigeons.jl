@@ -1,4 +1,9 @@
 function preflight_checks(pt)
+    # TODO: modify those checks after modifying to support single chain mode
+    # @assert (pt.inputs.n_chains ≥ 0) && (pt.inputs.n_chains_var_reference ≥ 0) && (pt.inputs.n_chains + pt.inputs.n_chains_var_reference ≥ 2)
+    # if (pt.inputs.n_chains_var_reference == 0)
+    #     @assert isa(pt.inputs.var_reference, NoVarReference)
+    # end
     if pt.inputs.checked_round > 0 && !pt.inputs.checkpoint
         throw(ArgumentError("activate checkpoint when performing checks"))
     end
@@ -139,7 +144,11 @@ Base.:(==)(a::NonReproducible, b::NonReproducible) = true
 # TODO: maybe move this to a sub-module in which == is nicer by default?
 # mutable (incl imm with mut fields) structs do not have a nice ===, overload those:
 Base.:(==)(a::SplittableRandom, b::SplittableRandom) = recursive_equal(a, b)
-Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b)    
+Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b) 
+Base.:(==)(a::Augmentation, b::Augmentation) = recursive_equal(a, b) 
+Base.:(==)(a::AutoMALA, b::AutoMALA) = recursive_equal(a, b)  
+Base.:(==)(a::SliceSampler, b::SliceSampler) = recursive_equal(a, b) 
+Base.:(==)(a::Compose, b::Compose) = recursive_equal(a, b)    
 Base.:(==)(a::Iterators, b::Iterators) = recursive_equal(a, b) 
 Base.:(==)(a::Schedule, b::Schedule) = recursive_equal(a, b)
 Base.:(==)(a::DEO, b::DEO) = recursive_equal(a, b)

@@ -2,7 +2,7 @@
 A [`log_potential`](@ref) obtained by evaluation of a [`path`](@ref) at a 
 point beta in the closed interval ``[0, 1]``.  
 """
-@concrete struct InterpolatedLogPotential
+@auto struct InterpolatedLogPotential
     path
     beta
 end

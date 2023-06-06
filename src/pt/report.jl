@@ -13,6 +13,8 @@ all_reports() = [
         "  mean(α) "   => pt -> mean(swap_prs(pt)),
         "  max|ρ|  "   => pt -> maximum(abs.(energy_ac1s(pt, true))),
         "  mean|ρ| "   => pt -> mean(abs.(energy_ac1s(pt, true))),
+        "  min(αₑ) "   => pt -> minimum(explorer_mh_prs(pt)), 
+        " mean(αₑ) "   => pt -> mean(explorer_mh_prs(pt)),
     ]
 
 """
@@ -20,11 +22,18 @@ $SIGNATURES
 
 Report summary information on the progress of [`pigeons()`](@ref).
 """
-report(pt) = only_one_process(pt) do
+report(pt, prev_header) = only_one_process(pt) do
+    if !pt.inputs.show_report
+        return nothing
+    end
     reports = reports_available(pt)
     if pt.shared.iterators.round == 1
         header(reports)
+    elseif prev_header != header_str(reports) 
+        @warn """The set of successful reports changed"""
+        header(reports)
     end
+    
     println(
         join(
             map(
@@ -35,6 +44,7 @@ report(pt) = only_one_process(pt) do
     if pt.shared.iterators.round == pt.inputs.n_rounds 
         hr(reports, "─")
     end
+    return header_str(reports) 
 end
 
 render_report_cell(f, pt) = render_report_cell(f(pt))
@@ -44,12 +54,14 @@ render_report_cell(value::Tuple{Number, Number}) =
 
 function header(reports)
     hr(reports, "─")
-    println(
-        join(
-            map(pair -> pair[1], reports), 
-            " "))
+    println(header_str(reports))
     hr(reports, " ")
 end
+
+header_str(reports) = 
+    join(
+        map(pair -> pair[1], reports), 
+        " ")
 
 hr(reports, sep) = 
     println(

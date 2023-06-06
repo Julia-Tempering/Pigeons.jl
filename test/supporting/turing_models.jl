@@ -23,6 +23,14 @@ end;
     return y
 end;
 
+@model function coinflip_mixture(y)
+    p1 ~ Uniform(0, 1)
+    p2 ~ Uniform(0, 1)
+    z ~ Bernoulli(0.2)
+    y .~ Bernoulli(z ? p1 : p2)
+    return y
+end;
+
 
 function flip_model()
     p_true = 0.5;
@@ -43,6 +51,13 @@ function flip_model_modified()
     N = 100;
     data = rand(Bernoulli(p_true), N);
     return coinflip_modified(data)
+end
+
+function flip_mixture() 
+    p_true = 0.5;
+    N = 100;
+    data = rand(Bernoulli(p_true), N);
+    return coinflip_mixture(data)
 end
 
 @model function turing_normal()

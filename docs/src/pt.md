@@ -179,7 +179,7 @@ Building a new explorer is done as follows: first, suppose you are planning to u
     Note that explorers will need to explore not only the target 
     distribution ``\pi`` but also the intermediate ones ``\pi_i``.
 2. Implement all the methods in the section "Contract" of [`explorer`](@ref) making sure to type the explorer argument as `explorer::MyExplorerStruct`. Some examples are in the same folder as the source file of [`explorer`](@ref).  
-3. Define a method `create_explorer(target::MyTargetType, inputs)` which 
+3. Define a method `default_explorer(target::MyTargetType)` which 
     should return a fresh `MyExplorerStruct` instance. 
 
 One explorer struct will be shared by all threads, so it should be 

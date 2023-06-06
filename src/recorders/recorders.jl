@@ -65,10 +65,9 @@ function recorder_builders(inputs::Inputs, shared::Shared)
     union!(result, explorer_recorder_builders(shared.explorer))
     union!(result, tempering_recorder_builders(shared.tempering))
     union!(result, inputs.recorder_builders)
-    union!(result, var_reference_recorder_builders(shared.var_reference))
+    union!(result, var_reference_recorder_builders(inputs.var_reference))
     return result
 end
-
 
 
 """
@@ -86,20 +85,32 @@ identical, no matter how many MPI processes are used, even when
 the reduction involves only approximately associative `Base.merge()`
 operations (e.g. most floating point ones).
 """
-reduce_recorders!(replicas::EntangledReplicas) = _reduce_recorders!(replicas)
+reduce_recorders!(pt, replicas::EntangledReplicas) = _reduce_recorders!(pt, replicas)
 
-function reduce_recorders!(replicas::Vector)
+function reduce_recorders!(pt, replicas::Vector)
     sort!(replicas, by = r -> r.replica_index)
-    result = _reduce_recorders!(replicas)
+    result = _reduce_recorders!(pt, replicas)
     sort_replicas!(replicas)
     return result
 end
 
-function _reduce_recorders!(replicas)
-    result = all_reduce_deterministically(
-        merge_recorders, 
-        _recorders.(locals(replicas)), 
-        entangler(replicas)) 
+function _reduce_recorders!(pt, replicas)
+    result = 
+        if entangler(replicas).load.n_global_indices == 1 
+            # corner case: only one replica; 
+            # without this we would erase right away the returned value 
+            # Want to make a copy in that case. 
+            @assert length(replicas) == 1
+            recorders = replicas[1].recorders
+            empty = create_recorders(recorder_builders(pt.inputs, pt.shared))
+            merge_recorders(recorders, empty)
+        else
+            all_reduce_deterministically(
+                merge_recorders, 
+                _recorders.(locals(replicas)), 
+                entangler(replicas)) 
+        end
+
     for replica in locals(replicas)
         for recorder in values(replica.recorders)
             empty!(recorder)

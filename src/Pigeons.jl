@@ -45,7 +45,6 @@ import Base.@kwdef
 import Base.show 
 import Base.print 
 import Base.Threads.@threads
-import CRC32c.crc32c
 import OnlineStats._fit!
 import OnlineStats.value
 import OnlineStats._merge!
@@ -69,12 +68,15 @@ export pigeons, Inputs, PT,
     toy_mvn_target, TuringLogPotential, StanLogPotential,
     # recorders:
     index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, traces, disk,
+    online_recorder_builders,
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     # getting information out of an execution:
     stepping_stone_pair, n_tempered_restarts, n_round_trips, process_samples, get_sample,
     # variational references:
-    GaussianReference, NoVarReference
+    GaussianReference, NoVarReference, 
+    # samplers 
+    SliceSampler, AutoMALA, Compose
 end # End module
 
 

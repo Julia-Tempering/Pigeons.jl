@@ -11,7 +11,5 @@ step!(::ToyExplorer, replica, shared) =
         find_log_potential(replica, shared.tempering, shared)
     )
 
-adapt_explorer(explorer::ToyExplorer, _, _) = explorer 
-
 explorer_recorder_builders(::ToyExplorer) = [] 
 

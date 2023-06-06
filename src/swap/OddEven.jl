@@ -8,8 +8,8 @@ even(n_chains::Int) = OddEven(true, n_chains)
 
 n_chains(swap_graph::OddEven) = swap_graph.n_chains
 
-is_reference(::OddEven, chain::Int) = chain == 1
-is_target(deo::OddEven, chain::Int) = chain == deo.n_chains
+is_reference(oe::OddEven, chain::Int) = chain == 1 && oe.n_chains > 1
+is_target(oe::OddEven, chain::Int) = chain == oe.n_chains 
 
 
 """ Provides a [`swap_graph`](@ref). """
@@ -46,3 +46,4 @@ n_chains(swap_graph::VariationalOddEven) = swap_graph.n_chains
 
 is_reference(deo::VariationalOddEven, chain::Int) = (chain == 1) || (chain == n_chains(deo))
 is_target(deo::VariationalOddEven, chain::Int) = (chain == deo.n_chains_fixed) || (chain == deo.n_chains_fixed + 1)
+
