@@ -1,7 +1,7 @@
 """
 The state held in each Parallel Tempering [`Replica`](@ref). 
 This interface is only needed for variational Parallel Tempering and for 
-some recorders such as [`OnlineStateRecorder`](@ref).
+some recorders such as [`OnlineStateRecorder`](@ref) and [`traces`](@ref).
 (Note that, at the moment, explorers automatically detect the variable type 
 and dispatch accordingly.)
 """
@@ -29,6 +29,12 @@ and dispatch accordingly.)
     Update the state's entry at symbol `name` and `index` with `value`.
     """
     update_state!(state, name::Symbol, index, value) = @abstract
+
+    """
+    $SIGNATURES
+    Create a copy of the given `state`.
+    """
+    Base.copy(state) = @abstract
 end
 
 
@@ -91,6 +97,8 @@ function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log
     end
     return ret
 end
+
+Base.copy(state::DynamicPPL.TypedVarInfo) = @abstract
 # end DynamicPPL ----------
 
 
@@ -117,5 +125,7 @@ function on_transformed_space(sampling_task, state::StanState, log_potential)
     end
     return ret
 end
+
+Base.copy(state::StanState) = StanState(state.x, state.constrained)
 # end Stan ----------
 

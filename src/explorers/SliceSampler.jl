@@ -56,12 +56,12 @@ function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_pote
     return cached_lp
 end
 
-function slice_sample!(h::SliceSampler, state::StanState, log_potential, cached_lp, rng)
+function slice_sample!(h::SliceSampler, state::StanState, log_potential, cached_lp, replica)
     cached_lp = on_transformed_space(state, log_potential) do
         cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
         for i in eachindex(state.x)
             pointer = Ref(state.x, i)
-            cl_cached_lp = slice_sample_coord!(h, state, pointer, log_potential, cl_cached_lp, rng)
+            cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
         end
         return cl_cached_lp
     end

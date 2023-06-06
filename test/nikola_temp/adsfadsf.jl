@@ -1,7 +1,7 @@
 using Pigeons 
 using DynamicPPL
 using Distributions
-include("../turing.jl")
+include("../supporting/turing_models.jl")
 
 model = flip_model_unidentifiable()
  
