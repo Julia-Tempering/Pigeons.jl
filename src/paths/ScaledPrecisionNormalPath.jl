@@ -27,13 +27,15 @@ function LogDensityProblems.capabilities(::Type{<:ScaledPrecisionNormalLogPotent
 end
 
 LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::ScaledPrecisionNormalLogPotential; buffers) = 
-    BufferedGradient(log_potential, kind, buffers)
+    BufferedGradient(log_potential, kind, 
+        get_buffer(buffers, :gradient_buffer1, LogDensityProblems.dimension(log_potential)), 
+        get_buffer(buffers, :gradient_buffer2, LogDensityProblems.dimension(log_potential))
+    )
 
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedGradient{ScaledPrecisionNormalLogPotential}, x)
     logdens = log_potential.enclosed(x)
-    buffer = get_buffer(log_potential.buffers, :scaled_precision_normal_gradient_buffer, length(x))
-    buffer .= -log_potential.enclosed.precision .* x
-    return logdens, buffer
+    log_potential.buffer1  .= -log_potential.enclosed.precision .* x
+    return logdens, log_potential.buffer1
 end
 
 # gradient(log_potential::ScaledPrecisionNormalLogPotential, x) = -log_potential.precision * x

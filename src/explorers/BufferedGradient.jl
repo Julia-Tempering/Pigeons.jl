@@ -6,7 +6,8 @@ buffer to avoid heap allocations in the inner loop.
 struct BufferedGradient{T}
     enclosed::T 
     kind::Symbol
-    buffers::Dict{Symbol, Vector{Float64}}
+    buffer1::Vector{Float64}
+    buffer2::Vector{Float64}
 end
 
 LogDensityProblems.logdensity(buffered::BufferedGradient, x) = LogDensityProblems.logdensity(buffered.enclosed, x)
