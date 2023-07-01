@@ -33,8 +33,8 @@ end
 LogDensityProblems.logdensity(buffered::Buffered, x) = LogDensityProblems.logdensity(buffered.enclosed, x)
 LogDensityProblems.dimension(buffered::Buffered) = LogDensityProblems.dimension(buffered.enclosed)
 
-LogDensityProblemsAD.ADgradient(::Symbol, log_potential::ScaledPrecisionNormalLogPotential; buffer::Vector{Float64}) = 
-    Buffered(log_potential, buffer)
+LogDensityProblemsAD.ADgradient(::Symbol, log_potential::ScaledPrecisionNormalLogPotential; buffers) = 
+    Buffered(log_potential, get_buffer(buffers, :scaled_gradient_buffer, LogDensityProblems.dimension(log_potential)))
 
 function LogDensityProblems.logdensity_and_gradient(log_potential::Buffered{ScaledPrecisionNormalLogPotential, Vector{Float64}}, x)
     logdens = log_potential.enclosed(x)
