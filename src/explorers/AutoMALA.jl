@@ -92,7 +92,7 @@ Extract info common to all types of target and perform a step!()
 =#
 function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared, log_potential, state::AbstractVector) 
     
-    log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential; buffers = replica.recorders.buffers)      
+    log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential; buffers = replica.recorders.buffers.contents)      
     is_first_scan_of_round = shared.iterators.scan == 1
 
     auto_mala!(
@@ -124,15 +124,15 @@ function auto_mala!(
 
     dim = length(state)
 
-    momentum = get_buffer(recorders.buffers, :am_momentum_buffer, dim)
-    estimated_target_std_dev = get_buffer(recorders.buffers, :am_ones_buffer, dim)
+    momentum = get_buffer(recorders.buffers.contents, :am_momentum_buffer, dim)
+    estimated_target_std_dev = get_buffer(recorders.buffers.contents, :am_ones_buffer, dim)
     estimated_target_std_dev .= 1.0
     mix = rand(rng) # random interpolation b/w unit and estimated for robustness
     if !isnothing(explorer.estimated_target_std_deviations)
         estimated_target_std_dev .= mix .* estimated_target_std_dev .+ (1.0 - mix) .* explorer.estimated_target_std_deviations
     end
     
-    start_state = get_buffer(recorders.buffers, :am_state_buffer, dim)
+    start_state = get_buffer(recorders.buffers.contents, :am_state_buffer, dim)
 
     n_refresh = explorer.base_n_refresh * ceil(Int, dim^explorer.exponent_n_refresh)
     for i in 1:n_refresh
@@ -257,10 +257,10 @@ function log_joint_difference_function(
 
     dim = length(state)
 
-    state_before = get_buffer(recorders.buffers, :am_ljdf_state_before_buffer, dim)
+    state_before = get_buffer(recorders.buffers.contents, :am_ljdf_state_before_buffer, dim)
     state_before .= state 
 
-    momentum_before = get_buffer(recorders.buffers, :am_ljdf_momentum_before_buffer, dim)
+    momentum_before = get_buffer(recorders.buffers.contents, :am_ljdf_momentum_before_buffer, dim)
     momentum_before .= momentum
 
     h_before = log_joint(target_log_potential, state, momentum)

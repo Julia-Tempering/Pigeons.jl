@@ -29,8 +29,7 @@ Return a Vector of length dim. Allocating only the first
 time, after that the buffer is recycled and stored in the 
 Replica's recorders. 
 """
-function get_buffer(augmentation, key::Symbol, dim::Int)::Vector{Float64}
-    dict = augmentation.contents 
+function get_buffer(dict, key::Symbol, dim::Int)::Vector{Float64}
     if !haskey(dict, key) 
         dict[key] = zeros(dim) 
     end
