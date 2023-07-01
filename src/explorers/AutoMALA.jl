@@ -72,42 +72,27 @@ end
 
 ### Dispatch on state for the behaviours for the different targets ###
 
-    step!(explorer::AutoMALA, replica, shared, state::AbstractVector) =
-        _extract_commons_and_run_auto_mala!(explorer, replica, shared, state)
+    function step!(explorer::AutoMALA, replica, shared, state::AbstractVector)
+        log_potential = find_log_potential(replica, shared.tempering, shared)
+        _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
+    end
 
     function step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
+        log_potential = find_log_potential(replica, shared.tempering, shared)
         on_transformed_space(vi, log_potential) do 
             state = DynamicPPL.getall(vi)
-            _extract_commons_and_run_auto_mala!(explorer, replica, shared, state)
+            _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
             DynamicPPL.setall!(replica.state, state)
         end
     end
 
-############################################
-
-# # Mini interface to handle both pure in-place function and Turing.jl
-# move!(state, new_position::AbstractVector) = @abstract 
-# as_vector(state) = @abstract 
-# dimensionality(state) = length(as_vector(state))
-
-# # Implementation for in-place functions
-# function move!(state::AbstractVector, new_position::AbstractVector)
-#     state .= new_position
-# end
-# as_vector(state::AbstractVector) = state
-
-# # Implementation for Turing
-# move!(state::DynamicPPL.TypedVarInfo, new_position::AbstractVector) = 
-#     DynamicPPL.setall!(state, new_position)
-# as_vector(state::DynamicPPL.TypedVarInfo) = getall(state)
 
 #=
 Extract info common to all types of target and perform a step!()
 =#
-function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared, state::AbstractVector) 
-    log_potential = find_log_potential(replica, shared.tempering, shared)
-
-    gradient_buffer = get_buffer(replica.recorders.am_gradient_buffer, length(state))
+function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared, log_potential, state::AbstractVector) 
+    
+    gradient_buffer = get_buffer(replica.recorders.buffers, :am_gradient_buffer, length(state))
     log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential; buffer = gradient_buffer)      
     is_first_scan_of_round = shared.iterators.scan == 1
 
@@ -140,15 +125,15 @@ function auto_mala!(
 
     dim = length(state)
 
-    momentum = get_buffer(recorders.am_momentum_buffer, dim)
-    estimated_target_std_dev = get_buffer(recorders.am_ones_buffer, dim)
+    momentum = get_buffer(recorders.buffers, :am_momentum_buffer, dim)
+    estimated_target_std_dev = get_buffer(recorders.buffers, :am_ones_buffer, dim)
     estimated_target_std_dev .= 1.0
     mix = rand(rng) # random interpolation b/w unit and estimated for robustness
     if !isnothing(explorer.estimated_target_std_deviations)
         estimated_target_std_dev .= mix .* estimated_target_std_dev .+ (1.0 - mix) .* explorer.estimated_target_std_deviations
     end
     
-    start_state = get_buffer(recorders.am_state_buffer, dim)
+    start_state = get_buffer(recorders.buffers, :am_state_buffer, dim)
 
     n_refresh = explorer.base_n_refresh * ceil(Int, dim^explorer.exponent_n_refresh)
     for i in 1:n_refresh
@@ -273,10 +258,10 @@ function log_joint_difference_function(
 
     dim = length(state)
 
-    state_before = get_buffer(recorders.am_ljdf_state_before_buffer, dim)
+    state_before = get_buffer(recorders.buffers, :am_ljdf_state_before_buffer, dim)
     state_before .= state 
 
-    momentum_before = get_buffer(recorders.am_ljdf_momentum_before_buffer, dim)
+    momentum_before = get_buffer(recorders.buffers, :am_ljdf_momentum_before_buffer, dim)
     momentum_before .= momentum
 
     h_before = log_joint(target_log_potential, state, momentum)
@@ -292,14 +277,6 @@ function log_joint_difference_function(
     return result
 end
 
-am_ljdf_state_before_buffer() = Augmentation{Vector{Float64}}() 
-am_ljdf_momentum_before_buffer() = Augmentation{Vector{Float64}}()
-
-am_momentum_buffer() = Augmentation{Vector{Float64}}() 
-am_state_buffer() = Augmentation{Vector{Float64}}()
-am_gradient_buffer() = Augmentation{Vector{Float64}}()
-am_ones_buffer() = Augmentation{Vector{Float64}}()
-
 am_exponents() = GroupBy(Int, Mean())
 
 explorer_recorder_builders(explorer::AutoMALA) = [
@@ -307,10 +284,5 @@ explorer_recorder_builders(explorer::AutoMALA) = [
     explorer_acceptance_pr, 
     explorer_n_steps,
     am_exponents,
-    am_ljdf_state_before_buffer,
-    am_ljdf_momentum_before_buffer,
-    am_momentum_buffer,
-    am_state_buffer,
-    am_gradient_buffer,
-    am_ones_buffer
+    buffers
 ]

@@ -4,7 +4,7 @@ log_joint(logp, momentum) = logp - 0.5 * sqr_norm(momentum)
 # We use an implicit linear transformation rescaling  
 # component i with 1/estimated_target_std_dev[i]
 # and use an isotropic normal momentum. 
-# This is equivalent to having a mass matrix but simplifies the code a little bit.
+# This is equivalent to having a "mass matrix" in HMC jargon.
 function conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
     logdens, grad = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
     grad .= grad .* estimated_target_std_dev 
