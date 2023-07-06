@@ -20,7 +20,14 @@ LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::InterpolatedLogPote
         get_buffer(buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(log_potential.path.ref))
     )
 
-LogDensityProblems.logdensity(log_potential::InterpolatedAD, x) = log_potential.enclosed(x)
+function LogDensityProblems.logdensity(log_potential::InterpolatedAD, x) 
+    l1 = LogDensityProblems.logdensity(log_potential.ref_ad, x)
+    l2 = LogDensityProblems.logdensity(log_potential.target_ad, x) 
+    beta = log_potential.enclosed.beta
+    return (1.0 - beta) * l1 + beta * l2
+end
+
+
 LogDensityProblems.dimension(log_potential::InterpolatedAD) = LogDensityProblems.dimension(log_potential.ref_ad)
 
 function LogDensityProblems.logdensity_and_gradient(log_potential::InterpolatedAD, x)
@@ -28,11 +35,11 @@ function LogDensityProblems.logdensity_and_gradient(log_potential::InterpolatedA
     beta = log_potential.enclosed.beta
 
     l, g = LogDensityProblems.logdensity_and_gradient(log_potential.ref_ad, x)
-    logdens += l
+    logdens += l * (1.0 - beta)
     log_potential.buffer .= g * (1.0 - beta)
 
     l, g = LogDensityProblems.logdensity_and_gradient(log_potential.target_ad, x)
-    logdens += l
+    logdens += l * beta
     log_potential.buffer .= log_potential.buffer .+ g * beta
 
     return logdens, log_potential.buffer

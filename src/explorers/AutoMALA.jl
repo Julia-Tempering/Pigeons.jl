@@ -46,6 +46,11 @@ $FIELDS
     """
     initial_step_size::Float64 = 1.0
 
+    """ 
+    If a diagonal pre-conditioning should be learned.
+    """
+    adapt_pre_conditioning::Bool = true
+
     """
     This gets updated after first iteration; initially `nothing` in 
     which case a diagonal mass matrix is used.
@@ -57,12 +62,15 @@ end
 
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
     estimated_target_std_dev = 
-        sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance))
+        explorer.adapt_pre_conditioning ? 
+            sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance)) :
+            nothing
     # use the mean across chains of the mean shrink/grow exponent to compute a new baseline stepsize
     updated_initial_step_size = explorer.initial_step_size * 2.0^mean(mean.(values(value(reduced_recorders.am_exponents))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
                 updated_initial_step_size,
+                explorer.adapt_pre_conditioning, 
                 estimated_target_std_dev)
 end
 
@@ -139,6 +147,7 @@ function auto_mala!(
         start_state .= state 
         randn!(rng, momentum)
         init_joint_log = log_joint(target_log_potential, state, momentum)
+        @assert isfinite(init_joint_log)
 
         # Randomly pick a "reasonable" range of MH accept probabilities (in log-scale)
         # We do this to preserve the same irreducibility structure on the augmented space (x, v) 
@@ -228,9 +237,13 @@ end
 function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
     step_size = initial_step_size
     n = 1
-    while true 
+    while true
         step_size /= 2.0 
-        if log_joint_difference(step_size) > lower_bound 
+        diff = log_joint_difference(step_size) 
+        if !isfinite(diff) 
+            return n, -(n-1) 
+        end
+        if diff > lower_bound 
             return n, -n
         end
         n += 1
@@ -240,9 +253,10 @@ end
 function grow_step_size(log_joint_difference, initial_step_size, upper_bound) 
     step_size = initial_step_size 
     n = 1
-    while true 
+    while true
         step_size *= 2.0 
-        if log_joint_difference(step_size) < upper_bound 
+        diff = log_joint_difference(step_size)
+        if !isfinite(diff) || diff < upper_bound
             return n, n - 1 # one less step, to avoid a potential cliff-like drop in acceptance
         end
         n += 1
@@ -278,10 +292,15 @@ end
 
 am_exponents() = GroupBy(Int, Mean())
 
-explorer_recorder_builders(explorer::AutoMALA) = [
-    target_online, # for mass matrix adaptation
-    explorer_acceptance_pr, 
-    explorer_n_steps,
-    am_exponents,
-    buffers
-]
+function explorer_recorder_builders(explorer::AutoMALA)
+    result = [
+        explorer_acceptance_pr, 
+        explorer_n_steps,
+        am_exponents,
+        buffers
+    ]
+    if explorer.adapt_pre_conditioning 
+        push!(result, target_online) # for mass matrix adaptation
+    end
+    return result
+end
