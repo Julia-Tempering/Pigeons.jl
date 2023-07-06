@@ -2,6 +2,8 @@ include("supporting/HetPrecisionNormalLogPotential.jl")
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
+
+
 @testset "Mass-matrix" begin
     bad_conditioning_target = HetPrecisionNormalLogPotential([500.0, 1.0])
     pt = pigeons(target = bad_conditioning_target, explorer = AutoMALA(), n_chains = 1, n_rounds = 10)
@@ -16,6 +18,7 @@ auto_mala(target) =
         n_chains = 1, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
 
 
+
 @testset "AutoMALA dimensional autoscale" begin
     for i in 0:3
         d = 10^i
@@ -26,7 +29,7 @@ end
 @testset "Hamiltonian-involutive" begin
     rng = SplittableRandom(1)
 
-    my_target = HetPrecisionNormalLogPotential([5.0, 1.1]) 
+    my_target = ADgradient(:ForwardDiff, HetPrecisionNormalLogPotential([5.0, 1.1]))
     some_cond = [2.3, 0.8]
 
     x = randn(rng, 2)
@@ -35,8 +38,8 @@ end
     n_leaps = 40
 
     start = copy(x)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps, zeros(2))
+    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
     @test !(x ≈ start)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps, zeros(2))
+    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps)
     @test x ≈ start
 end

@@ -92,7 +92,7 @@ Extract info common to all types of target and perform a step!()
 =#
 function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared, log_potential, state::AbstractVector) 
     
-    log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential; buffers = replica.recorders.buffers)      
+    log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)      
     is_first_scan_of_round = shared.iterators.scan == 1
 
     auto_mala!(

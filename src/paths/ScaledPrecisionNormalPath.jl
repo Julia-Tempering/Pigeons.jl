@@ -26,32 +26,18 @@ function LogDensityProblems.capabilities(::Type{<:ScaledPrecisionNormalLogPotent
     LogDensityProblems.LogDensityOrder{1}() # can do gradient
 end
 
-struct Buffered{T}
-    enclosed::T
-    kind::Symbol
-    buffer1::Vector{Float64}
-    buffer2::Vector{Float64}
-end
-LogDensityProblems.logdensity(buffered::Buffered, x) = LogDensityProblems.logdensity(buffered.enclosed, x)
-LogDensityProblems.dimension(buffered::Buffered) = LogDensityProblems.dimension(buffered.enclosed)
+LogDensityProblemsAD.ADgradient(::Symbol, log_potential::ScaledPrecisionNormalLogPotential, buffers::Augmentation) = 
+    BufferedAD(
+        log_potential,
+        get_buffer(buffers, :gradient_buffer, LogDensityProblems.dimension(log_potential)), 
+    )
 
-LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::ScaledPrecisionNormalLogPotential; buffers) = 
-    Buffered(log_potential, kind,
-        get_buffer(buffers, :gradient_buffer1, LogDensityProblems.dimension(log_potential)), 
-        get_buffer(buffers, :gradient_buffer2, LogDensityProblems.dimension(log_potential)))
-
-function LogDensityProblems.logdensity_and_gradient(log_potential::Buffered{ScaledPrecisionNormalLogPotential}, x)
+function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{ScaledPrecisionNormalLogPotential}, x)
     logdens = log_potential.enclosed(x)
-    log_potential.buffer1 .= -log_potential.enclosed.precision .* x
-    return logdens, log_potential.buffer1
+    log_potential.buffer .= -log_potential.enclosed.precision .* x
+    return logdens, log_potential.buffer
 end
 
-# gradient(log_potential::ScaledPrecisionNormalLogPotential, x) = -log_potential.precision * x
-
-# function gradient!!(log_potential::ScaledPrecisionNormalLogPotential, x::T, buffer::T) where {T}
-#     buffer .= -log_potential.precision .* x
-#     return buffer
-# end
 
 """
 $SIGNATURES
