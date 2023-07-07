@@ -30,11 +30,11 @@ and dispatch accordingly.)
     """
     update_state!(state, name::Symbol, index, value) = @abstract
 
-    """
-    $SIGNATURES
-    Create a copy of the given `state`.
-    """
-    Base.copy(state) = @abstract
+    # """
+    # $SIGNATURES
+    # Create a copy of the given `state`.
+    # """
+    # Base.copy(state) = @abstract
 end
 
 
@@ -98,7 +98,7 @@ function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log
     return ret
 end
 
-Base.copy(state::DynamicPPL.TypedVarInfo) = @abstract
+# Base.copy(state::DynamicPPL.TypedVarInfo) = @abstract
 # end DynamicPPL ----------
 
 
