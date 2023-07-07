@@ -12,6 +12,9 @@ LogDensityProblems.dimension(buffered::BufferedAD) = LogDensityProblems.dimensio
     buffer::Vector{Float64}
 end
 
+LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential, buffers::Augmentation) = 
+    LogDensityProblemsAD.ADgradient(kind, log_potential)
+
 LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::InterpolatedLogPotential{InterpolatingPath{R, T, LinearInterpolator}, B}, buffers::Augmentation)  where {R, T, B} = 
     InterpolatedAD(
         log_potential,

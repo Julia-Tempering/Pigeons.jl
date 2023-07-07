@@ -5,6 +5,7 @@ using Random
 using LogExpFunctions
 
 struct MyLogPotential end
+
 # bimodal target with 0.5*N(-100, 1) + 0.5*N(100, 1)
 (::MyLogPotential)(x) = LogExpFunctions.logaddexp(
     -0.5*(x[1] + 100)^2 - 0.5*log(2*pi) + log(0.5), 
