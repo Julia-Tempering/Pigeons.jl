@@ -12,3 +12,6 @@ using Serialization
 using SplittableRandoms
 using Statistics
 using Test
+using ForwardDiff
+using LogDensityProblems 
+using LogDensityProblemsAD

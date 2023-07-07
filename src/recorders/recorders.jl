@@ -23,7 +23,7 @@ accessing statistic values.
     use [`@record_if_requested!()`](@ref) instead.
     """
     function record_if_requested!(recorders, recorder_key::Symbol, value)
-        if haskey(recorders, recorder_key)
+        if !isnothing(recorders) && haskey(recorders, recorder_key)
             record!(recorders[recorder_key], value)
         end
     end

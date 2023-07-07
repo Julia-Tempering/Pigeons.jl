@@ -20,18 +20,21 @@ mutable struct Augmentation{T}
     serialize::Bool
 end
 
+buffers() = Augmentation(Dict{Symbol, Vector{Float64}}(), false)
+
 """
 $SIGNATURES 
 
 Return a Vector of length dim. Allocating only the first 
 time, after that the buffer is recycled and stored in the 
-Replica's explorers object. 
+Replica's recorders. 
 """
-function get_buffer(augmentation, dim::Int)::Vector{Float64}
-    if augmentation.contents === nothing 
-        augmentation.contents = zeros(dim) 
+function get_buffer(augmentation, key::Symbol, dim::Int)::Vector{Float64}
+    dict = augmentation.contents 
+    if !haskey(dict, key) 
+        dict[key] = zeros(dim) 
     end
-    return augmentation.contents
+    return dict[key]
 end
 
 Augmentation{T}() where {T} = Augmentation{T}(nothing, false)

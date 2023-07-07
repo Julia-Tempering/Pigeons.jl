@@ -19,12 +19,25 @@ end
 (log_potential::ScaledPrecisionNormalLogPotential)(x) = 
     -0.5 * log_potential.precision * sqr_norm(x) 
 
-gradient(log_potential::ScaledPrecisionNormalLogPotential, x) = -log_potential.precision * x
-
-function gradient!!(log_potential::ScaledPrecisionNormalLogPotential, x::T, buffer::T) where {T}
-    buffer .= -log_potential.precision .* x
-    return buffer
+# Make it conform the LogDensityProblems interface
+LogDensityProblems.logdensity(log_potential::ScaledPrecisionNormalLogPotential, x) = log_potential(x)
+LogDensityProblems.dimension(log_potential::ScaledPrecisionNormalLogPotential) = log_potential.dim
+function LogDensityProblems.capabilities(::Type{<:ScaledPrecisionNormalLogPotential})
+    LogDensityProblems.LogDensityOrder{1}() # can do gradient
 end
+
+LogDensityProblemsAD.ADgradient(::Symbol, log_potential::ScaledPrecisionNormalLogPotential, buffers::Augmentation) = 
+    BufferedAD(
+        log_potential,
+        get_buffer(buffers, :gradient_buffer, LogDensityProblems.dimension(log_potential)), 
+    )
+
+function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{ScaledPrecisionNormalLogPotential}, x)
+    logdens = log_potential.enclosed(x)
+    log_potential.buffer .= -log_potential.enclosed.precision .* x
+    return logdens, log_potential.buffer
+end
+
 
 """
 $SIGNATURES
