@@ -18,14 +18,6 @@ function Pigeons.sample_iid!(my_potential::HetPrecisionNormalLogPotential, repli
     end
 end
 
-function Pigeons.gradient!!(log_potential::HetPrecisionNormalLogPotential, x::T, buffer::T) where {T}
-    len = length(x)
-    @assert len == length(log_potential.precisions) 
-    @assert len == length(buffer)
-    buffer .= -log_potential.precisions .* x
-    return buffer
-end
-
 function (log_potential::HetPrecisionNormalLogPotential)(x) 
     len = length(x)
     @assert len == length(log_potential.precisions)
@@ -35,3 +27,8 @@ function (log_potential::HetPrecisionNormalLogPotential)(x)
     end
     -0.5 * sum
 end
+
+LogDensityProblems.logdensity(log_potential::HetPrecisionNormalLogPotential, x) = log_potential(x) 
+LogDensityProblems.dimension(log_potential::HetPrecisionNormalLogPotential) = length(log_potential.precisions)
+LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::HetPrecisionNormalLogPotential, buffers::Pigeons.Augmentation) = 
+    LogDensityProblemsAD.ADgradient(kind, log_potential)

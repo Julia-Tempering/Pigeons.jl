@@ -27,7 +27,7 @@ end;
     p1 ~ Uniform(0, 1)
     p2 ~ Uniform(0, 1)
     z ~ Bernoulli(0.2)
-    y .~ Bernoulli(z ? p1 : p2)
+    y .~ Bernoulli(z == 0 ? p1 : p2)
     return y
 end;
 

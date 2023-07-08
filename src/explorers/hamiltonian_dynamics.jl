@@ -1,46 +1,49 @@
-log_joint(logp, state, momentum) = logp(state) - 0.5 * sqr_norm(momentum)
+log_joint(target, state, momentum) = log_joint(LogDensityProblems.logdensity(target, state), momentum)
+log_joint(logp, momentum) = logp - 0.5 * sqr_norm(momentum)
+
+# We use an implicit linear transformation rescaling  
+# component i with 1/estimated_target_std_dev[i]
+# and use an isotropic normal momentum. 
+# This is equivalent to having a "mass matrix" in HMC jargon.
+function conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
+    logdens, grad = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
+    grad .= grad .* estimated_target_std_dev 
+    return logdens, grad
+end
 
 # See e.g., R. Neal, p.14. 
 # we add tricks to make it non-allocating
 function hamiltonian_dynamics!(
             target_log_potential, 
             estimated_target_std_dev, 
-            state, momentum, step_size, n_steps, 
-            gradient_buffer)
-
-    # We use an implicit linear transformation rescaling  
-    # component i with 1/estimated_target_std_dev[i]
-    # and use an isotropic normal momentum. 
-    function conditioned_target_gradient!()
-        gradient_buffer .= gradient!!(target_log_potential, state, gradient_buffer) 
-        gradient_buffer .= gradient_buffer .* estimated_target_std_dev 
-    end
+            state, momentum, step_size, n_steps)
 
     # first half-step
-    conditioned_target_gradient!()
-    momentum .= momentum .+ (step_size/2) .* gradient_buffer
+    _, grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
+    momentum .= momentum .+ (step_size/2) .* grad
 
     for i in 1:n_steps 
 
         # full step on position
         state .= state .+ step_size .* momentum .* estimated_target_std_dev
-        # TODO: bounce
-        if !isfinite(log_joint(target_log_potential, state, momentum))
+
+        logp, grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
+        
+        if !isfinite(log_joint(logp, momentum))
+            # TODO: implement bouncing
             return false
         end
 
-        conditioned_target_gradient!()
-
         # Neal's trick to merge successive half-steps
         if i != n_steps 
-            momentum .= momentum .+ step_size .* gradient_buffer
+            momentum .= momentum .+ step_size .* grad
         end
     end
 
     # last half-step
-    momentum .= momentum .+ (step_size/2) .* gradient_buffer
+    momentum .= momentum .+ (step_size/2) .* grad
 
-    if !isfinite(log_joint(target_log_potential, state, momentum))
+    if !isfinite(sqr_norm(momentum))
         return false
     end
 
@@ -50,10 +53,8 @@ end
 leap_frog!(
         target_log_potential, 
         estimated_target_std_dev, 
-        state, momentum, step_size,
-        gradient_buffer) =
+        state, momentum, step_size) =
     hamiltonian_dynamics!(
             target_log_potential, 
             estimated_target_std_dev, 
-            state, momentum, step_size, 1, 
-            gradient_buffer)
+            state, momentum, step_size, 1)

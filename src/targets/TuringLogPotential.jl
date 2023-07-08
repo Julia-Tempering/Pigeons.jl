@@ -40,3 +40,16 @@ create_reference_log_potential(target::TuringLogPotential, ::Inputs) =
 function sample_iid!(log_potential::TuringLogPotential, replica, shared) 
     replica.state = initialization(log_potential, replica.rng, replica.replica_index)
 end
+
+function dummy_vi(log_potential::TuringLogPotential) 
+    # TODO: a bit hacky perhaps?
+    dummy = initialization(log_potential, SplittableRandom(1), 1)
+    dummy = DynamicPPL.link!!(dummy, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
+    return dummy
+end
+LogDensityProblemsAD.dimension(log_potential::TuringLogPotential) = length(DynamicPPL.getall(dummy_vi(log_potential)))
+function LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::TuringLogPotential, buffers::Augmentation)
+    context = log_potential.only_prior ? DynamicPPL.PriorContext() : DynamicPPL.DefaultContext()
+    fct = DynamicPPL.LogDensityFunction(dummy_vi(log_potential), log_potential.model, context)
+    return ADgradient(kind, fct)
+end

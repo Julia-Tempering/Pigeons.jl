@@ -38,6 +38,8 @@ using RecipesBase
 using ZipFile
 using ForwardDiff
 using BridgeStan
+using LogDensityProblems 
+using LogDensityProblemsAD
 
 import Serialization.serialize
 import Serialization.deserialize

@@ -1,12 +1,3 @@
-@auto struct AutoMALA 
-    base_n_refresh::Int           # gets multiplied by ceil(Int, dim^(exponent_n_refresh))
-    exponent_n_refresh::Float64   # defaults to 0.5, a bit more than 1/3 for added robustness
-    initial_step_size::Float64    # starting point for the automatic step size algorithm
-
-    # this gets updated after first iteration; initially nothing
-    estimated_target_std_deviations
-end
-
 """ 
 $SIGNATURES
 
@@ -25,46 +16,142 @@ The number of steps per exploration is set to
 At each round, an empirical diagonal marginal standard deviation matrix is estimated. At each step, 
 a random interpolation between the identity and the estimated standard deviation is used to 
 condition the problem. 
+
+In normal circumstance, there should not be a need for tuning, 
+however the following optional keyword parameters are available:
+$FIELDS
 """
-AutoMALA(base_n_refresh = 10, exponent_n_refresh = 0.5, initial_step_size = 1.0) = AutoMALA(base_n_refresh, exponent_n_refresh, initial_step_size, nothing)
+@kwdef struct AutoMALA{T}
+    """
+    The base number of steps (equivalently, momentum refreshments) between swaps.
+    This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`. 
+    """
+    base_n_refresh::Int = 10         
+
+    """ 
+    Used to scale the increase in number of refreshment with dimensionality. 
+    """
+    exponent_n_refresh::Float64 = 0.5  # defaults to 0.5, a bit more than 1/3 for added robustness
+    
+    """ 
+    The default backend to use for autodiff. 
+    Certain targets may ignore it, e.g. if a manual differential is 
+    offered or when calling an external program such as Stan.
+    """
+    default_autodiff_backend::Symbol = :ForwardDiff
+
+    """
+    Starting point for the automatic step size algorithm. 
+    Gets updated automatically between each round. 
+    """
+    initial_step_size::Float64 = 1.0
+
+    """ 
+    If a diagonal pre-conditioning should be learned.
+    """
+    adapt_pre_conditioning::Bool = true
+
+    """
+    This gets updated after first iteration; initially `nothing` in 
+    which case a diagonal mass matrix is used.
+    """
+    estimated_target_std_deviations::T = nothing
+
+    # TODO: add option(s) for transformations? For now, doing it only for Turing
+end
 
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
     estimated_target_std_dev = 
-        sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance))
+        explorer.adapt_pre_conditioning ? 
+            sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance)) :
+            nothing
     # use the mean across chains of the mean shrink/grow exponent to compute a new baseline stepsize
     updated_initial_step_size = explorer.initial_step_size * 2.0^mean(mean.(values(value(reduced_recorders.am_exponents))))
     return AutoMALA(
-                explorer.base_n_refresh, explorer.exponent_n_refresh,
+                explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
                 updated_initial_step_size,
+                explorer.adapt_pre_conditioning, 
                 estimated_target_std_dev)
 end
 
 function step!(explorer::AutoMALA, replica, shared)
+    step!(explorer, replica, shared, replica.state)
+end
 
-    rng = replica.rng
-    target_log_potential = find_log_potential(replica, shared.tempering, shared)
+### Dispatch on state for the behaviours for the different targets ###
+
+    function step!(explorer::AutoMALA, replica, shared, state::AbstractVector)
+        log_potential = find_log_potential(replica, shared.tempering, shared)
+        _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
+    end
+
+    function step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
+        log_potential = find_log_potential(replica, shared.tempering, shared)
+        on_transformed_space(vi, log_potential) do 
+            state = DynamicPPL.getall(vi)
+            _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
+            DynamicPPL.setall!(replica.state, state)
+        end
+    end
+
+
+#=
+Extract info common to all types of target and perform a step!()
+=#
+function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared, log_potential, state::AbstractVector) 
     
-    state = replica.state
+    log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)      
+    is_first_scan_of_round = shared.iterators.scan == 1
+
+    auto_mala!(
+        replica.rng,
+        explorer, 
+        log_potential_autodiff,
+        state, 
+        replica.recorders, 
+        replica.chain,
+        # In the transient phase, the rejection rate for the 
+        # reversibility check can be high, so skip accept-rejct 
+        # for the initial scan of each round.
+        # We only do this on the first scan of each round.
+        # Since the number of iterations per round increases, 
+        # the fraction of time we do this decreases to zero.
+        !is_first_scan_of_round
+    )
+end
+
+
+function auto_mala!(
+        rng::AbstractRNG,
+        explorer::AutoMALA, 
+        target_log_potential, 
+        state::Vector, 
+        recorders = nothing, # optional, if present used to record statistics and obtain buffers
+        chain = 1,           # to index statistics (only used if !isnothing(recorders))
+        use_mh_accept_reject = true)
+
     dim = length(state)
 
-    momentum = get_buffer(replica.recorders.am_momentum_buffer, dim)
-    estimated_target_std_dev = get_buffer(replica.recorders.am_ones_buffer, dim)
+    momentum = get_buffer(recorders.buffers, :am_momentum_buffer, dim)
+    estimated_target_std_dev = get_buffer(recorders.buffers, :am_ones_buffer, dim)
     estimated_target_std_dev .= 1.0
     mix = rand(rng) # random interpolation b/w unit and estimated for robustness
     if !isnothing(explorer.estimated_target_std_deviations)
         estimated_target_std_dev .= mix .* estimated_target_std_dev .+ (1.0 - mix) .* explorer.estimated_target_std_deviations
     end
     
-    gradient_buffer = get_buffer(replica.recorders.am_gradient_buffer, dim)
-    start_state = get_buffer(replica.recorders.am_state_buffer, dim)
+    start_state = get_buffer(recorders.buffers, :am_state_buffer, dim)
 
     n_refresh = explorer.base_n_refresh * ceil(Int, dim^explorer.exponent_n_refresh)
     for i in 1:n_refresh
         start_state .= state 
         randn!(rng, momentum)
         init_joint_log = log_joint(target_log_potential, state, momentum)
+        @assert isfinite(init_joint_log)
 
-        # Define a random "reasonable" (log) MH accept pr 
+        # Randomly pick a "reasonable" range of MH accept probabilities (in log-scale)
+        # We do this to preserve the same irreducibility structure on the augmented space (x, v) 
+        # as standard MALA.
         a = rand(rng)
         b = rand(rng)
         lower_bound = log(min(a, b))
@@ -75,7 +162,7 @@ function step!(explorer::AutoMALA, replica, shared)
                 target_log_potential, 
                 estimated_target_std_dev, 
                 state, momentum, 
-                replica, gradient_buffer,
+                recorders, chain,
                 explorer.initial_step_size, lower_bound, upper_bound)
         proposed_step_size = explorer.initial_step_size * 2.0^proposed_exponent
 
@@ -83,16 +170,10 @@ function step!(explorer::AutoMALA, replica, shared)
         leap_frog!(
             target_log_potential, 
             estimated_target_std_dev, 
-            state, momentum, proposed_step_size,
-            gradient_buffer
+            state, momentum, proposed_step_size
         )
 
-        is_first_scan_of_round = shared.iterators.scan == 1
-        if is_first_scan_of_round 
-            # in the transient phase, the rejection rate for the 
-            # reversibility check can be high, so skip accept-rejct 
-            # for the initial scan of each round
-        else
+        if use_mh_accept_reject 
             # flip
             momentum .*= -1.0 
             reversed_exponent = 
@@ -100,7 +181,7 @@ function step!(explorer::AutoMALA, replica, shared)
                     target_log_potential, 
                     estimated_target_std_dev, 
                     state, momentum, 
-                    replica, gradient_buffer,
+                    recorders, chain,
                     explorer.initial_step_size, lower_bound, upper_bound)
             probability = 
                 if reversed_exponent == proposed_exponent 
@@ -109,7 +190,7 @@ function step!(explorer::AutoMALA, replica, shared)
                 else
                     0.0 
                 end
-            @record_if_requested!(replica.recorders, :explorer_acceptance_pr, (replica.chain, probability))
+            @record_if_requested!(recorders, :explorer_acceptance_pr, (chain, probability))
             if rand(rng) < probability 
                 # accept: nothing to do, we work in-place
             else
@@ -125,7 +206,7 @@ function auto_step_size(
         target_log_potential, 
         estimated_target_std_dev, 
         state, momentum, 
-        replica, gradient_buffer,
+        recorders, chain, 
         initial_step_size, lower_bound, upper_bound)
 
     @assert initial_step_size > 0
@@ -135,7 +216,7 @@ function auto_step_size(
             target_log_potential, 
             estimated_target_std_dev, 
             state, momentum, 
-            replica, gradient_buffer)
+            recorders)
 
     initial_difference = log_joint_difference(initial_step_size) 
 
@@ -148,17 +229,21 @@ function auto_step_size(
             0, 0
         end
     
-    @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 1+n_steps)) 
-    @record_if_requested!(replica.recorders, :am_exponents, (replica.chain, exponent)) 
+    @record_if_requested!(recorders, :explorer_n_steps, (chain, 1+n_steps)) 
+    @record_if_requested!(recorders, :am_exponents, (chain, exponent)) 
     return exponent
 end
 
 function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
     step_size = initial_step_size
     n = 1
-    while true 
+    while true
         step_size /= 2.0 
-        if log_joint_difference(step_size) > lower_bound 
+        diff = log_joint_difference(step_size) 
+        if !isfinite(diff) 
+            return n, -(n-1) 
+        end
+        if diff > lower_bound 
             return n, -n
         end
         n += 1
@@ -168,9 +253,10 @@ end
 function grow_step_size(log_joint_difference, initial_step_size, upper_bound) 
     step_size = initial_step_size 
     n = 1
-    while true 
+    while true
         step_size *= 2.0 
-        if log_joint_difference(step_size) < upper_bound 
+        diff = log_joint_difference(step_size)
+        if !isfinite(diff) || diff < upper_bound
             return n, n - 1 # one less step, to avoid a potential cliff-like drop in acceptance
         end
         n += 1
@@ -181,22 +267,21 @@ function log_joint_difference_function(
             target_log_potential, 
             estimated_target_std_dev, 
             state, momentum, 
-            replica, gradient_buffer)
+            recorders)
 
     dim = length(state)
 
-    state_before = get_buffer(replica.recorders.am_ljdf_state_before_buffer, dim)
+    state_before = get_buffer(recorders.buffers, :am_ljdf_state_before_buffer, dim)
     state_before .= state 
 
-    momentum_before = get_buffer(replica.recorders.am_ljdf_momentum_before_buffer, dim)
+    momentum_before = get_buffer(recorders.buffers, :am_ljdf_momentum_before_buffer, dim)
     momentum_before .= momentum
 
     h_before = log_joint(target_log_potential, state, momentum)
     function result(step_size)
         leap_frog!(
             target_log_potential, estimated_target_std_dev, 
-            state, momentum, step_size, 
-            gradient_buffer)
+            state, momentum, step_size)
         h_after = log_joint(target_log_potential, state, momentum)
         state .= state_before 
         momentum .= momentum_before
@@ -205,25 +290,17 @@ function log_joint_difference_function(
     return result
 end
 
-am_ljdf_state_before_buffer() = Augmentation{Vector{Float64}}() 
-am_ljdf_momentum_before_buffer() = Augmentation{Vector{Float64}}()
-
-am_momentum_buffer() = Augmentation{Vector{Float64}}() 
-am_state_buffer() = Augmentation{Vector{Float64}}()
-am_gradient_buffer() = Augmentation{Vector{Float64}}()
-am_ones_buffer() = Augmentation{Vector{Float64}}()
-
 am_exponents() = GroupBy(Int, Mean())
 
-explorer_recorder_builders(explorer::AutoMALA) = [
-    target_online, # for mass matrix adaptation
-    explorer_acceptance_pr, 
-    explorer_n_steps,
-    am_exponents,
-    am_ljdf_state_before_buffer,
-    am_ljdf_momentum_before_buffer,
-    am_momentum_buffer,
-    am_state_buffer,
-    am_gradient_buffer,
-    am_ones_buffer
-]
+function explorer_recorder_builders(explorer::AutoMALA)
+    result = [
+        explorer_acceptance_pr, 
+        explorer_n_steps,
+        am_exponents,
+        buffers
+    ]
+    if explorer.adapt_pre_conditioning 
+        push!(result, target_online) # for mass matrix adaptation
+    end
+    return result
+end
