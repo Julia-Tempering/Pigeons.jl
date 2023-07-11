@@ -132,23 +132,25 @@ function auto_mala!(
         chain = 1,           # to index statistics (only used if !isnothing(recorders))
         use_mh_accept_reject = true)
 
-    dim = length(state)
+    
+    buffers = get_automala_buffers(
+            recorders.automala_buffers, 
+            target_log_potential,
+            state) 
+    
 
-    momentum = get_buffer(recorders.buffers, :am_momentum_buffer, dim)
-    estimated_target_std_dev = get_buffer(recorders.buffers, :am_ones_buffer, dim)
-    estimated_target_std_dev .= 1.0
+    buffers.estimated_target_std_dev .= 1.0
     mix = rand(rng) # random interpolation b/w unit and estimated for robustness
     if !isnothing(explorer.estimated_target_std_deviations)
-        estimated_target_std_dev .= mix .* estimated_target_std_dev .+ (1.0 - mix) .* explorer.estimated_target_std_deviations
+        buffers.estimated_target_std_dev .= mix .* buffers.estimated_target_std_dev .+ (1.0 - mix) .* explorer.estimated_target_std_deviations
     end
     
-    start_state = get_buffer(recorders.buffers, :am_state_buffer, dim)
-
+    dim = length(state)
     n_refresh = explorer.base_n_refresh * ceil(Int, dim^explorer.exponent_n_refresh)
     for i in 1:n_refresh
-        start_state .= state 
-        randn!(rng, momentum)
-        init_joint_log = log_joint(target_log_potential, state, momentum)
+        buffers.start_state .= state 
+        randn!(rng, buffers.momentum)
+        init_joint_log = log_joint(target_log_potential, state, buffers.momentum)
         @assert isfinite(init_joint_log)
 
         # Randomly pick a "reasonable" range of MH accept probabilities (in log-scale)
@@ -161,9 +163,7 @@ function auto_mala!(
         
         proposed_exponent = 
             auto_step_size(
-                target_log_potential, 
-                estimated_target_std_dev, 
-                state, momentum, 
+                buffers, 
                 recorders, chain,
                 explorer.initial_step_size, lower_bound, upper_bound)
         proposed_step_size = explorer.initial_step_size * 2.0^proposed_exponent
@@ -171,23 +171,21 @@ function auto_mala!(
         # move to proposed point
         leap_frog!(
             target_log_potential, 
-            estimated_target_std_dev, 
-            state, momentum, proposed_step_size
+            buffers.estimated_target_std_dev, 
+            state, buffers.momentum, proposed_step_size
         )
 
         if use_mh_accept_reject 
             # flip
-            momentum .*= -1.0 
+            buffers.momentum .*= -1.0 
             reversed_exponent = 
                 auto_step_size(
-                    target_log_potential, 
-                    estimated_target_std_dev, 
-                    state, momentum, 
+                    buffers, 
                     recorders, chain,
                     explorer.initial_step_size, lower_bound, upper_bound)
             probability = 
                 if reversed_exponent == proposed_exponent 
-                    final_joint_log = log_joint(target_log_potential, state, momentum)
+                    final_joint_log = log_joint(target_log_potential, state, buffers.momentum)
                     min(1.0, exp(final_joint_log - init_joint_log)) 
                 else
                     0.0 
@@ -197,7 +195,7 @@ function auto_mala!(
                 # accept: nothing to do, we work in-place
             else
                 # reject: go back to start state
-                state .= start_state 
+                state .= buffers.start_state 
                 # no need to reset momentum as it will get resampled at beginning of the loop
             end
         end
@@ -205,21 +203,14 @@ function auto_mala!(
 end
 
 function auto_step_size(
-        target_log_potential, 
-        estimated_target_std_dev, 
-        state, momentum, 
+        buffers, 
         recorders, chain, 
         initial_step_size, lower_bound, upper_bound)
 
     @assert initial_step_size > 0
     @assert lower_bound < upper_bound
     
-    log_joint_difference = 
-        log_joint_difference_function(
-            target_log_potential, 
-            estimated_target_std_dev, 
-            state, momentum, 
-            recorders)
+    log_joint_difference = log_joint_difference_function(buffers)
     initial_difference = log_joint_difference(initial_step_size) 
 
     n_steps, exponent = 
@@ -285,8 +276,9 @@ end
 # Contains heterogeneous type so cannot just use buffers() here. 
 @auto mutable struct AutoMALABuffers 
     state
+    start_state # used for accept-reject
     momentum
-    state_before
+    state_before # used in line search
     momentum_before
     h_before
     target_log_potential
@@ -296,21 +288,24 @@ end
 automala_buffers() = Augmentation{AutoMALABuffers}(nothing, false)
 
 function get_automala_buffers(
-            cached::Augmentation, 
+            cached, 
             target_log_potential,
-            state, 
-            momentum) 
+            state) 
     dim = length(state)
     if cached.contents === nothing 
         cached.contents = AutoMALABuffers(
             state, 
-            momentum,
+            zeros(dim),
+            zeros(dim),
             zeros(dim),
             zeros(dim),
             0.0,
             target_log_potential, 
             zeros(dim)
         )
+    else
+        cached.contents.state = state
+        cached.contents.target_log_potential = target_log_potential
     end
     return cached.contents
 end
@@ -319,11 +314,33 @@ end
 #     fct.h_before = log_joint(fct.target_log_potential, fct.state, fct.momentum)
 # end
 
+function log_joint_difference_function(buffers)
+    buffers.state_before .= buffers.state 
+    buffers.momentum_before .= buffers.momentum
+    buffers.h_before = log_joint(buffers.target_log_potential, buffers.state, buffers.momentum)
+    return buffers
+end
+
+function (fct::AutoMALABuffers)(step_size) 
+    tlp = fct.target_log_potential
+    etsd = fct.estimated_target_std_dev
+    s = fct.state
+    m = fct.momentum
+    leap_frog!(
+            tlp, etsd, 
+            s, m, step_size)
+    h_after = log_joint(fct.target_log_potential, fct.state, fct.momentum)
+    fct.state .= fct.state_before 
+    fct.momentum .= fct.momentum_before
+    return h_after - fct.h_before
+end
+
 # function log_joint_difference_function(
 #             target_log_potential, 
 #             estimated_target_std_dev, 
 #             state, momentum, 
 #             recorders)
+
 #     dim = length(state)
 
 #     state_before = get_buffer(recorders.buffers, :am_ljdf_state_before_buffer, dim)
@@ -333,49 +350,17 @@ end
 #     momentum_before .= momentum
 
 #     h_before = log_joint(target_log_potential, state, momentum)
-#     return LogJointDiffFct(state, momentum, state_before, momentum_before, h_before, target_log_potential, estimated_target_std_dev)
+#     function result(step_size)
+#         leap_frog!(
+#             target_log_potential, estimated_target_std_dev, 
+#             state, momentum, step_size)
+#         h_after = log_joint(target_log_potential, state, momentum)
+#         state .= state_before 
+#         momentum .= momentum_before
+#         return h_after - h_before
+#     end
+#     return result
 # end
-
-# function (fct::LogJointDiffFct)(step_size) 
-#     tlp = fct.target_log_potential
-#     etsd = fct.estimated_target_std_dev
-#     s = fct.state
-#     m = fct.momentum
-#     leap_frog!(
-#             tlp, etsd, 
-#             s, m, step_size)
-#     h_after = log_joint(fct.target_log_potential, fct.state, fct.momentum)
-#     fct.state .= fct.state_before 
-#     fct.momentum .= fct.momentum_before
-#     return h_after - fct.h_before
-# end
-
-function log_joint_difference_function(
-            target_log_potential, 
-            estimated_target_std_dev, 
-            state, momentum, 
-            recorders)
-
-    dim = length(state)
-
-    state_before = get_buffer(recorders.buffers, :am_ljdf_state_before_buffer, dim)
-    state_before .= state 
-
-    momentum_before = get_buffer(recorders.buffers, :am_ljdf_momentum_before_buffer, dim)
-    momentum_before .= momentum
-
-    h_before = log_joint(target_log_potential, state, momentum)
-    function result(step_size)
-        leap_frog!(
-            target_log_potential, estimated_target_std_dev, 
-            state, momentum, step_size)
-        h_after = log_joint(target_log_potential, state, momentum)
-        state .= state_before 
-        momentum .= momentum_before
-        return h_after - h_before
-    end
-    return result
-end
 
 am_exponents() = GroupBy(Int, Mean())
 
@@ -384,7 +369,8 @@ function explorer_recorder_builders(explorer::AutoMALA)
         explorer_acceptance_pr, 
         explorer_n_steps,
         am_exponents,
-        buffers
+        automala_buffers, # to save initial state/momentum for step-size searches, etc
+        buffers # for in place gradients used by Stan target, etc
     ]
     if explorer.adapt_pre_conditioning 
         push!(result, target_online) # for mass matrix adaptation
