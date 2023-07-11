@@ -1,9 +1,18 @@
-struct BufferedAD{T}
+struct BufferedAD{T, L, S}
     enclosed::T
     buffer::Vector{Float64}
+    logd_buffer::L 
+    err_buffer::S
 end
 LogDensityProblems.logdensity(buffered::BufferedAD, x) = LogDensityProblems.logdensity(buffered.enclosed, x)
-LogDensityProblems.dimension(buffered::BufferedAD) = LogDensityProblems.dimension(buffered.enclosed)
+LogDensityProblems.dimension(buffered::BufferedAD) = length(buffered.buffer)
+BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buffer = nothing) = 
+    BufferedAD(
+        log_potential,
+        get_buffer(buffers, :gradient_buffer, LogDensityProblems.dimension(log_potential)), 
+        logd_buffer, 
+        err_buffer 
+)
 
 @auto struct InterpolatedAD
     enclosed
@@ -36,14 +45,15 @@ LogDensityProblems.dimension(log_potential::InterpolatedAD) = LogDensityProblems
 function LogDensityProblems.logdensity_and_gradient(log_potential::InterpolatedAD, x)
     logdens = 0.0
     beta = log_potential.enclosed.beta
+    buffer = log_potential.buffer
 
     l, g = LogDensityProblems.logdensity_and_gradient(log_potential.ref_ad, x)
     logdens += l * (1.0 - beta)
-    log_potential.buffer .= g * (1.0 - beta)
+    buffer .= g .* (1.0 - beta)
 
     l, g = LogDensityProblems.logdensity_and_gradient(log_potential.target_ad, x)
     logdens += l * beta
-    log_potential.buffer .= log_potential.buffer .+ g * beta
+    buffer .= buffer .+ g .* beta
 
     return logdens, log_potential.buffer
 end

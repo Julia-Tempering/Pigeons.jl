@@ -66,7 +66,7 @@ function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_t
             sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance)) :
             nothing
     # use the mean across chains of the mean shrink/grow exponent to compute a new baseline stepsize
-    updated_initial_step_size = explorer.initial_step_size * 2.0^mean(mean.(values(value(reduced_recorders.am_exponents))))
+    updated_initial_step_size = explorer.initial_step_size * mean(mean.(values(value(reduced_recorders.am_exponents))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
                 updated_initial_step_size,
@@ -79,6 +79,10 @@ function step!(explorer::AutoMALA, replica, shared)
 end
 
 ### Dispatch on state for the behaviours for the different targets ###
+
+    step!(explorer::AutoMALA, replica, shared, state::StanState) = 
+        step!(explorer, replica, shared, state.x)
+
 
     function step!(explorer::AutoMALA, replica, shared, state::AbstractVector)
         log_potential = find_log_potential(replica, shared.tempering, shared)
@@ -93,7 +97,6 @@ end
             DynamicPPL.setall!(replica.state, state)
         end
     end
-
 
 #=
 Extract info common to all types of target and perform a step!()
@@ -119,7 +122,6 @@ function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared
         !is_first_scan_of_round
     )
 end
-
 
 function auto_mala!(
         rng::AbstractRNG,
@@ -211,17 +213,17 @@ function auto_step_size(
 
     @assert initial_step_size > 0
     @assert lower_bound < upper_bound
+    
     log_joint_difference = 
         log_joint_difference_function(
             target_log_potential, 
             estimated_target_std_dev, 
             state, momentum, 
             recorders)
-
     initial_difference = log_joint_difference(initial_step_size) 
 
     n_steps, exponent = 
-        if initial_difference < lower_bound 
+        if !isfinite(initial_difference) || initial_difference < lower_bound 
             shrink_step_size(log_joint_difference, initial_step_size, lower_bound) 
         elseif initial_difference > upper_bound 
             grow_step_size(log_joint_difference, initial_step_size, upper_bound)
@@ -230,24 +232,8 @@ function auto_step_size(
         end
     
     @record_if_requested!(recorders, :explorer_n_steps, (chain, 1+n_steps)) 
-    @record_if_requested!(recorders, :am_exponents, (chain, exponent)) 
+    @record_if_requested!(recorders, :am_exponents, (chain, 2.0^exponent)) 
     return exponent
-end
-
-function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
-    step_size = initial_step_size
-    n = 1
-    while true
-        step_size /= 2.0 
-        diff = log_joint_difference(step_size) 
-        if !isfinite(diff) 
-            return n, -(n-1) 
-        end
-        if diff > lower_bound 
-            return n, -n
-        end
-        n += 1
-    end
 end
 
 function grow_step_size(log_joint_difference, initial_step_size, upper_bound) 
@@ -262,6 +248,107 @@ function grow_step_size(log_joint_difference, initial_step_size, upper_bound)
         n += 1
     end
 end
+
+function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
+    step_size = initial_step_size
+    n = 1
+    while true
+        step_size /= 2.0 
+        diff = log_joint_difference(step_size) 
+        #= 
+        Note that shrink is a bit different than grow. 
+        We do not assume here that the diff is necessarily 
+        finite when we start this loop: indeed, when the step 
+        size is too big, we may have to shrink several times 
+        until we get to a scale giving a finite evaluation. 
+        =#
+        if step_size == 0.0 
+            error("Could not find a positive step size with diff > $lower_bound")
+        end
+        if diff > lower_bound 
+            return n, -n
+        end
+        n += 1
+    end
+end
+
+# mutable struct AutoMALABuffers 
+#     state::Vector{Float64}
+#     momentum::Vector{Float64}
+#     state_before::Vector{Float64}
+#     momentum_before::Vector{Float64} 
+#     estimated_target_std_dev::Vector{Float64} 
+
+# end
+
+# Replica-specific buffers to avoid allocations
+# Contains heterogeneous type so cannot just use buffers() here. 
+@auto mutable struct AutoMALABuffers 
+    state
+    momentum
+    state_before
+    momentum_before
+    h_before
+    target_log_potential
+    estimated_target_std_dev
+end
+
+automala_buffers() = Augmentation{AutoMALABuffers}(nothing, false)
+
+function get_automala_buffers(
+            cached::Augmentation, 
+            target_log_potential,
+            state, 
+            momentum) 
+    dim = length(state)
+    if cached.contents === nothing 
+        cached.contents = AutoMALABuffers(
+            state, 
+            momentum,
+            zeros(dim),
+            zeros(dim),
+            0.0,
+            target_log_potential, 
+            zeros(dim)
+        )
+    end
+    return cached.contents
+end
+
+# function set_initial_h(fct::LogJointDiffFct)
+#     fct.h_before = log_joint(fct.target_log_potential, fct.state, fct.momentum)
+# end
+
+# function log_joint_difference_function(
+#             target_log_potential, 
+#             estimated_target_std_dev, 
+#             state, momentum, 
+#             recorders)
+#     dim = length(state)
+
+#     state_before = get_buffer(recorders.buffers, :am_ljdf_state_before_buffer, dim)
+#     state_before .= state 
+
+#     momentum_before = get_buffer(recorders.buffers, :am_ljdf_momentum_before_buffer, dim)
+#     momentum_before .= momentum
+
+#     h_before = log_joint(target_log_potential, state, momentum)
+#     return LogJointDiffFct(state, momentum, state_before, momentum_before, h_before, target_log_potential, estimated_target_std_dev)
+# end
+
+# function (fct::LogJointDiffFct)(step_size) 
+#     tlp = fct.target_log_potential
+#     etsd = fct.estimated_target_std_dev
+#     s = fct.state
+#     m = fct.momentum
+#     leap_frog!(
+#             tlp, etsd, 
+#             s, m, step_size)
+#     h_after = log_joint(fct.target_log_potential, fct.state, fct.momentum)
+#     fct.state .= fct.state_before 
+#     fct.momentum .= fct.momentum_before
+#     return h_after - fct.h_before
+# end
 
 function log_joint_difference_function(
             target_log_potential, 
