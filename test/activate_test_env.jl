@@ -20,10 +20,7 @@ include("supporting/setup.jl")
 
 @info   """
         next time you call `test` from the parent project 
-        to run all tests, you may get the error message 
-
-            "ERROR: can not merge projects"
-
-        to address this, simply delete the 
-        generated file "test/Manifest.toml"
+        to run all tests, you may get an error message 
+        about "can not merge projects", if so, simply delete 
+        the generated file "test/Manifest.toml"
         """
