@@ -65,8 +65,8 @@ function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_t
         explorer.adapt_pre_conditioning ? 
             sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance)) :
             nothing
-    # use the mean across chains of the mean shrink/grow exponent to compute a new baseline stepsize
-    updated_initial_step_size = explorer.initial_step_size * mean(mean.(values(value(reduced_recorders.am_exponents))))
+    # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
+    updated_initial_step_size = explorer.initial_step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
                 updated_initial_step_size,
@@ -232,7 +232,7 @@ function auto_step_size(
         end
     
     @record_if_requested!(recorders, :explorer_n_steps, (chain, 1+n_steps)) 
-    @record_if_requested!(recorders, :am_exponents, (chain, 2.0^exponent)) 
+    @record_if_requested!(recorders, :am_factors, (chain, 2.0^exponent)) 
     return exponent
 end
 
@@ -299,13 +299,13 @@ function log_joint_difference_function(
     return result
 end
 
-am_exponents() = GroupBy(Int, Mean())
+am_factors() = GroupBy(Int, Mean())
 
 function explorer_recorder_builders(explorer::AutoMALA)
     result = [
         explorer_acceptance_pr, 
         explorer_n_steps,
-        am_exponents,
+        am_factors,
         buffers
     ]
     if explorer.adapt_pre_conditioning 
