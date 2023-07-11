@@ -1,3 +1,6 @@
+""" 
+$SIGNATURES
+"""
 @provides target function toy_stan_target(dim::Int)
     pigeons_path = dirname(dirname(pathof(Pigeons)))
     stan_path = "$pigeons_path/examples/stan/mvn.stan" 

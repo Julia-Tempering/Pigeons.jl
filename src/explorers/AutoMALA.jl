@@ -7,7 +7,7 @@ automatic step size selection.
 Briefly, at each iteration, the step size is exponentially shrunk or 
 grown until the acceptance rate is in a reasonable range. A reversibility 
 check ensures that the move is reversible with respect to the target. 
-The process is started at `initial_step_size`, which at the end of each 
+The process is started at `step_size`, which at the end of each 
 round is set to the average exponent used across all chains. 
 
 The number of steps per exploration is set to 
@@ -44,7 +44,7 @@ $FIELDS
     Starting point for the automatic step size algorithm. 
     Gets updated automatically between each round. 
     """
-    initial_step_size::Float64 = 1.0
+    step_size::Float64 = 1.0
 
     """ 
     If a diagonal pre-conditioning should be learned.
@@ -66,10 +66,10 @@ function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_t
             sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance)) :
             nothing
     # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
-    updated_initial_step_size = explorer.initial_step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
+    updated_step_size = explorer.step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
-                updated_initial_step_size,
+                updated_step_size,
                 explorer.adapt_pre_conditioning, 
                 estimated_target_std_dev)
 end
@@ -165,8 +165,8 @@ function auto_mala!(
                 estimated_target_std_dev, 
                 state, momentum, 
                 recorders, chain,
-                explorer.initial_step_size, lower_bound, upper_bound)
-        proposed_step_size = explorer.initial_step_size * 2.0^proposed_exponent
+                explorer.step_size, lower_bound, upper_bound)
+        proposed_step_size = explorer.step_size * 2.0^proposed_exponent
 
         # move to proposed point
         leap_frog!(
@@ -184,7 +184,7 @@ function auto_mala!(
                     estimated_target_std_dev, 
                     state, momentum, 
                     recorders, chain,
-                    explorer.initial_step_size, lower_bound, upper_bound)
+                    explorer.step_size, lower_bound, upper_bound)
             probability = 
                 if reversed_exponent == proposed_exponent 
                     final_joint_log = log_joint(target_log_potential, state, momentum)
@@ -209,9 +209,9 @@ function auto_step_size(
         estimated_target_std_dev, 
         state, momentum, 
         recorders, chain, 
-        initial_step_size, lower_bound, upper_bound)
+        step_size, lower_bound, upper_bound)
 
-    @assert initial_step_size > 0
+    @assert step_size > 0
     @assert lower_bound < upper_bound
     
     log_joint_difference = 
@@ -220,13 +220,13 @@ function auto_step_size(
             estimated_target_std_dev, 
             state, momentum, 
             recorders)
-    initial_difference = log_joint_difference(initial_step_size) 
+    initial_difference = log_joint_difference(step_size) 
 
     n_steps, exponent = 
         if !isfinite(initial_difference) || initial_difference < lower_bound 
-            shrink_step_size(log_joint_difference, initial_step_size, lower_bound) 
+            shrink_step_size(log_joint_difference, step_size, lower_bound) 
         elseif initial_difference > upper_bound 
-            grow_step_size(log_joint_difference, initial_step_size, upper_bound)
+            grow_step_size(log_joint_difference, step_size, upper_bound)
         else
             0, 0
         end
@@ -236,8 +236,7 @@ function auto_step_size(
     return exponent
 end
 
-function grow_step_size(log_joint_difference, initial_step_size, upper_bound) 
-    step_size = initial_step_size 
+function grow_step_size(log_joint_difference, step_size, upper_bound) 
     n = 1
     while true
         step_size *= 2.0 
@@ -249,8 +248,7 @@ function grow_step_size(log_joint_difference, initial_step_size, upper_bound)
     end
 end
 
-function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
-    step_size = initial_step_size
+function shrink_step_size(log_joint_difference, step_size, lower_bound)
     n = 1
     while true
         step_size /= 2.0 
