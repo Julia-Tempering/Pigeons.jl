@@ -55,5 +55,5 @@ function LogDensityProblems.logdensity_and_gradient(log_potential::InterpolatedA
     logdens += l * beta
     buffer .= buffer .+ g .* beta
 
-    return logdens, log_potential.buffer
+    return logdens, buffer
 end
