@@ -2,7 +2,27 @@ include("supporting/HetPrecisionNormalLogPotential.jl")
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
+auto_mala(target) =
+    pigeons(; 
+        target, 
+        explorer = AutoMALA(), 
+        n_chains = 1, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
 
+@testset "Step size convergence" begin
+    step10rounds = pigeons(target = toy_mvn_target(1), explorer = AutoMALA(), n_chains = 1, n_rounds = 10).shared.explorer.step_size
+    step15rounds = pigeons(target = toy_mvn_target(1), explorer = AutoMALA(), n_chains = 1, n_rounds = 15).shared.explorer.step_size
+    @test isapprox(step10rounds, step15rounds, rtol = 0.1)
+end
+
+@testset "Step size d-scaling" begin
+    step1d    = auto_mala(toy_mvn_target(1)).shared.explorer.step_size
+    step1000d = auto_mala(toy_mvn_target(1000)).shared.explorer.step_size
+    @test step1000d < step1d # make sure we do shrink eps with d 
+
+    # should not shrink by more than ~(1000)^(1/3) according to theory
+    # indeed we get 3.666830946679011 factor shrinkage as of 23493d7bb5bf926ab98b78883a0f056b98d59e75
+    @test step1d/step1000d < (1000)^(1/3)  
+end
 
 @testset "Mass-matrix" begin
     bad_conditioning_target = HetPrecisionNormalLogPotential([500.0, 1.0])
@@ -11,11 +31,7 @@ mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
     @test mean_mh_accept(pt) > 0.5
 end
 
-auto_mala(target) =
-    pigeons(; 
-        target, 
-        explorer = AutoMALA(), 
-        n_chains = 1, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
+
 
 
 
