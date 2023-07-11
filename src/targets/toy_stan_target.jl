@@ -54,14 +54,14 @@ function test_stan_allocs(dim)
     @time leap_frog!(g, o, x, v, 0.1)
     @time leap_frog!(g, o, x, v, -0.1)
     println("logdiff")
-    # @time ljdf = log_joint_difference_function(
-    #     g, 
-    #     o,
-    #     x, 
-    #     v, 
-    #     rec
-    # )
-    # @time ljdf(0.1)
+    @time ljdf = log_joint_difference_function(
+        g, 
+        o,
+        x, 
+        v, 
+        rec
+    )
+    @time ljdf(0.1)
 
 end
 
