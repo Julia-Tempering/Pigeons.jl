@@ -9,9 +9,11 @@ auto_mala(target) =
         n_chains = 1, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
 
 @testset "Step size convergence" begin
-    step10rounds = pigeons(target = toy_mvn_target(1), explorer = AutoMALA(), n_chains = 1, n_rounds = 10).shared.explorer.step_size
-    step15rounds = pigeons(target = toy_mvn_target(1), explorer = AutoMALA(), n_chains = 1, n_rounds = 15).shared.explorer.step_size
-    @test isapprox(step10rounds, step15rounds, rtol = 0.1)
+    for t in [toy_mvn_target(1), toy_stan_target(1)]
+        step10rounds = pigeons(target = toy_mvn_target(1), explorer = AutoMALA(), n_chains = 1, n_rounds = 10).shared.explorer.step_size
+        step15rounds = pigeons(target = toy_mvn_target(1), explorer = AutoMALA(), n_chains = 1, n_rounds = 15).shared.explorer.step_size
+        @test isapprox(step10rounds, step15rounds, rtol = 0.1)
+    end
 end
 
 @testset "Step size d-scaling" begin
@@ -30,10 +32,6 @@ end
     @test abs(pt.shared.explorer.estimated_target_std_deviations[1] - 1/sqrt(500)) < 0.01
     @test mean_mh_accept(pt) > 0.5
 end
-
-
-
-
 
 @testset "AutoMALA dimensional autoscale" begin
     for i in 0:3
