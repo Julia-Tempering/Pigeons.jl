@@ -32,6 +32,8 @@ create_state_initializer(target::TuringLogPotential, ::Inputs) = target
 initialization(target::TuringLogPotential, rng::SplittableRandom, _::Int64) = 
     DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
 
+# At the moment, AutoMALA assumes a :singleton_variable structure 
+# so use the SliceSampler.
 default_explorer(::TuringLogPotential) = SliceSampler()
 
 create_reference_log_potential(target::TuringLogPotential, ::Inputs) = 

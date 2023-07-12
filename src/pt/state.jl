@@ -30,11 +30,16 @@ and dispatch accordingly.)
     """
     update_state!(state, name::Symbol, index, value) = @abstract
 
-    # """
-    # $SIGNATURES
-    # Create a copy of the given `state`.
-    # """
-    # Base.copy(state) = @abstract
+    """
+    $SIGNATURES
+    Extract a sample ready for post-processing. 
+    If the sample is transformed, this will create a fresh vector 
+    with the transformed state in it.
+
+    When no transformations are needed, a copy should be created 
+    (this is the default behaviour). 
+    """
+    extract_sample(state, log_potential) = copy(state)
 end
 
 
@@ -98,35 +103,21 @@ function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log
     return ret
 end
 
-# Base.copy(state::DynamicPPL.TypedVarInfo) = @abstract
-# end DynamicPPL ----------
 
 
 # Stan ----------
 @concrete mutable struct StanState 
-    x # vector of constrained or unconstrained parameters
-    constrained::Bool
+    x # unconstrained parameters
 end
 
 continuous_variables(state::StanState) = SINGLETON_VAR # all Stan variables should be continuous 
 discrete_variables(state::StanState) = []
 
-function on_transformed_space(sampling_task, state::StanState, log_potential)
-    transform_back = false
-    if state.constrained
-        BridgeStan.param_unconstrain!(stan_model(log_potential), state.x, state.x)
-        state.constrained = false
-        transform_back = true 
-    end
-    ret = sampling_task()
-    if transform_back
-        BridgeStan.param_constrain!(stan_model(log_potential), state.x, state.x)
-        state.constrained = true
-    end
-    return ret
-end
+on_transformed_space(sampling_task, state::StanState, log_potential) =
+    sampling_task()
 
-Base.copy(state::StanState) = StanState(copy(state.x), state.constrained)
+extract_sample(state::StanState, log_potential) = 
+    BridgeStan.param_constrain(stan_model(log_potential), state.x)
 
 function update_state!(state::StanState, name::Symbol, index, value) 
     @assert name === :singleton_variable

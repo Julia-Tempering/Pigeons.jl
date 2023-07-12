@@ -10,7 +10,7 @@ struct MyLogPotential end
 (::MyLogPotential)(x) = LogExpFunctions.logaddexp(
     -0.5*(x[1] + 100)^2 - 0.5*log(2*pi) + log(0.5), 
     -0.5*(x[1] - 100)^2 - 0.5*log(2*pi) + log(0.5))
-Pigeons.create_explorer(::MyLogPotential, ::Inputs) = Pigeons.SliceSampler() 
+Pigeons.default_explorer(::MyLogPotential) = Pigeons.SliceSampler() 
 Pigeons.create_state_initializer(my_potential::MyLogPotential, ::Inputs) = my_potential
 Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
 

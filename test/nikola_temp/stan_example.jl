@@ -13,8 +13,7 @@ function main()
     n_chains = 10
 
     # create Stan models
-    smb = BS.StanModel(stan_file = stan, data = data)
-    slp = StanLogPotential(smb)
+    slp = StanLogPotential(stan, data)
 
     # run Pigeons
     pt = pigeons(

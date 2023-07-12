@@ -14,7 +14,7 @@ struct SampleArray{T,PT} <: AbstractVector{T}
     function SampleArray(pt::P, chain::Int) where {P<:PT}
         rr = pt.reduced_recorders
         T = typeof(get_sample(pt, chain, 1))
-        @assert (:traces ∈ propertynames(rr)) "trace recorder not found, did you include it in your run?"
+        @assert (:traces in propertynames(rr)) "trace recorder not found, did you include it in your run?"
         return new{T,PT}(pt, chain)
     end
 end

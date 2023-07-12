@@ -1,12 +1,35 @@
 @auto struct StanLogPotential
     model
-    initialization_std
+    # keep those to be able to serialize/deserialize 
+    stan_file 
+    data 
+end
+StanLogPotential(stan_file, data) = 
+    StanLogPotential(
+        BridgeStan.StanModel(; stan_file, data), 
+        stan_file, 
+        Immutable(data)
+    )
+function Serialization.serialize(s::AbstractSerializer, instance::StanLogPotential{M, S, D}) where {M, S, D}
+    Serialization.writetag(s.io, Serialization.OBJECT_TAG)
+    Serialization.serialize(s, StanLogPotential{M, S, D})
+    # do not serialize model as it is transient (ccall stuff)
+    Serialization.serialize(s, instance.stan_file)
+    Serialization.serialize(s, instance.data)
+end
+
+function Serialization.deserialize(s::AbstractSerializer, type::Type{StanLogPotential{M, S, D}}) where {M, S, D}
+    stan_file = Serialization.deserialize(s)
+    immutable = Serialization.deserialize(s)
+    return StanLogPotential(stan_file, immutable.data)
 end
 Base.show(io::IO, slp::StanLogPotential) = 
     print(io, "StanLogPotential($(name(slp.model)))")
 
 stan_model(log_potential::StanLogPotential) = log_potential.model 
 stan_model(log_potential::InterpolatedLogPotential) = log_potential.path.target.model
+
+default_explorer(::StanLogPotential) = AutoMALA()
 
 """
 Evaluate the log potential at a given point `x` of type `StanState`.
@@ -17,7 +40,7 @@ Evaluate the log potential at a given point `x` of type `StanState`.
 LogDensityProblemsAD.ADgradient(::Symbol, log_potential::StanLogPotential, buffers::Augmentation) =
     BufferedAD(log_potential, buffers, Ref(0.0), Ref{Cstring}())
 
-LogDensityProblems.logdensity(log_potential::BufferedAD{StanLogPotential{StanModel, Float64}}, x) =
+LogDensityProblems.logdensity(log_potential::BufferedAD{StanLogPotential{M, S, D}}, x) where {M, S, D} =
     stan_log_density!(log_potential.enclosed.model, x, log_potential.logd_buffer, log_potential.err_buffer; propto = true, jacobian = true)
 
 LogDensityProblems.logdensity(log_potential::StanLogPotential, x) =
@@ -25,7 +48,7 @@ LogDensityProblems.logdensity(log_potential::StanLogPotential, x) =
 
 
 LogDensityProblems.dimension(log_potential::StanLogPotential) = convert(Int, BridgeStan.param_unc_num(log_potential.model))
-function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{StanLogPotential{StanModel, Float64}}, x) 
+function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{StanLogPotential{M, S, D}}, x) where {M, S, D}
     m = log_potential.enclosed.model
     b = log_potential.buffer
     # try
@@ -37,27 +60,15 @@ function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{St
     # end
 end
 
-"""
-$SIGNATURES 
-Given a `StanModel` from BridgeStan, create a 
-`StanLogPotential` conforming to both [`target`](@ref) and [`log_potential`](@ref).
-"""
-@provides target StanLogPotential(model::BridgeStan.StanModel) = 
-    StanLogPotential(model, 1e1) # TODO: find a good default
-
 create_state_initializer(target::StanLogPotential, ::Inputs) = target  
 function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64)
     d_unc = BridgeStan.param_unc_num(target.model) # number of unconstrained parameters 
-    # init_unc = randn(rng, d_unc) * target.initialization_std
-    # init = BridgeStan.param_constrain(target.model, init_unc)
-    init = zeros(d_unc) # TODO: fix this, above crashes on some models
-    return StanState(init, true)
+    init = zeros(d_unc) 
+    return StanState(init)
 end
 
-create_explorer(::StanLogPotential, ::Inputs) = AutoMALA()
-
 create_reference_log_potential(target::StanLogPotential, ::Inputs) = 
-    StanLogPotential(target.model) # set reference = target for first few tuning rounds
+    target # set reference = target for first few tuning rounds
 
 function sample_iid!(log_potential::StanLogPotential, replica, shared) 
     # it doesn't seem possible to obtain iid samples from the prior with BridgeStan 

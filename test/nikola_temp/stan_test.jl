@@ -15,8 +15,7 @@ using Plots
     n_chains = 10
 
     # create Stan models
-    smb = BS.StanModel(stan_file = bernoulli_stan, data = bernoulli_data)
-    slp = StanLogPotential(smb)
+    slp = StanLogPotential(bernoulli_stan, bernoulli_data)
 
     # run Pigeons
     pt = pigeons(
@@ -25,6 +24,7 @@ using Plots
         n_chains = n_chains, 
         recorder_builders = [traces], 
         n_chains_var_reference = n_chains, 
+        explorer = AutoMALA(),
         var_reference = GaussianReference()
     )
     s = get_sample(pt, n_chains)

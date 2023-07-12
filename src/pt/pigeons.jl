@@ -11,7 +11,6 @@ and [`run_checks()`](@ref) between rounds.
 """
 function pigeons(pt::PT) 
     preflight_checks(pt)
-    flush_immutables!() # Making sure this gets called before DiskRecorder's and write_checkpoint
     prev_reports = nothing
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
@@ -116,7 +115,7 @@ function explore!(pt, replica, explorer)
                 scan = pt.shared.iterators.scan, 
                 contents = 
                     if pt.inputs.trace_type == :samples
-                        copy(replica.state)
+                        extract_sample(replica.state, log_potential)
                     elseif pt.inputs.trace_type == :log_potential 
                         log_potential(replica.state) 
                     else

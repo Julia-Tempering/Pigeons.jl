@@ -102,6 +102,9 @@ function write_checkpoint(pt)
     end
     checkpoint_folder = mkpath("$(pt.exec_folder)/round=$(pt.shared.iterators.round)/checkpoint")    
 
+    # beginning of serialization session 
+    flush_immutables!()    
+
     # each process saves its replicas
     for replica in locals(pt.replicas)
         serialize("$checkpoint_folder/replica=$(replica.replica_index).jls", replica)
@@ -119,6 +122,9 @@ function write_checkpoint(pt)
             end
         end
     end
+
+    # end of serialization session
+    flush_immutables!()
 
     # signal that we are done
     for replica in locals(pt.replicas)
