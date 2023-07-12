@@ -29,8 +29,12 @@ Given a `DynamicPPL.Model` from Turing.jl, create a
     TuringLogPotential(model, false)
 
 create_state_initializer(target::TuringLogPotential, ::Inputs) = target  
-initialization(target::TuringLogPotential, rng::SplittableRandom, _::Int64) = 
-    DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
+function initialization(target::TuringLogPotential, rng::SplittableRandom, _::Int64)
+    result = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
+    DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
+    return result 
+end
+initialization(target::TuringLogPotential) = initialization(target, SplittableRandom(1), 1)
 
 # At the moment, AutoMALA assumes a :singleton_variable structure 
 # so use the SliceSampler.
@@ -43,15 +47,10 @@ function sample_iid!(log_potential::TuringLogPotential, replica, shared)
     replica.state = initialization(log_potential, replica.rng, replica.replica_index)
 end
 
-function dummy_vi(log_potential::TuringLogPotential) 
-    # TODO: a bit hacky perhaps?
-    dummy = initialization(log_potential, SplittableRandom(1), 1)
-    dummy = DynamicPPL.link!!(dummy, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
-    return dummy
-end
-LogDensityProblemsAD.dimension(log_potential::TuringLogPotential) = length(DynamicPPL.getall(dummy_vi(log_potential)))
+
+LogDensityProblemsAD.dimension(log_potential::TuringLogPotential) = length(DynamicPPL.getall(initialization(log_potential)))
 function LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::TuringLogPotential, buffers::Augmentation)
     context = log_potential.only_prior ? DynamicPPL.PriorContext() : DynamicPPL.DefaultContext()
-    fct = DynamicPPL.LogDensityFunction(dummy_vi(log_potential), log_potential.model, context)
+    fct = DynamicPPL.LogDensityFunction(initialization(log_potential), log_potential.model, context)
     return ADgradient(kind, fct)
 end

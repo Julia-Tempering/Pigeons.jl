@@ -91,11 +91,9 @@ end
 
     function step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
         log_potential = find_log_potential(replica, shared.tempering, shared)
-        on_transformed_space(vi, log_potential) do 
-            state = DynamicPPL.getall(vi)
-            _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
-            DynamicPPL.setall!(replica.state, state)
-        end
+        state = DynamicPPL.getall(vi)
+        _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
+        DynamicPPL.setall!(replica.state, state)
     end
 
 #=

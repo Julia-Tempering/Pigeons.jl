@@ -90,20 +90,11 @@ function variables(state::DynamicPPL.TypedVarInfo, type::DataType)
     return var_names
 end
 
-function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
-    transform_back = false
-    if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
-        DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
-        transform_back = true # transform it back after log_potential evaluation
-    end
-    ret = sampling_task()
-    if transform_back
-        DynamicPPL.invlink!!(state, turing_model(log_potential)) # transform back to constrained space
-    end
-    return ret
+function extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
+    copied = copy(state) 
+    DynamicPPL.invlink!!(copied, turing_model(log_potential))
+    return copied
 end
-
-
 
 # Stan ----------
 @concrete mutable struct StanState 
@@ -112,9 +103,6 @@ end
 
 continuous_variables(state::StanState) = SINGLETON_VAR # all Stan variables should be continuous 
 discrete_variables(state::StanState) = []
-
-on_transformed_space(sampling_task, state::StanState, log_potential) =
-    sampling_task()
 
 extract_sample(state::StanState, log_potential) = 
     BridgeStan.param_constrain(stan_model(log_potential), state.x)
@@ -131,5 +119,5 @@ function variable(state::StanState, name::Symbol)
         error()
     end
 end
-# end Stan ----------
+
 

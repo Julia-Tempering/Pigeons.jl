@@ -43,29 +43,23 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, ca
 end
 
 function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, replica)
-    cached_lp = on_transformed_space(state, log_potential) do
-        cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
-        for i in 1:length(state.metadata)
-            for c in 1:length(state.metadata[i].vals)
-                pointer = Ref(state.metadata[i].vals, c)
-                cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
-            end
+    cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
+    for i in 1:length(state.metadata)
+        for c in 1:length(state.metadata[i].vals)
+            pointer = Ref(state.metadata[i].vals, c)
+            cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
         end
-        return cl_cached_lp
     end
-    return cached_lp
+    return cl_cached_lp
 end
 
 function slice_sample!(h::SliceSampler, state::StanState, log_potential, cached_lp, replica)
-    cached_lp = on_transformed_space(state, log_potential) do
-        cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
-        for i in eachindex(state.x)
-            pointer = Ref(state.x, i)
-            cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
-        end
-        return cl_cached_lp
+    cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
+    for i in eachindex(state.x)
+        pointer = Ref(state.x, i)
+        cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
     end
-    return cached_lp
+    return cl_cached_lp
 end
 
 function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
