@@ -31,7 +31,7 @@ $FIELDS
     """ 
     Used to scale the increase in number of refreshment with dimensionality. 
     """
-    exponent_n_refresh::Float64 = 0.5  # defaults to 0.5, a bit more than 1/3 for added robustness
+    exponent_n_refresh::Float64 = 0.35  
     
     """ 
     The default backend to use for autodiff. 
