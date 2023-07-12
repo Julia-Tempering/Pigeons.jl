@@ -94,7 +94,7 @@ and reduced [`recorders`](@ref) data. Moreover, only one MPI process will
 write once at the first round the [`Inputs`](@ref) data. 
 
 In cases where the sampled model contains large immutable data, consider using 
-[`Immutable`](@ref) to save disk space (Immutables will be written only by 
+`Immutable`'s to save disk space (Immutables will be written only by 
 one MPI process at the first round). 
 """
 function write_checkpoint(pt)
