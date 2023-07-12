@@ -1,7 +1,9 @@
-@concrete struct StanLogPotential
+@auto struct StanLogPotential
     model
     initialization_std
 end
+Base.show(io::IO, slp::StanLogPotential) = 
+    print(io, "StanLogPotential($(name(slp.model)))")
 
 stan_model(log_potential::StanLogPotential) = log_potential.model 
 stan_model(log_potential::InterpolatedLogPotential) = log_potential.path.target.model
@@ -35,7 +37,6 @@ function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{St
     # end
 end
 
-
 """
 $SIGNATURES 
 Given a `StanModel` from BridgeStan, create a 
@@ -53,7 +54,7 @@ function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int6
     return StanState(init, true)
 end
 
-create_explorer(::StanLogPotential, ::Inputs) = SliceSampler()
+create_explorer(::StanLogPotential, ::Inputs) = AutoMALA()
 
 create_reference_log_potential(target::StanLogPotential, ::Inputs) = 
     StanLogPotential(target.model) # set reference = target for first few tuning rounds
