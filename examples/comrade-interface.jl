@@ -70,7 +70,7 @@ function Pigeons.initialization(target::ComradeLogPotential, rng::Pigeons.Splitt
 end
 Pigeons.default_explorer(::ComradeLogPotential) = SliceSampler()
 Pigeons.create_reference_log_potential(target::ComradeLogPotential, ::Inputs) = ComradeLogPrior(target.post)
-function Pigeons.sample_iid!(target::ComradeLogPrior, replica)
+function Pigeons.sample_iid!(target::ComradeLogPrior, replica, shared)
     replica.state = Comrade.inverse(target.transform, rand(replica.rng, target.prior))
 end
 
