@@ -89,7 +89,7 @@ online_recorder_builders() = [
     allocation_extrema,
     round_trip,
     energy_ac1, 
-    target_online
+    online
 ]
 
 """

@@ -63,7 +63,7 @@ end
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
     estimated_target_std_dev = 
         explorer.adapt_pre_conditioning ? 
-            sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance)) :
+            sqrt.(get_transformed_statistic(reduced_recorders, :singleton_variable, Variance)) :
             nothing
     # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
     updated_step_size = explorer.step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
@@ -307,7 +307,7 @@ function explorer_recorder_builders(explorer::AutoMALA)
         buffers
     ]
     if explorer.adapt_pre_conditioning 
-        push!(result, target_online) # for mass matrix adaptation
+        push!(result, _transformed_online) # for mass matrix adaptation
     end
     return result
 end

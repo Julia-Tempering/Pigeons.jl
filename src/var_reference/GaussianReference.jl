@@ -17,13 +17,13 @@ dim(var_reference::GaussianReference) = length(var_reference.μ)
 function activate_var_reference(var_reference::GaussianReference, iterators::Iterators) 
     iterators.round ≥ var_reference.first_tuning_round ? true : false
 end
-var_reference_recorder_builders(::GaussianReference) = [target_online]
+var_reference_recorder_builders(::GaussianReference) = [_transformed_online]
 
 function update_reference!(reduced_recorders, var_reference::GaussianReference, state)
     if discrete_variables(state) != [] error("Updating a Gaussian reference with discrete variables.") end
     for var_name in continuous_variables(state)
-        var_reference.μ[var_name] = get_statistic(reduced_recorders, var_name, Mean)
-        var_reference.σ[var_name] = sqrt.(get_statistic(reduced_recorders, var_name, Variance))
+        var_reference.μ[var_name] = get_transformed_statistic(reduced_recorders, var_name, Mean)
+        var_reference.σ[var_name] = sqrt.(get_transformed_statistic(reduced_recorders, var_name, Variance))
     end
 end
 
