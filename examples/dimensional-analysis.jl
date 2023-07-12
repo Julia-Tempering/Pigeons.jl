@@ -81,16 +81,7 @@ end
 
 
 function auto_mala(D)
-    explorer = Pigeons.AutoMALA(1, 0.5)
-    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
-    return D, n_steps, ess_value
-end
-
-
-function fixed_step_size_mala(D)
-    step_size = 0.5 # if set to one, crashes too soon!
-    n_passes = ceil(Int, 2 * D^(1.0/3.0))
-    explorer = Pigeons.MALA(step_size, n_passes)
+    explorer = Pigeons.AutoMALA(exponent_n_refresh = 0.35)
     n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
     return D, n_steps, ess_value
 end
