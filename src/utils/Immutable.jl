@@ -47,7 +47,7 @@ const immutables = Dict{UInt, Any}()
 """
 $SIGNATURES 
 
-See [`Immutable()`](@ref).
+See [`Immutable`](@ref).
 """
 function flush_immutables!()
     empty!(immutables)
@@ -56,7 +56,7 @@ end
 """
 $SIGNATURES 
 
-See [`Immutable()`](@ref).
+See [`Immutable`](@ref).
 """
 function serialize_immutables(filename::AbstractString)
     serialize(filename, immutables)
@@ -66,7 +66,7 @@ end
 """
 $SIGNATURES 
 
-See [`Immutable()`](@ref).
+See [`Immutable`](@ref).
 """
 function deserialize_immutables!(filename::AbstractString)
     empty!(immutables)
