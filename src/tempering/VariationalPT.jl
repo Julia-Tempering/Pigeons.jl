@@ -58,7 +58,6 @@ end
 
 function concatenate_log_potentials(fixed_leg::NonReversiblePT, variational_leg::NonReversiblePT, ::Val{:VariationalPT})
     return vcat(fixed_leg.log_potentials, reverse(variational_leg.log_potentials))
-    # TODO: generalize once you have "parallel parallel tempering", > 2 references, etc.
 end
 
 tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr, log_sum_ratio]
