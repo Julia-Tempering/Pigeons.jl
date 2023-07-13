@@ -64,6 +64,26 @@ function test_var_reference()
     test_two_references_2()
 end
 
+function make_dict(vec) 
+    result = Dict{Symbol,Any}()
+    result[:singleton_variable] = vec 
+    return result 
+end
+
+@testset "Manual diff check" begin
+    rng = SplittableRandom(1)
+    means = rand(rng, 2)
+    sds = rand(rng, 2)
+    ref = GaussianReference(make_dict(means), make_dict(sds), 1) 
+
+    x = rand(rng, 2) 
+    manual_grad_calculator = LogDensityProblemsAD.ADgradient(:xyz, ref, Pigeons.buffers())
+    _, manual_grad = LogDensityProblems.logdensity_and_gradient(manual_grad_calculator, x)
+
+    fct(x) = Pigeons.gaussian_logdensity(x, means, sds)
+    @test manual_grad ≈ ForwardDiff.gradient(fct, x)
+end
+
 @testset "Variational reference" begin
     test_var_reference()
 end

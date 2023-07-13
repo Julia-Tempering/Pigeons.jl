@@ -1,6 +1,9 @@
 @testset "Stepping-stone" begin
     for explorer in [AutoMALA(), SliceSampler()]
-        pt = pigeons(; target = toy_mvn_target(10), explorer, n_rounds = 15);
+        pt = pigeons(; 
+                target = toy_mvn_target(10), 
+                explorer, 
+                n_rounds = 15);
         p = stepping_stone_pair(pt)
         # truth ≈ -11.51292546497023
         truth = Pigeons.analytic_lognormalization(toy_mvn_target(10))

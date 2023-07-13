@@ -7,8 +7,8 @@
     This checks that a 100-fold increase in dim only increases allocs 
     by a small factor. 
     =#
-    allocs_1d = Pigeons.last_round_max_allocation(pigeons(n_chains = 1, n_rounds = 5, target = Pigeons.toy_stan_target(1), explorer = AutoMALA(exponent_n_refresh = 0.0)))
-    allocs_100d = Pigeons.last_round_max_allocation(pigeons(n_chains = 1, n_rounds = 5, target = Pigeons.toy_stan_target(100), explorer = AutoMALA(exponent_n_refresh = 0.0)))
+    allocs_1d   = Pigeons.last_round_max_allocation(pigeons(var_reference = GaussianReference(), n_chains = 1, n_rounds = 10, target = Pigeons.toy_stan_target(1), explorer = AutoMALA(exponent_n_refresh = 0.0)))
+    allocs_100d = Pigeons.last_round_max_allocation(pigeons(var_reference = GaussianReference(), n_chains = 1, n_rounds = 10, target = Pigeons.toy_stan_target(100), explorer = AutoMALA(exponent_n_refresh = 0.0)))
 
     @test abs(allocs_1d - allocs_100d)/allocs_1d < 3
 end

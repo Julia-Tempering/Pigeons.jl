@@ -4,7 +4,7 @@ A Gaussian mean-field variational reference (i.e., with a diagonal covariance ma
 @kwdef mutable struct GaussianReference <: VarReference
     mean::Dict{Symbol, Any} = Dict{Symbol, Any}() 
     standard_deviation::Dict{Symbol, Any} = Dict{Symbol, Any}() 
-    first_tuning_round::Int = 6
+    first_tuning_round::Int = 6 # TODO: this should be moved elsewhere?
 
     function GaussianReference(mean, standard_deviation, first_tuning_round)
         @assert length(mean) == length(standard_deviation)
@@ -39,13 +39,37 @@ end
 function (var_reference::GaussianReference)(state)
     log_pdf = 0.0
     for var_name in continuous_variables(state)
-        var = variable(state, var_name)
-        for i in eachindex(var)
-            mean = var_reference.mean[var_name][i] 
-            standard_deviation = var_reference.standard_deviation[var_name][i]
-            log_pdf += -0.5 * log(2*pi*standard_deviation^2) - 1/(2*standard_deviation^2) * (var[i] - mean)^2
-        end 
+        log_pdf += gaussian_logdensity(variable(state, var_name), var_reference.mean[var_name], var_reference.standard_deviation[var_name])
     end
     return log_pdf
 end
 
+function gaussian_logdensity(x, mean, standard_deviation)
+    log_pdf = 0.0
+    for i in eachindex(x)
+        log_pdf += -0.5 * log(2.0*pi*standard_deviation[i]^2) - 1.0/(2.0*standard_deviation[i]^2) * (x[i] - mean[i])^2
+    end 
+    return log_pdf
+end
+
+# LogDensityProblemsAD implementation (currently only for special case of a singleton variable)
+
+LogDensityProblems.logdensity(log_potential::GaussianReference, x) = 
+    gaussian_logdensity(x, log_potential.mean[:singleton_variable], log_potential.standard_deviation[:singleton_variable])
+
+function LogDensityProblems.dimension(log_potential::GaussianReference) 
+    @assert length(log_potential.mean) == 1 && haskey(log_potential.mean, :singleton_variable) "Differentiation of GaussianReference assuming a single flat vector called :singleton_variable at the moment. Found: $(keys(log_potential.mean))"
+    return length(log_potential.mean[:singleton_variable])
+end
+
+LogDensityProblemsAD.ADgradient(::Symbol, log_potential::GaussianReference, buffers::Augmentation) = 
+    BufferedAD(log_potential, buffers)
+
+function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{GaussianReference}, x)
+    var_reference = log_potential.enclosed
+    buffer = log_potential.buffer
+    mean = var_reference.mean[:singleton_variable] 
+    standard_deviation = var_reference.standard_deviation[:singleton_variable]
+    @. buffer = - 1.0/(standard_deviation^2) * (x - mean)
+    return LogDensityProblems.logdensity(var_reference, x), buffer
+end
