@@ -6,7 +6,7 @@ end
 
 @testset "Checkpoints" begin
 
-    for t in [toy_mvn_target(2), Pigeons.toy_turing_target()]
+    for t in [toy_mvn_target(2), Pigeons.toy_turing_unid_target()]
     
         p1 = pigeons(target = t, checkpoint = true) 
         p2 = PT("results/latest")

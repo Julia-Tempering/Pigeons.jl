@@ -91,9 +91,10 @@ function variables(state::DynamicPPL.TypedVarInfo, type::DataType)
 end
 
 function extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
-    copied = copy(state) 
-    DynamicPPL.invlink!!(copied, turing_model(log_potential))
-    return copied
+    DynamicPPL.invlink!!(state, turing_model(log_potential))
+    result = DynamicPPL.getall(state)
+    DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential))
+    return result
 end
 
 # Stan ----------

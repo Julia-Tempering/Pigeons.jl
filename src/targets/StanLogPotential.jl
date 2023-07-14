@@ -41,23 +41,21 @@ LogDensityProblemsAD.ADgradient(::Symbol, log_potential::StanLogPotential, buffe
     BufferedAD(log_potential, buffers, Ref(0.0), Ref{Cstring}())
 
 LogDensityProblems.logdensity(log_potential::BufferedAD{StanLogPotential{M, S, D}}, x) where {M, S, D} =
-    stan_log_density!(log_potential.enclosed.model, x, log_potential.logd_buffer, log_potential.err_buffer; propto = true, jacobian = true)
+    stan_log_density!(
+        log_potential.enclosed.model, x, log_potential.logd_buffer, log_potential.err_buffer; 
+        propto = false) # note: propto = false to get correct log normalization constants
 
 LogDensityProblems.logdensity(log_potential::StanLogPotential, x) =
-    stan_log_density!(log_potential.model, x; propto = true, jacobian = true)
+    stan_log_density!(log_potential.model, x; 
+        propto = false) # note: propto = false to get correct log normalization constants
 
 
 LogDensityProblems.dimension(log_potential::StanLogPotential) = convert(Int, BridgeStan.param_unc_num(log_potential.model))
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{StanLogPotential{M, S, D}}, x) where {M, S, D}
     m = log_potential.enclosed.model
     b = log_potential.buffer
-    # try
-        return stan_log_density_gradient!(m, x, b, log_potential.logd_buffer, log_potential.err_buffer)
-    # catch 
-    #     # looks like NaN is giving "log_density_gradient() failed with unknown exception"
-    #     # TODO: horrendeous... hopefully this can be improved (report to BridgeStan?)
-    #     return -Inf, b 
-    # end
+    return stan_log_density_gradient!(m, x, b, log_potential.logd_buffer, log_potential.err_buffer;
+        propto = false) # note: propto = false to get correct log normalization constants
 end
 
 create_state_initializer(target::StanLogPotential, ::Inputs) = target  
