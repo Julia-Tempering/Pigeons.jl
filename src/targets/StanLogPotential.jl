@@ -90,7 +90,7 @@ function stan_log_density!(sm::BridgeStan.StanModel, q::Vector{Float64}, lp = Re
         err,
     )
     if rc != 0
-        BridgeStan.error(BridgeStan.handle_error(sm.lib, err, "log_density"))
+        stan_error(sm.lib, err, lp)
     end
     lp[]
 end
@@ -133,7 +133,13 @@ function stan_log_density_gradient!(
         err,
     )
     if rc != 0
-        error(handle_error(sm.lib, err, "log_density_gradient"))
+        stan_error(sm.lib, err, lp)
     end
     (lp[], out)
+end
+
+function stan_error(lib, err, lp)
+    @warn "Treating stan error as -Inf: $(BridgeStan.handle_error(lib, err, "stan_log_density/gradient"))" maxlog=1
+    lp[] = -Inf
+    return nothing
 end

@@ -50,7 +50,7 @@ end
 
 LogDensityProblemsAD.dimension(log_potential::TuringLogPotential) = length(DynamicPPL.getall(initialization(log_potential)))
 function LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::TuringLogPotential, buffers::Augmentation)
-    @info   """
+    @warn   """
             We recommend using SliceSampler() for Turing models. If you have a large continuous model 
             consider using the StanBridge. The Turing interface is still useful for models containing 
             both continuous and discrete variables. 
