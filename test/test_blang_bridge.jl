@@ -1,4 +1,5 @@
 @testset "Checkpoints" begin
+    # 14/7/23 - found and fixed bug (upstream in Blang SDK)
     Pigeons.setup_blang("blangDemos")
     Pigeons.setup_blang("nowellpack")
     for target in [
