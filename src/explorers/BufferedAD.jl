@@ -1,6 +1,6 @@
 """
 Holds a buffer for in-place auto-differentiation. 
-For example, used by `StanLogPotential`. 
+For example, used by stan log potentials. 
 
 Fields: 
 $FIELDS
@@ -32,7 +32,7 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
 The target and reference may used different autodiff frameworks; 
 provided both are non-allocating, this allows autodiff of 
 `InterpolatedLogPotential`'s to also be non-allocating. 
-For example, this is useful when the target is a `StanLogPotential` 
+For example, this is useful when the target is a stan log potential 
 and the reference is a variational distribution with a hand-crafted, 
 also allocation-free differentiation.
 
