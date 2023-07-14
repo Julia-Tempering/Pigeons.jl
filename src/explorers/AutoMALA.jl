@@ -26,7 +26,7 @@ $FIELDS
     The base number of steps (equivalently, momentum refreshments) between swaps.
     This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`. 
     """
-    base_n_refresh::Int = 10         
+    base_n_refresh::Int = 3         
 
     """ 
     Used to scale the increase in number of refreshment with dimensionality. 
