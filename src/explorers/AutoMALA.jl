@@ -126,9 +126,9 @@ function auto_mala!(
         explorer::AutoMALA, 
         target_log_potential, 
         state::Vector, 
-        recorders = nothing, # optional, if present used to record statistics and obtain buffers
-        chain = 1,           # to index statistics (only used if !isnothing(recorders))
-        use_mh_accept_reject = true)
+        recorders, 
+        chain,
+        use_mh_accept_reject)
 
     dim = length(state)
 

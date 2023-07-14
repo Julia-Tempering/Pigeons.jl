@@ -1,3 +1,15 @@
+DynamicPPL.@model function toy_turing_model(dim::Int, precision)
+    y = Vector{Float64}(undef, dim)
+    for i in 1:dim 
+        y[i] ~ Normal(0.0, 1.0 / sqrt(precision))
+    end
+    return y
+end
+
+function toy_turing_target(dim::Int, precision = 10.0)
+    return TuringLogPotential(toy_turing_model(dim, precision))
+end
+
 DynamicPPL.@model function toy_turing_unid_model(number, sum)
     p1 ~ Uniform(0, 1)
     p2 ~ Uniform(0, 1)

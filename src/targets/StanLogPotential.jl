@@ -1,9 +1,21 @@
+"""
+Uses `BridgeStan` to perform efficient `ccall` loglikelihood and 
+allcoation-free gradient calls to a Stan model. 
+"""
 @auto struct StanLogPotential
     model
     # keep those to be able to serialize/deserialize 
     stan_file 
     data 
 end
+
+""" 
+$SIGNATURES 
+
+The `stan_file` argument can be a path to the file with a `.stan` suffix. 
+The `data` argument can be a path with a file with `.json` suffix or the json string itself. 
+See `BridgeStan` for details. 
+"""
 StanLogPotential(stan_file, data) = 
     StanLogPotential(
         BridgeStan.StanModel(; stan_file, data), 
@@ -75,6 +87,7 @@ function sample_iid!(log_potential::StanLogPotential, replica, shared)
 end
 
 # Allocation-free version of the BridgeStan functions.
+# Also add custom error handling code. 
 # The rest of this file is a modification of BridgeStan's source
 
 function stan_log_density!(sm::BridgeStan.StanModel, q::Vector{Float64}, lp = Ref(0.0), err = Ref{Cstring}(); propto = true, jacobian = true)
