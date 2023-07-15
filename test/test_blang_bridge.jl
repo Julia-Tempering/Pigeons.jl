@@ -38,3 +38,13 @@ end
         pigeons(; target, n_rounds = 2, n_chains = 2)
     end
 end
+
+@testset "Blang restarts" begin
+    pt = pigeons(;
+            target = Pigeons.blang_eight_schools(), 
+            recorder_builders = [round_trip])
+    n_restarts = n_tempered_restarts(pt)
+    global_barrier = Pigeons.global_barrier(pt.shared.tempering)
+    @test n_restarts > 200
+    @test abs(global_barrier - 0.7) < 0.1
+end
