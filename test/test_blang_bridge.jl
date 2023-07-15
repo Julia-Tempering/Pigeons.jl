@@ -42,9 +42,10 @@ end
 @testset "Blang restarts" begin
     pt = pigeons(;
             target = Pigeons.blang_eight_schools(), 
-            recorder_builders = [round_trip])
+            recorder_builders = [round_trip], n_chains = 2)
+    # NB: 10 chains runs out of memory in CI... reducing number of chains
     n_restarts = n_tempered_restarts(pt)
     global_barrier = Pigeons.global_barrier(pt.shared.tempering)
-    @test n_restarts > 200
+    @test n_restarts > 180
     @test abs(global_barrier - 0.7) < 0.1
 end
