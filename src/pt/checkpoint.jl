@@ -46,6 +46,7 @@ end
 """$SIGNATURES"""
 function latest_checkpoint_folder(exec_folder)
     try
+        deserialize_immutables!("$exec_folder/immutables.jls")
         inputs = deserialize("$exec_folder/inputs.jls")
         for r in reverse(1:inputs.n_rounds)
             checkpoint_folder = "$exec_folder/round=$r/checkpoint"
@@ -93,7 +94,7 @@ and reduced [`recorders`](@ref) data. Moreover, only one MPI process will
 write once at the first round the [`Inputs`](@ref) data. 
 
 In cases where the sampled model contains large immutable data, consider using 
-[`Immutable()`](@ref) to save disk space (Immutables will be written only by 
+`Immutable`'s to save disk space (Immutables will be written only by 
 one MPI process at the first round). 
 """
 function write_checkpoint(pt)
@@ -101,6 +102,9 @@ function write_checkpoint(pt)
         return 
     end
     checkpoint_folder = mkpath("$(pt.exec_folder)/round=$(pt.shared.iterators.round)/checkpoint")    
+
+    # beginning of serialization session 
+    flush_immutables!()    
 
     # each process saves its replicas
     for replica in locals(pt.replicas)
@@ -119,6 +123,9 @@ function write_checkpoint(pt)
             end
         end
     end
+
+    # end of serialization session
+    flush_immutables!()
 
     # signal that we are done
     for replica in locals(pt.replicas)

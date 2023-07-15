@@ -14,12 +14,21 @@ struct SampleArray{T,PT} <: AbstractVector{T}
     function SampleArray(pt::P, chain::Int) where {P<:PT}
         rr = pt.reduced_recorders
         T = typeof(get_sample(pt, chain, 1))
-        @assert (:traces ∈ propertynames(rr)) "trace recorder not found, did you include it in your run?"
+        @assert (:traces in propertynames(rr)) "trace recorder not found, did you include it in your run?"
         return new{T,PT}(pt, chain)
     end
 end
 
-Base.size(s::SampleArray) = (length(s.pt.reduced_recorders.traces),)
+function Base.size(s::SampleArray) 
+    chains = map((x) -> x[1], collect(keys(s.pt.reduced_recorders.traces)))
+    unique_chains = unique(chains)
+    sizes = Vector{Int}(undef, length(unique_chains))
+    for i in eachindex(unique_chains)
+        sizes[i] = sum(chains .== unique_chains[i])
+    end 
+    @assert allequal(sizes) # check that all chains have the same number of samples
+    return (sizes[1], )
+end
 Base.IndexStyle(::Type{<:SampleArray}) = IndexLinear()
 Base.getindex(s::SampleArray, i::Int) = get_sample(s.pt, s.chain, i)
 Base.setindex!(::SampleArray, v, i::Int) = error("You cannot set the elements of SampleArray")

@@ -1,7 +1,7 @@
 """
 The state held in each Parallel Tempering [`Replica`](@ref). 
 This interface is only needed for variational Parallel Tempering and for 
-some recorders such as [`OnlineStateRecorder`](@ref).
+some recorders such as [`OnlineStateRecorder`](@ref) and [`traces`](@ref).
 (Note that, at the moment, explorers automatically detect the variable type 
 and dispatch accordingly.)
 """
@@ -29,6 +29,17 @@ and dispatch accordingly.)
     Update the state's entry at symbol `name` and `index` with `value`.
     """
     update_state!(state, name::Symbol, index, value) = @abstract
+
+    """
+    $SIGNATURES
+    Extract a sample ready for post-processing. 
+    If the sample is transformed, this will create a fresh vector 
+    with the transformed state in it.
+
+    When no transformations are needed, a copy should be created 
+    (this is the default behaviour). 
+    """
+    extract_sample(state, log_potential) = copy(state)
 end
 
 
@@ -61,6 +72,7 @@ end
 continuous_variables(state::StreamState) = []
 
 
+# DynamicPPL ----------
 continuous_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)
 discrete_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, Integer)
 variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = state.metadata[name].vals
@@ -77,4 +89,36 @@ function variables(state::DynamicPPL.TypedVarInfo, type::DataType)
     end
     return var_names
 end
+
+function extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
+    DynamicPPL.invlink!!(state, turing_model(log_potential))
+    result = DynamicPPL.getall(state)
+    DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential))
+    return result
+end
+
+# Stan ----------
+@concrete mutable struct StanState 
+    x # unconstrained parameters
+end
+
+continuous_variables(state::StanState) = SINGLETON_VAR # all Stan variables should be continuous 
+discrete_variables(state::StanState) = []
+
+extract_sample(state::StanState, log_potential) = 
+    BridgeStan.param_constrain(stan_model(log_potential), state.x)
+
+function update_state!(state::StanState, name::Symbol, index, value) 
+    @assert name === :singleton_variable
+    state.x[index] = value
+end
+
+function variable(state::StanState, name::Symbol)
+    if name === :singleton_variable
+        state.x
+    else
+        error()
+    end
+end
+
 

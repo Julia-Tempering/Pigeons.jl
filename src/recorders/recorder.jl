@@ -86,8 +86,18 @@ to compute stepping stone estimators of lognormalization contants.
 
 """ 
 Online statistics on the target chain. 
+The samples are processed in the original model parameterization.
 """
-@provides recorder target_online() = OnlineStateRecorder() 
+@provides recorder online() = OnlineStateRecorder() 
+
+""" 
+Online statistics on potentially transformed samples for the target chain. 
+For example, if a gradient-based method is used, the target is often 
+transformed to be defined on an unconstrained space. 
+This is used internally by [`explorer`](@ref)'s for adaptation purposes 
+(in particular, pre-conditioning and variational references).
+"""
+@provides recorder _transformed_online() = OnlineStateRecorder() 
 
 """ 
 Restart and round-trip counts. 

@@ -77,6 +77,11 @@ blang_sitka() = blang_sitka(`
         --model.samplerOptions.useMiniMoves true
     `)
 
+blang_eight_schools() = 
+    BlangTarget(
+        `$(blang_executable("blangDemos", "demos.EightSchools")) --model.data $(blang_repo_path("blangDemos"))/data/eight-schools.csv`
+    )
+
 blang_unid(model_options = "") = 
     BlangTarget(
         `$(blang_executable("blangDemos", "demos.UnidentifiableProduct")) $model_options`

@@ -11,7 +11,6 @@ and [`run_checks()`](@ref) between rounds.
 """
 function pigeons(pt::PT) 
     preflight_checks(pt)
-    flush_immutables!() # Making sure this gets called before DiskRecorder's and write_checkpoint
     prev_reports = nothing
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
@@ -35,8 +34,8 @@ a generalized version of Algorithm 1 in
 
 Alternates between [`communicate!()`](@ref), 
 which consists of any pairwise communicating 
-moves and [`explore!()`], which consists in 
-moves independ to each chain. 
+moves and [`explore!()`], which consists of  
+moves independent to each chain. 
 
 Concrete specification of how to communicate and 
 explore are specified by the field of type [`Shared`](@ref) 
@@ -101,13 +100,14 @@ function explore!(pt, replica, explorer)
     log_potential = find_log_potential(replica, pt.shared.tempering, pt.shared)
     before = eval_if_ac_requested(log_potential, replica)
     if is_reference(pt.shared.tempering.swap_graphs, replica.chain)
-        sample_iid!(log_potential, replica)
+        sample_iid!(log_potential, replica, pt.shared)
     else
         step!(explorer, replica, pt.shared)
     end
     process_ac!(log_potential, replica, before)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
-        @record_if_requested!(replica.recorders, :target_online, replica.state)
+        @record_if_requested!(replica.recorders, :online, extract_sample(replica.state, log_potential))
+        @record_if_requested!(replica.recorders, :_transformed_online, replica.state)
         @record_if_requested!(
             replica.recorders, 
             :traces, 
@@ -116,7 +116,7 @@ function explore!(pt, replica, explorer)
                 scan = pt.shared.iterators.scan, 
                 contents = 
                     if pt.inputs.trace_type == :samples
-                        copy(replica.state)
+                        extract_sample(replica.state, log_potential)
                     elseif pt.inputs.trace_type == :log_potential 
                         log_potential(replica.state) 
                     else

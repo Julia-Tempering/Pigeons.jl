@@ -7,7 +7,7 @@ automatic step size selection.
 Briefly, at each iteration, the step size is exponentially shrunk or 
 grown until the acceptance rate is in a reasonable range. A reversibility 
 check ensures that the move is reversible with respect to the target. 
-The process is started at `initial_step_size`, which at the end of each 
+The process is started at `step_size`, which at the end of each 
 round is set to the average exponent used across all chains. 
 
 The number of steps per exploration is set to 
@@ -26,12 +26,12 @@ $FIELDS
     The base number of steps (equivalently, momentum refreshments) between swaps.
     This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`. 
     """
-    base_n_refresh::Int = 10         
+    base_n_refresh::Int = 3         
 
     """ 
     Used to scale the increase in number of refreshment with dimensionality. 
     """
-    exponent_n_refresh::Float64 = 0.5  # defaults to 0.5, a bit more than 1/3 for added robustness
+    exponent_n_refresh::Float64 = 0.35  
     
     """ 
     The default backend to use for autodiff. 
@@ -44,7 +44,7 @@ $FIELDS
     Starting point for the automatic step size algorithm. 
     Gets updated automatically between each round. 
     """
-    initial_step_size::Float64 = 1.0
+    step_size::Float64 = 1.0
 
     """ 
     If a diagonal pre-conditioning should be learned.
@@ -63,13 +63,13 @@ end
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
     estimated_target_std_dev = 
         explorer.adapt_pre_conditioning ? 
-            sqrt.(get_statistic(reduced_recorders, :singleton_variable, Variance)) :
+            sqrt.(get_transformed_statistic(reduced_recorders, :singleton_variable, Variance)) :
             nothing
-    # use the mean across chains of the mean shrink/grow exponent to compute a new baseline stepsize
-    updated_initial_step_size = explorer.initial_step_size * 2.0^mean(mean.(values(value(reduced_recorders.am_exponents))))
+    # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
+    updated_step_size = explorer.step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
-                updated_initial_step_size,
+                updated_step_size,
                 explorer.adapt_pre_conditioning, 
                 estimated_target_std_dev)
 end
@@ -80,6 +80,10 @@ end
 
 ### Dispatch on state for the behaviours for the different targets ###
 
+    step!(explorer::AutoMALA, replica, shared, state::StanState) = 
+        step!(explorer, replica, shared, state.x)
+
+
     function step!(explorer::AutoMALA, replica, shared, state::AbstractVector)
         log_potential = find_log_potential(replica, shared.tempering, shared)
         _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
@@ -87,13 +91,10 @@ end
 
     function step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
         log_potential = find_log_potential(replica, shared.tempering, shared)
-        on_transformed_space(vi, log_potential) do 
-            state = DynamicPPL.getall(vi)
-            _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
-            DynamicPPL.setall!(replica.state, state)
-        end
+        state = DynamicPPL.getall(vi)
+        _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
+        DynamicPPL.setall!(replica.state, state)
     end
-
 
 #=
 Extract info common to all types of target and perform a step!()
@@ -120,15 +121,14 @@ function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared
     )
 end
 
-
 function auto_mala!(
         rng::AbstractRNG,
         explorer::AutoMALA, 
         target_log_potential, 
         state::Vector, 
-        recorders = nothing, # optional, if present used to record statistics and obtain buffers
-        chain = 1,           # to index statistics (only used if !isnothing(recorders))
-        use_mh_accept_reject = true)
+        recorders, 
+        chain,
+        use_mh_accept_reject)
 
     dim = length(state)
 
@@ -163,8 +163,8 @@ function auto_mala!(
                 estimated_target_std_dev, 
                 state, momentum, 
                 recorders, chain,
-                explorer.initial_step_size, lower_bound, upper_bound)
-        proposed_step_size = explorer.initial_step_size * 2.0^proposed_exponent
+                explorer.step_size, lower_bound, upper_bound)
+        proposed_step_size = explorer.step_size * 2.0^proposed_exponent
 
         # move to proposed point
         leap_frog!(
@@ -182,7 +182,7 @@ function auto_mala!(
                     estimated_target_std_dev, 
                     state, momentum, 
                     recorders, chain,
-                    explorer.initial_step_size, lower_bound, upper_bound)
+                    explorer.step_size, lower_bound, upper_bound)
             probability = 
                 if reversed_exponent == proposed_exponent 
                     final_joint_log = log_joint(target_log_potential, state, momentum)
@@ -207,57 +207,62 @@ function auto_step_size(
         estimated_target_std_dev, 
         state, momentum, 
         recorders, chain, 
-        initial_step_size, lower_bound, upper_bound)
+        step_size, lower_bound, upper_bound)
 
-    @assert initial_step_size > 0
+    @assert step_size > 0
     @assert lower_bound < upper_bound
+    
     log_joint_difference = 
         log_joint_difference_function(
             target_log_potential, 
             estimated_target_std_dev, 
             state, momentum, 
             recorders)
-
-    initial_difference = log_joint_difference(initial_step_size) 
+    initial_difference = log_joint_difference(step_size) 
 
     n_steps, exponent = 
-        if initial_difference < lower_bound 
-            shrink_step_size(log_joint_difference, initial_step_size, lower_bound) 
+        if !isfinite(initial_difference) || initial_difference < lower_bound 
+            shrink_step_size(log_joint_difference, step_size, lower_bound) 
         elseif initial_difference > upper_bound 
-            grow_step_size(log_joint_difference, initial_step_size, upper_bound)
+            grow_step_size(log_joint_difference, step_size, upper_bound)
         else
             0, 0
         end
     
     @record_if_requested!(recorders, :explorer_n_steps, (chain, 1+n_steps)) 
-    @record_if_requested!(recorders, :am_exponents, (chain, exponent)) 
+    @record_if_requested!(recorders, :am_factors, (chain, 2.0^exponent)) 
     return exponent
 end
 
-function shrink_step_size(log_joint_difference, initial_step_size, lower_bound)
-    step_size = initial_step_size
-    n = 1
-    while true
-        step_size /= 2.0 
-        diff = log_joint_difference(step_size) 
-        if !isfinite(diff) 
-            return n, -(n-1) 
-        end
-        if diff > lower_bound 
-            return n, -n
-        end
-        n += 1
-    end
-end
-
-function grow_step_size(log_joint_difference, initial_step_size, upper_bound) 
-    step_size = initial_step_size 
+function grow_step_size(log_joint_difference, step_size, upper_bound) 
     n = 1
     while true
         step_size *= 2.0 
         diff = log_joint_difference(step_size)
         if !isfinite(diff) || diff < upper_bound
             return n, n - 1 # one less step, to avoid a potential cliff-like drop in acceptance
+        end
+        n += 1
+    end
+end
+
+function shrink_step_size(log_joint_difference, step_size, lower_bound)
+    n = 1
+    while true
+        step_size /= 2.0 
+        diff = log_joint_difference(step_size) 
+        #= 
+        Note that shrink is a bit different than grow. 
+        We do not assume here that the diff is necessarily 
+        finite when we start this loop: indeed, when the step 
+        size is too big, we may have to shrink several times 
+        until we get to a scale giving a finite evaluation. 
+        =#
+        if step_size == 0.0 
+            error("Could not find a positive step size with diff > $lower_bound")
+        end
+        if diff > lower_bound 
+            return n, -n
         end
         n += 1
     end
@@ -290,17 +295,17 @@ function log_joint_difference_function(
     return result
 end
 
-am_exponents() = GroupBy(Int, Mean())
+am_factors() = GroupBy(Int, Mean())
 
 function explorer_recorder_builders(explorer::AutoMALA)
     result = [
         explorer_acceptance_pr, 
         explorer_n_steps,
-        am_exponents,
+        am_factors,
         buffers
     ]
     if explorer.adapt_pre_conditioning 
-        push!(result, target_online) # for mass matrix adaptation
+        push!(result, _transformed_online) # for mass matrix adaptation
     end
     return result
 end

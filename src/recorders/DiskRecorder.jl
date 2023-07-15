@@ -16,7 +16,9 @@ ensure_initialized!(recorder::DiskRecorder, datum) =
 function record!(recorder::DiskRecorder, datum)
     ensure_initialized!(recorder, datum) 
     zip_internal_file = ZipFile.addfile(recorder.file, "$(datum.replica.chain)_$(datum.pt.shared.iterators.scan)", method=ZipFile.Deflate)
-    serialize(zip_internal_file, datum.replica.state)
+    log_potential = find_log_potential(datum.replica, datum.pt.shared.tempering, datum.pt.shared)
+    extracted = extract_sample(datum.replica.state, log_potential)
+    serialize(zip_internal_file, extracted)
 end
 
 Base.empty!(recorder::DiskRecorder) = 

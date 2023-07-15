@@ -38,7 +38,7 @@ contract.
     $SIGNATURES
     Obtain one iid sample from the reference distribution specified by the variational family.
     """
-    sample_iid!(var_reference::VarReference, replica) = @abstract
+    sample_iid!(var_reference::VarReference, replica, shared) = @abstract
 end
 
 

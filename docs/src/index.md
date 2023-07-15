@@ -140,7 +140,7 @@ arbitary statistics computed along the execution of PT.
 By default, the statistics collected use constant-memory summaries 
 (i.e. constant in the number of iteration, leveraging the package [OnlineStats.jl](https://github.com/joshday/OnlineStats.jl)), however it is possible to customize which statistics to collect. We provide three examples below. 
 
-As a first example, we show how to store all the samples in the reference chain in memory, using 
+As a first example, we show how to store all the samples in the target chain in memory, using 
 the `traces` `recorder`. We specify which `recorder` to use via the `recorder_builders` argument:
 
 ```@example example
@@ -150,7 +150,7 @@ p = pigeons(
 nothing # hide
 ```
 
-Then we can access the sample at chain 10 (the reference) at iteration say 42 using:
+Then we can access the sample at chain 10 (the target) at iteration say 42 using:
 
 
 ```@example example
@@ -158,7 +158,7 @@ example_sample = get_sample(p, 10, 42)
 size(example_sample)
 ```
 
-Note that the `traces` recorder only stores data for reference chain(s).
+Note that the `traces` recorder only stores data for target chain(s).
 
 
 As a second example, we show next how to store samples to disk:

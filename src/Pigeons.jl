@@ -37,6 +37,7 @@ using Statistics
 using RecipesBase
 using ZipFile
 using ForwardDiff
+using BridgeStan
 using LogDensityProblems 
 using LogDensityProblemsAD
 
@@ -66,9 +67,9 @@ export pigeons, Inputs, PT,
     # for running jobs:
     ChildProcess, MPI,
     # targets:
-    toy_mvn_target, TuringLogPotential,
+    toy_mvn_target, toy_stan_target, TuringLogPotential, StanLogPotential,
     # recorders:
-    index_process, swap_acceptance_pr, log_sum_ratio, target_online, round_trip, energy_ac1, traces, disk,
+    index_process, swap_acceptance_pr, log_sum_ratio, online, round_trip, energy_ac1, traces, disk,
     online_recorder_builders,
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,

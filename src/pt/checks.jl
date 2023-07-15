@@ -21,9 +21,6 @@ end
 """
 Perform checks to detect software defects. 
 Unable via field `checked_round` in [`Inputs`](@ref)
-Currently the following checks are implemented:
-
-- [`check_against_serial()`](@ref)
 """
 function run_checks(pt)
     if pt.shared.iterators.round != pt.inputs.checked_round
@@ -32,7 +29,6 @@ function run_checks(pt)
 
     only_one_process(pt) do
         check_against_serial(pt)
-        #check_serialization(pt) # TODO: check immutables do not change, etc
     end
 end
 
@@ -62,20 +58,22 @@ function check_against_serial(pt)
     serial_checkpoint = "$(serial_pt_result.exec_folder)/round=$round/checkpoint"
 
     # compare the serialized files
-    compare_checkpoints(parallel_checkpoint, serial_checkpoint)
+    immutables = "$(pt.exec_folder)/immutables.jls"
+    deserialize_immutables!(immutables)
+    compare_checkpoints(parallel_checkpoint, serial_checkpoint, immutables)
     compare_serialized(
         "$(pt.exec_folder)/immutables.jls", 
         "$(serial_pt_result.exec_folder)/immutables.jls")
 end
 
-compare_checkpoints(checkpoint_folder1, checkpoint_folder2) = 
+compare_checkpoints(checkpoint_folder1, checkpoint_folder2, immutables) = 
     for file in readdir(checkpoint_folder1)
         if endswith(file, ".jls")
             compare_serialized("$checkpoint_folder1/$file", "$checkpoint_folder2/$file")
         end
     end
 
-function compare_serialized(file1, file2)
+function compare_serialized(file1, file2, immutables = nothing)
     first  = deserialize(file1)
     second = deserialize(file2)
     if first != second
@@ -143,6 +141,7 @@ Base.:(==)(a::NonReproducible, b::NonReproducible) = true
 
 # TODO: maybe move this to a sub-module in which == is nicer by default?
 # mutable (incl imm with mut fields) structs do not have a nice ===, overload those:
+Base.:(==)(a::StanState, b::StanState) = recursive_equal(a, b)
 Base.:(==)(a::SplittableRandom, b::SplittableRandom) = recursive_equal(a, b)
 Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b) 
 Base.:(==)(a::Augmentation, b::Augmentation) = recursive_equal(a, b) 
@@ -163,6 +162,9 @@ Base.:(==)(a::InterpolatedLogPotential, b::InterpolatedLogPotential) = recursive
 Base.:(==)(a::RoundTripRecorder, b::RoundTripRecorder) = recursive_equal(a, b)
 Base.:(==)(a::OnlineStateRecorder, b::OnlineStateRecorder) = recursive_equal(a, b)
 Base.:(==)(a::LocalBarrier, b::LocalBarrier) = recursive_equal(a, b)
+
+Base.:(==)(a::StanLogPotential, b::StanLogPotential) = 
+    a.data == b.data && BridgeStan.name(a.model) == BridgeStan.name(b.model)
 
 function recursive_equal(a::T, b::T) where {T}
     for f in fieldnames(T)

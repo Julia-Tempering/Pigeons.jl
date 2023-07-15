@@ -76,7 +76,7 @@ is_intensity(x::AbstractArray{T}) where {T} = all(≥(zero(T)), x)
 
 function optimal_schedule_generator(intensity::AbstractVector, old_schedule::AbstractVector, nudged::Bool = false)
     @assert length(old_schedule) == length(intensity) + 1 
-    @assert is_intensity(intensity)
+    @assert is_intensity(intensity) "Bad intensities: $intensity"
     x = [0; cumsum(intensity)]
     y = old_schedule 
     norm = last(x) 

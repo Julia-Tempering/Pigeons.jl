@@ -13,7 +13,7 @@ initialization(target::ScaledPrecisionNormalPath, rng::SplittableRandom, _::Int6
 
 default_explorer(::ScaledPrecisionNormalPath) = ToyExplorer()
 
-sample_iid!(log_potential::ScaledPrecisionNormalLogPotential, replica) =
+sample_iid!(log_potential::ScaledPrecisionNormalLogPotential, replica, shared) =
     rand!(replica.rng, replica.state, log_potential)
 
 Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::ScaledPrecisionNormalLogPotential) =

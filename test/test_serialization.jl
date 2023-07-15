@@ -15,9 +15,10 @@ function test_serialize()
     ints = [1,2,3]
     strings = ["asdf", "a"]
     fake = Fake(Immutable(ints), Immutable(ints), Immutable(strings))
-    serialize_immutables(data_serialization_name)
+    
     serialize(fake_serialization_name, fake)
-    empty!(Pigeons.immutables)
+    serialize_immutables(data_serialization_name)
+    Pigeons.flush_immutables!()
     return fake
 end
 

@@ -43,30 +43,23 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, ca
 end
 
 function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, replica)
-    cached_lp = on_transformed_space(state, log_potential) do
-        cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
-        for i in 1:length(state.metadata)
-            for c in 1:length(state.metadata[i].vals)
-                pointer = Ref(state.metadata[i].vals, c)
-                cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
-            end
+    cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
+    for i in 1:length(state.metadata)
+        for c in 1:length(state.metadata[i].vals)
+            pointer = Ref(state.metadata[i].vals, c)
+            cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
         end
-        return cl_cached_lp
     end
-    return cached_lp
+    return cl_cached_lp
 end
 
-function on_transformed_space(sampling_task, state::DynamicPPL.TypedVarInfo, log_potential)
-    transform_back = false
-    if !DynamicPPL.istrans(state, DynamicPPL._getvns(state, DynamicPPL.SampleFromPrior())[1]) # check if in constrained space
-        DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), turing_model(log_potential)) # transform to unconstrained space
-        transform_back = true # transform it back after log_potential evaluation
+function slice_sample!(h::SliceSampler, state::StanState, log_potential, cached_lp, replica)
+    cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
+    for i in eachindex(state.x)
+        pointer = Ref(state.x, i)
+        cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
     end
-    ret = sampling_task()
-    if transform_back
-        DynamicPPL.invlink!!(state, turing_model(log_potential)) # transform back to constrained space
-    end
-    return ret
+    return cl_cached_lp
 end
 
 function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)

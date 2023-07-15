@@ -22,15 +22,9 @@ end
 # Make it conform the LogDensityProblems interface
 LogDensityProblems.logdensity(log_potential::ScaledPrecisionNormalLogPotential, x) = log_potential(x)
 LogDensityProblems.dimension(log_potential::ScaledPrecisionNormalLogPotential) = log_potential.dim
-function LogDensityProblems.capabilities(::Type{<:ScaledPrecisionNormalLogPotential})
-    LogDensityProblems.LogDensityOrder{1}() # can do gradient
-end
 
 LogDensityProblemsAD.ADgradient(::Symbol, log_potential::ScaledPrecisionNormalLogPotential, buffers::Augmentation) = 
-    BufferedAD(
-        log_potential,
-        get_buffer(buffers, :gradient_buffer, LogDensityProblems.dimension(log_potential)), 
-    )
+    BufferedAD(log_potential, buffers)
 
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{ScaledPrecisionNormalLogPotential}, x)
     logdens = log_potential.enclosed(x)

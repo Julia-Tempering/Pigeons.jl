@@ -36,7 +36,7 @@ The probability distribution of interest.
     during its visit to the reference_log_potential created 
     by [`create_reference_log_potential()`](@ref).
     """
-    sample_iid!(reference_log_potential, replica) = @abstract
+    sample_iid!(reference_log_potential, replica, shared) = @abstract
 
     """ 
     $SIGNATURES
@@ -53,9 +53,9 @@ The probability distribution of interest.
             target)
 end
 
-sample_iid!(reference_log_potential::InterpolatedLogPotential, replica) = 
+sample_iid!(reference_log_potential::InterpolatedLogPotential, replica, shared) = 
     if reference_log_potential.beta == 0.0
-        sample_iid!(reference_log_potential.path.ref, replica) 
+        sample_iid!(reference_log_potential.path.ref, replica, shared) 
     else
         error()
     end

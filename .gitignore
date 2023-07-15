@@ -22,3 +22,7 @@ Manifest.toml
 examples/.CondaPkg
 *.swp
 *.swo
+*.hpp
+*.so
+
+examples/benchmarks

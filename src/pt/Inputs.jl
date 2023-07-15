@@ -65,7 +65,7 @@ $FIELDS
     """
     Type of traces to collect:
 
-    - `:samples` - `copy()` is called on the state, or
+    - `:samples` - `extract_sample()` is called on the state, or
     - `:log_potential` - `log_potential()` is called on the state
     """
     trace_type::Symbol = :samples
@@ -89,7 +89,7 @@ online_recorder_builders() = [
     allocation_extrema,
     round_trip,
     energy_ac1, 
-    target_online
+    online
 ]
 
 """

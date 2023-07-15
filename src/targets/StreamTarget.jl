@@ -86,7 +86,7 @@ Delegate iid sampling to the worker process.
 Same call as explorer, rely on the worker to 
 detect that the annealing parameter is zero.
 =#
-sample_iid!(log_potential::StreamPotential, replica) = 
+sample_iid!(log_potential::StreamPotential, replica, shared) = 
     call_sampler!(log_potential, replica.state)
 
 create_path(target::StreamTarget, ::Inputs) = StreamPath()

@@ -1,5 +1,6 @@
 [deps]
 ArgMacros = "dbc42088-9de8-42a0-8ec8-2cd114e1ea3e"
+BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"

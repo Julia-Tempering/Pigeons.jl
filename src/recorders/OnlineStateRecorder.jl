@@ -1,5 +1,5 @@
 """
-See [`target_online()`](@ref).
+See [`online()`](@ref).
 """
 @kwdef struct OnlineStateRecorder
     stats::Dict{Pair{Symbol, Type}, Any} = Dict{Pair{Symbol, Type}, Any}()
@@ -18,8 +18,10 @@ $SIGNATURES
 Statistics.var(pt::PT, variable_name::Symbol = :singleton_variable) = get_statistic(pt, variable_name, Variance) 
 
 get_statistic(pt::PT, variable_name::Symbol, t::Type{T}) where {T} = get_statistic(pt.reduced_recorders, variable_name, t)
-function get_statistic(reduced_recorders, variable_name::Symbol, ::Type{T}) where {T}
-    recorder = reduced_recorders.target_online
+get_transformed_statistic(reduced_recorders, variable_name::Symbol, t::Type{T}) where {T} = 
+    get_statistic(reduced_recorders, variable_name, t, false)
+function get_statistic(reduced_recorders, variable_name::Symbol, ::Type{T}, original_param = true) where {T}
+    recorder = original_param ? reduced_recorders.online : reduced_recorders._transformed_online
     key = Pair(variable_name, T)
     v = value(recorder.stats[key]) 
     return value.(v)

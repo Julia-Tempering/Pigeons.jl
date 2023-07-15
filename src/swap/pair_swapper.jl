@@ -138,7 +138,7 @@ create_state_initializer(target::TestSwapper, ::Inputs) = Ref(nothing)
 default_explorer(::TestSwapper) = nothing 
     step!(::Nothing, replica, shared) = nothing
 
-sample_iid!(::TestSwapper, replica) = nothing
+sample_iid!(::TestSwapper, replica, shared) = nothing
 
 create_path(testSwapper::TestSwapper, ::Inputs) = testSwapper
     interpolate(testSwapper::TestSwapper, beta) = testSwapper
