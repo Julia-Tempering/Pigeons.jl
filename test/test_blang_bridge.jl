@@ -40,6 +40,9 @@ end
 end
 
 @testset "Blang restarts" begin
+
+    # July 17, 2023: fixed bug upstream in Bayonet -> blangSDK -> blangDemos
+
     pt = pigeons(;
             target = Pigeons.blang_eight_schools(), 
             recorder_builders = [round_trip], n_chains = 2)
