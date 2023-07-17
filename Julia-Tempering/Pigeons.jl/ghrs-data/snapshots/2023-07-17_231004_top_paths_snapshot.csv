@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Julia-Tempering/Pigeons.jl,46,24
+/Julia-Tempering/Pigeons.jl/blob/main/src/explorers/ToyExplorer.jl,43,2
+/Julia-Tempering/Pigeons.jl/tree/main/src/explorers,38,2
+/Julia-Tempering/Pigeons.jl/tree/main/examples,35,2
+/Julia-Tempering/Pigeons.jl/blob/main/examples/general-target.jl,33,2
+/Julia-Tempering/Pigeons.jl/tree/main/test,32,1
+/Julia-Tempering/Pigeons.jl/blob/main/examples/custom-path.jl,18,1
+/Julia-Tempering/Pigeons.jl/blob/5a64bb543a61593c09c90d22b7da5520e4498aed/src/targets/toy_mvn_target.jl,17,1
+/Julia-Tempering/Pigeons.jl/blob/main/src/explorers/explorer.jl,16,2
+/Julia-Tempering/Pigeons.jl/blob/main/examples/general-reference.jl,14,1
