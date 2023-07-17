@@ -41,7 +41,8 @@ end
 
 @testset "Blang restarts" begin
 
-    # July 17, 2023: fixed bug upstream in Bayonet -> blangSDK -> blangDemos
+    # 2023/07/17: fixed bug upstream in Bayonet -> blangSDK -> blangDemos
+    # 2023/07/17, continued: fixed another bug upstream in BlangSDK
 
     pt = pigeons(;
             target = Pigeons.blang_eight_schools(), 

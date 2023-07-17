@@ -115,8 +115,7 @@ Simple stdin/stdout text-based protocol.
 function invoke_worker(
         state::StreamState, 
         request::AbstractString, 
-        return_type::Type = Nothing)
-
+        return_type::Type{T} = Nothing) where {T}
     println(state.worker_process, request)
     prefix = expect!(state.worker_process, "response(")
     if state.replica_index == 1 && length(prefix) > 3
@@ -124,5 +123,5 @@ function invoke_worker(
         print(prefix)
     end
     response_str = expect!(state.worker_process, ")")
-    return return_type == Nothing ? nothing : parse(return_type, response_str)
+    return T == Nothing ? nothing : parse(T, response_str)
 end
