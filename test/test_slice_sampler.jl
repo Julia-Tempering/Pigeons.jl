@@ -1,6 +1,20 @@
 import Pigeons: SliceSampler, slice_sample!, Replica
 using DynamicPPL
 
+struct UnitInterval 
+    initialized_inside::Bool
+end 
+(::UnitInterval)(x) = 0.0 < x[1] < x[2] < x[3] < 1.0 ? 0.0 : -Inf 
+Pigeons.create_reference_log_potential(ui::UnitInterval, inputs::Inputs) = ui
+Pigeons.sample_iid!(reference_log_potential::UnitInterval, replica, shared) = nothing
+Pigeons.create_state_initializer(my_potential::UnitInterval, ::Inputs) = my_potential
+Pigeons.initialization(log_potential::UnitInterval, ::SplittableRandom, ::Int) = [0.5, 0.6, log_potential.initialized_inside ? 0.7 : 0.2]
+
+@testset "ConstrainedSliceSampler" begin
+    Test.@test_throws ErrorException pigeons(target = UnitInterval(false))
+    pigeons(target = UnitInterval(true))
+end
+
 include("supporting/turing_models.jl")
 
 function test_slice_sampler_logprob_counts()

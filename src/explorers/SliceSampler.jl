@@ -20,20 +20,26 @@ explorer_recorder_builders(::SliceSampler) = [explorer_acceptance_pr, explorer_n
 
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared.tempering, shared)
-    # TODO: each step starts with a recomputation of the logprob
-    # indicated by -Inf (safe b/c -Inf would be an invalid state that should be caught earlier)
-    # consider at some point having an input cached_lp to step! that stores across steps
     cached_lp = -Inf
     for i in 1:explorer.n_passes
         cached_lp = slice_sample!(explorer, replica.state, log_potential, cached_lp, replica)
     end
 end
 
-function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, replica)
-    # if there is no cached logprob, compute it from scratch
-    if cached_lp == -Inf
-        cached_lp = log_potential(state)
+function cached_log_potential(log_potential, state, cached_lp)
+    return if cached_lp == -Inf 
+        result = log_potential(state)
+        if result == -Inf 
+            error("SliceSampler supports contrained target, but the sampler should be initialized in the support.")
+        end
+        return result
+    else
+        cached_lp
     end
+end
+
+function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, replica)
+    cached_lp = cached_log_potential(log_potential, state, cached_lp)
     # iterate over coordinates
     for c in 1:length(state) 
         pointer = Ref(state, c)
@@ -43,23 +49,23 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, ca
 end
 
 function slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, replica)
-    cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
+    cached_lp = cached_log_potential(log_potential, state, cached_lp)
     for i in 1:length(state.metadata)
         for c in 1:length(state.metadata[i].vals)
             pointer = Ref(state.metadata[i].vals, c)
-            cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
+            cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
         end
     end
-    return cl_cached_lp
+    return cached_lp
 end
 
 function slice_sample!(h::SliceSampler, state::StanState, log_potential, cached_lp, replica)
-    cl_cached_lp = (cached_lp == -Inf) ? log_potential(state) : cached_lp
+    cached_lp = cached_log_potential(log_potential, state, cached_lp)
     for i in eachindex(state.x)
         pointer = Ref(state.x, i)
-        cl_cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cl_cached_lp)
+        cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
     end
-    return cl_cached_lp
+    return cached_lp
 end
 
 function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
