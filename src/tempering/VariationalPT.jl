@@ -31,15 +31,15 @@ Parallel tempering with a variational reference described in
 [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080).
 """
 function VariationalPT(inputs::Inputs)
-    n_chains_fixed = number_of_chains_fixed(inputs)
+    n_fixed = n_chains_fixed(inputs)
     path_fixed = create_path(inputs.target, inputs)
-    initial_schedule_fixed = equally_spaced_schedule(n_chains_fixed)
+    initial_schedule_fixed = equally_spaced_schedule(n_fixed)
     fixed_leg = NonReversiblePT(path_fixed, initial_schedule_fixed, nothing)
     path_var = create_path(inputs.target, inputs) # start with the fixed reference
-    n_chains_var = number_of_chains_var(inputs)
-    initial_schedule_var = equally_spaced_schedule(n_chains_var)
+    n_var = n_chains_var(inputs)
+    initial_schedule_var = equally_spaced_schedule(n_var)
     variational_leg = NonReversiblePT(path_var, initial_schedule_var, nothing)
-    swap_graphs = variational_deo(n_chains_fixed, n_chains_var)
+    swap_graphs = variational_deo(n_fixed, n_var)
     log_potentials = concatenate_log_potentials(fixed_leg, variational_leg, Val(:VariationalPT))
     return VariationalPT(fixed_leg, variational_leg, swap_graphs, log_potentials)
 end
@@ -81,11 +81,11 @@ within a leg of PT and the leg in which it is located.
 Given a tuple, return the global chain number.
 """
 function create_replica_indexer(tempering::VariationalPT)
-    n_chains_fixed = number_of_chains(tempering.fixed_leg)
-    n_chains_var = number_of_chains(tempering.variational_leg)
-    n_chains = n_chains_fixed + n_chains_var
-    i2t = Vector{Any}(undef, n_chains)
-    for i in 1:n_chains
+    n_chains_fixed = n_chains(tempering.fixed_leg)
+    n_chains_var = n_chains(tempering.variational_leg)
+    n = n_chains_fixed + n_chains_var
+    i2t = Vector{Any}(undef, n)
+    for i in 1:n
         # reference ----- target -- target ---- reference 
         #     1     -----   N    -- N + 1  ----    2N
         if i ≤ n_chains_fixed 

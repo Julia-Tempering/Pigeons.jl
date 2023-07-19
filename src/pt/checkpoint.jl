@@ -77,7 +77,7 @@ function is_finished(checkpoint_folder::AbstractString, inputs)
             n_complete += 1
         end
     end
-    return n_complete == number_of_chains(inputs)
+    return n_complete == n_chains(inputs)
 end
 
 """ 

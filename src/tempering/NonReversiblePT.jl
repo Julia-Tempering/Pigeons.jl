@@ -37,9 +37,9 @@ The adaptive non-reversible Parallel Tempering described in
 [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464). 
 """
 function NonReversiblePT(inputs::Inputs)
-    n_chains = number_of_chains(inputs)
+    n = n_chains(inputs)
     path = create_path(inputs.target, inputs)
-    initial_schedule = equally_spaced_schedule(n_chains)
+    initial_schedule = equally_spaced_schedule(n)
     return NonReversiblePT(path, initial_schedule, nothing)
 end
 
@@ -53,7 +53,7 @@ function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterator
     if length(tempering.schedule.grids) == 1
         return tempering
     end
-    adapt_tempering(tempering, reduced_recorders, iterators, var_reference, state, 1:(number_of_chains(tempering)-1))
+    adapt_tempering(tempering, reduced_recorders, iterators, var_reference, state, 1:(n_chains(tempering)-1))
 end
 
 function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterators, var_reference, state, chain_indices)
@@ -67,5 +67,5 @@ end
 
 tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]
 find_log_potential(replica, tempering::NonReversiblePT, shared) = tempering.log_potentials[replica.chain]
-number_of_chains(tempering::NonReversiblePT) = n_chains(tempering.schedule)
+n_chains(tempering::NonReversiblePT) = n_chains(tempering.schedule)
 global_barrier(tempering::NonReversiblePT) = tempering.communication_barriers.globalbarrier

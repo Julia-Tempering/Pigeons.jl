@@ -1,3 +1,42 @@
+"""
+$SIGNATURES 
+
+Copy the target chain(s) samples into a tensor with axes: 
+iteration x variable x target chain
+
+See [`extract_sample()`](@ref) for information how the variables are 
+flattened, and use [`variable_names()`](@ref) to obtain string 
+names for the flattened variables. 
+
+The combination of this function and [`variable_names()`](@ref) is useful for 
+creating [MCMCChains](https://turinglang.org/MCMCChains.jl/stable/getting-started/) 
+which can then be used to obtain summary statistics, diagnostics, create trace plots, 
+and pair plots (via [PairPlots](https://sefffal.github.io/PairPlots.jl/dev/chains/)).
+"""
+function sample_matrix(pt::PT)
+    targets = target_chains(pt)
+    dim, size = sample_dim_size(pt, targets)
+    result = zeros(size, dim, length(targets)) 
+    for t_index in eachindex(targets) 
+        t = targets[t_index] 
+        sample = get_sample(pt, t) 
+        for i in 1:size 
+            vector = sample[i] 
+            result[i, :, t_index] .= vector
+        end
+    end
+    return result
+end
+
+function sample_dim_size(pt::PT, targets = target_chains(pt))
+    sample = get_sample(pt, targets[1]) 
+    return length(sample[1]), length(sample)
+end
+
+function target_chains(pt::PT) 
+    n = n_chains(pt.inputs)
+    return filter(i -> is_target(pt.shared.tempering.swap_graphs, i), 1:n)
+end
 
 """
     $(TYPEDEF)
@@ -37,8 +76,6 @@ Base.setindex!(::SampleArray, v, i::Int) = error("You cannot set the elements of
 $(SIGNATURES)
 """
 get_sample(pt::PT, chain::Int) = SampleArray(pt, chain)
-
-
 
 function Base.show(io::IO, s::SampleArray{T,PT}) where {T,PT}
     println(io, "SampleArray{$T}")
