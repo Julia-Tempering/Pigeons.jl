@@ -101,7 +101,7 @@ end
         variational = GaussianReference(), 
         seed = 1,
         n_rounds = 13,
-        record = Pigeons.online_recorder_builders()
+        record = record_online()
     )
     pt = pigeons(inputs)
     @test abs(Pigeons.global_barrier_variational(pt.shared.tempering) - 0.0) ≤ 0.05
@@ -113,7 +113,7 @@ end
         n_chains_variational = 5, 
         seed = 1,
         n_rounds = 13,
-        record = Pigeons.online_recorder_builders()
+        record = record_online()
     )
     pt = pigeons(inputs)
     GCB_fixed = Pigeons.global_barrier(pt.shared.tempering)
@@ -127,7 +127,7 @@ end
         n_chains_variational = 0,
         seed = 1,
         n_rounds = 13, 
-        record = Pigeons.online_recorder_builders()
+        record = record_online()
     )
     pt = pigeons(inputs)
     @test abs(GCB_fixed - Pigeons.global_barrier(pt.shared.tempering)) ≤ 0.05

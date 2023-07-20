@@ -42,7 +42,7 @@ $FIELDS
     A Vector with elements of type 
     [`recorder_builder`](@ref). 
     """
-    record::Vector = default_recorder_builders()
+    record::Vector = record_default()
 
     """
     The round index where [`run_checks()`](@ref) will 
@@ -81,7 +81,7 @@ end
 """
 Set of recorders with no measurable impact on performance. 
 """
-default_recorder_builders() = [
+record_default() = [
     log_sum_ratio,
     timing_extrema, 
     allocation_extrema
@@ -90,7 +90,7 @@ default_recorder_builders() = [
 """
 Set of constant memory recorders.
 """
-online_recorder_builders() = [
+record_online() = [
     log_sum_ratio,
     timing_extrema, 
     allocation_extrema,
