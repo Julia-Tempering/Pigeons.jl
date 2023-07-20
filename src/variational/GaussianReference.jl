@@ -1,7 +1,7 @@
 """
 A Gaussian mean-field variational reference (i.e., with a diagonal covariance matrix).
 """
-@kwdef mutable struct GaussianReference <: VarReference
+@kwdef mutable struct GaussianReference 
     mean::Dict{Symbol, Any} = Dict{Symbol, Any}() 
     standard_deviation::Dict{Symbol, Any} = Dict{Symbol, Any}() 
     first_tuning_round::Int = 6 # TODO: this should be moved elsewhere?

@@ -1,14 +1,4 @@
 """
-Abstract type for variational references.
-"""
-abstract type VarReference end
-
-
-activate_variational(::Nothing, _) = false
-update_path!(path, _, ::Nothing) = nothing
-variational_recorder_builders(::Nothing) = []
-
-"""
 A variational family of reference distributions. 
 Implementations should also satisfy the [`log_potential`](@ref) 
 contract. 
@@ -19,25 +9,25 @@ contract.
     $SIGNATURES
     Choose on which rounds/scans to activate the variational reference.
     """
-    activate_variational(variational, iterators) = @abstract
+    activate_variational(variational, iterators) = false
     
     """
     $SIGNATURES
     Update the variational reference and the annealing path. Returns the new annealing path.
     """
-    update_reference!(reduced_recorders, variational, state) = @abstract
+    update_reference!(reduced_recorders, variational, state) = nothing
 
     """
     $SIGNATURES
     Specify the recorder builders for this variational reference family.
     """
-    variational_recorder_builders(variational) = @abstract
+    variational_recorder_builders(variational) = []
     
     """
     $SIGNATURES
     Obtain one iid sample from the reference distribution specified by the variational family.
     """
-    sample_iid!(variational::VarReference, replica, shared) = @abstract
+    sample_iid!(variational, replica, shared) = @abstract
 end
 
 
