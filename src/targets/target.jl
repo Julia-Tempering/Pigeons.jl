@@ -6,11 +6,11 @@ The probability distribution of interest.
     """
     $SIGNATURES
 
-    Return a [`state_initializer`](@ref) used to populate 
+    Create a fresh state used to populate 
     the states at the beginning of the first round of 
     Parallel Tempering. 
     """
-    initialize(target, rng::SplittableRandom, replica_index::Int) = @abstract 
+    initialize(target, rng::SplittableRandom, replica_index::Int) = @abstract
 
     """
     $SIGNATURES 
