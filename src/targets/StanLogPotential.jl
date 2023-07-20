@@ -77,7 +77,7 @@ function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int6
     return StanState(init)
 end
 
-create_reference_log_potential(target::StanLogPotential, ::Inputs) = 
+create_reference_log_potential(target::StanLogPotential) = 
     target # set reference = target for first few tuning rounds
 
 function sample_iid!(log_potential::StanLogPotential, replica, shared) 

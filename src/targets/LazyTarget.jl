@@ -40,8 +40,8 @@ create_state_initializer(lazy::LazyTarget, inputs::Inputs) =
 default_explorer(lazy::LazyTarget) =
     default_explorer(get_lazy_singleton(lazy))
 
-create_reference_log_potential(lazy::LazyTarget, inputs::Inputs) =
-    create_reference_log_potential(get_lazy_singleton(lazy), inputs)
+create_reference_log_potential(lazy::LazyTarget) =
+    create_reference_log_potential(get_lazy_singleton(lazy))
 
 create_path(lazy::LazyTarget, inputs::Inputs) =
     create_path(get_lazy_singleton(lazy), inputs)

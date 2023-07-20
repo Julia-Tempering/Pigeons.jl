@@ -74,7 +74,7 @@ wrap(i, L) =
 (log_potential::IsingLogPotential)(state::IsingState) = log_potential.beta * state.sum_pair_products
 
 # Reference distribution uses beta = 0...
-Pigeons.create_reference_log_potential(log_potential::IsingLogPotential, ::Inputs) = IsingLogPotential(0.0, log_potential.base_length)
+Pigeons.create_reference_log_potential(log_potential::IsingLogPotential) = IsingLogPotential(0.0, log_potential.base_length)
 # ... so that we can do i.i.d. sampling of Bernoullis at the reference:
 function Pigeons.sample_iid!(reference_log_potential::IsingLogPotential, replica, shared)
     @assert reference_log_potential.beta == 0.0

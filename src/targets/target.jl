@@ -27,7 +27,7 @@ The probability distribution of interest.
     passed to [`sample_iid!()`](@ref) at the "hot chains" of 
     the Parallel Tempering algorithm. 
     """
-    create_reference_log_potential(target, inputs::Inputs) = @abstract
+    create_reference_log_potential(target) = @abstract
 
     """
     $SIGNATURES 
@@ -49,7 +49,7 @@ The probability distribution of interest.
     """ 
     create_path(target, inputs::Inputs) =  
         InterpolatingPath(
-            create_reference_log_potential(target, inputs), 
+            create_reference_log_potential(target), 
             target)
 end
 

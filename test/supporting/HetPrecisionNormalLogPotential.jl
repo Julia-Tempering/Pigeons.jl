@@ -4,7 +4,7 @@ end
 HetPrecisionNormalLogPotential(dim::Int) = HetPrecisionNormalLogPotential(ones(dim))
 
 Pigeons.create_reference_log_potential(
-    target::HetPrecisionNormalLogPotential, ::Inputs) = 
+    target::HetPrecisionNormalLogPotential) = 
         target
 
 Pigeons.create_state_initializer(my_potential::HetPrecisionNormalLogPotential, ::Inputs) = my_potential
