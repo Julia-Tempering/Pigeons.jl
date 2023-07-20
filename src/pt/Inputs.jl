@@ -20,7 +20,7 @@ $FIELDS
     n_chains::Int = 10
 
     """ The number of chains to use for the variational reference leg. """
-    n_chains_var_reference::Int = 0
+    n_chains_variational::Int = 0
 
     """ The fixed reference family, or if nothing, 
     will use [`default_reference()`](@ref) to 
@@ -29,7 +29,7 @@ $FIELDS
     reference::R = nothing
     
     """ The variational reference family. """
-    var_reference::V = NoVarReference()
+    variational::V = NoVarReference()
 
     """ 
     Whether a checkpoint should be written to disk 
@@ -104,4 +104,4 @@ Extract the number of Parallel Tempering chains from `Inputs`.
 n_chains(inputs::Inputs) = n_chains_fixed(inputs) + n_chains_var(inputs)
 # TODO: generalize once you have "parallel parallel tempering", etc.
 n_chains_fixed(inputs::Inputs) = inputs.n_chains
-n_chains_var(inputs::Inputs) = inputs.n_chains_var_reference
+n_chains_var(inputs::Inputs) = inputs.n_chains_variational

@@ -12,7 +12,7 @@ end
         pt = pigeons(;
                 target = Pigeons.stan_eight_schools(), 
                 recorder_builders = [round_trip], 
-                var_reference = GaussianReference(), 
+                variational = GaussianReference(), 
                 explorer)
         n_restarts = n_tempered_restarts(pt)
         @test n_restarts > 100

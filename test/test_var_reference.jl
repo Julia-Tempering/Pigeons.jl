@@ -2,14 +2,14 @@ using DynamicPPL
 
 include("supporting/turing_models.jl")
 
-function test_var_reference_Turing()
+function test_variational_Turing()
     model = flip_model_unidentifiable()
     
     # Check NoVarReference()
     inputs = Inputs(
         target = TuringLogPotential(model),
         n_chains = 10,
-        n_chains_var_reference = 0,
+        n_chains_variational = 0,
         seed = 1
     )
     RNG_old = copy(Random.GLOBAL_RNG)
@@ -20,9 +20,9 @@ function test_var_reference_Turing()
     inputs = Inputs(
         target = TuringLogPotential(model),
         n_chains = 0,
-        n_chains_var_reference  = 10,
+        n_chains_variational  = 10,
         seed = 1,
-        var_reference = GaussianReference()
+        variational = GaussianReference()
     )
     pt = pigeons(inputs)
     # check that a variational reference is indeed used
@@ -35,8 +35,8 @@ function test_two_references()
     inputs = Inputs(
         target = TuringLogPotential(model),
         n_chains = 5,
-        n_chains_var_reference = 5,
-        var_reference = GaussianReference(),
+        n_chains_variational = 5,
+        variational = GaussianReference(),
         seed = 1
     )
     pt = pigeons(inputs)
@@ -50,7 +50,7 @@ function test_two_references_2()
     pt = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
                  n_chains = n_chains, n_rounds = n_rounds, seed = seed)
     pt2 = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
-                 n_chains = n_chains, n_chains_var_reference = n_chains, var_reference = NoVarReference(), 
+                 n_chains = n_chains, n_chains_variational = n_chains, variational = NoVarReference(), 
                  n_rounds = n_rounds, seed = seed)
     restarts = n_tempered_restarts(pt)
     restarts2 = n_tempered_restarts(pt2)
@@ -58,8 +58,8 @@ function test_two_references_2()
     # check that sum of restarts is twice as large when using two references
 end
 
-function test_var_reference()
-    test_var_reference_Turing()
+function test_variational()
+    test_variational_Turing()
     test_two_references()
     test_two_references_2()
 end
@@ -85,7 +85,7 @@ end
 end
 
 @testset "Variational reference" begin
-    test_var_reference()
+    test_variational()
 end
 
 @testset "Two reference restarts" begin
@@ -98,8 +98,8 @@ end
     inputs = Inputs(
         target = MyLogPotential(), 
         n_chains = 5, 
-        n_chains_var_reference = 5, 
-        var_reference = GaussianReference(), 
+        n_chains_variational = 5, 
+        variational = GaussianReference(), 
         seed = 1,
         n_rounds = 13,
         recorder_builders = Pigeons.online_recorder_builders()
@@ -111,8 +111,8 @@ end
     inputs = Inputs(
        target = MyLogPotential(), 
         n_chains = 5, 
-        n_chains_var_reference = 5, 
-        var_reference = NoVarReference(), 
+        n_chains_variational = 5, 
+        variational = NoVarReference(), 
         seed = 1,
         n_rounds = 13,
         recorder_builders = Pigeons.online_recorder_builders()
@@ -126,7 +126,7 @@ end
     inputs = Inputs(
         target = MyLogPotential(),
         n_chains = 5, 
-        n_chains_var_reference = 0,
+        n_chains_variational = 0,
         seed = 1,
         n_rounds = 13, 
         recorder_builders = Pigeons.online_recorder_builders()

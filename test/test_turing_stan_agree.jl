@@ -18,7 +18,7 @@ end
 
 @testset "Log-normalization agreement" begin
     @show turing_estimate = stepping_stone_pair(pigeons(target = Pigeons.toy_turing_unid_target(100), explorer = SliceSampler(), n_rounds = 12))
-    @show stan_estimate   = stepping_stone_pair(pigeons(target = Pigeons.toy_stan_unid_target(100), var_reference = GaussianReference(), explorer = SliceSampler(), n_rounds = 12))
+    @show stan_estimate   = stepping_stone_pair(pigeons(target = Pigeons.toy_stan_unid_target(100), variational = GaussianReference(), explorer = SliceSampler(), n_rounds = 12))
 
     for i in [1, 2]
         @test isapprox(turing_estimate[i], stan_estimate[i], rtol = 0.01)

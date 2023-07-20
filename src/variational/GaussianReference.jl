@@ -13,33 +13,33 @@ A Gaussian mean-field variational reference (i.e., with a diagonal covariance ma
     end
 end
 
-dim(var_reference::GaussianReference) = length(var_reference.mean)
-function activate_var_reference(var_reference::GaussianReference, iterators::Iterators) 
-    iterators.round ≥ var_reference.first_tuning_round ? true : false
+dim(variational::GaussianReference) = length(variational.mean)
+function activate_variational(variational::GaussianReference, iterators::Iterators) 
+    iterators.round ≥ variational.first_tuning_round ? true : false
 end
-var_reference_recorder_builders(::GaussianReference) = [_transformed_online]
+variational_recorder_builders(::GaussianReference) = [_transformed_online]
 
-function update_reference!(reduced_recorders, var_reference::GaussianReference, state)
+function update_reference!(reduced_recorders, variational::GaussianReference, state)
     if discrete_variables(state) != [] error("Updating a Gaussian reference with discrete variables.") end
     for var_name in continuous_variables(state)
-        var_reference.mean[var_name] = get_transformed_statistic(reduced_recorders, var_name, Mean)
-        var_reference.standard_deviation[var_name] = sqrt.(get_transformed_statistic(reduced_recorders, var_name, Variance))
+        variational.mean[var_name] = get_transformed_statistic(reduced_recorders, var_name, Mean)
+        variational.standard_deviation[var_name] = sqrt.(get_transformed_statistic(reduced_recorders, var_name, Variance))
     end
 end
 
-function sample_iid!(var_reference::GaussianReference, replica, shared)
+function sample_iid!(variational::GaussianReference, replica, shared)
     for var_name in continuous_variables(replica.state)
-        for i in eachindex(var_reference.mean[var_name])
-            val = randn(replica.rng) * var_reference.standard_deviation[var_name][i] + var_reference.mean[var_name][i]
+        for i in eachindex(variational.mean[var_name])
+            val = randn(replica.rng) * variational.standard_deviation[var_name][i] + variational.mean[var_name][i]
             update_state!(replica.state, var_name, i, val)
         end
     end
 end
 
-function (var_reference::GaussianReference)(state)
+function (variational::GaussianReference)(state)
     log_pdf = 0.0
     for var_name in continuous_variables(state)
-        log_pdf += gaussian_logdensity(variable(state, var_name), var_reference.mean[var_name], var_reference.standard_deviation[var_name])
+        log_pdf += gaussian_logdensity(variable(state, var_name), variational.mean[var_name], variational.standard_deviation[var_name])
     end
     return log_pdf
 end
@@ -66,10 +66,10 @@ LogDensityProblemsAD.ADgradient(::Symbol, log_potential::GaussianReference, buff
     BufferedAD(log_potential, buffers)
 
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{GaussianReference}, x)
-    var_reference = log_potential.enclosed
+    variational = log_potential.enclosed
     buffer = log_potential.buffer
-    mean = var_reference.mean[:singleton_variable] 
-    standard_deviation = var_reference.standard_deviation[:singleton_variable]
+    mean = variational.mean[:singleton_variable] 
+    standard_deviation = variational.standard_deviation[:singleton_variable]
     @. buffer = - 1.0/(standard_deviation^2) * (x - mean)
-    return LogDensityProblems.logdensity(var_reference, x), buffer
+    return LogDensityProblems.logdensity(variational, x), buffer
 end
