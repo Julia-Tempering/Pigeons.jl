@@ -1,3 +1,35 @@
+using MCMCChains
+
+@testset "Sample matrix" begin
+
+    for use_two_chains in [true, false]
+        targets = [
+            Pigeons.toy_stan_target(3), 
+            Pigeons.toy_turing_target(3)
+        ]
+        if !use_two_chains 
+            push!(targets, toy_mvn_target(3))
+        end
+
+        for target in targets
+            
+            pt = pigeons(; 
+                    target, 
+                    recorder_builders = [traces],
+                    n_rounds = 2, 
+                    n_chains_var_reference  = use_two_chains ? 10 : 0,
+                    var_reference = use_two_chains ? GaussianReference() : Pigeons.NoVarReference()
+                )
+
+            mtx = Pigeons.sample_matrix(pt) 
+            @test size(mtx) == (4, 3, use_two_chains ? 2 : 1)
+            @test length(Pigeons.variable_names(pt)) == 3
+            chain = Chains(Pigeons.sample_matrix(pt), Pigeons.variable_names(pt))
+        end 
+    end
+
+end
+
 @testset "Traces" begin
     for target in [toy_mvn_target(10), toy_stan_target(10), Pigeons.toy_turing_target(10)]
         r = pigeons(; 
@@ -22,3 +54,4 @@
         end
     end
 end
+

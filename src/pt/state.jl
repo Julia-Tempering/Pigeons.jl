@@ -32,22 +32,36 @@ and dispatch accordingly.)
 
     """
     $SIGNATURES
-    Extract a sample ready for post-processing. 
-    If the sample is transformed, this will create a fresh vector 
-    with the transformed state in it.
+    Extract a flattened vector (i.e. concatenation of all variables, with discrete 
+    ones converted to Float64) ready for post-processing. 
+
+    If the state is transformed (e.g. for HMC), this will create a fresh vector 
+    with an un-transformed (i.e. original parameterization) state in it.
 
     When no transformations are needed, a copy should be created 
     (this is the default behaviour). 
     """
     extract_sample(state, log_potential) = copy(state)
+
+    """ 
+    $SIGNATURES 
+    
+    A list of string labels for the flattened vectors returned by 
+    [`extract_sample()`](@ref).
+    """
+    variable_names(state, log_potential) = @abstract
 end
 
+function variable_names(pt::PT) 
+    a_replica = locals(pt.replicas)[1]
+    return variable_names(a_replica.state, find_log_potential(a_replica, pt.shared.tempering, pt.shared))
+end
 
 # Implementations
 const SINGLETON_VAR = [:singleton_variable]
 
-continuous_variables(state::Union{Nothing, Pigeons.StreamState}) = SINGLETON_VAR # e.g. for TestSwapper
-discrete_variables(state::Union{Nothing, Pigeons.StreamState}) = []
+continuous_variables(state::Union{Nothing, StreamState}) = SINGLETON_VAR # e.g. for TestSwapper
+discrete_variables(state::Union{Nothing, StreamState}) = []
 
 continuous_variables(state::Array) = SINGLETON_VAR
 discrete_variables(state::Array) = []
@@ -65,11 +79,14 @@ function variable(state::Array, name::Symbol)
     end
 end
 
+variable_names(state::Array, log_potential) = map(i -> "param_$i", 1:length(state))
+
 
 # For the stream interface, view the state as a black box
 # and also we don't want that running with default block of recorders 
 # crashes. 
 continuous_variables(state::StreamState) = []
+variable_names(state::StreamState) = []
 
 
 # DynamicPPL ----------
@@ -97,6 +114,9 @@ function extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
     return result
 end
 
+variable_names(state::DynamicPPL.TypedVarInfo, _) = map(x -> "$x", keys(state))
+
+
 # Stan ----------
 @concrete mutable struct StanState 
     x # unconstrained parameters
@@ -121,4 +141,5 @@ function variable(state::StanState, name::Symbol)
     end
 end
 
+variable_names(::StanState, log_potential) = BridgeStan.param_names(stan_model(log_potential))
 

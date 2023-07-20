@@ -29,8 +29,8 @@ Create distributed replicas.
 See [`create_replicas`](@ref).
 """
 @provides replicas function create_entangled_replicas(inputs::Inputs, shared::Shared, source)
-    n_chains = number_of_chains(inputs)
-    entangler = Entangler(n_chains)
+    n = n_chains(inputs)
+    entangler = Entangler(n)
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)
     locals = _create_locals(my_globals, inputs, shared, source)

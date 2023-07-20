@@ -95,7 +95,7 @@ online_recorder_builders() = [
 """
 Extract the number of Parallel Tempering chains from `Inputs`.
 """
-number_of_chains(inputs::Inputs) = number_of_chains_fixed(inputs) + number_of_chains_var(inputs)
+n_chains(inputs::Inputs) = n_chains_fixed(inputs) + n_chains_var(inputs)
 # TODO: generalize once you have "parallel parallel tempering", etc.
-number_of_chains_fixed(inputs::Inputs) = inputs.n_chains
-number_of_chains_var(inputs::Inputs) = inputs.n_chains_var_reference
+n_chains_fixed(inputs::Inputs) = inputs.n_chains
+n_chains_var(inputs::Inputs) = inputs.n_chains_var_reference
