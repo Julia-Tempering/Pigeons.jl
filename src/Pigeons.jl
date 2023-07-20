@@ -76,7 +76,7 @@ export pigeons, Inputs, PT,
     # getting information out of an execution:
     stepping_stone_pair, n_tempered_restarts, n_round_trips, process_samples, get_sample,
     # variational references:
-    GaussianReference, NoVarReference, 
+    GaussianReference, 
     # samplers 
     SliceSampler, AutoMALA, Compose
 end # End module

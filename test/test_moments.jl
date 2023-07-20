@@ -1,5 +1,5 @@
 @testset "Moments" begin
-    for variational in [NoVarReference(), GaussianReference()]
+    for variational in [nothing, GaussianReference()]
         for target in [toy_mvn_target(2), toy_stan_target(2)]
             if !(variational isa GaussianReference) || !(target isa Pigeons.ScaledPrecisionNormalPath)
                 pt = pigeons(; 

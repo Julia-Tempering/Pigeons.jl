@@ -5,7 +5,6 @@ include("supporting/turing_models.jl")
 function test_variational_Turing()
     model = flip_model_unidentifiable()
     
-    # Check NoVarReference()
     inputs = Inputs(
         target = TuringLogPotential(model),
         n_chains = 10,
@@ -50,7 +49,7 @@ function test_two_references_2()
     pt = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
                  n_chains = n_chains, n_rounds = n_rounds, seed = seed)
     pt2 = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
-                 n_chains = n_chains, n_chains_variational = n_chains, variational = NoVarReference(), 
+                 n_chains = n_chains, n_chains_variational = n_chains, variational = nothing, 
                  n_rounds = n_rounds, seed = seed)
     restarts = n_tempered_restarts(pt)
     restarts2 = n_tempered_restarts(pt2)
@@ -112,7 +111,6 @@ end
        target = MyLogPotential(), 
         n_chains = 5, 
         n_chains_variational = 5, 
-        variational = NoVarReference(), 
         seed = 1,
         n_rounds = 13,
         recorder_builders = Pigeons.online_recorder_builders()

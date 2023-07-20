@@ -48,7 +48,7 @@ function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators,
     indexer = create_replica_indexer(tempering)
     fixed_leg = adapt_tempering(
         tempering.fixed_leg, reduced_recorders, iterators, 
-        NoVarReference(), state, fixed_leg_indices(indexer, tempering)[1:(end-1)])
+        nothing, state, fixed_leg_indices(indexer, tempering)[1:(end-1)])
     variational_leg = adapt_tempering(
         tempering.variational_leg, reduced_recorders, iterators, 
         variational, state, variational_leg_indices(indexer, tempering)[2:end])

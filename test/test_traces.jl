@@ -18,7 +18,7 @@ using MCMCChains
                     recorder_builders = [traces],
                     n_rounds = 2, 
                     n_chains_variational  = use_two_chains ? 10 : 0,
-                    variational = use_two_chains ? GaussianReference() : Pigeons.NoVarReference()
+                    variational = use_two_chains ? GaussianReference() : nothing
                 )
 
             mtx = Pigeons.sample_matrix(pt) 

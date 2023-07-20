@@ -29,7 +29,7 @@ $FIELDS
     reference::R = nothing
     
     """ The variational reference family. """
-    variational::V = NoVarReference()
+    variational::V = nothing
 
     """ 
     Whether a checkpoint should be written to disk 

@@ -3,11 +3,10 @@ Abstract type for variational references.
 """
 abstract type VarReference end
 
-struct NoVarReference <: VarReference end 
 
-activate_variational(::NoVarReference, _) = false
-update_path!(path, _, ::NoVarReference) = nothing
-variational_recorder_builders(::NoVarReference) = []
+activate_variational(::Nothing, _) = false
+update_path!(path, _, ::Nothing) = nothing
+variational_recorder_builders(::Nothing) = []
 
 """
 A variational family of reference distributions. 
