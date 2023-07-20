@@ -40,7 +40,7 @@ initialization(target::TuringLogPotential) = initialization(target, SplittableRa
 # so use the SliceSampler.
 default_explorer(::TuringLogPotential) = SliceSampler()
 
-create_reference_log_potential(target::TuringLogPotential) = 
+default_reference(target::TuringLogPotential) = 
     TuringLogPotential(target.model, true)
 
 function sample_iid!(log_potential::TuringLogPotential, replica, shared) 

@@ -14,7 +14,7 @@ struct MyLogPotential end
 (::MyLogPotential)(x) = -abs(x[1]) / 3
 
 # Instruct to use a normal reference
-Pigeons.create_reference_log_potential(::MyLogPotential) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
+Pigeons.default_reference(::MyLogPotential) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
 
 # Instruct how to create fresh state objects (using again MyLogPotential as a dummy type for dispatch on 
 # the informal interface 'state_initializer')

@@ -18,7 +18,7 @@ Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
 struct MyReferenceLogPotential end 
 (::MyReferenceLogPotential)(x) = -1/(2*(100^2+1)) * (x[1])^2
 # normal reference with mean 0 and standard deviation sqrt(100^2+1)
-Pigeons.create_reference_log_potential(::MyLogPotential) = MyReferenceLogPotential()
+Pigeons.default_reference(::MyLogPotential) = MyReferenceLogPotential()
 Pigeons.sample_iid!(log_potential::MyReferenceLogPotential, replica, shared) =
     rand!(replica.rng, replica.state, log_potential)
 Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::MyReferenceLogPotential) =

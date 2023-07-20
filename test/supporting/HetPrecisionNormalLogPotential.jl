@@ -3,7 +3,7 @@ struct HetPrecisionNormalLogPotential
 end
 HetPrecisionNormalLogPotential(dim::Int) = HetPrecisionNormalLogPotential(ones(dim))
 
-Pigeons.create_reference_log_potential(
+Pigeons.default_reference(
     target::HetPrecisionNormalLogPotential) = 
         target
 

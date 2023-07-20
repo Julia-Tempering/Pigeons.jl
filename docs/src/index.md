@@ -392,7 +392,7 @@ needed by parallel tempering algorithms.
 The main pieces to specify are [`create_state_initializer()`](@ref), to provide initial states, 
 [`default_explorer`](@ref), to construct [`explorer`](@ref)'s 
 which are ``\pi_i``-invariant Markov transition kernel, 
-and finally, [`create_reference_log_potential()`](@ref), 
+and finally, [`default_reference()`](@ref), 
 to construct ``\pi_1``. 
 
 A range of other extension points are defined, to control 

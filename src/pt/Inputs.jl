@@ -6,7 +6,7 @@ used to create Parallel Tempering algorithms.
 Fields (see source file for default values):
 $FIELDS
 """
-@kwdef mutable struct Inputs{T, V, E}
+@kwdef mutable struct Inputs{T, V, E, R}
     """ The target distribution. """
     target::T
 
@@ -21,6 +21,12 @@ $FIELDS
 
     """ The number of chains to use for the variational reference leg. """
     n_chains_var_reference::Int = 0
+
+    """ The fixed reference family, or if nothing, 
+    will use [`default_reference()`](@ref) to 
+    automatically determine the reference based on the 
+    type of the target.  """
+    reference::R = nothing
     
     """ The variational reference family. """
     var_reference::V = NoVarReference()
