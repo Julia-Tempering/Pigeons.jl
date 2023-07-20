@@ -1,7 +1,7 @@
 """
 A variational family of reference distributions. 
 Implementations should also satisfy the [`log_potential`](@ref) 
-contract. 
+contract and [`sample_iid!()`](@ref). 
 """
 @informal variational begin
     
@@ -22,12 +22,6 @@ contract.
     Specify the recorder builders for this variational reference family.
     """
     variational_recorder_builders(variational) = []
-    
-    """
-    $SIGNATURES
-    Obtain one iid sample from the reference distribution specified by the variational family.
-    """
-    sample_iid!(variational, replica, shared) = @abstract
 end
 
 
