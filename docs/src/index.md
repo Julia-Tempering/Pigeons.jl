@@ -389,7 +389,7 @@ approximation), while the last distribution coincides with the distribution of i
 $\pi_N = \pi$, the target. 
 We use an informal interface called [`target`](@ref) to orchestrate the creation of the ingredients 
 needed by parallel tempering algorithms. 
-The main pieces to specify are [`create_state_initializer()`](@ref), to provide initial states, 
+The main pieces to specify are [`initialization()`](@ref), to provide initial states, 
 [`default_explorer`](@ref), to construct [`explorer`](@ref)'s 
 which are ``\pi_i``-invariant Markov transition kernel, 
 and finally, [`default_reference()`](@ref), 

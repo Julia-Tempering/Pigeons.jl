@@ -18,7 +18,6 @@ Pigeons.default_reference(::MyLogPotential) = Pigeons.ScaledPrecisionNormalLogPo
 
 # Instruct how to create fresh state objects (using again MyLogPotential as a dummy type for dispatch on 
 # the informal interface 'state_initializer')
-Pigeons.create_state_initializer(my_potential::MyLogPotential, ::Inputs) = my_potential
 Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
 
 # Perform the sampling

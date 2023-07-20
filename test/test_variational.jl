@@ -92,7 +92,6 @@ end
     (::MyLogPotential)(x) = -0.5*(x[1]-1.0)^2
     Pigeons.create_explorer(::MyLogPotential, ::Inputs) = Pigeons.SliceSampler() 
     Pigeons.default_reference(::MyLogPotential) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
-    Pigeons.create_state_initializer(my_potential::MyLogPotential, ::Inputs) = my_potential
     Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
     inputs = Inputs(
         target = MyLogPotential(), 

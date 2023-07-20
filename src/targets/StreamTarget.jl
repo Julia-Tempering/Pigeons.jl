@@ -70,7 +70,6 @@ will take care of path construction
     beta
 end
 
-create_state_initializer(target::StreamTarget, ::Inputs) = target  
 default_explorer(target::StreamTarget) = target 
 
 #= 

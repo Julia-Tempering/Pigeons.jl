@@ -34,9 +34,6 @@ function get_lazy_singleton(lazy)
     return _lazy_singleton_cache[lazy.flag]
 end
 
-create_state_initializer(lazy::LazyTarget, inputs::Inputs) =
-    create_state_initializer(get_lazy_singleton(lazy), inputs)
-
 default_explorer(lazy::LazyTarget) =
     default_explorer(get_lazy_singleton(lazy))
 

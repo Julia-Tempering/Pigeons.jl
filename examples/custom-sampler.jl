@@ -82,7 +82,6 @@ function Pigeons.sample_iid!(reference_log_potential::IsingLogPotential, replica
 end
 
 # Initialization: all entries to zeros (falses)
-Pigeons.create_state_initializer(my_potential::IsingLogPotential, ::Inputs) = my_potential
 Pigeons.initialization(log_potential::IsingLogPotential, ::SplittableRandom, ::Int) = IsingState(falses(log_potential.base_length, log_potential.base_length))
 
 # MCMC explorer 

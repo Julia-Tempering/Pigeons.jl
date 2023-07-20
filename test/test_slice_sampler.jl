@@ -7,7 +7,6 @@ end
 (::UnitInterval)(x) = 0.0 < x[1] < x[2] < x[3] < 1.0 ? 0.0 : -Inf 
 Pigeons.default_reference(ui::UnitInterval) = ui
 Pigeons.sample_iid!(reference_log_potential::UnitInterval, replica, shared) = nothing
-Pigeons.create_state_initializer(my_potential::UnitInterval, ::Inputs) = my_potential
 Pigeons.initialization(log_potential::UnitInterval, ::SplittableRandom, ::Int) = [0.5, 0.6, log_potential.initialized_inside ? 0.7 : 0.2]
 
 @testset "ConstrainedSliceSampler" begin

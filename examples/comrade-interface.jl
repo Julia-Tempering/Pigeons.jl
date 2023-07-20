@@ -63,8 +63,7 @@ function (m::ComradeLogPrior)(x)
     return logdensityof(m.prior, y) + lj
 end
 
-Pigeons.create_state_initializer(target::ComradeLogPotential, ::Inputs) = target
-function Pigeons.initialization(target::ComradeLogPotential, rng::Pigeons.SplittableRandom, _::Int64)
+function Pigeons.initialization(target::ComradeLogPotential, rng::Pigeons.SplittableRandom, ::Int64)
     prior_pot = ComradeLogPrior(target.post)
     return Comrade.inverse(prior_pot.transform, rand(rng, prior_pot.prior))
 end
