@@ -6,7 +6,7 @@ auto_mala(target) =
     pigeons(; 
         target, 
         explorer = AutoMALA(), 
-        n_chains = 1, n_rounds = 10, recorder_builders = Pigeons.online_recorder_builders())
+        n_chains = 1, n_rounds = 10, record = Pigeons.online_recorder_builders())
 
 @testset "Step size convergence" begin
     for t in [toy_mvn_target(1), toy_stan_target(1)]

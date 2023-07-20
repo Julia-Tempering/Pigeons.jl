@@ -46,9 +46,9 @@ function test_two_references_2()
     n_chains = 5
     n_rounds = 15 
     seed = 1
-    pt = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
+    pt = pigeons(; target = Pigeons.TestSwapper(0.5), record = [Pigeons.round_trip], 
                  n_chains = n_chains, n_rounds = n_rounds, seed = seed)
-    pt2 = pigeons(; target = Pigeons.TestSwapper(0.5), recorder_builders = [Pigeons.round_trip], 
+    pt2 = pigeons(; target = Pigeons.TestSwapper(0.5), record = [Pigeons.round_trip], 
                  n_chains = n_chains, n_chains_variational = n_chains, variational = nothing, 
                  n_rounds = n_rounds, seed = seed)
     restarts = n_tempered_restarts(pt)
@@ -101,7 +101,7 @@ end
         variational = GaussianReference(), 
         seed = 1,
         n_rounds = 13,
-        recorder_builders = Pigeons.online_recorder_builders()
+        record = Pigeons.online_recorder_builders()
     )
     pt = pigeons(inputs)
     @test abs(Pigeons.global_barrier_variational(pt.shared.tempering) - 0.0) ≤ 0.05
@@ -113,7 +113,7 @@ end
         n_chains_variational = 5, 
         seed = 1,
         n_rounds = 13,
-        recorder_builders = Pigeons.online_recorder_builders()
+        record = Pigeons.online_recorder_builders()
     )
     pt = pigeons(inputs)
     GCB_fixed = Pigeons.global_barrier(pt.shared.tempering)
@@ -127,7 +127,7 @@ end
         n_chains_variational = 0,
         seed = 1,
         n_rounds = 13, 
-        recorder_builders = Pigeons.online_recorder_builders()
+        record = Pigeons.online_recorder_builders()
     )
     pt = pigeons(inputs)
     @test abs(GCB_fixed - Pigeons.global_barrier(pt.shared.tempering)) ≤ 0.05

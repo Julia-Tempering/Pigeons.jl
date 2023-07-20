@@ -146,7 +146,7 @@ the `traces` `recorder`. We specify which `recorder` to use via the `recorder_bu
 ```@example example
 p = pigeons(
         target = toy_mvn_target(100), 
-        recorder_builders = [traces]);
+        record = [traces]);
 nothing # hide
 ```
 
@@ -165,7 +165,7 @@ As a second example, we show next how to store samples to disk:
 
 ```@example example
 # save both to disk and to memory
-pt = pigeons(target = toy_mvn_target(10), recorder_builders = [traces, disk], checkpoint = true) 
+pt = pigeons(target = toy_mvn_target(10), record = [traces, disk], checkpoint = true) 
 
 # example of how to post-process the samples from disk 
 # this loads the samples one at the time so can be useful if the 
@@ -189,7 +189,7 @@ specify that we wish to collect the full index process:
 ```@example example
 p = pigeons(
         target = toy_mvn_target(1), 
-        recorder_builders = [index_process], 
+        record = [index_process], 
         n_rounds = 5);
 nothing # hide
 ```

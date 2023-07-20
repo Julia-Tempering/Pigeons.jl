@@ -28,7 +28,7 @@ Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::MyReferenceLogP
 
 inputs = Inputs(
     target = MyLogPotential(), 
-    recorder_builders = Pigeons.online_recorder_builders(),
+    record = Pigeons.online_recorder_builders(),
     n_rounds = 15,
     n_chains = 30
 )

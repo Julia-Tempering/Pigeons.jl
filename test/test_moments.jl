@@ -6,7 +6,7 @@
                         target, 
                         n_chains = 2, 
                         variational,
-                        recorder_builders = [Pigeons.online], 
+                        record = [Pigeons.online], 
                         n_rounds = 10);
                 for var_name in Pigeons.continuous_variables(pt)
                     m = mean(pt, var_name)

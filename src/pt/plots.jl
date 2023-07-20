@@ -4,7 +4,7 @@ using Pigeons
 using Plots 
 pt = pigeons(
         target = toy_mvn_target(1), 
-        recorder_builders = [index_process], 
+        record = [index_process], 
         n_rounds = 5)
 plot(pt.reduced_recorders.index_process)
 ```

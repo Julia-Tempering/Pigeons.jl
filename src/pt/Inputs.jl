@@ -38,10 +38,11 @@ $FIELDS
     checkpoint::Bool = false
 
     """
-    An Vector with elements of type 
+    Determine what should be stored from the simulation.
+    A Vector with elements of type 
     [`recorder_builder`](@ref). 
     """
-    recorder_builders::Vector = default_recorder_builders()
+    record::Vector = default_recorder_builders()
 
     """
     The round index where [`run_checks()`](@ref) will 

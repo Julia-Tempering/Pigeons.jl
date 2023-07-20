@@ -46,7 +46,7 @@ end
 
     pt = pigeons(;
             target = Pigeons.blang_eight_schools(), 
-            recorder_builders = [round_trip], n_chains = 2)
+            record = [round_trip], n_chains = 2)
     # NB: 10 chains runs out of memory in CI... reducing number of chains
     n_restarts = n_tempered_restarts(pt)
     global_barrier = Pigeons.global_barrier(pt.shared.tempering)

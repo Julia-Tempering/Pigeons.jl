@@ -22,7 +22,7 @@ Pigeons.create_state_initializer(my_potential::MyLogPotential, ::Inputs) = my_po
 Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
 
 # Perform the sampling
-pt = pigeons(target = MyLogPotential(), recorder_builders = Pigeons.online_recorder_builders())
+pt = pigeons(target = MyLogPotential(), record = Pigeons.online_recorder_builders())
 
 # Example of how to compute mean and variance
 @show mean(pt), var(pt)
