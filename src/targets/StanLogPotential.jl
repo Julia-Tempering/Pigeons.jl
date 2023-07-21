@@ -23,10 +23,18 @@ StanLogPotential(stan_file, data) =
         Immutable(data)
     )
 
-stan_threads_options() = 
-    Threads.nthreads() > 1 ? 
+function stan_threads_options() 
+    multithreaded = Threads.nthreads() > 1
+    if multithreaded && Sys.iswindows() 
+        @warn """StanLogPotential on windows may not support multi-threading. 
+                 See: https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5626405526/job/15247132968 
+                 In this situation, run Julia with one thread as a workaround. 
+              """ maxlog=1
+    end
+    return multithreaded ? 
         ["STAN_THREADS=true"] :
         Vector{String}()
+end
 
 function Serialization.serialize(s::AbstractSerializer, instance::StanLogPotential{M, S, D}) where {M, S, D}
     Serialization.writetag(s.io, Serialization.OBJECT_TAG)
