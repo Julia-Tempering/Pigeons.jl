@@ -15,7 +15,7 @@ include("supporting/mpi_test_utils.jl")
                 n_rounds = 10,
                 explorer, 
                 checked_round = 3, 
-                record = recorder_builders,
+                record,
                 checkpoint = true, 
                 on = ChildProcess(
                         n_local_mpi_processes = n_mpis,
@@ -31,7 +31,7 @@ include("supporting/mpi_test_utils.jl")
             n_rounds = 4,
             checked_round = 3, 
             multithreaded = true,
-            record = recorder_builders,
+            record,
             checkpoint = true, 
             on = ChildProcess(
                     dependencies = [Distributions, DynamicPPL, LinearAlgebra, joinpath(@__DIR__, "supporting/turing_models.jl")],
@@ -47,7 +47,7 @@ include("supporting/mpi_test_utils.jl")
             target = Pigeons.blang_ising(), 
             n_rounds = 10,
             checked_round = 3, 
-            record = recorder_builders, 
+            record, 
             multithreaded = true, 
             checkpoint = true, 
             on = ChildProcess(
