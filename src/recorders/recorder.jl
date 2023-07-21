@@ -189,9 +189,11 @@ function Base.empty!(x::GroupBy)
 end
 
 function Base.empty!(o::CovMatrix{T}) where {T} 
-    o.b = zeros(T, p)
-    o.A = zeros(T, p, p)
-    o.value = zeros(T, p, p) 
+    o.n = zero(o.n)
+    z   = zero(T)
+    fill!(o.b, z)
+    fill!(o.A, z)
+    fill!(o.value, z) 
     return o
 end
 
