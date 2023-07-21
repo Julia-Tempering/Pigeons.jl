@@ -18,12 +18,12 @@ See `BridgeStan` for details.
 """
 StanLogPotential(stan_file, data) = 
     StanLogPotential(
-        BridgeStan.StanModel(; stan_file, data, make_args = stan_thread_options()), 
+        BridgeStan.StanModel(; stan_file, data, make_args = stan_threads_options()), 
         stan_file, 
         Immutable(data)
     )
 
-stan_thread_options() = 
+stan_threads_options() = 
     Threads.nthreads() > 1 ? 
         ["STAN_THREADS=true"] :
         Vector{String}()
