@@ -77,7 +77,14 @@ function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int6
 end
 
 default_reference(target::StanLogPotential) = 
-    target # set reference = target for first few tuning rounds
+    overdispersed(LogDensityProblems.dimension(target))
+
+function overdispersed(dim, order_of_magnitude = 3) 
+    std_deviation = 10^order_of_magnitude
+    precision = 1.0/std_deviation^2 
+    return ScaledPrecisionNormalLogPotential(precision, dim)
+end
+    
 
 function sample_iid!(log_potential::StanLogPotential, replica, shared) 
     # it doesn't seem possible to obtain iid samples from the prior with BridgeStan 

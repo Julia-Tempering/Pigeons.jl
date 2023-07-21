@@ -19,3 +19,6 @@ Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::ScaledPrecision
     for i in eachindex(x)
         x[i] = randn(rng) / sqrt(log_potential.precision)
     end
+
+Random.rand!(rng::SplittableRandom, state::Pigeons.StanState{Vector{Float64}}, log_potential::Pigeons.ScaledPrecisionNormalLogPotential) = 
+    rand!(rng, state.x, log_potential)
