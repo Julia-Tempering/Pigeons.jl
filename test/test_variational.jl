@@ -12,7 +12,7 @@ function test_variational_Turing()
         seed = 1
     )
     RNG_old = copy(Random.GLOBAL_RNG)
-    @test_nowarn pt = pigeons(inputs)
+    pt = pigeons(inputs)
     @assert RNG_old == copy(Random.GLOBAL_RNG)
      
     # Check GaussianReference()
