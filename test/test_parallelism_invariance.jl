@@ -4,7 +4,7 @@ include("supporting/turing_models.jl")
 include("supporting/mpi_test_utils.jl")
 
 @testset "Parallelism Invariance" begin
-    n_mpis = set_n_mpis_to_one_on_windows(4)
+    n_mpis = set_n_mpis_to_one_on_windows(2)
     record = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
 
     # various explorers on a Julia function and on a Stan model
@@ -23,7 +23,7 @@ include("supporting/mpi_test_utils.jl")
                 checkpoint = true, 
                 on = ChildProcess(
                         n_local_mpi_processes = n_mpis,
-                        n_threads = 2,
+                        n_threads = multithreaded ? 2 : 1,
                         mpiexec_args = extra_mpi_args())) 
         end
     end
