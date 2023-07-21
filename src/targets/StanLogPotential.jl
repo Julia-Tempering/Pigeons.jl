@@ -18,10 +18,16 @@ See `BridgeStan` for details.
 """
 StanLogPotential(stan_file, data) = 
     StanLogPotential(
-        BridgeStan.StanModel(; stan_file, data), 
+        BridgeStan.StanModel(; stan_file, data, make_args = stan_thread_options()), 
         stan_file, 
         Immutable(data)
     )
+
+stan_thread_options() = 
+    Threads.nthreads() > 1 ? 
+        ["STAN_THREADS=true"] :
+        Vector{String}()
+
 function Serialization.serialize(s::AbstractSerializer, instance::StanLogPotential{M, S, D}) where {M, S, D}
     Serialization.writetag(s.io, Serialization.OBJECT_TAG)
     Serialization.serialize(s, StanLogPotential{M, S, D})

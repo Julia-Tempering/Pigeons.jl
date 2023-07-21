@@ -10,6 +10,7 @@ include("supporting/mpi_test_utils.jl")
     # various explorers on a Julia function and on a Stan model
     for explorer in [SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA())]
         for target in [toy_mvn_target(1), toy_stan_target(1)]
+            @show explorer, target
             pigeons(;
                 target, 
                 n_rounds = 10,
