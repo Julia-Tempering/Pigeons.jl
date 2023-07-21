@@ -4,6 +4,9 @@ function preflight_checks(pt)
     # if (pt.inputs.n_chains_variational == 0)
     #     @assert isa(pt.inputs.variational, Nothing)
     # end
+    if Threads.nthreads() > 1 && !pt.inputs.multithreaded 
+        @warn "More than one threads are available, but explore!() loop is not parallelized as pt.inputs.multithreaded == false"
+    end
     if pt.inputs.checked_round > 0 && !pt.inputs.checkpoint
         throw(ArgumentError("activate checkpoint when performing checks"))
     end

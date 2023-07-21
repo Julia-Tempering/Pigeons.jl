@@ -106,7 +106,7 @@ function slice_double(h::SliceSampler, replica, z, pointer, log_potential)
     rng = replica.rng
     state = replica.state
     old_position = pointer[] # store old position while avoiding memory allocation
-    L, R = initialize_slice_endpoints(h.w, pointer, rng, typeof(pointer[])) # dispatch on either float or int
+    L, R = initialize_slice_endpoints(h.w, pointer, rng) # dispatch on either float or int
     K = h.p
     
     pointer[] = L
@@ -133,13 +133,13 @@ function slice_double(h::SliceSampler, replica, z, pointer, log_potential)
     return (L, R, potent_L, potent_R)
 end
 
-function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: AbstractFloat
+function initialize_slice_endpoints(width, pointer::Ref{T}, rng) where T <: AbstractFloat
     L = pointer[] - width * rand(rng)
     R = L + width
     return (L, R)
 end
 
-function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: Integer
+function initialize_slice_endpoints(width, pointer::Ref{T}, rng) where T <: Integer
     width = convert(T, ceil(width))
     L = pointer[] - rand(rng, 0:width)
     R = L + width 
