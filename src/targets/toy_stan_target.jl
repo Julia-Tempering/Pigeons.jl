@@ -25,7 +25,7 @@ stan_funnel(dim = 9) =
 
 observed_range_squared(x) = (maximum(x) - minimum(x))^2
 
-function stan_galaxy(K = 3, y = galaxy_data(), alpha_0 = 0.01, 
+function stan_galaxy(;K = 3, y = galaxy_data(), alpha_0 = 0.01, 
         b_0 = median(y),  # empirical prior proposed in Richardson and Green (1997)
         B_0 = observed_range_squared(y),
         c_0 = 2, # Escobar and West (1995), Phillips and Smith (1996) and Richardson and Green (1997)
