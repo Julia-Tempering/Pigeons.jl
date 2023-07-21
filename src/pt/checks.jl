@@ -1,9 +1,4 @@
 function preflight_checks(pt)
-    # TODO: modify those checks after modifying to support single chain mode
-    # @assert (pt.inputs.n_chains ≥ 0) && (pt.inputs.n_chains_variational ≥ 0) && (pt.inputs.n_chains + pt.inputs.n_chains_variational ≥ 2)
-    # if (pt.inputs.n_chains_variational == 0)
-    #     @assert isa(pt.inputs.variational, Nothing)
-    # end
     if Threads.nthreads() > 1 && !pt.inputs.multithreaded 
         @warn "More than one threads are available, but explore!() loop is not parallelized as pt.inputs.multithreaded == false"
     end

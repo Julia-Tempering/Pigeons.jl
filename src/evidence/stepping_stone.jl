@@ -32,6 +32,11 @@ end
 
 stepping_stone_keys(::PT, log_sum_ratios, ::NonReversiblePT) = keys(log_sum_ratios)
 function stepping_stone_keys(pt::PT, log_sum_ratios, ::VariationalPT)
+    # use only the variational leg for 2-legs PT 
+    # rationale: for should give lower error for given compute since 
+    #            it the KL should be lower between target and variational 
+    # Note: we rely on the variational leg being in increasing order 
+    #       (the roles of 2 legs were swapped on 2023/07/20)
     indexer = pt.shared.tempering.indexer 
     variational_indices = Set(variational_leg_indices(indexer))
     result = Vector{Tuple{Int, Int}}()
