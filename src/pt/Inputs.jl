@@ -16,19 +16,28 @@ $FIELDS
     """ The number of rounds to run. """
     n_rounds::Int = 10
 
-    """ The number of chains to use for the fixed reference leg. """
+    """ The number of chains to use (but see also `n_chains_variational`). """
     n_chains::Int = 10
 
-    """ The number of chains to use for the variational reference leg. """
+    """ 
+    The number of chains to use for an additional variational reference leg. 
+    Set to zero to disable (default). 
+
+    Variational inference can also be performed using a single leg, however 
+    the two-leg version is more stable: see https://arxiv.org/abs/2206.00080
+    """
     n_chains_variational::Int = 0
 
-    """ The fixed reference family, or if nothing, 
-    will use [`default_reference()`](@ref) to 
+    """ The reference distribution (e.g. a prior), or if nothing and a 
+    fixed reference is needed (i.e. variational inference is disabled or 
+    two-legged variational inference is used), then
+    [`default_reference()`](@ref) will be called to 
     automatically determine the reference based on the 
     type of the target.  """
     reference::R = nothing
     
-    """ The variational reference family. """
+    """ The variational reference family, or nothing to disable 
+    variational inference. """
     variational::V = nothing
 
     """ 

@@ -16,8 +16,7 @@ struct MyLogPotential end
 # Instruct to use a normal reference
 Pigeons.default_reference(::MyLogPotential) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
 
-# Instruct how to create fresh state objects (using again MyLogPotential as a dummy type for dispatch on 
-# the informal interface 'state_initializer')
+# Instruct how to create fresh state objects
 Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
 
 # Perform the sampling

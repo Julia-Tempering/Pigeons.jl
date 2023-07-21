@@ -58,8 +58,8 @@ end
 $SIGNATURES
 Create [`replicas`](@ref), detecting automatically if MPI is needed. 
 
-Argument `source` is either a [`state_initializer`](@ref) to create 
-fresh [`replicas`](@ref), or [`FromCheckpoint`](@ref) to load from 
+Argument `source` is either nothing, when creating new states, 
+or [`FromCheckpoint`](@ref) to load from 
 a saved checkpoint.
 """
 @provides replicas create_replicas(inputs::Inputs, shared::Shared, source = nothing) = 
@@ -70,7 +70,6 @@ a saved checkpoint.
 """
 $SIGNATURES
 Create [`replicas`](@ref) when distributed computing is not needed. 
-See also [`state_initializer`](@ref).
 
 See [`create_replicas`](@ref).
 """
