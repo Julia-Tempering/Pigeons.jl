@@ -53,12 +53,12 @@ end
 
 function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators, variational, state)
     indexer = tempering.indexer
-    fixed_leg = adapt_tempering(
-        tempering.fixed_leg, reduced_recorders, iterators, 
-        nothing, state, fixed_leg_indices(indexer)[1:(end-1)])
     variational_leg = adapt_tempering(
         tempering.variational_leg, reduced_recorders, iterators, 
-        variational, state, variational_leg_indices(indexer)[2:end])
+        variational, state, variational_leg_indices(indexer)[1:(end-1)])
+    fixed_leg = adapt_tempering(
+        tempering.fixed_leg, reduced_recorders, iterators, 
+        nothing, state, fixed_leg_indices(indexer)[2:end]) # we rely here on fixed_leg_indices giving the entries in decreasing order 
     log_potentials = concatenate_log_potentials(fixed_leg, variational_leg)
     return VariationalPT(fixed_leg, variational_leg, tempering.swap_graphs, log_potentials, tempering.indexer)
 end
@@ -106,13 +106,13 @@ function create_replica_indexer(n_chains_fixed::Int, n_chains_var::Int)
     return Indexer(i2t)
 end
 
-# global indices, sorted from reference to target
+# global indices, sorted from target to ref
 fixed_leg_indices(indexer) = 
-    findall(x->x[2] == :fixed, indexer.i2t)
+    reverse(findall(x->x[2] == :fixed, indexer.i2t))
 
-# global indices, sorted from reference to target 
+# global indices, sorted from ref (1) to target (n_chains_var) 
 variational_leg_indices(indexer) = 
-    reverse(findall(x->x[2] == :variational, indexer.i2t))
+    findall(x->x[2] == :variational, indexer.i2t)
 
 global_barrier(tempering::VariationalPT) = tempering.fixed_leg.communication_barriers.globalbarrier
 
