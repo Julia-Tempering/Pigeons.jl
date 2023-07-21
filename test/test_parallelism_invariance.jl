@@ -14,7 +14,8 @@ include("supporting/mpi_test_utils.jl")
                 target, 
                 n_rounds = 10,
                 explorer, 
-                checked_round = 3, 
+                checked_round = 3,
+                multithreaded = true, 
                 record,
                 checkpoint = true, 
                 on = ChildProcess(

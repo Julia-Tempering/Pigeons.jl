@@ -4,6 +4,7 @@ include("supporting/lazy.jl")
     pigeons(target = Pigeons.LazyTarget(MyTargetFlag()))
     r = pigeons(target = Pigeons.LazyTarget(MyTargetFlag()), 
                     checkpoint = true,
+                    multithreaded = true,
                     on = ChildProcess(
                             n_local_mpi_processes = 2, 
                             n_threads = 2,

@@ -35,6 +35,7 @@ end
         r = pigeons(; 
                 target, 
                 record = [traces, disk, online], 
+                multithreaded = true,
                 checkpoint = true, 
                 on = ChildProcess(n_local_mpi_processes = 2, n_threads = 2))
         pt = load(r)        

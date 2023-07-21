@@ -7,7 +7,7 @@ include("supporting/mpi_test_utils.jl")
         n_rounds = 14,
         checked_round = 12,
         n_chains = 200,
-        multithreaded = false,
+        multithreaded = true,
         record = [],
         checkpoint = true,
         on = ChildProcess(
