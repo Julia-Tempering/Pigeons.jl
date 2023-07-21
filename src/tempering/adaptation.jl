@@ -39,9 +39,6 @@ optimal_schedule(intensity_or_recorders, old_schedule::Schedule) =
         n_chains(old_schedule)
     )
 
-
-
-
 """
 $SIGNATURES
 
@@ -83,6 +80,7 @@ function optimal_schedule_generator(intensity::AbstractVector, old_schedule::Abs
     x = x ./ norm 
     if length(unique(x)) != length(x) # some intensities are zero or so low they underflow after normalization
         @assert !nudged # avoid infinity loop
+        println("nudged!")
         return optimal_schedule_generator(intensity .+ 1e-6, old_schedule, true)
     end
     return Interpolations.interpolate(x, y, FritschCarlsonMonotonicInterpolation()) 
@@ -92,7 +90,8 @@ function optimal_schedule(intensity::AbstractVector, old_schedule::AbstractVecto
     generator = optimal_schedule_generator(intensity, old_schedule)
     step_size = 1.0 / (new_schedule_n_chains - 1)
     uniform_grid = step_size:step_size:(1.0-step_size)
-    return [0.0; generator.(uniform_grid); 1.0]
+    @show schedule = [0.0; generator.(uniform_grid); 1.0]
+    return schedule
 end
 
 communication_barriers(reduced_recorders, schedule::Schedule, chain_indices::AbstractVector) =
@@ -103,11 +102,9 @@ communication_barriers(reduced_recorders, schedule::Schedule, chain_indices::Abs
         schedule.grids
     )
 
-function rejections(reduced_recorders, n_chains::Int)
-    accept_recorder = reduced_recorders.swap_acceptance_pr
-    max_index = n_chains - 1
-                        # we use defaults since in the first round, not all swaps are attempted, use 0.5 for missing entries
-    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in 1:max_index] 
+function rejections(reduced_recorders, n_chains::Int) 
+    println("hell")
+    return rejections(key_subset, 1:(n_chains-1))
 end
 
 """ Similar to above except that instead of the number of chains, 
@@ -115,5 +112,7 @@ provide the full vector of chain indices.
 Note that `chain_indices` starts at the reference and ends at the chain *one before* the target. """
 function rejections(reduced_recorders, chain_indices::AbstractVector) 
     accept_recorder = reduced_recorders.swap_acceptance_pr
-    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices[1:end]]
+    rejections = [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices]
+    @show rejections
+    return rejections
 end

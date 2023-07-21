@@ -8,12 +8,12 @@ Assumptions (A1-2) in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/do
 other, for ``1/Z``. 
 Both are consistent in the number of MCMC iterations without these strong assumptions. 
 """
-stepping_stone_pair(pt::PT) = stepping_stone_pair(pt.reduced_recorders.log_sum_ratio)
-
-function stepping_stone_pair(log_sum_ratios::GroupBy)
+function stepping_stone_pair(pt::PT)
+    log_sum_ratios = pt.reduced_recorders.log_sum_ratio
+    key_subset = stepping_stone_keys(pt, log_sum_ratios, pt.shared.tempering)
     estimator1 = 0.0
     estimator2 = 0.0
-    for (i, j) in keys(log_sum_ratios)
+    for (i, j) in key_subset
         log_sum_ratio = log_sum_ratios[(i, j)]
         current = value(log_sum_ratio) - log(log_sum_ratio.n)
         if i < j 
@@ -25,9 +25,20 @@ function stepping_stone_pair(log_sum_ratios::GroupBy)
     return (estimator1, -estimator2) 
 end
 
-function stepping_stone(pt::PT, ::NonReversiblePT)
-    pair = stepping_stone_pair(pt) 
-    return (pair[1] + pair[2]) / 2.0
+function stepping_stone(pt::PT)
+    p = stepping_stone_pair(pt)
+    return (p[1] + p[2])/2.0
 end
 
-stepping_stone(pt::PT, ::VariationalPT) = error() # todo
+stepping_stone_keys(::PT, log_sum_ratios, ::NonReversiblePT) = keys(log_sum_ratios)
+function stepping_stone_keys(pt::PT, log_sum_ratios, ::VariationalPT)
+    indexer = pt.shared.tempering.indexer 
+    variational_indices = Set(variational_leg_indices(indexer))
+    result = Array{Tuple{Int, Int}}()
+    for (i, j) in keys(log_sum_ratios)
+        if i in variational_indices && j in variational_indices 
+            push!(result, (i, j))
+        end
+    end
+    return result
+end

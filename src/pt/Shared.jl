@@ -24,16 +24,6 @@ Only one instance maintained per process.
     See [`explorer`](@ref).
     """
     explorer
-
-    """
-    See [`variational`](@ref).
-    """
-    variational
-
-    """
-    See [`Indexer`](@ref).
-    """
-    indexer
 end
 
 """
@@ -45,8 +35,6 @@ function Shared(inputs)
     iterators = Iterators() 
     tempering = create_tempering(inputs)
     explorer = create_explorer(inputs) 
-    variational = create_variational(inputs)
-    indexer = create_replica_indexer(tempering)
-    return Shared(iterators, tempering, explorer, variational, indexer)
+    return Shared(iterators, tempering, explorer)
 end
 

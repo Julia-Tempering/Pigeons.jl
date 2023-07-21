@@ -3,8 +3,11 @@ Parallel tempering with a variational reference described in
 [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080).
 This is an implementation of the *stabilized* version that includes
 *both* a variational and a fixed reference distribution.
+
+Fields:
+$FIELDS
 """
-struct VariationalPT
+@auto struct VariationalPT
     """ 
     The fixed leg of stabilized PT. 
     Contains a [`path`](@ref), [`Schedule`](@ref), [`log_potentials`](@ref), 
@@ -16,11 +19,14 @@ struct VariationalPT
     """ The variational leg of stabilized PT. """
     variational_leg::NonReversiblePT
     
-    """ The [`swap_graphs`](@ref). """
+    """ A [`swap_graphs`](@ref) spanning both legs. """
     swap_graphs
 
     """ The [`log_potentials`](@ref). """
     log_potentials
+
+    """ An [`Indexer`](@ref) mapping between global indices and leg-specific indices. """
+    indexer
 end
 
 
@@ -40,32 +46,33 @@ function VariationalPT(inputs::Inputs)
     initial_schedule_var = equally_spaced_schedule(n_var)
     variational_leg = NonReversiblePT(path_var, initial_schedule_var, nothing)
     swap_graphs = variational_deo(n_fixed, n_var)
-    log_potentials = concatenate_log_potentials(fixed_leg, variational_leg, Val(:VariationalPT))
-    return VariationalPT(fixed_leg, variational_leg, swap_graphs, log_potentials)
+    log_potentials = concatenate_log_potentials(fixed_leg, variational_leg)
+    indexer = create_replica_indexer(n_fixed, n_var)
+    return VariationalPT(fixed_leg, variational_leg, swap_graphs, log_potentials, indexer)
 end
 
 function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators, variational, state)
-    indexer = create_replica_indexer(tempering)
+    indexer = tempering.indexer
     fixed_leg = adapt_tempering(
         tempering.fixed_leg, reduced_recorders, iterators, 
-        nothing, state, fixed_leg_indices(indexer, tempering)[1:(end-1)])
+        nothing, state, fixed_leg_indices(indexer)[1:(end-1)])
     variational_leg = adapt_tempering(
         tempering.variational_leg, reduced_recorders, iterators, 
-        variational, state, variational_leg_indices(indexer, tempering)[2:end])
-    log_potentials = concatenate_log_potentials(fixed_leg, variational_leg, Val(:VariationalPT))
-    return VariationalPT(fixed_leg, variational_leg, tempering.swap_graphs, log_potentials)
+        variational, state, variational_leg_indices(indexer)[2:end])
+    log_potentials = concatenate_log_potentials(fixed_leg, variational_leg)
+    return VariationalPT(fixed_leg, variational_leg, tempering.swap_graphs, log_potentials, tempering.indexer)
 end
 
-function concatenate_log_potentials(fixed_leg::NonReversiblePT, variational_leg::NonReversiblePT, ::Val{:VariationalPT})
-    return vcat(fixed_leg.log_potentials, reverse(variational_leg.log_potentials))
+function concatenate_log_potentials(fixed_leg::NonReversiblePT, variational_leg::NonReversiblePT)
+    return vcat(variational_leg.log_potentials, reverse(fixed_leg.log_potentials))
 end
 
-tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr, log_sum_ratio]
+tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr]
 
 create_pair_swapper(tempering::VariationalPT, target) = tempering.log_potentials
 
 function find_log_potential(replica, tempering::VariationalPT, shared)
-    tup = shared.indexer.i2t[replica.chain]
+    tup = tempering.indexer.i2t[replica.chain]
     if tup.leg == :fixed 
         return tempering.fixed_leg.log_potentials[tup.chain]
     elseif tup.leg == :variational 
@@ -80,28 +87,32 @@ Given a chain number, return a tuple indicating the relative chain number
 within a leg of PT and the leg in which it is located. 
 Given a tuple, return the global chain number.
 """
-function create_replica_indexer(tempering::VariationalPT)
-    n_chains_fixed = n_chains(tempering.fixed_leg)
-    n_chains_var = n_chains(tempering.variational_leg)
+function create_replica_indexer(n_chains_fixed::Int, n_chains_var::Int)
     n = n_chains_fixed + n_chains_var
-    i2t = Vector{Any}(undef, n)
+    i2t = Vector{NamedTuple{(:chain, :leg), Tuple{Int64, Symbol}}}(undef, n)
     for i in 1:n
+        # Note: 2023/07/20: changed order to have variational first (as depicted below)
+        #                   to simplify log(Z) code for 2-legged
+
+        # <--- variational ---->    <----- fixed ------>
         # reference ----- target -- target ---- reference 
         #     1     -----   N    -- N + 1  ----    2N
-        if i ≤ n_chains_fixed 
-            i2t[i] = (chain = i, leg = :fixed)
+        if i ≤ n_chains_var 
+            i2t[i] = (chain = i, leg = :variational)
         else 
-            i2t[i] = (chain = n_chains_var - (i - n_chains_fixed) + 1, leg = :variational)
+            i2t[i] = (chain = n_chains_fixed - (i - n_chains_var) + 1, leg = :fixed)
         end
     end
     return Indexer(i2t)
 end
 
-fixed_leg_indices(replica_indexer, tempering::VariationalPT) = 
-    findall(x->x[2] == :fixed, replica_indexer.i2t)
+# global indices, sorted from reference to target
+fixed_leg_indices(indexer) = 
+    findall(x->x[2] == :fixed, indexer.i2t)
 
-variational_leg_indices(replica_indexer, tempering::VariationalPT) = 
-    reverse(findall(x->x[2] == :variational, replica_indexer.i2t))
+# global indices, sorted from reference to target 
+variational_leg_indices(indexer) = 
+    reverse(findall(x->x[2] == :variational, indexer.i2t))
 
 global_barrier(tempering::VariationalPT) = tempering.fixed_leg.communication_barriers.globalbarrier
 

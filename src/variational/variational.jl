@@ -39,4 +39,3 @@ function update_path_variational(path, reduced_recorders, variational, state)
     return path
 end
 
-create_variational(inputs) = inputs.variational

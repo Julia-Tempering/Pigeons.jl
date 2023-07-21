@@ -65,7 +65,7 @@ function adapt_tempering(tempering::NonReversiblePT, reduced_recorders, iterator
     )
 end
 
-tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr, log_sum_ratio]
+tempering_recorder_builders(::NonReversiblePT) = [swap_acceptance_pr]
 find_log_potential(replica, tempering::NonReversiblePT, shared) = tempering.log_potentials[replica.chain]
 n_chains(tempering::NonReversiblePT) = n_chains(tempering.schedule)
 global_barrier(tempering::NonReversiblePT) = tempering.communication_barriers.globalbarrier
