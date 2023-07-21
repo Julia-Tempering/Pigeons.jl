@@ -34,7 +34,7 @@ stepping_stone_keys(::PT, log_sum_ratios, ::NonReversiblePT) = keys(log_sum_rati
 function stepping_stone_keys(pt::PT, log_sum_ratios, ::VariationalPT)
     indexer = pt.shared.tempering.indexer 
     variational_indices = Set(variational_leg_indices(indexer))
-    result = Array{Tuple{Int, Int}}()
+    result = Vector{Tuple{Int, Int}}()
     for (i, j) in keys(log_sum_ratios)
         if i in variational_indices && j in variational_indices 
             push!(result, (i, j))
