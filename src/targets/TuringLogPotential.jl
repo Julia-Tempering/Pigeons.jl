@@ -28,7 +28,6 @@ Given a `DynamicPPL.Model` from Turing.jl, create a
 @provides target TuringLogPotential(model::DynamicPPL.Model) = 
     TuringLogPotential(model, false)
 
-create_state_initializer(target::TuringLogPotential, ::Inputs) = target  
 function initialization(target::TuringLogPotential, rng::SplittableRandom, _::Int64)
     result = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
     DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
@@ -40,7 +39,7 @@ initialization(target::TuringLogPotential) = initialization(target, SplittableRa
 # so use the SliceSampler.
 default_explorer(::TuringLogPotential) = SliceSampler()
 
-create_reference_log_potential(target::TuringLogPotential, ::Inputs) = 
+default_reference(target::TuringLogPotential) = 
     TuringLogPotential(target.model, true)
 
 function sample_iid!(log_potential::TuringLogPotential, replica, shared) 

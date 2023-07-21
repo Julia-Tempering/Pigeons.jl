@@ -48,7 +48,7 @@ md"""
 # ╔═╡ 13c7307f-3556-4241-af19-2391dbbdfe08
 pt = pigeons(;
 	target = toy_mvn_target(dim), 
-	recorder_builders = [index_process; Pigeons.online_recorder_builders()], 
+	record = [index_process; record_online()], 
 	n_rounds = 7, 
 	n_chains);
 

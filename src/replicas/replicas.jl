@@ -46,25 +46,6 @@ communicator(replicas::Vector) = nothing
 entangler(replicas::Vector) = Entangler(length(replicas); parent_communicator = nothing, verbose = false)
 
 """
-Determine how to initialize the states in the replicas. 
-Implementations include `Ref(my_state)`, to signal all replicas will 
-be initalized to `my_state`, or a `Vector(...)` for chain-specific 
-initializations. 
-"""
-@informal state_initializer begin 
-    """
-    $SIGNATURES
-    Determine [`state_initializer`](@ref)'s initialization for the given `replica_index`.
-    """
-    initialization(state_initializer, rng::SplittableRandom, replica_index::Int) = @abstract
-end
-# ... initialize all to exactly the same state (warning: not suitable for in-place changes)
-initialization(state_initializer::Ref, ::SplittableRandom, ::Int) = state_initializer[]
-# ... initialize to a value specific to each chain (warning: not suitable for in-place changes)
-initialization(state_initializer::AbstractVector, ::SplittableRandom, replica_index::Int) = state_initializer[replica_index]
-
-# Closely related but distinct to a state_initializer:
-"""
 Flag [`create_replicas`](@ref) (and related functions) that replicas 
 should be loaded from a checkpoint. Fields:
 $FIELDS
@@ -77,11 +58,11 @@ end
 $SIGNATURES
 Create [`replicas`](@ref), detecting automatically if MPI is needed. 
 
-Argument `source` is either a [`state_initializer`](@ref) to create 
-fresh [`replicas`](@ref), or [`FromCheckpoint`](@ref) to load from 
+Argument `source` is either nothing, when creating new states, 
+or [`FromCheckpoint`](@ref) to load from 
 a saved checkpoint.
 """
-@provides replicas create_replicas(inputs::Inputs, shared::Shared, source) = 
+@provides replicas create_replicas(inputs::Inputs, shared::Shared, source = nothing) = 
     mpi_active() ? 
         create_entangled_replicas(inputs, shared, source) :
         create_vector_replicas(inputs, shared, source)
@@ -89,7 +70,6 @@ a saved checkpoint.
 """
 $SIGNATURES
 Create [`replicas`](@ref) when distributed computing is not needed. 
-See also [`state_initializer`](@ref).
 
 See [`create_replicas`](@ref).
 """
@@ -104,10 +84,10 @@ function _create_locals(my_global_indices, ::Inputs, ::Shared, source::FromCheck
     return [deserialize("$(source.checkpoint_folder)/replica=$global_index.jls") for global_index in my_global_indices]
 end
 
-function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, state_initializer)
+function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, ::Nothing)
     master_rng = SplittableRandom(inputs.seed)
     split_rngs = split_slice(my_global_indices, master_rng)
-    states = [initialization(state_initializer, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
+    states = [initialization(inputs.target, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
     recorders = [create_recorders(inputs, shared) for i in eachindex(split_rngs)]
     return Replica.(
                 states, 

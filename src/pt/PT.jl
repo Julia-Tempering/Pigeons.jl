@@ -45,8 +45,7 @@ if not one will be created via [`next_exec_folder()`](@ref).
 """
 function PT(inputs::Inputs; exec_folder = use_auto_exec_folder)
     shared = Shared(inputs)
-    state_init = create_state_initializer(inputs.target, inputs)
-    replicas = create_replicas(inputs, shared, state_init)
+    replicas = create_replicas(inputs, shared)
     exec_folder = pt_exec_folder(inputs.checkpoint, exec_folder)
     return PT(inputs, replicas, shared, exec_folder, create_recorders(inputs, shared))
 end

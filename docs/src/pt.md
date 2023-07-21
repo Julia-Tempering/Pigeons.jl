@@ -145,7 +145,7 @@ to save the full index process, use:
 ```@example recorders
 using Pigeons
 
-pt = pigeons(target = toy_mvn_target(1), recorder_builders = [index_process]);
+pt = pigeons(target = toy_mvn_target(1), record = [index_process]);
 nothing # hide
 ```
 You can then access the index process via 

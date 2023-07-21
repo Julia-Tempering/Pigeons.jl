@@ -5,7 +5,7 @@ include("supporting/mpi_test_utils.jl")
 
 @testset "Parallelism Invariance" begin
     n_mpis = set_n_mpis_to_one_on_windows(4)
-    recorder_builders = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
+    record = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
 
     # various explorers on a Julia function and on a Stan model
     for explorer in [SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA())]
@@ -15,7 +15,7 @@ include("supporting/mpi_test_utils.jl")
                 n_rounds = 10,
                 explorer, 
                 checked_round = 3, 
-                recorder_builders = recorder_builders,
+                record,
                 checkpoint = true, 
                 on = ChildProcess(
                         n_local_mpi_processes = n_mpis,
@@ -26,12 +26,12 @@ include("supporting/mpi_test_utils.jl")
 
     # Turing:
     for model in [flip_model_unidentifiable(), flip_mixture()]
-        pigeons(
+        pigeons(;
             target = TuringLogPotential(model), 
             n_rounds = 4,
             checked_round = 3, 
             multithreaded = true,
-            recorder_builders = recorder_builders,
+            record,
             checkpoint = true, 
             on = ChildProcess(
                     dependencies = [Distributions, DynamicPPL, LinearAlgebra, joinpath(@__DIR__, "supporting/turing_models.jl")],
@@ -47,7 +47,7 @@ include("supporting/mpi_test_utils.jl")
             target = Pigeons.blang_ising(), 
             n_rounds = 10,
             checked_round = 3, 
-            recorder_builders = recorder_builders, 
+            record, 
             multithreaded = true, 
             checkpoint = true, 
             on = ChildProcess(

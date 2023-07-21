@@ -74,7 +74,7 @@ wrap(i, L) =
 (log_potential::IsingLogPotential)(state::IsingState) = log_potential.beta * state.sum_pair_products
 
 # Reference distribution uses beta = 0...
-Pigeons.create_reference_log_potential(log_potential::IsingLogPotential, ::Inputs) = IsingLogPotential(0.0, log_potential.base_length)
+Pigeons.default_reference(log_potential::IsingLogPotential) = IsingLogPotential(0.0, log_potential.base_length)
 # ... so that we can do i.i.d. sampling of Bernoullis at the reference:
 function Pigeons.sample_iid!(reference_log_potential::IsingLogPotential, replica, shared)
     @assert reference_log_potential.beta == 0.0
@@ -82,7 +82,6 @@ function Pigeons.sample_iid!(reference_log_potential::IsingLogPotential, replica
 end
 
 # Initialization: all entries to zeros (falses)
-Pigeons.create_state_initializer(my_potential::IsingLogPotential, ::Inputs) = my_potential
 Pigeons.initialization(log_potential::IsingLogPotential, ::SplittableRandom, ::Int) = IsingState(falses(log_potential.base_length, log_potential.base_length))
 
 # MCMC explorer 

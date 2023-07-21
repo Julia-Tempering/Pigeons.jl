@@ -1,13 +1,11 @@
 function preflight_checks(pt)
-    # TODO: modify those checks after modifying to support single chain mode
-    # @assert (pt.inputs.n_chains ≥ 0) && (pt.inputs.n_chains_var_reference ≥ 0) && (pt.inputs.n_chains + pt.inputs.n_chains_var_reference ≥ 2)
-    # if (pt.inputs.n_chains_var_reference == 0)
-    #     @assert isa(pt.inputs.var_reference, NoVarReference)
-    # end
+    if Threads.nthreads() > 1 && !pt.inputs.multithreaded 
+        @warn "More than one threads are available, but explore!() loop is not parallelized as pt.inputs.multithreaded == false"
+    end
     if pt.inputs.checked_round > 0 && !pt.inputs.checkpoint
         throw(ArgumentError("activate checkpoint when performing checks"))
     end
-    if disk in pt.inputs.recorder_builders && !pt.inputs.checkpoint
+    if disk in pt.inputs.record && !pt.inputs.checkpoint
         throw(ArgumentError("activate checkpoint when using the disk recorder"))
     end
     if pt.inputs.checked_round < 0 || pt.inputs.checked_round > pt.inputs.n_rounds 

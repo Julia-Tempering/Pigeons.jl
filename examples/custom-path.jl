@@ -28,17 +28,16 @@ Pigeons.interpolate(interpolator::MixInterpolator, ref_log_potential, target_log
 
 # Instruct to use the non-standard path we just created
 Pigeons.create_path(target::AnotherLogPotential, inputs::Inputs) = Pigeons.InterpolatingPath(
-    Pigeons.create_reference_log_potential(target, inputs),
+    Pigeons.create_reference_log_potential(inputs),
     target, 
     MixInterpolator())
 
 # rest is the same as general-target
-Pigeons.create_reference_log_potential(::AnotherLogPotential, ::Inputs) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
-Pigeons.create_state_initializer(my_potential::AnotherLogPotential, ::Inputs) = my_potential
+Pigeons.default_reference(::AnotherLogPotential) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
 Pigeons.initialization(::AnotherLogPotential, ::SplittableRandom, ::Int) = [0.0]
 
 # Perform the sampling
-pt = pigeons(target = AnotherLogPotential(), recorder_builders = Pigeons.online_recorder_builders())
+pt = pigeons(target = AnotherLogPotential(), record = record_online())
 
 # Example of how to compute mean and variance
 @show mean(pt), var(pt)

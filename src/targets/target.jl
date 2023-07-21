@@ -6,11 +6,11 @@ The probability distribution of interest.
     """
     $SIGNATURES
 
-    Return a [`state_initializer`](@ref) used to populate 
+    Create a fresh state used to populate 
     the states at the beginning of the first round of 
     Parallel Tempering. 
     """
-    create_state_initializer(target, inputs::Inputs) = @abstract 
+    initialize(target, rng::SplittableRandom, replica_index::Int) = @abstract
 
     """
     $SIGNATURES 
@@ -27,7 +27,7 @@ The probability distribution of interest.
     passed to [`sample_iid!()`](@ref) at the "hot chains" of 
     the Parallel Tempering algorithm. 
     """
-    create_reference_log_potential(target, inputs::Inputs) = @abstract
+    default_reference(target) = @abstract
 
     """
     $SIGNATURES 
@@ -49,9 +49,25 @@ The probability distribution of interest.
     """ 
     create_path(target, inputs::Inputs) =  
         InterpolatingPath(
-            create_reference_log_potential(target, inputs), 
+            create_reference_log_potential(inputs), 
             target)
 end
+
+""" 
+$SIGNATURES 
+
+Given an [`Inputs`](@ref) object, either use `inputs.reference`, 
+of if it is equal to `nothing` dispatch on 
+`default_reference(inputs.target)` to construct the 
+reference [`log_potential`](@ref) associated with the input target distribution.
+"""
+@provides log_potential create_reference_log_potential(inputs) = 
+    if inputs.reference === nothing
+        default_reference(inputs.target) 
+    else
+        inputs.reference 
+    end
+
 
 sample_iid!(reference_log_potential::InterpolatedLogPotential, replica, shared) = 
     if reference_log_potential.beta == 0.0

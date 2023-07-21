@@ -6,7 +6,7 @@ used to create Parallel Tempering algorithms.
 Fields (see source file for default values):
 $FIELDS
 """
-@kwdef mutable struct Inputs{T, V, E}
+@kwdef mutable struct Inputs{T, V, E, R}
     """ The target distribution. """
     target::T
 
@@ -16,14 +16,29 @@ $FIELDS
     """ The number of rounds to run. """
     n_rounds::Int = 10
 
-    """ The number of chains to use for the fixed reference leg. """
+    """ The number of chains to use (but see also `n_chains_variational`). """
     n_chains::Int = 10
 
-    """ The number of chains to use for the variational reference leg. """
-    n_chains_var_reference::Int = 0
+    """ 
+    The number of chains to use for an additional variational reference leg. 
+    Set to zero to disable (default). 
+
+    Variational inference can also be performed using a single leg, however 
+    the two-leg version is more stable: see https://arxiv.org/abs/2206.00080
+    """
+    n_chains_variational::Int = 0
+
+    """ The reference distribution (e.g. a prior), or if nothing and a 
+    fixed reference is needed (i.e. variational inference is disabled or 
+    two-legged variational inference is used), then
+    [`default_reference()`](@ref) will be called to 
+    automatically determine the reference based on the 
+    type of the target.  """
+    reference::R = nothing
     
-    """ The variational reference family. """
-    var_reference::V = NoVarReference()
+    """ The variational reference family, or nothing to disable 
+    variational inference. """
+    variational::V = nothing
 
     """ 
     Whether a checkpoint should be written to disk 
@@ -32,10 +47,11 @@ $FIELDS
     checkpoint::Bool = false
 
     """
-    An Vector with elements of type 
+    Determine what should be stored from the simulation.
+    A Vector with elements of type 
     [`recorder_builder`](@ref). 
     """
-    recorder_builders::Vector = default_recorder_builders()
+    record::Vector = record_default()
 
     """
     The round index where [`run_checks()`](@ref) will 
@@ -74,7 +90,7 @@ end
 """
 Set of recorders with no measurable impact on performance. 
 """
-default_recorder_builders() = [
+record_default() = [
     log_sum_ratio,
     timing_extrema, 
     allocation_extrema
@@ -83,7 +99,7 @@ default_recorder_builders() = [
 """
 Set of constant memory recorders.
 """
-online_recorder_builders() = [
+record_online() = [
     log_sum_ratio,
     timing_extrema, 
     allocation_extrema,
@@ -98,4 +114,4 @@ Extract the number of Parallel Tempering chains from `Inputs`.
 n_chains(inputs::Inputs) = n_chains_fixed(inputs) + n_chains_var(inputs)
 # TODO: generalize once you have "parallel parallel tempering", etc.
 n_chains_fixed(inputs::Inputs) = inputs.n_chains
-n_chains_var(inputs::Inputs) = inputs.n_chains_var_reference
+n_chains_var(inputs::Inputs) = inputs.n_chains_variational

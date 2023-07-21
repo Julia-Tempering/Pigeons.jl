@@ -133,7 +133,9 @@ record_swap_stats!(swapper::TestSwapper, recorder, chain1::Int, stat1, chain2::I
 
 # toy target based on TestSwapper
 
-create_state_initializer(target::TestSwapper, ::Inputs) = Ref(nothing)
+function initialization(target::TestSwapper, ::SplittableRandom, ::Int) 
+    return nothing 
+end
 
 default_explorer(::TestSwapper) = nothing 
     step!(::Nothing, replica, shared) = nothing

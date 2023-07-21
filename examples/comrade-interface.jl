@@ -63,13 +63,12 @@ function (m::ComradeLogPrior)(x)
     return logdensityof(m.prior, y) + lj
 end
 
-Pigeons.create_state_initializer(target::ComradeLogPotential, ::Inputs) = target
-function Pigeons.initialization(target::ComradeLogPotential, rng::Pigeons.SplittableRandom, _::Int64)
+function Pigeons.initialization(target::ComradeLogPotential, rng::Pigeons.SplittableRandom, ::Int64)
     prior_pot = ComradeLogPrior(target.post)
     return Comrade.inverse(prior_pot.transform, rand(rng, prior_pot.prior))
 end
 Pigeons.default_explorer(::ComradeLogPotential) = SliceSampler()
-Pigeons.create_reference_log_potential(target::ComradeLogPotential, ::Inputs) = ComradeLogPrior(target.post)
+Pigeons.default_reference(target::ComradeLogPotential) = ComradeLogPrior(target.post)
 function Pigeons.sample_iid!(target::ComradeLogPrior, replica, shared)
     replica.state = Comrade.inverse(target.transform, rand(replica.rng, target.prior))
 end

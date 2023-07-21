@@ -151,14 +151,12 @@ Call [`adapt_tempering()`](@ref) followed by
 [`adapt_explorer`](@ref).
 """
 function adapt(pt, reduced_recorders)
-    updated_tempering = adapt_tempering(pt.shared.tempering, reduced_recorders, pt.shared.iterators, pt.inputs.var_reference, locals(pt.replicas)[1].state)
+    updated_tempering = adapt_tempering(pt.shared.tempering, reduced_recorders, pt.shared.iterators, pt.inputs.variational, locals(pt.replicas)[1].state)
     updated_explorer = adapt_explorer(pt.shared.explorer, reduced_recorders, pt, updated_tempering)
     updated_shared = Shared(
         pt.shared.iterators, 
         updated_tempering, 
-        updated_explorer,
-        pt.shared.var_reference,
-        pt.shared.indexer)
+        updated_explorer)
     updated_replicas = pt.replicas # TODO: adapt too? e.g. assign to closest from previous, leveraging checkpoints?
     return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder, reduced_recorders)
 end

@@ -3,11 +3,10 @@ struct HetPrecisionNormalLogPotential
 end
 HetPrecisionNormalLogPotential(dim::Int) = HetPrecisionNormalLogPotential(ones(dim))
 
-Pigeons.create_reference_log_potential(
-    target::HetPrecisionNormalLogPotential, ::Inputs) = 
+Pigeons.default_reference(
+    target::HetPrecisionNormalLogPotential) = 
         target
 
-Pigeons.create_state_initializer(my_potential::HetPrecisionNormalLogPotential, ::Inputs) = my_potential
 Pigeons.initialization(target::HetPrecisionNormalLogPotential, ::SplittableRandom, ::Int) = zeros(length(target.precisions))
     
 function Pigeons.sample_iid!(my_potential::HetPrecisionNormalLogPotential, replica)

@@ -70,14 +70,13 @@ function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{St
         propto = false) # note: propto = false to get correct log normalization constants
 end
 
-create_state_initializer(target::StanLogPotential, ::Inputs) = target  
 function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64)
     d_unc = BridgeStan.param_unc_num(target.model) # number of unconstrained parameters 
     init = zeros(d_unc) 
     return StanState(init)
 end
 
-create_reference_log_potential(target::StanLogPotential, ::Inputs) = 
+default_reference(target::StanLogPotential) = 
     target # set reference = target for first few tuning rounds
 
 function sample_iid!(log_potential::StanLogPotential, replica, shared) 

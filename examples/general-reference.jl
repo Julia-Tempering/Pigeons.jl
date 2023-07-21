@@ -11,14 +11,13 @@ struct MyLogPotential end
     -0.5*(x[1] + 100)^2 - 0.5*log(2*pi) + log(0.5), 
     -0.5*(x[1] - 100)^2 - 0.5*log(2*pi) + log(0.5))
 Pigeons.default_explorer(::MyLogPotential) = Pigeons.SliceSampler() 
-Pigeons.create_state_initializer(my_potential::MyLogPotential, ::Inputs) = my_potential
 Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
 
 # create a custom reference
 struct MyReferenceLogPotential end 
 (::MyReferenceLogPotential)(x) = -1/(2*(100^2+1)) * (x[1])^2
 # normal reference with mean 0 and standard deviation sqrt(100^2+1)
-Pigeons.create_reference_log_potential(::MyLogPotential, ::Inputs) = MyReferenceLogPotential()
+Pigeons.default_reference(::MyLogPotential) = MyReferenceLogPotential()
 Pigeons.sample_iid!(log_potential::MyReferenceLogPotential, replica, shared) =
     rand!(replica.rng, replica.state, log_potential)
 Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::MyReferenceLogPotential) =
@@ -28,7 +27,7 @@ Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::MyReferenceLogP
 
 inputs = Inputs(
     target = MyLogPotential(), 
-    recorder_builders = Pigeons.online_recorder_builders(),
+    record = record_online(),
     n_rounds = 15,
     n_chains = 30
 )

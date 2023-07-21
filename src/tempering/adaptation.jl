@@ -39,9 +39,6 @@ optimal_schedule(intensity_or_recorders, old_schedule::Schedule) =
         n_chains(old_schedule)
     )
 
-
-
-
 """
 $SIGNATURES
 
@@ -103,17 +100,13 @@ communication_barriers(reduced_recorders, schedule::Schedule, chain_indices::Abs
         schedule.grids
     )
 
-function rejections(reduced_recorders, n_chains::Int)
-    accept_recorder = reduced_recorders.swap_acceptance_pr
-    max_index = n_chains - 1
-                        # we use defaults since in the first round, not all swaps are attempted, use 0.5 for missing entries
-    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in 1:max_index] 
-end
+rejections(reduced_recorders, n_chains::Int) =
+    rejections(key_subset, 1:(n_chains-1))
 
 """ Similar to above except that instead of the number of chains, 
 provide the full vector of chain indices.
 Note that `chain_indices` starts at the reference and ends at the chain *one before* the target. """
 function rejections(reduced_recorders, chain_indices::AbstractVector) 
     accept_recorder = reduced_recorders.swap_acceptance_pr
-    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices[1:end]]
+    return [1.0 - value_with_default(accept_recorder, (i, i+1), 0.5) for i in chain_indices]
 end

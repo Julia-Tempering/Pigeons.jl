@@ -70,13 +70,13 @@ export pigeons, Inputs, PT,
     toy_mvn_target, toy_stan_target, TuringLogPotential, StanLogPotential,
     # recorders:
     index_process, swap_acceptance_pr, log_sum_ratio, online, round_trip, energy_ac1, traces, disk,
-    online_recorder_builders,
+    record_online, record_default, 
     # utils to run on scheduler:
     Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     # getting information out of an execution:
     stepping_stone_pair, n_tempered_restarts, n_round_trips, process_samples, get_sample,
     # variational references:
-    GaussianReference, NoVarReference, 
+    GaussianReference, 
     # samplers 
     SliceSampler, AutoMALA, Compose
 end # End module

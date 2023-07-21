@@ -70,7 +70,7 @@ function single_chain_pigeons_mvn(D, explorer)
         seed = rand(Int),
         show_report = false,
         explorer, 
-        recorder_builders = [traces],
+        record = [traces],
         trace_type = :log_potential
     )
     vs = get_sample(pt, 1) 

@@ -15,10 +15,10 @@ using MCMCChains
             
             pt = pigeons(; 
                     target, 
-                    recorder_builders = [traces],
+                    record = [traces],
                     n_rounds = 2, 
-                    n_chains_var_reference  = use_two_chains ? 10 : 0,
-                    var_reference = use_two_chains ? GaussianReference() : Pigeons.NoVarReference()
+                    n_chains_variational  = use_two_chains ? 10 : 0,
+                    variational = use_two_chains ? GaussianReference() : nothing
                 )
 
             mtx = Pigeons.sample_matrix(pt) 
@@ -34,7 +34,7 @@ end
     for target in [toy_mvn_target(10), toy_stan_target(10), Pigeons.toy_turing_target(10)]
         r = pigeons(; 
                 target, 
-                recorder_builders = [traces, disk, online], 
+                record = [traces, disk, online], 
                 checkpoint = true, 
                 on = ChildProcess(n_local_mpi_processes = 2, n_threads = 2))
         pt = load(r)        
