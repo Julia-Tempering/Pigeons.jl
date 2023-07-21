@@ -3,9 +3,8 @@ For some reason, the Conda/PyCall stuff does not work on
 Sockeye, so doing it locally and serializing it.
 =#
 
-using Pkg
-Pkg.activate(".")
-const example_dir = @__DIR__
+using Pigeons
+const example_dir = abspath(dirname(dirname(pathof(Pigeons))) * "/examples")
 
 using Comrade
 using Serialization

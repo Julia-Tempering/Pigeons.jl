@@ -1,10 +1,3 @@
-using Pkg
-const example_dir = @__DIR__
-Pkg.activate(example_dir)
-project_root_dir = dirname(example_dir)
-Pkg.develop(PackageSpec(path=project_root_dir)) # make sure using the version of Pigeons in this repo
-
-
 using Comrade
 using Distributions
 using Pigeons
@@ -14,6 +7,8 @@ using LogDensityProblems
 using VLBIImagePriors
 using LinearAlgebra
 using FFTW
+
+const example_dir = abspath(dirname(dirname(pathof(Pigeons))) * "/examples")
 
 if Threads.nthreads() > 1
     error("Some comrade likelihood evaluation may not work under multithreading (FFT stuff)")

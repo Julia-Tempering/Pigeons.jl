@@ -1,6 +1,6 @@
 # Use this to debug tests, e.g. calling a single test_xxx.jl file. 
 
-# Add the parent project by path to the test project. 
+# This script will add the parent project by path to the test project. 
 # If we do not do this, we will end up testing the 
 # latest released version instead of the one checked out.
 
