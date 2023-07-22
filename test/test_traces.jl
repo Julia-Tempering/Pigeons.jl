@@ -35,7 +35,7 @@ end
         r = pigeons(; 
                 target, 
                 record = [traces, disk, online], 
-                multithreaded = true,
+                multithreaded = false,  # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
                 checkpoint = true, 
                 on = ChildProcess(n_local_mpi_processes = 2, n_threads = 2))
         pt = load(r)        

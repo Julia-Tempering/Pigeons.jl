@@ -12,7 +12,10 @@ include("supporting/mpi_test_utils.jl")
         for target in [toy_mvn_target(1), toy_stan_target(1)]
             @show explorer, target
             @show is_stan = target isa Pigeons.StanLogPotential
-            multithreaded = is_stan && Sys.iswindows() ? false : true
+
+             # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
+            multithreaded = false #is_stan && Sys.iswindows() ? false : true
+            
             pigeons(;
                 target, 
                 n_rounds = 10,

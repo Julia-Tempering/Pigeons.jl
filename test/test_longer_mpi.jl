@@ -7,7 +7,7 @@ include("supporting/mpi_test_utils.jl")
         n_rounds = 14,
         checked_round = 12,
         n_chains = 200,
-        multithreaded = true,
+        multithreaded = false,  # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
         record = [],
         checkpoint = true,
         on = ChildProcess(
