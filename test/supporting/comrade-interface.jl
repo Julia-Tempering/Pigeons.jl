@@ -1,10 +1,3 @@
-using Pkg
-const example_dir = @__DIR__
-Pkg.activate(example_dir)
-project_root_dir = dirname(example_dir)
-Pkg.develop(PackageSpec(path=project_root_dir)) # make sure using the version of Pigeons in this repo
-
-
 using Comrade
 using Distributions
 using Pigeons
@@ -14,6 +7,8 @@ using LogDensityProblems
 using VLBIImagePriors
 using LinearAlgebra
 using FFTW
+
+const example_dir = abspath(dirname(dirname(pathof(Pigeons))) * "/examples")
 
 if Threads.nthreads() > 1
     error("Some comrade likelihood evaluation may not work under multithreading (FFT stuff)")
@@ -84,6 +79,7 @@ function model(θ)
     return ring + g
 end
 
+# This one out of sync (maybe need the dev version of Comrade?)
 function model(θ, metadata) # From: hybrid
     (;c, f, r, σ, ma, mp, fg, σg, τg, ξg) = θ
     (; grid, cache) = metadata
@@ -99,6 +95,7 @@ function model(θ, metadata) # From: hybrid
     return mimg + (ring + gauss)
 end
 
+# This one out of sync (maybe need the dev version of Comrade?)
 function model_closures(θ, metadata)
     (;c) = θ
     (; grid, cache) = metadata
@@ -127,6 +124,7 @@ function comrade_target_example()
     return ComradeLogPotential(asflat(post))
 end
 
+# This one out of sync (maybe need the dev version of Comrade?)
 """
 Good candidate to try adaptive paths. 
 """
@@ -158,6 +156,7 @@ function comrade_target_hybrid(npix = 6)
     return ComradeLogPotential(asflat(post))
 end
 
+# This one out of sync (maybe need the dev version of Comrade?)
 """
 Explicitly identified as being multi-modal.
 """

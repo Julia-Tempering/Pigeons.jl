@@ -16,12 +16,27 @@ The `stan_file` argument can be a path to the file with a `.stan` suffix.
 The `data` argument can be a path with a file with `.json` suffix or the json string itself. 
 See `BridgeStan` for details. 
 """
-StanLogPotential(stan_file, data) = 
-    StanLogPotential(
-        BridgeStan.StanModel(; stan_file, data), 
+function StanLogPotential(stan_file, data) 
+    result = StanLogPotential(
+        BridgeStan.StanModel(; stan_file, data, make_args = stan_threads_options()), 
         stan_file, 
         Immutable(data)
     )
+    # test it right away without absorbing any error messages
+    BridgeStan.log_density_gradient(result.model, zeros(BridgeStan.param_unc_num(result.model)))
+    return result
+end
+
+function stan_threads_options()
+    if Threads.nthreads() > 1  
+        @warn """
+              At the moment, for StanLogPotential please use a single thread 
+              (but several MPI processes can still be used).""" maxlog=1 
+        # return ["STAN_THREADS=true"] # not so simple?..  see https://github.com/Julia-Tempering/Pigeons.jl/issues/92
+    end
+    return Vector{String}()
+end
+
 function Serialization.serialize(s::AbstractSerializer, instance::StanLogPotential{M, S, D}) where {M, S, D}
     Serialization.writetag(s.io, Serialization.OBJECT_TAG)
     Serialization.serialize(s, StanLogPotential{M, S, D})

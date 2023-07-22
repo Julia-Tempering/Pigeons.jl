@@ -35,7 +35,8 @@ end
             Pigeons.blang_ising(), 
             Pigeons.blang_unid(), 
             Pigeons.blang_sitka()]
-        pigeons(; target, n_rounds = 2, n_chains = 2)
+        pt = pigeons(; target, n_rounds = 2, n_chains = 2)
+        Pigeons.kill_child_processes(pt)
     end
 end
 
