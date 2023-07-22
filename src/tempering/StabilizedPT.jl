@@ -1,13 +1,11 @@
 """ 
-Parallel tempering with a variational reference described in 
+Stabilized Variational Parallel Tempering as described in  
 [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080).
-This is an implementation of the *stabilized* version that includes
-*both* a variational and a fixed reference distribution.
 
 Fields:
 $FIELDS
 """
-@auto struct VariationalPT
+@auto struct StabilizedPT
     """ 
     The fixed leg of stabilized PT. 
     Contains a [`path`](@ref), [`Schedule`](@ref), [`log_potentials`](@ref), 
@@ -36,7 +34,7 @@ $SIGNATURES
 Parallel tempering with a variational reference described in 
 [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080).
 """
-function VariationalPT(inputs::Inputs)
+function StabilizedPT(inputs::Inputs)
     n_fixed = n_chains_fixed(inputs)
     path_fixed = create_path(inputs.target, inputs)
     initial_schedule_fixed = equally_spaced_schedule(n_fixed)
@@ -48,10 +46,10 @@ function VariationalPT(inputs::Inputs)
     swap_graphs = variational_deo(n_fixed, n_var)
     log_potentials = concatenate_log_potentials(fixed_leg, variational_leg)
     indexer = create_replica_indexer(n_fixed, n_var)
-    return VariationalPT(fixed_leg, variational_leg, swap_graphs, log_potentials, indexer)
+    return StabilizedPT(fixed_leg, variational_leg, swap_graphs, log_potentials, indexer)
 end
 
-function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators, variational, state)
+function adapt_tempering(tempering::StabilizedPT, reduced_recorders, iterators, variational, state)
     indexer = tempering.indexer
     variational_leg = adapt_tempering(
         tempering.variational_leg, reduced_recorders, iterators, 
@@ -60,18 +58,18 @@ function adapt_tempering(tempering::VariationalPT, reduced_recorders, iterators,
         tempering.fixed_leg, reduced_recorders, iterators, 
         nothing, state, fixed_leg_indices(indexer)[2:end]) # we rely here on fixed_leg_indices giving the entries in decreasing order 
     log_potentials = concatenate_log_potentials(fixed_leg, variational_leg)
-    return VariationalPT(fixed_leg, variational_leg, tempering.swap_graphs, log_potentials, tempering.indexer)
+    return StabilizedPT(fixed_leg, variational_leg, tempering.swap_graphs, log_potentials, tempering.indexer)
 end
 
 function concatenate_log_potentials(fixed_leg::NonReversiblePT, variational_leg::NonReversiblePT)
     return vcat(variational_leg.log_potentials, reverse(fixed_leg.log_potentials))
 end
 
-tempering_recorder_builders(vpt::VariationalPT) = tempering_recorder_builders(vpt.variational_leg)
+tempering_recorder_builders(vpt::StabilizedPT) = tempering_recorder_builders(vpt.variational_leg)
 
-create_pair_swapper(tempering::VariationalPT, target) = tempering.log_potentials
+create_pair_swapper(tempering::StabilizedPT, target) = tempering.log_potentials
 
-function find_log_potential(replica, tempering::VariationalPT, shared)
+function find_log_potential(replica, tempering::StabilizedPT, shared)
     tup = tempering.indexer.i2t[replica.chain]
     if tup.leg == :fixed 
         return tempering.fixed_leg.log_potentials[tup.chain]
@@ -114,8 +112,8 @@ fixed_leg_indices(indexer) =
 variational_leg_indices(indexer) = 
     findall(x->x[2] == :variational, indexer.i2t)
 
-global_barrier(tempering::VariationalPT) = tempering.fixed_leg.communication_barriers.globalbarrier
+global_barrier(tempering::StabilizedPT) = tempering.fixed_leg.communication_barriers.globalbarrier
 
-global_barrier_variational(tempering::VariationalPT) = tempering.variational_leg.communication_barriers.globalbarrier
+global_barrier_variational(tempering::StabilizedPT) = tempering.variational_leg.communication_barriers.globalbarrier
 
 global_barrier_variational(tempering) = error()

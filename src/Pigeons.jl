@@ -67,7 +67,9 @@ export pigeons, Inputs, PT,
     # for running jobs:
     ChildProcess, MPI,
     # targets:
-    toy_mvn_target, toy_stan_target, TuringLogPotential, StanLogPotential,
+    TuringLogPotential, StanLogPotential,
+    # some examples
+    toy_mvn_target, toy_stan_target, 
     # post-processing helpers
     sample_array, variable_names,
     # recorders:

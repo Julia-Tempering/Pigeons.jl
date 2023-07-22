@@ -64,6 +64,6 @@ Build the [`tempering`](@ref) needed for [`communicate!()`](@ref).
     if (n_chains_fixed(inputs) == 0) || (n_chains_var(inputs) == 0)
         return NonReversiblePT(inputs)
     else
-        return VariationalPT(inputs)
+        return StabilizedPT(inputs)
     end
 end

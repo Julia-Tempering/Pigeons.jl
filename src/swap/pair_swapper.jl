@@ -146,4 +146,4 @@ create_path(testSwapper::TestSwapper, ::Inputs) = testSwapper
     interpolate(testSwapper::TestSwapper, beta) = testSwapper
 
 create_pair_swapper(tempering, target::TestSwapper) = target
-create_pair_swapper(tempering::VariationalPT, target::TestSwapper) = target
+create_pair_swapper(tempering::StabilizedPT, target::TestSwapper) = target

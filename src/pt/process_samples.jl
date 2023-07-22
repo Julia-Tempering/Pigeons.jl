@@ -3,7 +3,7 @@ $SIGNATURES
 
 Copy the target chain(s) samples into an array with axes: 
 `iteration x variable x target chain`. 
-For example, with [`VariationalPT`](@ref) there 
+For example, with [`StabilizedPT`](@ref) there 
 are two target chains. 
 By default, there is only one chain produced. 
 

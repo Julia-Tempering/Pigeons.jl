@@ -31,7 +31,7 @@ function stepping_stone(pt::PT)
 end
 
 stepping_stone_keys(::PT, log_sum_ratios, ::NonReversiblePT) = keys(log_sum_ratios)
-function stepping_stone_keys(pt::PT, log_sum_ratios, ::VariationalPT)
+function stepping_stone_keys(pt::PT, log_sum_ratios, ::StabilizedPT)
     # use only the variational leg for 2-legs PT 
     # rationale: for should give lower error for given compute since 
     #            it the KL should be lower between target and variational 
