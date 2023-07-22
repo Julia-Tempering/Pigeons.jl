@@ -5,3 +5,23 @@
         end
     end
 end
+
+@testset "empty! online stats" begin
+    using OnlineStats
+    
+    xs = randn((1_000,5))
+    
+    # scalars
+    for T in [Mean, Variance]
+        o = T()
+        empty!(fit!(o, xs))
+        @test o == T()
+    end
+
+    # matrices
+    for T in [CovMatrix]
+        o = T()
+        empty!(fit!(o, xs |> eachrow))
+        @test iszero(sum(abs2, value(o))) && iszero(nobs(o))
+    end
+end
