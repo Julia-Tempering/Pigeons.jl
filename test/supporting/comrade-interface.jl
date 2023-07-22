@@ -79,6 +79,7 @@ function model(θ)
     return ring + g
 end
 
+# This one out of sync (maybe need the dev version of Comrade?)
 function model(θ, metadata) # From: hybrid
     (;c, f, r, σ, ma, mp, fg, σg, τg, ξg) = θ
     (; grid, cache) = metadata
@@ -94,6 +95,7 @@ function model(θ, metadata) # From: hybrid
     return mimg + (ring + gauss)
 end
 
+# This one out of sync (maybe need the dev version of Comrade?)
 function model_closures(θ, metadata)
     (;c) = θ
     (; grid, cache) = metadata
@@ -122,6 +124,7 @@ function comrade_target_example()
     return ComradeLogPotential(asflat(post))
 end
 
+# This one out of sync (maybe need the dev version of Comrade?)
 """
 Good candidate to try adaptive paths. 
 """
@@ -153,6 +156,7 @@ function comrade_target_hybrid(npix = 6)
     return ComradeLogPotential(asflat(post))
 end
 
+# This one out of sync (maybe need the dev version of Comrade?)
 """
 Explicitly identified as being multi-modal.
 """

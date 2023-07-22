@@ -4,5 +4,5 @@
     include("../examples/general-target.jl")
     include("../examples/general-reference.jl")
     include("../examples/custom-sampler.jl")
-    
+    include("../examples/pluto-demo.jl")
 end
