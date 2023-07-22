@@ -26,3 +26,4 @@ examples/.CondaPkg
 *.so
 
 examples/benchmarks
+benchmarks

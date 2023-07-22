@@ -1,4 +1,5 @@
 include("supporting/HetPrecisionNormalLogPotential.jl")
+include("supporting/dimensional-analysis.jl")
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
@@ -7,6 +8,11 @@ auto_mala(target) =
         target, 
         explorer = AutoMALA(), 
         n_chains = 1, n_rounds = 10, record = record_online())
+
+@testset "Scaling law" begin
+    scalings, cost_plot, ess_plot = scaling_plot(10, 1, [auto_mala]) 
+    @test abs(scalings[:auto_mala] - 1.33) < 0.15
+end
 
 @testset "Step size convergence" begin
     for t in [toy_mvn_target(1), toy_stan_target(1)]

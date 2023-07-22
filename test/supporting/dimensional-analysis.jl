@@ -80,7 +80,7 @@ function single_chain_pigeons_mvn(D, explorer)
 end
 
 
-function auto_mala(D)
+function auto_mala(D::Int)
     explorer = Pigeons.AutoMALA(exponent_n_refresh = 0.35)
     n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
     return D, n_steps, ess_value
@@ -158,17 +158,20 @@ function scaling_plot(
 
     filename_prefix = "benchmarks/scalings_nrep=$(n_replicates)_max=$max"
 
+    slopes = Dict()
+    mkpath("benchmarks")
     open("$filename_prefix.txt", "w") do io
         for (k, v) in data 
             xs = log.(v.dims)
             ys = log.(v.costs)
             slope = LinearRegression.slope(linregress(xs, ys))[1]
+            slopes[k] = slope
             println(io, "$k: $slope")
         end
     end
 
-    savefig(cost_plot, "$filename_prefix.pdf")
-    savefig(ess_plot, "$(filename_prefix)_ess.pdf")
+    # savefig(cost_plot, "$filename_prefix.pdf")
+    # savefig(ess_plot, "$(filename_prefix)_ess.pdf")
 
-    return cost_plot
+    return slopes, cost_plot, ess_plot
 end
