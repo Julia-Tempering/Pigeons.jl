@@ -68,6 +68,8 @@ export pigeons, Inputs, PT,
     ChildProcess, MPI,
     # targets:
     toy_mvn_target, toy_stan_target, TuringLogPotential, StanLogPotential,
+    # post-processing helpers
+    sample_array, variable_names,
     # recorders:
     index_process, swap_acceptance_pr, log_sum_ratio, online, round_trip, energy_ac1, traces, disk,
     record_online, record_default, 

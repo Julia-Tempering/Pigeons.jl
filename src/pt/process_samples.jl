@@ -1,8 +1,11 @@
 """
 $SIGNATURES 
 
-Copy the target chain(s) samples into a tensor with axes: 
-iteration x variable x target chain
+Copy the target chain(s) samples into an array with axes: 
+`iteration x variable x target chain`. 
+For example, with [`VariationalPT`](@ref) there 
+are two target chains. 
+By default, there is only one chain produced. 
 
 See [`extract_sample()`](@ref) for information how the variables are 
 flattened, and use [`variable_names()`](@ref) to obtain string 
@@ -13,7 +16,7 @@ creating [MCMCChains](https://turinglang.org/MCMCChains.jl/stable/getting-starte
 which can then be used to obtain summary statistics, diagnostics, create trace plots, 
 and pair plots (via [PairPlots](https://sefffal.github.io/PairPlots.jl/dev/chains/)).
 """
-function sample_matrix(pt::PT)
+function sample_array(pt::PT)
     targets = target_chains(pt)
     dim, size = sample_dim_size(pt, targets)
     result = zeros(size, dim, length(targets)) 
