@@ -47,7 +47,7 @@ include("supporting/mpi_test_utils.jl")
     # Blang:
     if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
         Pigeons.setup_blang("blangDemos")
-        pigeons(; 
+        pt = pigeons(; 
             target = Pigeons.blang_ising(), 
             n_rounds = 10,
             checked_round = 3, 
@@ -58,5 +58,6 @@ include("supporting/mpi_test_utils.jl")
                     n_local_mpi_processes = n_mpis,
                     n_threads = 2,
                     mpiexec_args = extra_mpi_args()))
+        Pigeons.kill_child_processes(pt)
     end
 end

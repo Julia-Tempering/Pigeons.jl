@@ -24,6 +24,18 @@ The worker process should be able to reply to commands of the following forms
 abstract type StreamTarget end
 
 """
+$SIGNATURES 
+
+Dispose of the child processes associated with the pt's 
+[`StreamState`](@ref)'s
+"""
+function kill_child_processes(pt)
+    for replica in locals(pt.replicas)
+        Expect.kill(replica.state.worker_process)
+    end
+end
+
+"""
 $SIGNATURES
 
 Return [`StreamState`](@ref) by following these steps:
