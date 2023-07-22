@@ -30,7 +30,7 @@ function cached_log_potential(log_potential, state, cached_lp)
     return if cached_lp == -Inf 
         result = log_potential(state)
         if result == -Inf 
-            error("SliceSampler supports contrained target, but the sampler should be initialized in the support.")
+            error("SliceSampler supports contrained target, but the sampler should be initialized in the support: $state")
         end
         return result
     else

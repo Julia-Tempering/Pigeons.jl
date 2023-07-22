@@ -1,4 +1,10 @@
 function preflight_checks(pt)
+    if isdisjoint([traces, disk, online], pt.inputs.record)
+        @info """Neither traces, disk, nor online recorders included. 
+                 You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
+                 To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+              """
+    end
     if Threads.nthreads() > 1 && !pt.inputs.multithreaded 
         @warn "More than one threads are available, but explore!() loop is not parallelized as pt.inputs.multithreaded == false"
     end

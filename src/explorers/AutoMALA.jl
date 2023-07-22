@@ -147,7 +147,7 @@ function auto_mala!(
         start_state .= state 
         randn!(rng, momentum)
         init_joint_log = log_joint(target_log_potential, state, momentum)
-        @assert isfinite(init_joint_log)
+        @assert isfinite(init_joint_log) "AutoMALA can only be called on a configuration of positive density."
 
         # Randomly pick a "reasonable" range of MH accept probabilities (in log-scale)
         # We do this to preserve the same irreducibility structure on the augmented space (x, v) 

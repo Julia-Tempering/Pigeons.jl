@@ -67,7 +67,7 @@ function concatenate_log_potentials(fixed_leg::NonReversiblePT, variational_leg:
     return vcat(variational_leg.log_potentials, reverse(fixed_leg.log_potentials))
 end
 
-tempering_recorder_builders(::VariationalPT) = [swap_acceptance_pr]
+tempering_recorder_builders(vpt::VariationalPT) = tempering_recorder_builders(vpt.variational_leg)
 
 create_pair_swapper(tempering::VariationalPT, target) = tempering.log_potentials
 
