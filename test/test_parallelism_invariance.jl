@@ -14,7 +14,7 @@ include("supporting/mpi_test_utils.jl")
             @show is_stan = target isa Pigeons.StanLogPotential
 
              # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
-            multithreaded = false #is_stan && Sys.iswindows() ? false : true
+            multithreaded = is_stan ? false : true
             
             pigeons(;
                 target, 
@@ -53,6 +53,7 @@ include("supporting/mpi_test_utils.jl")
         pt = pigeons(; 
             target = Pigeons.blang_ising(), 
             n_rounds = 10,
+            n_chains = 4,
             checked_round = 3, 
             record, 
             multithreaded = true, 

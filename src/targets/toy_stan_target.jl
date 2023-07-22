@@ -23,6 +23,12 @@ stan_funnel(dim = 9) =
         variables_to_stan(; dim)
     )
 
+stan_bernoulli(y = [0,1,0,0,0,0,0,0,0,1]) =
+    StanLogPotential(
+        stan_example_path("bernoulli.stan"), 
+        variables_to_stan(; y, N = length(y))
+    )
+
 observed_range_squared(x) = (maximum(x) - minimum(x))^2
 
 function stan_galaxy(K = 3, y = galaxy_data(), alpha_0 = 0.01, 
