@@ -58,6 +58,5 @@ include("supporting/mpi_test_utils.jl")
                     n_local_mpi_processes = n_mpis,
                     n_threads = 2,
                     mpiexec_args = extra_mpi_args()))
-        Pigeons.kill_child_processes(pt)
     end
 end
