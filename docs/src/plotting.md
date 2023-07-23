@@ -75,12 +75,14 @@ pt = pigeons(target = an_unidentifiable_model,
                 # make sure to record the trace:
                 record = [traces; round_trip; record_default()])
 
-# collect the statistics and convert to MCMCChains' Chains
-# to have axes labels matching variable names in Turing and Stan
-samples = Chains(sample_array(pt), variable_names(pt))
+my_plot = PairPlots.pairplot(sample_array(pt))
 
-# create the pair plot
-my_plot = PairPlots.pairplot(samples)
+# on Julia 1.9, the following can be used
+# to have axes labels matching variable names in Turing and Stan
+# see also https://sefffal.github.io/PairPlots.jl/dev/chains/ for a 1.8 workaround
+#   samples = Chains(sample_array(pt), variable_names(pt))
+#   my_plot = PairPlots.pairplot(samples)
+
 CairoMakie.save("pair_plot.svg", my_plot)
 nothing # hide
 ```
