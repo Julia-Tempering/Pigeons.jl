@@ -4,11 +4,21 @@ CurrentModule = Pigeons
 
 # Pigeons
 
-Facing a challenging integration problem? Tired of waiting for hours or days for your high-dimensional, multimodal Bayesian posterior approximation? Summing over your combinatorial space is taking months? 
+## Summary
 
-Try `Pigeons`: a Julia package to efficiently approximate posterior distributions, and more broadly, Lebesgue integration problems. 
+`Pigeons`: is a Julia package to efficiently approximate challengin posterior distributions, and more broadly, Lebesgue integration problems.
 
-Pigeons' core algorithm is a distributed and parallel implementation 
+**Input:** an expectation or integration problem, which can be specified as either:
+
+- [a plain Julia function](input-julia-function.html) 
+- [a Turing.jl model](input-turing-model.html)
+- [a Stan model](input-stan-model.html)
+- [an MCMC algorithm coded in an arbitrary language and running in a separate process](input-stream.html)
+
+**Output:** a sample-based approximation of the distribution, 
+used to approximate expectations/integrals/sums/normalization constants. 
+
+**Methods:** Pigeons' core algorithm is a distributed and parallel implementation 
 of the following algorithms: 
 
 - Non-Reversible Parallel Tempering (NRPT), 
@@ -20,6 +30,32 @@ of challenging probability distributions.
 
 Pigeons can be used in a multi-threaded context, and/or 
 distributed over hundreds or thousands of MPI-communicating machines.
+
+
+## Installing `Pigeons`
+
+1. If you have not done so, install [Julia](https://julialang.org/downloads/). So far, we have tested the code on Julia 1.8.x.
+2. Install `Pigeons` using
+
+```
+using Pkg; Pkg.add("Pigeons")
+```
+
+
+## Basic usage
+
+```@example
+using Pigeons 
+include("$(pathof(Pigeons))/../../examples/ising.jl")
+
+pigeons(target = IsingLogPotential())
+```
+
+
+
+## Digging deeper
+
+
 
 
 ## Scope
@@ -63,14 +99,7 @@ Pigeons shines in the following scenarios:
     e.g. a combinatorial object such as a phylogenetic tree. 
 
 
-## Installing `Pigeons`
 
-1. If you have not done so, install [Julia](https://julialang.org/downloads/). So far, we have tested the code on Julia 1.8.x.
-2. Install `Pigeons` using
-
-```
-using Pkg; Pkg.add("Pigeons")
-```
 
 ## Running PT
 
