@@ -54,6 +54,11 @@ nothing # hide
 
 ## Posterior pair plots
 
+!!! note
+
+    The code snippet in this section only works with Julia 1.9. 
+    See https://sefffal.github.io/PairPlots.jl/dev/chains/ for a workaround.
+
 Make sure to have the third party packages `MCMCChains`, `CairoMakie` and `PairPlots`
 installed via 
 
@@ -75,13 +80,10 @@ pt = pigeons(target = an_unidentifiable_model,
                 # make sure to record the trace:
                 record = [traces; round_trip; record_default()])
 
-my_plot = PairPlots.pairplot(sample_array(pt))
-
-# on Julia 1.9, the following can be used
-# to have axes labels matching variable names in Turing and Stan
-# see also https://sefffal.github.io/PairPlots.jl/dev/chains/ for a 1.8 workaround
-#   samples = Chains(sample_array(pt), variable_names(pt))
-#   my_plot = PairPlots.pairplot(samples)
+samples = Chains(sample_array(pt), variable_names(pt))
+# Warning: the line below only works for Julia 1.9
+#          see https://sefffal.github.io/PairPlots.jl/dev/chains/ for a workaround
+my_plot = PairPlots.pairplot(samples) 
 
 CairoMakie.save("pair_plot.svg", my_plot)
 nothing # hide
