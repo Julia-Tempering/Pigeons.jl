@@ -33,7 +33,7 @@ function initialization(target::TuringLogPotential, rng::AbstractRNG, _::Int64)
     DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
     return result 
 end
-initialization(target::TuringLogPotential) = initialization(target, AbstractRNG(1), 1)
+initialization(target::TuringLogPotential) = initialization(target, SplittableRandom(1), 1)
 
 # At the moment, AutoMALA assumes a :singleton_variable structure 
 # so use the SliceSampler.
