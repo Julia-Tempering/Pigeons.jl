@@ -34,9 +34,10 @@ makedocs(;
         assets=String[],
     ),
     pages=[
-        "Guide" => "index.md", 
-        "Parallel Tempering (PT)" => "pt.md", 
-        "Distributed PT" => "distributed.md",
+        
+        # "Guide" => "index.md", 
+        # "Parallel Tempering (PT)" => "pt.md", 
+        # "Distributed PT" => "distributed.md",
         "Interfaces" => Pigeons.informal_doc(@__DIR__, Pigeons),
         "Reference" => "reference.md",
     ],

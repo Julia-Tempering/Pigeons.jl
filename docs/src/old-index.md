@@ -4,21 +4,11 @@ CurrentModule = Pigeons
 
 # Pigeons
 
-## Summary
+Facing a challenging integration problem? Tired of waiting for hours or days for your high-dimensional, multimodal Bayesian posterior approximation? Summing over your combinatorial space is taking months? 
 
-`Pigeons`: is a Julia package to approximate challenging posterior distributions, and more broadly, Lebesgue integration problems. Pigeons can be used in a multi-threaded context, and/or distributed over hundreds or thousands of MPI-communicating machines.
+Try `Pigeons`: a Julia package to efficiently approximate posterior distributions, and more broadly, Lebesgue integration problems. 
 
-**Pigeons' input:** an expectation or integration problem. Pigeons supports a wide range of methods for specifying the input problem, discussed in more details in the [inputs](inputs.html) page. 
-
-- [a plain Julia function](input-julia-function.html) 
-- [a Turing.jl model](input-turing-model.html)
-- [a Stan model](input-stan-model.html)
-- [an MCMC algorithm coded in an arbitrary language and running in a separate process](input-stream.html)
-
-**Pigeons' output:** a sample-based approximation of the distribution,  
-used to approximate expectations/integrals/sums/normalization constants. 
-
-**Methods:** Pigeons' core algorithm is a distributed and parallel implementation 
+Pigeons' core algorithm is a distributed and parallel implementation 
 of the following algorithms: 
 
 - Non-Reversible Parallel Tempering (NRPT), 
@@ -28,31 +18,8 @@ of the following algorithms:
 These algorithms achieve state-of-the-art performance for approximation 
 of challenging probability distributions.
 
-
-## Installing `Pigeons`
-
-1. If you have not done so, install [Julia](https://julialang.org/downloads/). Julia 1.8 and higher are supported. 
-2. Install `Pigeons` using
-
-```
-using Pkg; Pkg.add("Pigeons")
-```
-
-
-## Basic usage
-
-```@example
-using Pigeons 
-include("$(pathof(Pigeons))/../../examples/ising.jl")
-
-pigeons(target = IsingLogPotential())
-```
-
-
-
-## Digging deeper
-
-
+Pigeons can be used in a multi-threaded context, and/or 
+distributed over hundreds or thousands of MPI-communicating machines.
 
 
 ## Scope
@@ -96,7 +63,14 @@ Pigeons shines in the following scenarios:
     e.g. a combinatorial object such as a phylogenetic tree. 
 
 
+## Installing `Pigeons`
 
+1. If you have not done so, install [Julia](https://julialang.org/downloads/). So far, we have tested the code on Julia 1.8.x.
+2. Install `Pigeons` using
+
+```
+using Pkg; Pkg.add("Pigeons")
+```
 
 ## Running PT
 
