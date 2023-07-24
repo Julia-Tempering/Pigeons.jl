@@ -1,9 +1,20 @@
+"""
+$SIGNATURES 
+
+Let Z1 denote the normalization constant of the target, and Z0, of the reference, this 
+function approximates log(Z1/Z2) using the 
+[stepping stone estimator](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3038348/) 
+computed on the parallel tempering output. 
+"""
+function stepping_stone(pt::PT)
+    p = stepping_stone_pair(pt)
+    return (p[1] + p[2])/2.0
+end
+
 """ 
 $SIGNATURES 
 
-Assuming that the reference distribution has a normalization constant of one, 
-compute the (log of) the [stepping stone estimator](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3038348/). 
-It returns a pair, one such that its exponential is unbiased under 
+Return a pair, one such that its exponential is unbiased under 
 Assumptions (A1-2) in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464) for ``Z`` and the 
 other, for ``1/Z``. 
 Both are consistent in the number of MCMC iterations without these strong assumptions. 
@@ -25,16 +36,15 @@ function stepping_stone_pair(pt::PT)
     return (estimator1, -estimator2) 
 end
 
-function stepping_stone(pt::PT)
-    p = stepping_stone_pair(pt)
-    return (p[1] + p[2])/2.0
-end
+# Determine which chains to use for normalization constant estimation 
 
+# For one-leg: all chains
 stepping_stone_keys(::PT, log_sum_ratios, ::NonReversiblePT) = keys(log_sum_ratios)
+
+# use only the variational leg for 2-legs PT 
+# rationale: for should give lower error for given compute since 
+#            it the KL should be lower between target and variational
 function stepping_stone_keys(pt::PT, log_sum_ratios, ::StabilizedPT)
-    # use only the variational leg for 2-legs PT 
-    # rationale: for should give lower error for given compute since 
-    #            it the KL should be lower between target and variational 
     # Note: we rely on the variational leg being in increasing order 
     #       (the roles of 2 legs were swapped on 2023/07/20)
     indexer = pt.shared.tempering.indexer 
