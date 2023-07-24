@@ -92,9 +92,16 @@ nothing # hide
 ## Changing the explorer 
 
 Here is an example using [`AutoMALA`](@ref) instead of the default 
-[`SliceSampler`](@ref). 
+[`SliceSampler`](@ref). We only need to add methods to make 
+our custom type `UnidToyLogPotential` conform the 
+[LogDensityProblems interface](https://github.com/tpapp/LogDensityProblems.jl):
 
 ```@example julia
+using LogDensityProblems
+
+LogDensityProblems.dimension(lp::UnidToyLogPotential) = 2
+LogDensityProblems.logdensity(lp::UnidToyLogPotential, x) = lp(x)
+
 pt = pigeons(
         target = UnidToyLogPotential(100, 50), 
         reference = UnidToyLogPotential(0, 0), 
