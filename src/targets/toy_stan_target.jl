@@ -8,25 +8,25 @@ A multivariate normal implemented in Stan for testing/benchmarking.
 @provides target toy_stan_target(dim::Int, precision = 10.0) =
     StanLogPotential(
         stan_example_path("mvn.stan"), 
-        variables_to_stan(; dim, precision)
+        json(; dim, precision)
     )
 
 toy_stan_unid_target(number = 100000, sum = ceil(Int, number/2)) =
     StanLogPotential(
         stan_example_path("unid.stan"), 
-        variables_to_stan(; number, sum)
+        json(; number, sum)
     )
 
 stan_funnel(dim = 9) = 
     StanLogPotential(
         stan_example_path("funnel.stan"), 
-        variables_to_stan(; dim)
+        json(; dim)
     )
 
 stan_bernoulli(y = [0,1,0,0,0,0,0,0,0,1]) =
     StanLogPotential(
         stan_example_path("bernoulli.stan"), 
-        variables_to_stan(; y, N = length(y))
+        json(; y, N = length(y))
     )
 
 observed_range_squared(x) = (maximum(x) - minimum(x))^2
@@ -40,7 +40,7 @@ function stan_galaxy(;K = 3, y = galaxy_data(), alpha_0 = 0.01,
     N = length(y)
     return StanLogPotential(
         stan_example_path("galaxy.stan"), 
-        variables_to_stan(; K, N, alpha, b_0, B_0, c_0, C_0, y)
+        json(; K, N, alpha, b_0, B_0, c_0, C_0, y)
     )
 end
 
@@ -75,7 +75,13 @@ end
 stan_example_path(name) = 
     dirname(dirname(pathof(Pigeons))) * "/examples/stan/$name"
 
-variables_to_stan(; variables...) = 
+""" 
+$SIGNATURES 
+
+Create a JSON string based on the scalar or array variables 
+provided. 
+"""
+json(; variables...) = 
     "{" * 
     join(
         map(
