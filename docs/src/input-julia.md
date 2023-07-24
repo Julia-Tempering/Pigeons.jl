@@ -13,7 +13,7 @@ manually as a "black-box" Julia function.
 Here we show how this is done using our familiar [unidentifiable toy example][unidentifiable-example.html]
 [ported to the Stan language](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/unid.stan).
 
-We first create a custom type, `UnidToyLogPotential` to control dispatch on the interface [`target`](@ref).
+We first create a custom type, `MyLogPotential` to control dispatch on the interface [`target`](@ref).
 
 
 ```@example julia
@@ -21,19 +21,19 @@ using Pigeons
 using Random
 using StatsFuns
 
-struct UnidToyLogPotential 
+struct MyLogPotential 
     n_trials::Int
     n_successes::Int
 end
 ```
 
-Next, we make `UnidToyLogPotential` a 
+Next, we make `MyLogPotential` a 
 [function-like object](https://docs.julialang.org/en/v1/manual/methods/#Function-like-objects), so that e.g.
 `my_log_potential([0.5, 0.5])` will possible and 
 hence satisfy the [`log_potential`](@ref) interface:
 
 ```@example julia
-function (log_potential::UnidToyLogPotential)(x) 
+function (log_potential::MyLogPotential)(x) 
     p1, p2 = x
     if !(0 < p1 < 1) || !(0 < p2 < 1)
         return -Inf64 
@@ -43,22 +43,22 @@ function (log_potential::UnidToyLogPotential)(x)
 end
 
 # e.g.:
-my_log_potential = UnidToyLogPotential(100, 50)
+my_log_potential = MyLogPotential(100, 50)
 my_log_potential([0.5, 0.5])
 ```
 
 Next, we need to specify how to create fresh [`state`](@ref) objects: 
 
 ```@example julia
-Pigeons.initialization(::UnidToyLogPotential, ::AbstractRNG, ::Int) = [0.5, 0.5]
+Pigeons.initialization(::MyLogPotential, ::AbstractRNG, ::Int) = [0.5, 0.5]
 ```
 
 We can now run the sampler:
 
 ```@example julia
 pt = pigeons(
-        target = UnidToyLogPotential(100, 50), 
-        reference = UnidToyLogPotential(0, 0)
+        target = MyLogPotential(100, 50), 
+        reference = MyLogPotential(0, 0)
     )
 nothing # hide
 ```
@@ -79,15 +79,15 @@ For black-box Julia function targets, this is done as follows:
 
 ```@example julia
 
-function Pigeons.sample_iid!(::UnidToyLogPotential, replica, shared)
+function Pigeons.sample_iid!(::MyLogPotential, replica, shared)
     state = replica.state 
     rng = replica.rng 
     rand!(rng, state)
 end
 
 pt = pigeons(
-        target = UnidToyLogPotential(100, 50), 
-        reference = UnidToyLogPotential(0, 0)
+        target = MyLogPotential(100, 50), 
+        reference = MyLogPotential(0, 0)
     )
 nothing # hide
 ```
@@ -97,22 +97,29 @@ nothing # hide
 
 Here is an example using [`AutoMALA`](@ref) instead of the default 
 [`SliceSampler`](@ref). We only need to add methods to make 
-our custom type `UnidToyLogPotential` conform the 
+our custom type `MyLogPotential` conform the 
 [LogDensityProblems interface](https://github.com/tpapp/LogDensityProblems.jl):
 
 ```@example julia
 using LogDensityProblems
 
-LogDensityProblems.dimension(lp::UnidToyLogPotential) = 2
-LogDensityProblems.logdensity(lp::UnidToyLogPotential, x) = lp(x)
+LogDensityProblems.dimension(lp::MyLogPotential) = 2
+LogDensityProblems.logdensity(lp::MyLogPotential, x) = lp(x)
 
 pt = pigeons(
-        target = UnidToyLogPotential(100, 50), 
-        reference = UnidToyLogPotential(0, 0), 
+        target = MyLogPotential(100, 50), 
+        reference = MyLogPotential(0, 0), 
         explorer = AutoMALA(default_autodiff_backend = :ForwardDiff) 
     )
 nothing # hide
 ```
+
+Pigeons have several built-in [`explorer`](@ref) kernels such as 
+[`AutoMALA`](@ref) and a [`SliceSampler`](@ref). 
+However when the state space is neither the reals nor the integers, 
+or for performance reasons, it may be necessary to create custom 
+exploration MCMC kernels.
+This is described on the [custom explorers page](explorers.html).
 
 
 ## Manipulating the output
@@ -126,8 +133,8 @@ using MCMCChains
 using StatsPlots
 
 pt = pigeons(
-        target = UnidToyLogPotential(100, 50), 
-        reference = UnidToyLogPotential(0, 0), 
+        target = MyLogPotential(100, 50), 
+        reference = MyLogPotential(0, 0), 
         explorer = AutoMALA(default_autodiff_backend = :ForwardDiff),
         record = [traces])
 samples = Chains(sample_array(pt), variable_names(pt))
