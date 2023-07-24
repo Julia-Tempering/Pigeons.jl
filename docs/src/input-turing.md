@@ -18,7 +18,7 @@ DynamicPPL.@model function my_turing_model(number, sum)
     return sum
 end
 
-pt = pigeons(target = TuringLogPotential(my_turing_model(100_000, 50_000)));
+pt = pigeons(target = TuringLogPotential(my_turing_model(100, 50)));
 nothing # hide
 ```
 
