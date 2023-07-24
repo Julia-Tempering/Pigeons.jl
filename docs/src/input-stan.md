@@ -78,7 +78,7 @@ nothing # hide
 
 ## Manipulating the output
 
-Internally, stan target's states (of type [`StanState`](@ref)) are stored in an unconstrained 
+Internally, Stan target's states (of type [`StanState`](@ref)) are stored in an unconstrained 
 parameterization provided by Stan 
 (for example, bounded support variables are mapped to the full real line). 
 However, sample post-processing functions such as [`sample_array()`](@ref) and [`process_sample()`](@ref) 
