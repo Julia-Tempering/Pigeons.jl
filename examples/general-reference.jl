@@ -1,6 +1,6 @@
 using Pigeons
 using Statistics
-using SplittableRandoms
+using Random
 using Random 
 using LogExpFunctions
 
@@ -11,7 +11,7 @@ struct MyLogPotential end
     -0.5*(x[1] + 100)^2 - 0.5*log(2*pi) + log(0.5), 
     -0.5*(x[1] - 100)^2 - 0.5*log(2*pi) + log(0.5))
 Pigeons.default_explorer(::MyLogPotential) = Pigeons.SliceSampler() 
-Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
+Pigeons.initialization(::MyLogPotential, ::AbstractRNG, ::Int) = [0.0]
 
 # create a custom reference
 struct MyReferenceLogPotential end 

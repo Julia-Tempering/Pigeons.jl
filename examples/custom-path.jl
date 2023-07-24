@@ -1,6 +1,6 @@
 using Pigeons
 using Statistics
-using SplittableRandoms
+using Random
 using LogExpFunctions
 
 #=
@@ -34,7 +34,7 @@ Pigeons.create_path(target::AnotherLogPotential, inputs::Inputs) = Pigeons.Inter
 
 # rest is the same as general-target
 Pigeons.default_reference(::AnotherLogPotential) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
-Pigeons.initialization(::AnotherLogPotential, ::SplittableRandom, ::Int) = [0.0]
+Pigeons.initialization(::AnotherLogPotential, ::AbstractRNG, ::Int) = [0.0]
 
 # Perform the sampling
 pt = pigeons(target = AnotherLogPotential(), record = record_online())

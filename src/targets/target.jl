@@ -10,7 +10,7 @@ The probability distribution of interest.
     the states at the beginning of the first round of 
     Parallel Tempering. 
     """
-    initialize(target, rng::SplittableRandom, replica_index::Int) = @abstract
+    initialize(target, rng::AbstractRNG, replica_index::Int) = @abstract
 
     """
     $SIGNATURES 

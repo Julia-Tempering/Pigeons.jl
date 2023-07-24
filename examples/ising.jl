@@ -1,5 +1,5 @@
 using Pigeons
-using SplittableRandoms
+using Random
 import Base.@kwdef
 
 # A 2D, base_length x base_length Ising model, p(state) ∝ exp(-beta H(state))
@@ -82,7 +82,7 @@ function Pigeons.sample_iid!(reference_log_potential::IsingLogPotential, replica
 end
 
 # Initialization: all entries to zeros (falses)
-Pigeons.initialization(log_potential::IsingLogPotential, ::SplittableRandom, ::Int) = IsingState(falses(log_potential.base_length, log_potential.base_length))
+Pigeons.initialization(log_potential::IsingLogPotential, ::AbstractRNG, ::Int) = IsingState(falses(log_potential.base_length, log_potential.base_length))
 
 # MCMC explorer 
 # This struct should not contain state that is replica-specific 

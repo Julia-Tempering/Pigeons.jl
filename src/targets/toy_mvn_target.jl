@@ -7,7 +7,7 @@ such that i.i.d. sampling is possible at all chains (via [`ToyExplorer`](@ref)).
 """
 @provides target toy_mvn_target(dim::Int) = ScaledPrecisionNormalPath(dim) 
 
-initialization(target::ScaledPrecisionNormalPath, rng::SplittableRandom, _::Int64) = 
+initialization(target::ScaledPrecisionNormalPath, rng::AbstractRNG, _::Int64) = 
     randn(rng, target.dim) / sqrt(target.precision1)
 
 default_explorer(::ScaledPrecisionNormalPath) = ToyExplorer()
@@ -20,5 +20,5 @@ Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::ScaledPrecision
         x[i] = randn(rng) / sqrt(log_potential.precision)
     end
 
-Random.rand!(rng::SplittableRandom, state::Pigeons.StanState{Vector{Float64}}, log_potential::Pigeons.ScaledPrecisionNormalLogPotential) = 
+Random.rand!(rng::AbstractRNG, state::Pigeons.StanState{Vector{Float64}}, log_potential::Pigeons.ScaledPrecisionNormalLogPotential) = 
     rand!(rng, state.x, log_potential)

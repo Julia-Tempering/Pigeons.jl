@@ -28,12 +28,12 @@ Given a `DynamicPPL.Model` from Turing.jl, create a
 @provides target TuringLogPotential(model::DynamicPPL.Model) = 
     TuringLogPotential(model, false)
 
-function initialization(target::TuringLogPotential, rng::SplittableRandom, _::Int64)
+function initialization(target::TuringLogPotential, rng::AbstractRNG, _::Int64)
     result = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext()) 
     DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
     return result 
 end
-initialization(target::TuringLogPotential) = initialization(target, SplittableRandom(1), 1)
+initialization(target::TuringLogPotential) = initialization(target, AbstractRNG(1), 1)
 
 # At the moment, AutoMALA assumes a :singleton_variable structure 
 # so use the SliceSampler.

@@ -1,6 +1,7 @@
 using Comrade
 using Distributions
 using Pigeons
+using Random
 using Serialization
 using LogDensityProblemsAD
 using LogDensityProblems
@@ -58,7 +59,7 @@ function (m::ComradeLogPrior)(x)
     return logdensityof(m.prior, y) + lj
 end
 
-function Pigeons.initialization(target::ComradeLogPotential, rng::Pigeons.SplittableRandom, ::Int64)
+function Pigeons.initialization(target::ComradeLogPotential, rng::AbstractRNG, ::Int64)
     prior_pot = ComradeLogPrior(target.post)
     return Comrade.inverse(prior_pot.transform, rand(rng, prior_pot.prior))
 end

@@ -1,6 +1,6 @@
 using Pigeons
 using Statistics
-using SplittableRandoms
+using Random
 
 # Create a custom type to control dispatch on the informal interface 'target'
 struct MyLogPotential end
@@ -17,7 +17,7 @@ struct MyLogPotential end
 Pigeons.default_reference(::MyLogPotential) = Pigeons.ScaledPrecisionNormalLogPotential(1.0, 1)
 
 # Instruct how to create fresh state objects
-Pigeons.initialization(::MyLogPotential, ::SplittableRandom, ::Int) = [0.0]
+Pigeons.initialization(::MyLogPotential, ::AbstractRNG, ::Int) = [0.0]
 
 # Perform the sampling
 pt = pigeons(target = MyLogPotential(), record = record_online())

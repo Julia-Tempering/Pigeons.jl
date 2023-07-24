@@ -7,7 +7,7 @@ Pigeons.default_reference(
     target::HetPrecisionNormalLogPotential) = 
         target
 
-Pigeons.initialization(target::HetPrecisionNormalLogPotential, ::SplittableRandom, ::Int) = zeros(length(target.precisions))
+Pigeons.initialization(target::HetPrecisionNormalLogPotential, ::AbstractRNG, ::Int) = zeros(length(target.precisions))
     
 function Pigeons.sample_iid!(my_potential::HetPrecisionNormalLogPotential, replica)
     d = length(replica.state)

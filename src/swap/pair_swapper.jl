@@ -133,7 +133,7 @@ record_swap_stats!(swapper::TestSwapper, recorder, chain1::Int, stat1, chain2::I
 
 # toy target based on TestSwapper
 
-function initialization(target::TestSwapper, ::SplittableRandom, ::Int) 
+function initialization(target::TestSwapper, ::AbstractRNG, ::Int) 
     return nothing 
 end
 
