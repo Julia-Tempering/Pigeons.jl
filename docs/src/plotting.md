@@ -10,8 +10,7 @@ third party packages such as
 [MCMCChains.jl](https://github.com/TuringLang/MCMCChains.jl) 
 and [PairPlots.jl](https://sefffal.github.io/PairPlots.jl/).
 
-See below for examples of posterior densities, trace plots and 
-pair plots. 
+See below for examples of posterior densities and trace plots.
 
 
 ## Posterior densities and trace plots
@@ -66,7 +65,7 @@ installed via
 using Pkg; Pkg.add("MCMCChains", "CairoMakie", "PairPlots")
 ```
 
-```@example pairplots
+```
 using Pigeons
 using MCMCChains
 using CairoMakie
@@ -89,9 +88,6 @@ CairoMakie.save("pair_plot.svg", my_plot)
 nothing # hide
 ```
 
-```@raw html
-<iframe src="pair_plot.svg" style="height:500px;width:100%;"></iframe>
-```
 
 ## Related pages
 
