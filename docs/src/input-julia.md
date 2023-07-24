@@ -10,7 +10,7 @@ such as Turing, but sometimes to get more flexibility or
 speed it is useful to implement the density evaluation 
 manually as a "black-box" Julia function. 
 
-Here we show how this is done using our familiar [unidentifiable toy example][unidentifiable-example.html]
+Here we show how this is done using our familiar [unidentifiable toy example](unidentifiable-example.html)
 [ported to the Stan language](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/unid.stan).
 
 We first create a custom type, `MyLogPotential` to control dispatch on the interface [`target`](@ref).
