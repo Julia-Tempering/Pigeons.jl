@@ -113,3 +113,32 @@ pt = pigeons(
     )
 nothing # hide
 ```
+
+
+## Manipulating the output
+
+Some 
+common post-processing are shown below, see [the section on output processing for more information](output-overview
+.html). 
+
+```@example julia
+using MCMCChains
+using StatsPlots
+
+pt = pigeons(
+        target = UnidToyLogPotential(100, 50), 
+        reference = UnidToyLogPotential(0, 0), 
+        explorer = AutoMALA(default_autodiff_backend = :ForwardDiff),
+        record = [traces])
+samples = Chains(sample_array(pt), variable_names(pt))
+my_plot = StatsPlots.plot(samples)
+StatsPlots.savefig(my_plot, "julia_posterior_densities_and_traces.html"); 
+
+samples
+```
+
+```@raw html
+<iframe src="julia_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+```
+
+
