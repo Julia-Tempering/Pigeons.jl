@@ -60,6 +60,7 @@ pt = pigeons(
         target = UnidToyLogPotential(100, 50), 
         reference = UnidToyLogPotential(0, 0)
     )
+nothing # hide
 ```
 
 Notice that we have specified a reference distribution, in this case the same model but with 
@@ -68,3 +69,37 @@ This needs to be done with Julia "black-box" targets because it is
 not possible to automatically extract a prior from a .stan file. 
 
 The [`default_explorer()`](@ref) is the [`SliceSampler`](@ref). 
+
+
+## Sampling from the reference distribution
+
+```@example julia
+
+function Pigeons.sample_iid!(::UnidToyLogPotential, replica, shared)
+    state = replica.state 
+    rng = replica.rng 
+    rand!(rng, state)
+end
+
+pt = pigeons(
+        target = UnidToyLogPotential(100, 50), 
+        reference = UnidToyLogPotential(0, 0)
+    )
+nothing # hide
+```
+
+
+## Changing the explorer 
+
+Here is an example using [`AutoMALA`](@ref) instead of the default 
+[`SliceSampler`](@ref). 
+
+```@example julia
+pt = pigeons(
+        target = UnidToyLogPotential(100, 50), 
+        reference = UnidToyLogPotential(0, 0), 
+        explorer = AutoMALA(default_autodiff_backend = :ForwardDiff) 
+    )
+nothing # hide
+```
+

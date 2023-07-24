@@ -19,7 +19,7 @@ end
 (log_potential::ScaledPrecisionNormalLogPotential)(x) = 
     -0.5 * log_potential.precision * sqr_norm(x) 
 
-(log_potential::ScaledPrecisionNormalLogPotential)(x::StanState) = log_potential(x.x)
+(log_potential::ScaledPrecisionNormalLogPotential)(x::StanState) = log_potential(x.unconstrained_parameters)
 
 # Make it conform the LogDensityProblems interface
 LogDensityProblems.logdensity(log_potential::ScaledPrecisionNormalLogPotential, x) = log_potential(x)

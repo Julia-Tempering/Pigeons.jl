@@ -1,4 +1,5 @@
 [deps]
+BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"

@@ -21,4 +21,4 @@ Random.rand!(rng::AbstractRNG, x::AbstractVector, log_potential::ScaledPrecision
     end
 
 Random.rand!(rng::AbstractRNG, state::Pigeons.StanState{Vector{Float64}}, log_potential::Pigeons.ScaledPrecisionNormalLogPotential) = 
-    rand!(rng, state.x, log_potential)
+    rand!(rng, state.unconstrained_parameters, log_potential)

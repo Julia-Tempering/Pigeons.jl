@@ -115,11 +115,11 @@ to [`Inputs`](@ref).
 
 ## Estimating the log normalization constant
 
-To estimate the log normalization constant, use [`stepping_stone_pair()`](@ref), 
+To estimate the log normalization constant, use [`stepping_stone()`](@ref), 
 for example: 
 
 ```@example example
-stepping_stone_pair(pt)
+stepping_stone(pt)
 ```
 
 we can see that this is close to the close-form expression available for this 

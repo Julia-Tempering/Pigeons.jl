@@ -119,23 +119,23 @@ variable_names(state::DynamicPPL.TypedVarInfo, _) = map(x -> "$x", keys(state))
 
 # Stan ----------
 @concrete mutable struct StanState 
-    x # unconstrained parameters
+    unconstrained_parameters
 end
 
 continuous_variables(state::StanState) = SINGLETON_VAR # all Stan variables should be continuous 
 discrete_variables(state::StanState) = []
 
 extract_sample(state::StanState, log_potential) = 
-    BridgeStan.param_constrain(stan_model(log_potential), state.x)
+    BridgeStan.param_constrain(stan_model(log_potential), state.unconstrained_parameters)
 
 function update_state!(state::StanState, name::Symbol, index, value) 
     @assert name === :singleton_variable
-    state.x[index] = value
+    state.unconstrained_parameters[index] = value
 end
 
 function variable(state::StanState, name::Symbol)
     if name === :singleton_variable
-        state.x
+        state.unconstrained_parameters
     else
         error()
     end
