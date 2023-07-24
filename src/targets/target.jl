@@ -15,7 +15,9 @@ The probability distribution of interest.
     """
     $SIGNATURES 
 
-    The default [`explorer`](@ref) for the given [`target`](@ref).
+    The default [`explorer`](@ref) for the given [`target`](@ref). 
+
+    It can be overwritten by the argument `explorer` in [`pigeons()`](@ref).
     """
     default_explorer(target) = SliceSampler() 
 
@@ -23,9 +25,13 @@ The probability distribution of interest.
     $SIGNATURES 
 
     Create a default reference distribution, by returning a 
-    [`log_potential`](@ref). The returned object will also get 
+    [`log_potential`](@ref). 
+    
+    The returned object will get 
     passed to [`sample_iid!()`](@ref) at the "hot chains" of 
     the Parallel Tempering algorithm. 
+
+    It can be overwritten by the argument `reference` in [`pigeons()`](@ref).
     """
     default_reference(target) = @abstract
 

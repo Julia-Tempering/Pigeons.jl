@@ -27,3 +27,4 @@ examples/.CondaPkg
 
 examples/benchmarks
 benchmarks
+*.bu
