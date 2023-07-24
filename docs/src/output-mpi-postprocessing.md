@@ -27,12 +27,12 @@ This will load the information distributed across several machines
 into the interactive node.
 
 Once you have a [`PT`](@ref) struct, proceed in the same way as 
-when running PT locally, e.g. [see the page on plotting](plotting.html), 
+when running PT locally, e.g. [see the page on plotting](output-plotting.html), 
 [the page on online statistics](online-statistics.html), 
 and [the page on sample summaries and diagnostics](summaries.html).
 
 For example, here is how to modify the posterior density and trace plot 
-example from [the plotting page](plotting.html) to run as a local MPI job 
+example from [the plotting page](output-plotting.html) to run as a local MPI job 
 instead of in-process (the lines differing from the local version are marked 
 with (*)):
 

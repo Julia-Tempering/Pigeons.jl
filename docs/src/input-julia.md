@@ -119,7 +119,7 @@ Pigeons have several built-in [`explorer`](@ref) kernels such as
 However when the state space is neither the reals nor the integers, 
 or for performance reasons, it may be necessary to create custom 
 exploration MCMC kernels.
-This is described on the [custom explorers page](explorers.html).
+This is described on the [custom explorers page](input-explorers.html).
 
 
 ## Manipulating the output
