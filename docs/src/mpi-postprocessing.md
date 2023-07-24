@@ -40,6 +40,7 @@ with (*)):
 using Pigeons
 using MCMCChains
 using StatsPlots
+plotlyjs()
 
 # example target: Binomial likelihood with parameter p = p1 * p2
 an_unidentifiable_model = Pigeons.toy_turing_unid_target()

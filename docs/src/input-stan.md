@@ -91,6 +91,7 @@ common post-processing are shown below, see [the section on output processing fo
 ```@example stan
 using MCMCChains
 using StatsPlots
+plotlyjs()
 
 pt = pigeons(
         target = stan_unid(100, 50), 

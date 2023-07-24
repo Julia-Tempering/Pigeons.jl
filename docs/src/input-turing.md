@@ -43,6 +43,7 @@ common post-processing are shown below, see [the section on output processing fo
 ```@example turing
 using MCMCChains
 using StatsPlots
+plotlyjs()
 
 pt = pigeons(
         target = TuringLogPotential(my_turing_model(100, 50)), 

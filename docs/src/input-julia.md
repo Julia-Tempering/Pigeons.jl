@@ -131,6 +131,7 @@ common post-processing are shown below, see [the section on output processing fo
 ```@example julia
 using MCMCChains
 using StatsPlots
+plotlyjs()
 
 pt = pigeons(
         target = MyLogPotential(100, 50), 
