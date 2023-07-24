@@ -50,7 +50,7 @@ end
         @test size(s)[1] == length(marginal)
         @test_throws "You cannot" setindex!(s, s[2], 1)
         # check that the disk serialization gives the same result
-        process_samples(pt) do chain, scan, sample
+        process_sample(pt) do chain, scan, sample
             @test sample == get_sample(pt, chain, scan)
         end
     end

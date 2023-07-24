@@ -172,7 +172,7 @@ pt = pigeons(target = toy_mvn_target(10), record = [traces, disk], checkpoint = 
 # full trace would not fit in memory
 # By default, only the samples from the last rounds are loaded 
 # i.e. a burn-in of 50%.
-process_samples(pt) do chain, scan, sample 
+process_sample(pt) do chain, scan, sample 
     # check the results are identical for the disk and traces recorders
     @assert sample == get_sample(pt, chain, scan)
 end

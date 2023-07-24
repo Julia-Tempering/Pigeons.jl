@@ -95,14 +95,14 @@ get_sample(pt::PT, chain::Int, scan::Int) = pt.reduced_recorders.traces[chain =>
 """
 $SIGNATURES
 """
-process_samples(processor::Function, pt::PT, round::Int = latest_checkpoint_folder(pt.exec_folder)) =
-    process_samples(processor, pt.exec_folder, round)
+process_sample(processor::Function, pt::PT, round::Int = latest_checkpoint_folder(pt.exec_folder)) =
+    process_sample(processor, pt.exec_folder, round)
 
 """
 $SIGNATURES
 """
-process_samples(processor::Function, pt::Result{PT}, round::Int = latest_checkpoint_folder(pt.exec_folder)) =
-    process_samples(processor, pt.exec_folder, round)
+process_sample(processor::Function, pt::Result{PT}, round::Int = latest_checkpoint_folder(pt.exec_folder)) =
+    process_sample(processor, pt.exec_folder, round)
 
 
 """
@@ -122,7 +122,7 @@ within the round, starting at 1, and sample is the deserialized sample.
 This iterates over the samples in increasing order, looping over `chain_index` in the
 outer loop and `scan_index` in the inner loop.
 """
-function process_samples(processor::Function, exec_folder::String, round::Int)
+function process_sample(processor::Function, exec_folder::String, round::Int)
     if round == 0
         error("no checkpoint is available yet for $exec_folder")
     elseif round < 0

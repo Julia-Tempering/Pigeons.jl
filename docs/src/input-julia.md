@@ -73,6 +73,10 @@ The [`default_explorer()`](@ref) is the [`SliceSampler`](@ref).
 
 ## Sampling from the reference distribution
 
+Ability to sample from the reference distribution can be beneficial, e.g. to jump modes 
+in multi-modal distribution. 
+For black-box Julia function targets, this is done as follows:
+
 ```@example julia
 
 function Pigeons.sample_iid!(::UnidToyLogPotential, replica, shared)
@@ -109,4 +113,3 @@ pt = pigeons(
     )
 nothing # hide
 ```
-

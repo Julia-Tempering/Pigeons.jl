@@ -51,7 +51,12 @@ not possible to automatically extract a prior from a .stan file.
 For a [`StanLogPotential`](@ref), the [`default_explorer()`](@ref) is [`AutoMALA`](@ref). 
 
 
+
 ## Sampling from the reference distribution
+
+Ability to sample from the reference distribution can be beneficial, e.g. to jump modes 
+in multi-modal distribution. 
+For stan targets, this is done as follows:
 
 ```@example stan
 using BridgeStan
@@ -69,3 +74,37 @@ end
 pt = pigeons(target = stan_unid(100, 50), reference = stan_unid(0, 0))
 nothing # hide
 ```
+
+
+## Manipulating the output
+
+Internally, stan target's states (of type [`StanState`](@ref)) are stored in an unconstrained 
+parameterization provided by Stan 
+(for example, bounded support variables are mapped to the full real line). 
+However, sample post-processing functions such as [`sample_array()`](@ref) and [`process_sample()`](@ref) 
+convert back to the original ("constrained") parameterization via [`extract_sample()`](@ref). 
+
+As a result parameterization issues can be essentially ignored when post-processing, for example some 
+common post-processing are shown below, see [the section on output processing for more information](output-overview
+.html). 
+
+```@example stan
+using MCMCChains
+using StatsPlots
+
+pt = pigeons(
+        target = stan_unid(100, 50), 
+        reference = stan_unid(0, 0), 
+        record = [traces])
+samples = Chains(sample_array(pt), variable_names(pt))
+my_plot = StatsPlots.plot(samples)
+StatsPlots.savefig(my_plot, "stan_posterior_densities_and_traces.html"); 
+
+samples
+```
+
+```@raw html
+<iframe src="stan_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+```
+
+

@@ -118,6 +118,10 @@ variable_names(state::DynamicPPL.TypedVarInfo, _) = map(x -> "$x", keys(state))
 
 
 # Stan ----------
+"""
+A state for stan target. 
+Holds a vector in BridgeStan's unconstrained parameterization.
+"""
 @concrete mutable struct StanState 
     unconstrained_parameters
 end

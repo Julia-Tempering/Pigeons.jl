@@ -78,7 +78,7 @@ Here instead of keeping samples in memory, we instruct the machines to
 store them on the fly in a shared directory. 
 We do this using the [`disk`](@ref) [`recorder`](@ref). 
 
-Then we process the sample one at the time using [`process_samples()`](@ref). 
+Then we process the sample one at the time using [`process_sample()`](@ref). 
 
 Here is an example where the target is 1000-dimensional but we are only 
 interested in the first coordinate:
@@ -99,7 +99,7 @@ pt_result = pigeons(target = high_d_target,
 
 # process the samples one by one, keeping only the first dimension
 first_dim_of_each = Vector{Float64}()
-process_samples(pt_result) do chain, scan, sample
+process_sample(pt_result) do chain, scan, sample
     # each sample here is a Vector{Float64} of length 1000 
     # in general, it will is produced by extract_sample()
     push!(first_dim_of_each, sample[1])
