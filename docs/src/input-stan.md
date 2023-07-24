@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Stan model as input
+# Stan model as input to pigeons
 
 !!! note
 
@@ -23,14 +23,14 @@ Here we show how this is done using our familiar [unidentifiable toy example][un
 ```@example stan
 using Pigeons 
 
-function stan_unid(number, sum)
+function stan_unid(n_trials, n_successes)
     # path to a .stan file (compiled files will be cached in the same directory)
     stan_file = dirname(dirname(pathof(Pigeons))) * "/examples/stan/unid.stan"
 
     # data can be specified either using...
     #   - a path to a json file with suffix .json containing the data to condition on
     #   - the JSON string itself (here via the utility Pigeons.json())
-    stan_data = Pigeons.json(; number, sum)
+    stan_data = Pigeons.json(; n_trials, n_successes)
 
     return StanLogPotential(stan_file, stan_data)
 end

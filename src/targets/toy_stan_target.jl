@@ -11,10 +11,10 @@ A multivariate normal implemented in Stan for testing/benchmarking.
         json(; dim, precision)
     )
 
-toy_stan_unid_target(number = 100000, sum = ceil(Int, number/2)) =
+toy_stan_unid_target(n_trials = 100000, n_successes = ceil(Int, n_trials/2)) =
     StanLogPotential(
         stan_example_path("unid.stan"), 
-        json(; number, sum)
+        json(; n_trials, n_successes)
     )
 
 stan_funnel(dim = 9) = 

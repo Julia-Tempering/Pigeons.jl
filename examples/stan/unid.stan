@@ -1,6 +1,6 @@
 data {
-  int<lower=0> number;
-  int<lower=0> sum;
+  int<lower=0> n_trials;
+  int<lower=0> n_successes;
 }
 parameters {
   real<lower=0, upper=1> p1;
@@ -8,6 +8,6 @@ parameters {
 }
 
 model {
-  target += binomial_lpmf(sum | number, p1 * p2);
+  target += binomial_lpmf(n_successes | n_trials, p1 * p2);
 }
 

@@ -92,15 +92,6 @@ function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int6
 end
 
 default_reference(target::StanLogPotential) = target
-    
-
-function sample_iid!(log_potential::StanLogPotential, replica, shared) 
-    @warn   """
-            In Stan, it is not possible to automatically extract a prior/sample from it.
-            Instead, we use step!(). 
-            """ maxlog=1
-    step!(shared.explorer, replica, shared)
-end
 
 # Allocation-free version of the BridgeStan functions.
 # Also add custom error handling code. 
