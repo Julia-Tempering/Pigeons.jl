@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Stan model as input to pigeons
+# [Stan model as input to pigeons](@id input-stan)
 
 !!! note
 
@@ -17,7 +17,7 @@ To target the posterior distribution specified by
 a [Stan](https://mc-stan.org/) model, use 
 a [`StanLogPotential`](@ref). 
 
-Here we show how this is done using our familiar [unidentifiable toy example](unidentifiable-example.html)
+Here we show how this is done using our familiar [unidentifiable toy example](@ref unidentifiable-example)
 [ported to the Stan language](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/unid.stan).
 
 ```@example stan
@@ -85,8 +85,7 @@ However, sample post-processing functions such as [`sample_array()`](@ref) and [
 convert back to the original ("constrained") parameterization via [`extract_sample()`](@ref). 
 
 As a result parameterization issues can be essentially ignored when post-processing, for example some 
-common post-processing are shown below, see [the section on output processing for more information](output-overview
-.html). 
+common post-processing are shown below, see [the section on output processing for more information](@ref output-overview). 
 
 ```@example stan
 using MCMCChains
@@ -105,7 +104,7 @@ samples
 ```
 
 ```@raw html
-<iframe src="stan_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+<iframe src="../stan_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
 ```
 
 

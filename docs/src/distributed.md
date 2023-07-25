@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Distributed and parallel implementation of PT 
+# [Distributed and parallel implementation of PT](@id distributed)
 
 ## Introduction
 
@@ -15,7 +15,7 @@ parallelized, and randomized algorithm.
     Read this page if you are interested in extending Pigeons or 
     understanding how it works under the hood. 
     Reading this page is not required to use Pigeons. Instead, refer to the 
-    [user guide](index.html). 
+    [user guide](@ref index). 
 
 In Distributed PT, one or several computers run MCMC simulations in parallel and 
 communicate with each other to improve MCMC efficiency. 
@@ -79,7 +79,7 @@ Let us start with a high-level picture of the distributed PT algorithm.
 The high-level code is the function [`pigeons()`](@ref) which is identical to the single-machine algorithm. 
 A first difference lay in the [`replicas`](@ref) datastructure taking on a different type. Also, as promised the 
 output is identical despite a vastly different swap logic: this can be checked using the `checked_round` 
-argument described in the [user guide](index.html). 
+argument described in the [user guide](@ref index). 
 A second difference between the execution of [`pigeons()`](@ref) in single vs many machine context is the behaviour 
 of [`swap!`](@ref) which is dispatched 
 based on the type of 

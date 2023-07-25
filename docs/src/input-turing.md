@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Turing.jl model as input to pigeons
+# [Turing.jl model as input to pigeons](@id input-turing)
 
 To target the posterior distribution specified by 
 a [Turing.jl](https://github.com/TuringLang/Turing.jl) model use 
@@ -37,8 +37,7 @@ However, sample post-processing functions such as [`sample_array()`](@ref) and [
 convert back to the original ("constrained") parameterization via [`extract_sample()`](@ref). 
 
 As a result parameterization issues can be essentially ignored when post-processing, for example some 
-common post-processing are shown below, see [the section on output processing for more information](output-overview
-.html). 
+common post-processing are shown below, see [the section on output processing for more information](@ref output-overview). 
 
 ```@example turing
 using MCMCChains
@@ -56,6 +55,6 @@ samples
 ```
 
 ```@raw html
-<iframe src="turing_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+<iframe src="../turing_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
 ```
 

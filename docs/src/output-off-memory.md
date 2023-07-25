@@ -2,20 +2,20 @@
 CurrentModule = Pigeons
 ```
 
-# Off-memory processing
+# [Off-memory processing](@id output-off-memory)
 
 When the dimensionality of a model is large and/or the 
 number of MCMC samples is large, the samples may not 
 fit in memory. 
 In some situation, it may be possible to compute the 
 output in finite memory, as described in 
-[the online statistics documentation page](output-online.html). 
+[the online statistics documentation page](@ref output-online). 
 However not all situations admit sufficient statistics and 
 in this case it is necessary to store samples to disk. 
 We show here how to do so when pigeons is ran on a single 
 machine, but the interface is similar over MPI and 
 described in the 
-[MPI sample processing documentation page](output-mpi-postprocessing.html). 
+[MPI sample processing documentation page](@ref output-mpi-postprocessing). 
 
 
 ## Prepare the PT run with the disk recorder

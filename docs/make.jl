@@ -28,7 +28,7 @@ makedocs(;
     sitename="Pigeons.jl",
     strict=true,
     format=Documenter.HTML(;
-        prettyurls=get(ENV, "CI", "false") == "true",
+        prettyurls=true, # always on, avoids confusion when building locally. If needed, serve the "build" folder locally with LiveServer. #get(ENV, "CI", "false") == "true",
         canonical="https://Julia-Tempering.github.io/Pigeons.jl",
         edit_link="main",
         assets=String[],

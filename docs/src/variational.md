@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Variational PT
+# [Variational PT](@id variational-pt)
 
 We describe here the implementation 
 of Variational PT, [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080) included in Pigeons. 

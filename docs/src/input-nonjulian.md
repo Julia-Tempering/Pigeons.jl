@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Targeting a non-Julian model 
+# [Targeting a non-Julian model](@id input-nonjulian)
 
 Suppose you have some code implementing vanilla MCMC, written in an arbitrary "foreign" language such as C++, Python, R, Java, etc. You would like to turn this vanilla MCMC code into a Parallel Tempering algorithm able to harness large numbers of cores, including distributing this algorithm over MPI. However, you do not wish to learn anything about MPI/multi-threading/Parallel Tempering.
 
@@ -48,7 +48,7 @@ Pigeons.setup_blang("blangDemos")
 
 Next, we run a  
 [Blang implementation](https://github.com/UBC-Stat-ML/blangDemos/blob/master/src/main/java/demos/UnidentifiableProduct.bl) of 
-our usual [unidentifiable toy example](unidentifiable-example.html):
+our usual [unidentifiable toy example](@ref unidentifiable-example):
 
 ```@example blang
 using Pigeons

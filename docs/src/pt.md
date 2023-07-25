@@ -12,7 +12,7 @@ linking it with some key parts of the code base.
     Read this page if you are interested in extending Pigeons or 
     understanding how it works under the hood. 
     Reading this page is not required to use Pigeons, for that instead refer to the 
-    [user guide](index.html). 
+    [user guide](@ref index). 
 
 
 ## PT augmented state space, replicas
@@ -80,7 +80,7 @@ the amount of data that needs to be exchanged between two machines during a swap
 can be made very small (two floats). 
 It is remarkable that this cost does not vary with the dimensionality of the state space, 
 in constrast to the naive implementation which would transmit states over the network.
-See [Distributed PT](distributed.html) for more information on our distributed implementation.
+See [Distributed PT](@ref distributed) for more information on our distributed implementation.
 
 Both in distributed and single process mode, 
 swaps are performed using the function [`swap!()`](@ref). 
@@ -115,7 +115,7 @@ To orchestrate the creation of [`PT`](@ref) structs, [`Inputs`](@ref) is used. I
 PT algorithm (target distribution, random seed, etc). 
 
 
-### Collecting statistics: [`recorder`](@ref) and [`recorders`](@ref)
+### [Collecting statistics: [`recorder`](@ref) and [`recorders`](@ref)](@id collecting-statistics)
 
 Two steps are needed to collect statistics from the execution of a PT algorithm: 
 
