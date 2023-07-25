@@ -44,7 +44,7 @@ using Pigeons
 inputs = Inputs(target = toy_mvn_target(100))
 ```
 
-See [`Inputs`](@ref) for more options. 
+Have a look at the [`Inputs`](@ref) documentation for an overview of the many options available to configure pigeons. 
 
 Then, run PT (locally on one process) using the function [`pigeons()`](@ref):
 

@@ -42,7 +42,7 @@ pigeons(pt_from_checkpoint)
 If part of a target is a large immutable object, it is 
 wasteful to have all the machines write it at each round. 
 To avoid this, encapsulate the  large immutable object 
-into an [`Immutable`](@ref) struct. 
+into an `Immutable` struct. 
 
 For an example where this is used, see
-https://github.com/Julia-Tempering/Pigeons.jl/blob/58e3940d0dd607a73c1b051d2282a8500fe0ec0f/src/targets/StanLogPotential.jl#L23. 
+[here](https://github.com/Julia-Tempering/Pigeons.jl/blob/58e3940d0dd607a73c1b051d2282a8500fe0ec0f/src/targets/StanLogPotential.jl#L23).
