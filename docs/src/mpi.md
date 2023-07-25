@@ -9,6 +9,7 @@ CurrentModule = Pigeons
 To run MPI locally on one machine, using 4 MPI processes and 1 thread per process use:
 
 ```@example example
+using Pigeons
 pigeons(
     target = toy_mvn_target(100), 
     checked_round = 3, 
