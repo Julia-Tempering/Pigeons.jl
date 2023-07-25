@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Stan model · Pigeons.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link rel="canonical" href="https://Julia-Tempering.github.io/Pigeons.jl/input-stan/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Pigeons.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Basic usage (local)</a></li><li><a class="tocitem" href="../unidentifiable-example/">Why PT?</a></li><li><a class="tocitem" href="../mpi/">Distributed usage (MPI)</a></li><li><a class="tocitem" href="../variational/">Variational PT</a></li><li><span class="tocitem">Supported inputs</span><ul><li><a class="tocitem" href="../input-overview/">Overview</a></li><li><a class="tocitem" href="../input-turing/">Turing.jl model</a></li><li><a class="tocitem" href="../input-julia/">Black-box function</a></li><li class="is-active"><a class="tocitem" href>Stan model</a><ul class="internal"><li><a class="tocitem" href="#Sampling-from-the-reference-distribution"><span>Sampling from the reference distribution</span></a></li><li><a class="tocitem" href="#Manipulating-the-output"><span>Manipulating the output</span></a></li></ul></li><li><a class="tocitem" href="../input-nonjulian/">Non-julian MCMC</a></li><li><a class="tocitem" href="../input-explorers/">Custom MCMC</a></li></ul></li><li><span class="tocitem">Outputs</span><ul><li><a class="tocitem" href="../output-overview/">Overview</a></li><li><a class="tocitem" href="../output-reports/">Quick reports</a></li><li><a class="tocitem" href="../output-plotting/">Plots</a></li><li><a class="tocitem" href="../output-normalization/">log(Z)</a></li><li><a class="tocitem" href="../output-numerical/">Numerical</a></li><li><a class="tocitem" href="../output-online/">Online stats</a></li><li><a class="tocitem" href="../output-off-memory/">Off-memory</a></li><li><a class="tocitem" href="../output-pt/">PT diagnostics</a></li><li><a class="tocitem" href="../output-custom-types/">Custom types</a></li><li><a class="tocitem" href="../output-mpi-postprocessing/">MPI output</a></li></ul></li><li><a class="tocitem" href="../checkpoints/">Checkpoints</a></li><li><a class="tocitem" href="../correctness/">Correctness checks</a></li><li><a class="tocitem" href="../pt/">More on PT</a></li><li><a class="tocitem" href="../distributed/">More on distributed PT</a></li><li><a class="tocitem" href="../interfaces/">Interfaces</a></li><li><a class="tocitem" href="../reference/">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Supported inputs</a></li><li class="is-active"><a href>Stan model</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Stan model</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Julia-Tempering/Pigeons.jl/blob/main/docs/src/input-stan.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Stan-model-as-input-to-pigeons"><a class="docs-heading-anchor" href="#Stan-model-as-input-to-pigeons">Stan model as input to pigeons</a><a id="Stan-model-as-input-to-pigeons-1"></a><a class="docs-heading-anchor-permalink" href="#Stan-model-as-input-to-pigeons" title="Permalink"></a></h1><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>We use the package <code>BridgeStan.jl</code> which will attempt  to automatically install Stan.  For <code>BridgeStan.jl</code> to work, a C++ compiler and  <code>make</code> are needed, see  <a href="https://roualdes.github.io/bridgestan/latest/getting-started.html#requirement-c-toolchain">the BridgeStan requirements</a>.</p></div></div><p>To target the posterior distribution specified by  a <a href="https://mc-stan.org/">Stan</a> model, use  a <a href="../reference/#Pigeons.StanLogPotential"><code>StanLogPotential</code></a>. </p><p>Here we show how this is done using our familiar <a href="unidentifiable-example.html">unidentifiable toy example</a> <a href="https://github.com/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/unid.stan">ported to the Stan language</a>.</p><pre><code class="language-julia hljs">using Pigeons
+using Random
+
+# We will use this type to make sure our iid sampler (next section) will
+# be used only for this model
+struct StanUnidentifiableExample end
+
+function stan_unid(n_trials, n_successes)
+    # path to a .stan file (compiled files will be cached in the same directory)
+    stan_file = dirname(dirname(pathof(Pigeons))) * &quot;/examples/stan/unid.stan&quot;
+
+    # data can be specified either using...
+    #   - a path to a json file with suffix .json containing the data to condition on
+    #   - the JSON string itself (here via the utility Pigeons.json())
+    stan_data = Pigeons.json(; n_trials, n_successes)
+
+    return StanLogPotential(stan_file, stan_data, StanUnidentifiableExample())
+end
+
+pt = pigeons(target = stan_unid(100, 50), reference = stan_unid(0, 0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"> Downloading artifact: bridgestan
+┌ Warning: Loading a shared object &#39;/home/runner/work/Pigeons.jl/Pigeons.jl/examples/stan/unid_model.so&#39; which is already loaded.
+│ If the file has changed since the last time it was loaded, this load may not update the library!
+└ @ BridgeStan ~/.julia/packages/BridgeStan/r4RPQ/src/model.jl:51
+┌ Info: Neither traces, disk, nor online recorders included.
+│    You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
+└    To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+┌ Warning: It looks like sample_iid!() is not implemented for a
+│ reference_log_potential of type StanLogPotential{...}.
+│ Instead, using step!().
+└ @ Pigeons ~/work/Pigeons.jl/Pigeons.jl/src/targets/target.jl:51
+──────────────────────────────────────────────────────────────────────────────────────────────────
+  #scans       Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2       1.56     0.0491   1.14e+06      -6.22     0.0027      0.827      0.469      0.675
+        4       1.42    0.00567   4.35e+04      -5.12      0.459      0.842      0.367      0.569
+        8       1.13     0.0105   8.72e+04      -5.01      0.706      0.875      0.518      0.608
+       16       1.02     0.0196   1.36e+05      -4.45      0.813      0.887      0.515      0.634
+       32       1.86     0.0404   1.94e+05      -5.18       0.64      0.793      0.573      0.624
+       64       1.56     0.0818   2.75e+05      -4.83      0.678      0.827      0.546      0.612
+      128       1.52      0.158   3.98e+05      -4.92      0.782      0.831       0.55      0.621
+      256       1.52      0.327   6.47e+05      -5.07       0.76      0.831      0.513       0.61
+      512       1.47       0.63   1.15e+06      -4.95      0.777      0.837       0.58      0.633
+ 1.02e+03       1.52       1.28   2.16e+06         -5      0.786      0.831       0.53      0.616
+──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>Notice that we have specified a reference distribution, in this case the same model but with  no observations (hence the prior). This needs to be done with Stan targets because it is  not possible to automatically extract a prior from a .stan file. </p><p>For a <a href="../reference/#Pigeons.StanLogPotential"><code>StanLogPotential</code></a>, the <a href="../reference/#Pigeons.default_explorer-Tuple{Any}"><code>default_explorer()</code></a> is <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a>. </p><h2 id="Sampling-from-the-reference-distribution"><a class="docs-heading-anchor" href="#Sampling-from-the-reference-distribution">Sampling from the reference distribution</a><a id="Sampling-from-the-reference-distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Sampling-from-the-reference-distribution" title="Permalink"></a></h2><p>Ability to sample from the reference distribution can be beneficial, e.g. to jump modes  in multi-modal distribution.  For stan targets, this is done as follows:</p><pre><code class="language-julia hljs">using BridgeStan
+
+function Pigeons.sample_iid!(
+        log_potential::StanLogPotential{M, S, D, StanUnidentifiableExample}, replica, shared) where {M, S, D}
+    # sample in constrained space
+    state = replica.state.unconstrained_parameters
+    rng = replica.rng
+    constrained = rand(rng, 2)
+    # transform to unconstrained space
+    replica.state.unconstrained_parameters .= BridgeStan.param_unconstrain(log_potential.model, constrained)
+end
+
+pt = pigeons(target = stan_unid(100, 50), reference = stan_unid(0, 0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Warning: Loading a shared object &#39;/home/runner/work/Pigeons.jl/Pigeons.jl/examples/stan/unid_model.so&#39; which is already loaded.
+│ If the file has changed since the last time it was loaded, this load may not update the library!
+└ @ BridgeStan ~/.julia/packages/BridgeStan/r4RPQ/src/model.jl:51
+┌ Warning: Loading a shared object &#39;/home/runner/work/Pigeons.jl/Pigeons.jl/examples/stan/unid_model.so&#39; which is already loaded.
+│ If the file has changed since the last time it was loaded, this load may not update the library!
+└ @ BridgeStan ~/.julia/packages/BridgeStan/r4RPQ/src/model.jl:51
+┌ Info: Neither traces, disk, nor online recorders included.
+│    You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
+└    To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+──────────────────────────────────────────────────────────────────────────────────────────────────
+  #scans       Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2       1.56    0.00198   3.62e+04      -11.6   5.44e-08      0.827      0.469       0.65
+        4       2.04    0.00538   4.65e+04      -5.16      0.167      0.773      0.377      0.581
+        8       1.46    0.00926   8.71e+04       -5.8       0.69      0.837      0.493      0.611
+       16       1.58     0.0187   1.24e+05      -5.24      0.161      0.824      0.556      0.634
+       32       1.49     0.0352   1.95e+05      -5.09      0.718      0.834      0.545      0.638
+       64       1.49     0.0747   2.73e+05      -4.92      0.751      0.834      0.519      0.605
+      128       1.53      0.142   3.81e+05      -5.35      0.751       0.83      0.588      0.634
+      256        1.6      0.289   6.22e+05         -5      0.721      0.822       0.55      0.624
+      512       1.42      0.562   1.11e+06      -4.99      0.807      0.842      0.584      0.633
+ 1.02e+03       1.51       1.14   2.07e+06      -4.97      0.815      0.832      0.546      0.629
+──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><h2 id="Manipulating-the-output"><a class="docs-heading-anchor" href="#Manipulating-the-output">Manipulating the output</a><a id="Manipulating-the-output-1"></a><a class="docs-heading-anchor-permalink" href="#Manipulating-the-output" title="Permalink"></a></h2><p>Internally, Stan target&#39;s states (of type <a href="../reference/#Pigeons.StanState"><code>StanState</code></a>) are stored in an unconstrained  parameterization provided by Stan  (for example, bounded support variables are mapped to the full real line).  However, sample post-processing functions such as <a href="../reference/#Pigeons.sample_array-Tuple{PT}"><code>sample_array()</code></a> and <a href="../reference/#Pigeons.process_sample"><code>process_sample()</code></a>  convert back to the original (&quot;constrained&quot;) parameterization via <a href="../reference/#Pigeons.extract_sample-Tuple{Any, Any}"><code>extract_sample()</code></a>. </p><p>As a result parameterization issues can be essentially ignored when post-processing, for example some  common post-processing are shown below, see <a href="output-overview .html">the section on output processing for more information</a>. </p><pre><code class="language-julia hljs">using MCMCChains
+using StatsPlots
+plotlyjs()
+
+pt = pigeons(
+        target = stan_unid(100, 50),
+        reference = stan_unid(0, 0),
+        record = [traces])
+samples = Chains(sample_array(pt), variable_names(pt))
+my_plot = StatsPlots.plot(samples)
+StatsPlots.savefig(my_plot, &quot;stan_posterior_densities_and_traces.html&quot;);
+
+samples</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chains MCMC chain (1024×2×1 Array{Float64, 3}):
+
+Iterations        = 1:1:1024
+Number of chains  = 1
+Samples per chain = 1024
+parameters        = p1, p2
+
+Summary Statistics
+  parameters      mean       std      mcse   ess_bulk   ess_tail      rhat   e ⋯
+      Symbol   Float64   Float64   Float64    Float64    Float64   Float64     ⋯
+
+          p1    0.7096    0.1492    0.0087   281.6363   405.4999    1.0005     ⋯
+          p2    0.7226    0.1504    0.0085   285.2925   397.4104    1.0011     ⋯
+                                                                1 column omitted
+
+Quantiles
+  parameters      2.5%     25.0%     50.0%     75.0%     97.5%
+      Symbol   Float64   Float64   Float64   Float64   Float64
+
+          p1    0.4754    0.5875    0.6935    0.8351    0.9798
+          p2    0.4679    0.6010    0.7164    0.8487    0.9795
+</code></pre><iframe src="stan_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-julia/">« Black-box function</a><a class="docs-footer-nextpage" href="../input-nonjulian/">Non-julian MCMC »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 25 July 2023 07:52">Tuesday 25 July 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
