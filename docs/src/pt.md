@@ -115,7 +115,7 @@ To orchestrate the creation of [`PT`](@ref) structs, [`Inputs`](@ref) is used. I
 PT algorithm (target distribution, random seed, etc). 
 
 
-### Collecting statistics: [`recorder`](@ref) and [`recorders`](@ref)
+### [Collecting statistics: [`recorder`](@ref) and [`recorders`](@ref)](@id collecting-statistics)
 
 Two steps are needed to collect statistics from the execution of a PT algorithm: 
 

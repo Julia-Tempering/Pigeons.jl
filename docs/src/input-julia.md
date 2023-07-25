@@ -145,7 +145,7 @@ samples
 ```
 
 ```@raw html
-<iframe src="julia_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+<iframe src="../julia_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
 ```
 
 

@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Targeting a non-Julian model 
+# [Targeting a non-Julian model](@id input-nonjulian)
 
 Suppose you have some code implementing vanilla MCMC, written in an arbitrary "foreign" language such as C++, Python, R, Java, etc. You would like to turn this vanilla MCMC code into a Parallel Tempering algorithm able to harness large numbers of cores, including distributing this algorithm over MPI. However, you do not wish to learn anything about MPI/multi-threading/Parallel Tempering.
 

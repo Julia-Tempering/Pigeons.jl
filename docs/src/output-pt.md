@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Parallel Tempering-specific diagnostics
+# [Parallel Tempering-specific diagnostics](@id output-pt)
 
 We describe how to produce some key 
 non-reversible parallel tempering diagnostics 
@@ -109,5 +109,5 @@ nothing # hide
 ```
 
 ```@raw html
-<iframe src="index_process_plot.html" style="height:500px;width:100%;"></iframe>
+<iframe src="../index_process_plot.html" style="height:500px;width:100%;"></iframe>
 ```

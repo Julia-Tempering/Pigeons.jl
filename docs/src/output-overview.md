@@ -6,18 +6,18 @@ CurrentModule = Pigeons
 
 Pigeons supports several methods to post-process the output
 of parallel tempering, including [convenient methods that 
-store in memory all the samples](output-numerical.html), 
+store in memory all the samples](@ref output-numerical), 
 as well as memory efficient 
-methods using either [the disk](output-off-memory.html) or 
-[constant-memory statistics](output-online.html). 
+methods using either [the disk](@ref output-off-memory) or 
+[constant-memory statistics](@ref output-online). 
 
-- [Interpreting pigeons' standard output](output-reports.html)
-- [Creating plots.](output-plotting.html)
-- [Approximation of the normalization constant.](output-normalization.html)
-- [Numerical summaries and diagnostics.](output-numerical.html)
-- [Online (constant-memory) statistics.](output-online.html)
-- [Off-memory processing.](output-off-memory.html)
-- [PT-specific diagnostics.](output-pt.html)
-- [Post-processing for MPI runs.](output-mpi-postprocessing.html)
-- [Output for custom types.](output-custom-types.html)
-- [Further customization using "recorders".](output-recorders.html)
+- [Interpreting pigeons' standard output](@ref output-reports)
+- [Creating plots.](@ref output-plotting)
+- [Approximation of the normalization constant.](@ref output-normalization)
+- [Numerical summaries and diagnostics.](@ref output-numerical)
+- [Online (constant-memory) statistics.](@ref output-online)
+- [Off-memory processing.](@ref output-off-memory)
+- [PT-specific diagnostics.](@ref output-pt)
+- [Post-processing for MPI runs.](@ref output-mpi-postprocessing)
+- [Output for custom types.](@ref output-custom-types)
+- [Further customization using "recorders".](@ref collecting-statistics)

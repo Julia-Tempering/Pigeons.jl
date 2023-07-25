@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Numerical outputs and diagnostics
+# [Numerical outputs and diagnostics](@id output-numerical)
 
 Use [`sample_array()`](@ref) to convert target chain 
 samples into a format that can then be consumed by the 

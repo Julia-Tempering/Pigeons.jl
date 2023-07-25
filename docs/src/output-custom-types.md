@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Output for custom types
+# [Output for custom types](@id output-custom-types)
 
 The [`sample_array`](@ref) function assumes that the variables are real or integer (the latter coerced into the former) 
 and "flattened" into a uniform array. 

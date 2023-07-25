@@ -8,8 +8,8 @@ CurrentModule = Pigeons
 
 `Pigeons` is a Julia package to approximate challenging posterior distributions, and more broadly, Lebesgue integration problems. Pigeons can be used in a multi-threaded context, and/or distributed over hundreds or thousands of MPI-communicating machines.
 
-Pigeons supports many [different ways to specify integration/expectation problems](input-overview.html) and 
-provides [rich and configurable output](output-overview.html). 
+Pigeons supports many [different ways to specify integration/expectation problems](@ref input-overview) and 
+provides [rich and configurable output](@ref output-overview). 
 
 Pigeons' core algorithm is a distributed and parallel implementation 
 of the following algorithms: 

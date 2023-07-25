@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Approximation of the normalization constant
+# [Approximation of the normalization constant](@id output-normalization)
 
 ## Background
 

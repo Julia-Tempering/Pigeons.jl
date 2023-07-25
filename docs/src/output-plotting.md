@@ -49,7 +49,7 @@ nothing # hide
 ```
 
 ```@raw html
-<iframe src="posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+<iframe src="../posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
 ```
 
 ## Posterior pair plots
