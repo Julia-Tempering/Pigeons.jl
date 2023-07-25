@@ -34,7 +34,7 @@ makedocs(;
         assets=String[],
     ),
     pages=[
-        "Inputs" => [
+        "Supported inputs" => [
             "Overview" => "input-overview.md",
             "Turing.jl model" => "input-turing.md", 
             "Black-box function" => "input-julia.md",
