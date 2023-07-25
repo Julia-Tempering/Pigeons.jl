@@ -34,14 +34,18 @@ makedocs(;
         assets=String[],
     ),
     pages=[
-        # "Inputs" => [
-        #     "Overview" => "input-overview.md",
-        #     "Black-box" => "input-julia.md"
-        # ],
-        # "Output" => [
-        #     "Overview" => "output-overview.md",
-        #     "Reports" => "output-reports.md"
-        # ],
+        "Inputs" => [
+            "Overview" => "input-overview.md",
+            "Turing.jl model" => "input-turing.md", 
+            "Black-box function" => "input-julia.md",
+            "Stan model" => "input-stan.md", 
+            "Non-julian MCMC" => "input-nonjulian.md", 
+            "Custom MCMC" => "input-explorers.md"
+        ],
+        "Output" => [
+            "Overview" => "output-overview.md",
+            "Reports" => "output-reports.md"
+        ],
         # "Guide" => "index.md", 
         # "Parallel Tempering (PT)" => "pt.md", 
         # "Distributed PT" => "distributed.md",

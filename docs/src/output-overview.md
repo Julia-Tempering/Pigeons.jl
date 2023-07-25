@@ -11,8 +11,8 @@ methods using either the disk or online statistics.
 
 - [Interpreting pigeons' standard output](output-reports.html)
 - [Creating plots.](output-plotting.html)
-- [Numerical summaries and diagnostics.](output-numerical.html)
 - [Approximation of the normalization constant.](output-normalization.html)
+- [Numerical summaries and diagnostics.](output-numerical.html)
 - [Online (constant-memory) statistics.](output-online.html)
 - [PT-specific diagnostics.](output-pt.html)
 - [Post-processing for MPI runs.](output-mpi-processing.html)

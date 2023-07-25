@@ -28,7 +28,7 @@ into the interactive node.
 
 Once you have a [`PT`](@ref) struct, proceed in the same way as 
 when running PT locally, e.g. [see the page on plotting](output-plotting.html), 
-[the page on online statistics](online-statistics.html), 
+[the page on online statistics](output-online.html), 
 and [the page on sample summaries and diagnostics](summaries.html).
 
 For example, here is how to modify the posterior density and trace plot 
