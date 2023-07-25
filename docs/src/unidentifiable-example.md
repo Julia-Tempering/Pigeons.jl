@@ -15,7 +15,9 @@ When there are many observations, the posterior of
 unidentifiable models concentrate on a sub-manifold, 
 making sampling difficult, as shown in the [following pair plots](output-plotting.html):
  
-XXX
+```@raw html
+<iframe src="pair_plot.svg" style="height:500px;width:100%;"></iframe>
+```
 
 ## Unidentifiable example without PT
 
@@ -24,9 +26,13 @@ single-chain MCMC on this problem:
 
 ```@example why
 using Pigeons
+using MCMCChains
+using StatsPlots
+plotlyjs()
 
 # The model described above implemented in Turing
-an_unidentifiable_model = Pigeons.toy_turing_unid_target(100, 50)
+# note we are using a large observation size here
+an_unidentifiable_model = Pigeons.toy_turing_unid_target(100000, 50000)
 
 pt = pigeons(
         target = an_unidentifiable_model, 
@@ -60,7 +66,7 @@ Let us enable parallel tempering now:
 pt = pigeons(
         target = an_unidentifiable_model, 
         n_chains = 10, 
-        record = [traces])
+        record = [traces, round_trip])
 
 # collect the statistics and convert to MCMCChains' Chains
 samples = Chains(sample_array(pt), variable_names(pt))
