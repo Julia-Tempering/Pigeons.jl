@@ -31,7 +31,7 @@ using StatsPlots
 plotlyjs()
 
 # example target: Binomial likelihood with parameter p = p1 * p2
-an_unidentifiable_model = Pigeons.toy_turing_unid_target()
+an_unidentifiable_model = Pigeons.toy_turing_unid_target(100, 50)
 
 pt = pigeons(target = an_unidentifiable_model, 
                 n_rounds = 12,
@@ -73,7 +73,7 @@ using CairoMakie
 using PairPlots
 
 # same examples as last section
-an_unidentifiable_model = Pigeons.toy_turing_unid_target()
+an_unidentifiable_model = Pigeons.toy_turing_unid_target(100, 50)
 
 pt = pigeons(target = an_unidentifiable_model, 
                 n_rounds = 12,

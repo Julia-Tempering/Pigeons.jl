@@ -43,7 +43,7 @@ using StatsPlots
 plotlyjs()
 
 # example target: Binomial likelihood with parameter p = p1 * p2
-an_unidentifiable_model = Pigeons.toy_turing_unid_target()
+an_unidentifiable_model = Pigeons.toy_turing_unid_target(100, 50)
 
 pt_result = pigeons(target = an_unidentifiable_model, 
                 # (*) run in two new MPI processes 

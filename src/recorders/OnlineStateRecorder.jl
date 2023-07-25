@@ -26,7 +26,7 @@ get_statistic(pt::PT, variable_name::Symbol, t::Type{T}) where {T} = get_statist
 get_transformed_statistic(reduced_recorders, variable_name::Symbol, t::Type{T}) where {T} = 
     get_statistic(reduced_recorders, variable_name, t, false)
 
-    function get_statistic(reduced_recorders, variable_name::Symbol, ::Type{T}, original_param = true) where {T}
+function get_statistic(reduced_recorders, variable_name::Symbol, ::Type{T}, original_param = true) where {T}
     recorder = original_param ? reduced_recorders.online : reduced_recorders._transformed_online
     key = Pair(variable_name, T)
     v = value(recorder.stats[key]) 
@@ -70,9 +70,9 @@ recorder is enabled.
 
 The provided type should have a zero-argument constructor. 
 """
-function register_online_type(t::Type{T}) where {T <: OnlineStat{Number}}
-    if !(t in registered_online_types) 
-        push!(registered_online_types, t)
+function register_online_type(type) 
+    if !(type in registered_online_types) 
+        push!(registered_online_types, type)
     end
 end
 

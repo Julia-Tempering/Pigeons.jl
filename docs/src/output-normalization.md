@@ -28,7 +28,7 @@ It is shown in the [standard output report](output-report.html) produced at each
 using Pigeons
 
 # example target: Binomial likelihood with parameter p = p1 * p2
-an_unidentifiable_model = Pigeons.toy_turing_unid_target()
+an_unidentifiable_model = Pigeons.toy_turing_unid_target(100, 50)
 
 pt = pigeons(target = an_unidentifiable_model)
 
