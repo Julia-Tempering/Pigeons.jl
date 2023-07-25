@@ -34,6 +34,9 @@ makedocs(;
         assets=String[],
     ),
     pages=[
+        "Basic usage (local)" => "index.md",
+        "Distributed usage (MPI)" => "mpi.md",
+        "Variational PT" => "variational.md", 
         "Supported inputs" => [
             "Overview" => "input-overview.md",
             "Turing.jl model" => "input-turing.md", 
@@ -51,6 +54,7 @@ makedocs(;
             "Online stats" => "output-online.md", 
             "Off-memory" => "output-off-memory.md", 
             "PT diagnostics" => "output-pt.md", 
+            "Custom types" => "output-custom-types.md",
             "MPI output" => "output-mpi-postprocessing.md"
         ],
         # "Guide" => "index.md", 
