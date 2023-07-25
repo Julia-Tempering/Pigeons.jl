@@ -42,9 +42,16 @@ makedocs(;
             "Non-julian MCMC" => "input-nonjulian.md", 
             "Custom MCMC" => "input-explorers.md"
         ],
-        "Output" => [
+        "Outputs" => [
             "Overview" => "output-overview.md",
-            "Reports" => "output-reports.md"
+            "Quick reports" => "output-reports.md", 
+            "Plots" => "output-plotting.md", 
+            "log(Z)" => "output-normalization.md", 
+            "Numerical" => "output-numerical.md", 
+            "Online stats" => "output-online.md", 
+            "Off-memory" => "output-off-memory.md", 
+            "PT diagnostics" => "output-pt.md", 
+            "MPI output" => "output-mpi-postprocessing.md"
         ],
         # "Guide" => "index.md", 
         # "Parallel Tempering (PT)" => "pt.md", 

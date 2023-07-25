@@ -18,5 +18,5 @@ methods using either [the disk](output-off-memory.html) or
 - [Online (constant-memory) statistics.](output-online.html)
 - [Off-memory processing.](output-off-memory.html)
 - [PT-specific diagnostics.](output-pt.html)
-- [Post-processing for MPI runs.](output-mpi-processing.html)
+- [Post-processing for MPI runs.](output-mpi-postprocessing.html)
 - [Further customization using "recorders".](output-recorders.html)
