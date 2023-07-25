@@ -94,7 +94,7 @@ nothing # hide
 
 - [Post-processing for MPI runs](mpi-postprocessing.html)
 - [Numerical summaries](summaries.html)
-- [Approximation of the log normalization constant](normalization-constant.html)
+- [Approximation of the log normalization constant](output-normalization.html)
 
 
 

@@ -1,3 +1,10 @@
+""" 
+$SIGNATURES
+
+The iterim diagnostics computed and printed to 
+standard out at the end of every iteration 
+(this can be disabled using `show_report = false`).
+"""
 all_reports() = [  
         # header with    # lambda expression used to 
         # width of 9     # compute that report item
