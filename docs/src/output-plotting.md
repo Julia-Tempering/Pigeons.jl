@@ -88,13 +88,3 @@ my_plot = PairPlots.pairplot(samples)
 CairoMakie.save("pair_plot.svg", my_plot)
 nothing # hide
 ```
-
-
-## Related pages
-
-- [Post-processing for MPI runs](mpi-postprocessing.html)
-- [Numerical summaries](summaries.html)
-- [Approximation of the log normalization constant](output-normalization.html)
-
-
-
