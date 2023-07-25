@@ -48,7 +48,7 @@ log of the *ratio*, ``\log (Z_1/ Z_0)`` where ``Z_1`` and ``Z_0`` are the normal
 
 Hence to estimate ``\log Z_1`` the reference distribution ``\pi_1`` should have a known normalization constant. In cases where the reference is a proper prior distribution, for example in Turing.jl models, this is typically the case. 
 
-In scenarios where the reference is specified manually, e.g. for black-box functions or Stan models, more care is needed. In such cases, one alternative is to use [variational PT](@ref variational) in which case the built-in variational distribution is constructed so that its normalization constant is one. 
+In scenarios where the reference is specified manually, e.g. for black-box functions or Stan models, more care is needed. In such cases, one alternative is to use [variational PT](@ref variational-pt) in which case the built-in variational distribution is constructed so that its normalization constant is one. 
 
 !!! note "Normalization of Stan models"
 
