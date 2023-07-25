@@ -5,7 +5,7 @@ CurrentModule = Pigeons
 # Turing.jl model as input to pigeons
 
 To target the posterior distribution specified by 
-a [Turing.jl](https://turing.ml/) model use 
+a [Turing.jl](https://github.com/TuringLang/Turing.jl) model use 
 a [`TuringLogPotential`](@ref):
 
 ```@example turing

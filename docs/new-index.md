@@ -429,7 +429,7 @@ adaptation, but those all have reasonable default implementations built-in. See 
 ## Targeting a Turing.jl model
 
 To demonstrate how to integrate a third-party target distribution into 
-Pigeons, we show in this section how to sample from target distributions defined using a [Turing.jl](https://turing.ml/stable/) model. **This integration is currently experimental.** 
+Pigeons, we show in this section how to sample from target distributions defined using a [Turing.jl](https://github.com/TuringLang/Turing.jl) model. **This integration is currently experimental.** 
 
 We consider an unidentifiable Beta-Binomial model for instructional purposes.
 Typically, MCMC samplers would have difficulty sampling from 
