@@ -55,4 +55,5 @@ function GalaxyTuring()
 end
 
 pt = pigeons(target = TuringLogPotential(GalaxyTuring()), record = [traces])
-plot(Chains(Pigeons.sample_matrix(pt), Pigeons.variable_names(pt)))
+# plot(Chains(Pigeons.sample_matrix(pt), Pigeons.variable_names(pt))) # TODO: variable_names should detect when variables are vectors
+nothing
