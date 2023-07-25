@@ -19,4 +19,5 @@ methods using either [the disk](output-off-memory.html) or
 - [Off-memory processing.](output-off-memory.html)
 - [PT-specific diagnostics.](output-pt.html)
 - [Post-processing for MPI runs.](output-mpi-postprocessing.html)
+- [Output for custom types.](output-custom-types.html)
 - [Further customization using "recorders".](output-recorders.html)

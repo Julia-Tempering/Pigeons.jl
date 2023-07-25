@@ -78,7 +78,7 @@ Base.setindex!(::SampleArray, v, i::Int) = error("You cannot set the elements of
 """
 $(SIGNATURES)
 """
-get_sample(pt::PT, chain::Int) = SampleArray(pt, chain)
+get_sample(pt::PT, chain = target_chains(pt)[1]) = SampleArray(pt, chain)
 
 function Base.show(io::IO, s::SampleArray{T,PT}) where {T,PT}
     println(io, "SampleArray{$T}")

@@ -47,7 +47,7 @@ Here we will extract the first dimension of
 each 1000-dimensional vector:
 
 ```@example offmemory
-# process the samples one by one, keeping only the first dimension
+# load the samples from disk one by one, keeping only the first dimension
 first_dim_of_each = Vector{Float64}()
 process_sample(pt) do chain, scan, sample # ordered as if we had an inner loop over scans
     # each sample here is a Vector{Float64} of length 1000 
@@ -55,6 +55,7 @@ process_sample(pt) do chain, scan, sample # ordered as if we had an inner loop o
     push!(first_dim_of_each, sample[1])
 end
 
+using Plots
 plotlyjs()
 myplot = Plots.plot(first_dim_of_each)
 Plots.savefig(myplot, "first_dim_of_each.html"); 
