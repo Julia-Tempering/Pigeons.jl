@@ -82,7 +82,7 @@ The local barrier can be plotted as follows:
 ```@example pt
 using Plots 
 plotlyjs()
-myplot = plot(p.shared.tempering.communication_barriers.localbarrier);
+myplot = plot(pt.shared.tempering.communication_barriers.localbarrier);
 savefig(myplot, "local_barrier_plot.html"); 
 nothing # hide
 ```
@@ -96,14 +96,14 @@ nothing # hide
 
 The index process tracks the permutation of chain as machine exchange 
 annealing parameters. Each row is a chain and each connected line corresponds
-to a replica:
+to a replica. To enable this we use the [`index_process`](@ref) recorder:
 
 ```@example pt
 pt = pigeons(
         target = toy_mvn_target(1), 
         record = [index_process], 
         n_rounds = 5)
-plot(pt.reduced_recorders.index_process)
+myplot = plot(pt.reduced_recorders.index_process)
 savefig(myplot, "index_process_plot.html"); 
 nothing # hide
 ```
