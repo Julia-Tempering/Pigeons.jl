@@ -34,7 +34,7 @@ function get_lazy_singleton(lazy)
     return _lazy_singleton_cache[lazy.flag]
 end
 
-initialization(lazy::LazyTarget, rng::SplittableRandom, replica_index::Int64) = 
+initialization(lazy::LazyTarget, rng::AbstractRNG, replica_index::Int64) = 
     initialization(get_lazy_singleton(lazy), rng, replica_index)
     
 default_explorer(lazy::LazyTarget) =

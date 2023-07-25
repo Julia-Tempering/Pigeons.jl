@@ -1,8 +1,11 @@
 """
 $SIGNATURES 
 
-Copy the target chain(s) samples into a tensor with axes: 
-iteration x variable x target chain
+Copy the target chain(s) samples into an array with axes: 
+`iteration x variable x target chain`. 
+For example, with [`StabilizedPT`](@ref) there 
+are two target chains. 
+By default, there is only one chain produced. 
 
 See [`extract_sample()`](@ref) for information how the variables are 
 flattened, and use [`variable_names()`](@ref) to obtain string 
@@ -13,7 +16,7 @@ creating [MCMCChains](https://turinglang.org/MCMCChains.jl/stable/getting-starte
 which can then be used to obtain summary statistics, diagnostics, create trace plots, 
 and pair plots (via [PairPlots](https://sefffal.github.io/PairPlots.jl/dev/chains/)).
 """
-function sample_matrix(pt::PT)
+function sample_array(pt::PT)
     targets = target_chains(pt)
     dim, size = sample_dim_size(pt, targets)
     result = zeros(size, dim, length(targets)) 
@@ -75,7 +78,7 @@ Base.setindex!(::SampleArray, v, i::Int) = error("You cannot set the elements of
 """
 $(SIGNATURES)
 """
-get_sample(pt::PT, chain::Int) = SampleArray(pt, chain)
+get_sample(pt::PT, chain = target_chains(pt)[1]) = SampleArray(pt, chain)
 
 function Base.show(io::IO, s::SampleArray{T,PT}) where {T,PT}
     println(io, "SampleArray{$T}")
@@ -92,14 +95,14 @@ get_sample(pt::PT, chain::Int, scan::Int) = pt.reduced_recorders.traces[chain =>
 """
 $SIGNATURES
 """
-process_samples(processor::Function, pt::PT, round::Int = latest_checkpoint_folder(pt.exec_folder)) =
-    process_samples(processor, pt.exec_folder, round)
+process_sample(processor::Function, pt::PT, round::Int = latest_checkpoint_folder(pt.exec_folder)) =
+    process_sample(processor, pt.exec_folder, round)
 
 """
 $SIGNATURES
 """
-process_samples(processor::Function, pt::Result{PT}, round::Int = latest_checkpoint_folder(pt.exec_folder)) =
-    process_samples(processor, pt.exec_folder, round)
+process_sample(processor::Function, pt::Result{PT}, round::Int = latest_checkpoint_folder(pt.exec_folder)) =
+    process_sample(processor, pt.exec_folder, round)
 
 
 """
@@ -119,7 +122,7 @@ within the round, starting at 1, and sample is the deserialized sample.
 This iterates over the samples in increasing order, looping over `chain_index` in the
 outer loop and `scan_index` in the inner loop.
 """
-function process_samples(processor::Function, exec_folder::String, round::Int)
+function process_sample(processor::Function, exec_folder::String, round::Int)
     if round == 0
         error("no checkpoint is available yet for $exec_folder")
     elseif round < 0

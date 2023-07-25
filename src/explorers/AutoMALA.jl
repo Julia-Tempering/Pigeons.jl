@@ -35,6 +35,8 @@ $FIELDS
     
     """ 
     The default backend to use for autodiff. 
+    See https://github.com/tpapp/LogDensityProblemsAD.jl#backends
+
     Certain targets may ignore it, e.g. if a manual differential is 
     offered or when calling an external program such as Stan.
     """
@@ -81,7 +83,7 @@ end
 ### Dispatch on state for the behaviours for the different targets ###
 
     step!(explorer::AutoMALA, replica, shared, state::StanState) = 
-        step!(explorer, replica, shared, state.x)
+        step!(explorer, replica, shared, state.unconstrained_parameters)
 
 
     function step!(explorer::AutoMALA, replica, shared, state::AbstractVector)

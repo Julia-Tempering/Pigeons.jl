@@ -10,7 +10,9 @@ This will also call [`report()`](@ref), [`write_checkpoint()`](@ref),
 and [`run_checks()`](@ref) between rounds. 
 """
 function pigeons(pt::PT) 
-    preflight_checks(pt)
+    only_one_process(pt) do
+        preflight_checks(pt)
+    end
     prev_reports = nothing
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint
         reduced_recorders = run_one_round!(pt)
@@ -86,7 +88,7 @@ explore!(pt, explorer, multithreaded_flag::Val{true}) =
 $SIGNATURES
 
 The `@threads` macro brings a large overhead even 
-when `Threads.nthreads == 1` (!), so a separate method 
+when `Threads.nthreads == 1`, so a separate method 
 is used for the single thread mode.
 """
 explore!(pt, explorer, multithreaded::Val{false}) =

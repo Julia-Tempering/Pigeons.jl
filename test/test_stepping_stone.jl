@@ -16,7 +16,7 @@ end
                 target = toy_mvn_target(10), 
                 explorer, 
                 n_rounds = 15);
-        p = stepping_stone_pair(pt)
+        p = Pigeons.stepping_stone_pair(pt)
         # truth ≈ -11.51292546497023
         truth = Pigeons.analytic_lognormalization(toy_mvn_target(10))
         # calibrated so that e.g. skipping the AutoMALA reversibility check would yield an error

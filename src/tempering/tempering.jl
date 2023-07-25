@@ -46,14 +46,16 @@ we also assume the presence of the following fields:
     the replica is at, based on the [`tempering`](@ref) and [`Shared`](@ref) objects.  
     """
     find_log_potential(replica, tempering, shared) = @abstract
-   
-    """
-    $SIGNATURES
-    Find the global communication barrier for the given [`tempering`](@ref).
-    May be a single value or a tuple (in the case of multiple references.)
-    """
-    global_barrier(tempering) = @abstract
 end
+
+"""
+$SIGNATURES
+
+The global communication barrier. 
+If the PT algorithm has both a fixed and variational 
+references, return the barrier to the fixed one.
+"""
+global_barrier(pt) = global_barrier(pt.shared.tempering)
 
 """
 $SIGNATURES 
@@ -64,6 +66,6 @@ Build the [`tempering`](@ref) needed for [`communicate!()`](@ref).
     if (n_chains_fixed(inputs) == 0) || (n_chains_var(inputs) == 0)
         return NonReversiblePT(inputs)
     else
-        return VariationalPT(inputs)
+        return StabilizedPT(inputs)
     end
 end

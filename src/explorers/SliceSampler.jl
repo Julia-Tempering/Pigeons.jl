@@ -61,8 +61,8 @@ end
 
 function slice_sample!(h::SliceSampler, state::StanState, log_potential, cached_lp, replica)
     cached_lp = cached_log_potential(log_potential, state, cached_lp)
-    for i in eachindex(state.x)
-        pointer = Ref(state.x, i)
+    for i in eachindex(state.unconstrained_parameters)
+        pointer = Ref(state.unconstrained_parameters, i)
         cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
     end
     return cached_lp

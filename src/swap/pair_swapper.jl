@@ -133,7 +133,7 @@ record_swap_stats!(swapper::TestSwapper, recorder, chain1::Int, stat1, chain2::I
 
 # toy target based on TestSwapper
 
-function initialization(target::TestSwapper, ::SplittableRandom, ::Int) 
+function initialization(target::TestSwapper, ::AbstractRNG, ::Int) 
     return nothing 
 end
 
@@ -146,4 +146,4 @@ create_path(testSwapper::TestSwapper, ::Inputs) = testSwapper
     interpolate(testSwapper::TestSwapper, beta) = testSwapper
 
 create_pair_swapper(tempering, target::TestSwapper) = target
-create_pair_swapper(tempering::VariationalPT, target::TestSwapper) = target
+create_pair_swapper(tempering::StabilizedPT, target::TestSwapper) = target

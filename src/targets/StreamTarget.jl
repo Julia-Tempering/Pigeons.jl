@@ -44,7 +44,7 @@ Return [`StreamState`](@ref) by following these steps:
     as target-specific configurations provided by `target`.
 2. Create [`StreamState`](@ref) from the `Cmd` created in step 1 and return it.
 """
-initialization(target::StreamTarget, rng::SplittableRandom, replica_index::Int64) = @abstract 
+initialization(target::StreamTarget, rng::AbstractRNG, replica_index::Int64) = @abstract 
 
 """ 
 States used in the replicas when a [`StreamTarget`](@ref) is used. 
@@ -118,7 +118,7 @@ call_sampler!(log_potential::StreamPotential, state::StreamState) =
     )
 
 # convert a random UInt64 to positive Int64/Java-Long by dropping the sign bit
-java_seed(rng::SplittableRandom) = (rand(split(rng), UInt64) >>> 1) % Int64
+java_seed(rng::AbstractRNG) = (rand(split(rng), UInt64) >>> 1) % Int64
 
 #=
 Simple stdin/stdout text-based protocol. 

@@ -21,10 +21,10 @@ using MCMCChains
                     variational = use_two_chains ? GaussianReference() : nothing
                 )
 
-            mtx = Pigeons.sample_matrix(pt) 
+            mtx = sample_array(pt) 
             @test size(mtx) == (4, 3, use_two_chains ? 2 : 1)
-            @test length(Pigeons.variable_names(pt)) == 3
-            chain = Chains(Pigeons.sample_matrix(pt), Pigeons.variable_names(pt))
+            @test length(variable_names(pt)) == 3
+            chain = Chains(sample_array(pt), variable_names(pt))
         end 
     end
 
@@ -50,7 +50,7 @@ end
         @test size(s)[1] == length(marginal)
         @test_throws "You cannot" setindex!(s, s[2], 1)
         # check that the disk serialization gives the same result
-        process_samples(pt) do chain, scan, sample
+        process_sample(pt) do chain, scan, sample
             @test sample == get_sample(pt, chain, scan)
         end
     end

@@ -5,6 +5,9 @@ function preflight_checks(pt)
                  To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
               """
     end
+    if mpi_active() && !pt.inputs.checkpoint
+        @warn "To be able to call load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
+    end
     if Threads.nthreads() > 1 && !pt.inputs.multithreaded 
         @warn "More than one threads are available, but explore!() loop is not parallelized as pt.inputs.multithreaded == false"
     end

@@ -10,12 +10,16 @@ The probability distribution of interest.
     the states at the beginning of the first round of 
     Parallel Tempering. 
     """
-    initialize(target, rng::SplittableRandom, replica_index::Int) = @abstract
+    initialize(target, rng::AbstractRNG, replica_index::Int) = @abstract
 
     """
     $SIGNATURES 
 
-    The default [`explorer`](@ref) for the given [`target`](@ref).
+    The default [`explorer`](@ref) for the given [`target`](@ref). 
+
+    It can be overwritten by the argument `explorer` in [`pigeons()`](@ref).
+
+    By default, a [`SliceSampler`](@ref).
     """
     default_explorer(target) = SliceSampler() 
 
@@ -23,9 +27,13 @@ The probability distribution of interest.
     $SIGNATURES 
 
     Create a default reference distribution, by returning a 
-    [`log_potential`](@ref). The returned object will also get 
+    [`log_potential`](@ref). 
+    
+    The returned object will get 
     passed to [`sample_iid!()`](@ref) at the "hot chains" of 
     the Parallel Tempering algorithm. 
+
+    It can be overwritten by the argument `reference` in [`pigeons()`](@ref).
     """
     default_reference(target) = @abstract
 
@@ -35,8 +43,18 @@ The probability distribution of interest.
     Perform i.i.d. sampling on the given [`Replica`](@ref) 
     during its visit to the reference_log_potential created 
     by [`create_reference_log_potential()`](@ref).
+
+    Optional but recommended for e.g. jumping modes in 
+    multi-modal problems.
     """
-    sample_iid!(reference_log_potential, replica, shared) = @abstract
+    function sample_iid!(reference_log_potential, replica, shared)
+        @warn   """
+                It looks like sample_iid!() is not implemented for a 
+                reference_log_potential of type $(typeof(reference_log_potential)). 
+                Instead, using step!(). 
+                """ maxlog=1
+        step!(shared.explorer, replica, shared)
+    end
 
     """ 
     $SIGNATURES

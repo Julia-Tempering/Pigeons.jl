@@ -7,6 +7,7 @@ allcoation-free gradient calls to a Stan model.
     # keep those to be able to serialize/deserialize 
     stan_file 
     data 
+    extra_information # if extra information needed for i.i.d. sampling
 end
 
 """ 
@@ -16,11 +17,13 @@ The `stan_file` argument can be a path to the file with a `.stan` suffix.
 The `data` argument can be a path with a file with `.json` suffix or the json string itself. 
 See `BridgeStan` for details. 
 """
-function StanLogPotential(stan_file, data) 
+function StanLogPotential(stan_file, data, extra_information = nothing) 
+    model = BridgeStan.StanModel(; stan_file, data, make_args = stan_threads_options())
     result = StanLogPotential(
-        BridgeStan.StanModel(; stan_file, data, make_args = stan_threads_options()), 
+        model, 
         stan_file, 
-        Immutable(data)
+        Immutable(data), 
+        extra_information
     )
     # test it right away without absorbing any error messages
     BridgeStan.log_density_gradient(result.model, zeros(BridgeStan.param_unc_num(result.model)))
@@ -37,15 +40,15 @@ function stan_threads_options()
     return Vector{String}()
 end
 
-function Serialization.serialize(s::AbstractSerializer, instance::StanLogPotential{M, S, D}) where {M, S, D}
+function Serialization.serialize(s::AbstractSerializer, instance::StanLogPotential{M, S, D, E}) where {M, S, D, E}
     Serialization.writetag(s.io, Serialization.OBJECT_TAG)
-    Serialization.serialize(s, StanLogPotential{M, S, D})
+    Serialization.serialize(s, StanLogPotential{M, S, D, E})
     # do not serialize model as it is transient (ccall stuff)
     Serialization.serialize(s, instance.stan_file)
     Serialization.serialize(s, instance.data)
 end
 
-function Serialization.deserialize(s::AbstractSerializer, type::Type{StanLogPotential{M, S, D}}) where {M, S, D}
+function Serialization.deserialize(s::AbstractSerializer, type::Type{StanLogPotential{M, S, D, E}}) where {M, S, D, E}
     stan_file = Serialization.deserialize(s)
     immutable = Serialization.deserialize(s)
     return StanLogPotential(stan_file, immutable.data)
@@ -62,12 +65,12 @@ default_explorer(::StanLogPotential) = AutoMALA()
 Evaluate the log potential at a given point `x` of type `StanState`.
 """
 (log_potential::StanLogPotential)(state::StanState) =
-    LogDensityProblems.logdensity(log_potential, state.x)
+    LogDensityProblems.logdensity(log_potential, state.unconstrained_parameters)
 
 LogDensityProblemsAD.ADgradient(::Symbol, log_potential::StanLogPotential, buffers::Augmentation) =
     BufferedAD(log_potential, buffers, Ref(0.0), Ref{Cstring}())
 
-LogDensityProblems.logdensity(log_potential::BufferedAD{StanLogPotential{M, S, D}}, x) where {M, S, D} =
+LogDensityProblems.logdensity(log_potential::BufferedAD{StanLogPotential{M, S, D, E}}, x) where {M, S, D, E} =
     stan_log_density!(
         log_potential.enclosed.model, x, log_potential.logd_buffer, log_potential.err_buffer; 
         propto = false) # note: propto = false to get correct log normalization constants
@@ -78,34 +81,20 @@ LogDensityProblems.logdensity(log_potential::StanLogPotential, x) =
 
 
 LogDensityProblems.dimension(log_potential::StanLogPotential) = convert(Int, BridgeStan.param_unc_num(log_potential.model))
-function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{StanLogPotential{M, S, D}}, x) where {M, S, D}
+function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{StanLogPotential{M, S, D, E}}, x) where {M, S, D, E}
     m = log_potential.enclosed.model
     b = log_potential.buffer
     return stan_log_density_gradient!(m, x, b, log_potential.logd_buffer, log_potential.err_buffer;
         propto = false) # note: propto = false to get correct log normalization constants
 end
 
-function initialization(target::StanLogPotential, rng::SplittableRandom, _::Int64)
+function initialization(target::StanLogPotential, rng::AbstractRNG, _::Int64)
     d_unc = BridgeStan.param_unc_num(target.model) # number of unconstrained parameters 
     init = zeros(d_unc) 
     return StanState(init)
 end
 
-default_reference(target::StanLogPotential) = 
-    overdispersed(LogDensityProblems.dimension(target))
-
-function overdispersed(dim, order_of_magnitude = 3) 
-    std_deviation = 10^order_of_magnitude
-    precision = 1.0/std_deviation^2 
-    return ScaledPrecisionNormalLogPotential(precision, dim)
-end
-    
-
-function sample_iid!(log_potential::StanLogPotential, replica, shared) 
-    # it doesn't seem possible to obtain iid samples from the prior with BridgeStan 
-    # default to slicer as the explorer in the reference
-    step!(shared.explorer, replica, shared)
-end
+default_reference(target::StanLogPotential) = target
 
 # Allocation-free version of the BridgeStan functions.
 # Also add custom error handling code. 

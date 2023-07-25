@@ -1,6 +1,8 @@
 """
 Orchestrate the [`explore!()`](@ref) phase 
-of Parallel Tempering. 
+of Parallel Tempering. This is the part of the algorithm 
+where each replica performs MCMC moves targeting its annealed 
+distribution. 
 """
 @informal explorer begin
     """
@@ -44,7 +46,7 @@ of if it is equal to `nothing` dispatch on
 `default_explorer(inputs.target)` to construct the 
 explorer associated with the input target distribution.
 """
-@provides explorer create_explorer(inputs) = 
+create_explorer(inputs) = 
     if inputs.explorer === nothing
         default_explorer(inputs.target) 
     else

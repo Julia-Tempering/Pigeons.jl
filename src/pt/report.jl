@@ -1,3 +1,10 @@
+""" 
+$SIGNATURES
+
+The iterim diagnostics computed and printed to 
+standard out at the end of every iteration 
+(this can be disabled using `show_report = false`).
+"""
 all_reports() = [  
         # header with    # lambda expression used to 
         # width of 9     # compute that report item
@@ -7,7 +14,7 @@ all_reports() = [
         "  Λ_var   "   => pt -> global_barrier_variational(pt.shared.tempering),
         "  time(s) "   => pt -> last_round_max_time(pt), 
         "  allc(B) "   => pt -> last_round_max_allocation(pt), 
-        "  log(Z)  "   => pt -> stepping_stone(pt),
+        "log(Z₁/Z₀)"   => pt -> stepping_stone(pt),
         "  min(α)  "   => pt -> minimum(swap_prs(pt)), 
         "  mean(α) "   => pt -> mean(swap_prs(pt)),
         "  max|ρ|  "   => pt -> maximum(abs.(energy_ac1s(pt, true))),
