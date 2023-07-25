@@ -7,7 +7,7 @@ CurrentModule = Pigeons
 It is notoriously difficult to implement correct parallel/distributed algorithms. 
 One strategy we use to address this is to guarantee that the code will output 
 precisely the same output no matter how many threads/machines are used. 
-We describe how this is done under the hood in the page [Distributed PT](distributed.html). 
+We describe how this is done under the hood in the page [Distributed PT](@ref distributed). 
 
 In practice, how is this useful? Let us say you developed a new target and you would like
 to make sure that it works correctly in a multi-threaded environment. To do so, add a flag to indicate to "check" one of the PT rounds as follows, and 

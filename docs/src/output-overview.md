@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Manipulating the output of pigeons
+# [Manipulating the output of pigeons](@id output-overview)
 
 Pigeons supports several methods to post-process the output
 of parallel tempering, including [convenient methods that 

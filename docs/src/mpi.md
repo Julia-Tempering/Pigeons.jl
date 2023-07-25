@@ -44,7 +44,7 @@ Create an issue if you would like another submission system included.
 
 Follow these instructions to run MPI over several machines:
 
-1. In the cluster login node, follow the [local installation instructions](index.html). 
+1. In the cluster login node, follow the [local installation instructions](@ref installing-pigeons). 
 2. Start Julia in the login node, and perform a one-time setup by calling [`setup_mpi()`](@ref). Its argument are the fields in [`MPISettings`](@ref), see the documentation there for details.
 3. Still in the Julia REPL running in the login node, use:
 
@@ -77,4 +77,4 @@ and cancel/kill a job using
 kill_job(mpi_run)
 ```
 
-To analyze the output, see the documentation page on [post-processing for MPI runs](output-mpi-postprocessing.html).
+To analyze the output, see the documentation page on [post-processing for MPI runs](@ref output-mpi-postprocessing).

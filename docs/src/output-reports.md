@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Interpreting pigeons' standard output
+# [Interpreting pigeons' standard output](@id output-reports)
 
 During the execution of parallel tempering, iterim diagnostics 
 can be computed and printed to standard out at the end of every iteration (this can be disabled using `show_report = false`):

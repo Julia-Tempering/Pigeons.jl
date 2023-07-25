@@ -3,7 +3,7 @@ CurrentModule = Pigeons
 ```
 
 
-# Post-processing for MPI runs (plotting, summaries, etc) 
+# [Post-processing for MPI runs (plotting, summaries, etc)](@id output-mpi-postprocessing) 
 
 Two options are available to post-process samples produced from 
 MPI runs: (1) loading  

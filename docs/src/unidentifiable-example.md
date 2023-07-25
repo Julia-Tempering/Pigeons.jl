@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Why PT? An example. 
+# [Why PT? An example.](@id unidentifiable-example)
 
 Consider a Bayesian model where the likelihood is a binomial distribution with probability parameter ``p``. 
 Let us consider an over-parameterized model where we 
@@ -13,10 +13,10 @@ Bayesian models are unidentifiable.
 
 When there are many observations, the posterior of 
 unidentifiable models concentrate on a sub-manifold, 
-making sampling difficult, as shown in the [following pair plots](output-plotting.html):
+making sampling difficult, as shown in the [following pair plots](@ref output-plotting):
  
 ```@raw html
-<iframe src="pair_plot.svg" style="height:500px;width:100%;"></iframe>
+<iframe src="../pair_plot.svg" style="height:500px;width:100%;"></iframe>
 ```
 
 ## Unidentifiable example without PT
@@ -48,7 +48,7 @@ nothing # hide
 ```
 
 ```@raw html
-<iframe src="no_pt_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+<iframe src="../no_pt_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
 ```
 
 It is quite obvious that mixing is poor, as confirmed by effective sample size (ESS) estimates:
@@ -77,7 +77,7 @@ nothing # hide
 ```
 
 ```@raw html
-<iframe src="with_pt_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+<iframe src="../with_pt_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
 ```
 
 There is a marked difference. 

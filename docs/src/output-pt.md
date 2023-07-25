@@ -75,7 +75,7 @@ The local communication barrier can be used to
 visualize the cause of a high global communication barrier. 
 For example, if there is a sharp peak close to a 
 reference constructed from the prior, it may be 
-useful to switch to a [variational approximation](variational.html).
+useful to switch to a [variational approximation](@ref variational).
 
 The local barrier can be plotted as follows:
 
@@ -88,7 +88,7 @@ nothing # hide
 ```
 
 ```@raw html
-<iframe src="local_barrier_plot.html" style="height:500px;width:100%;"></iframe>
+<iframe src="../local_barrier_plot.html" style="height:500px;width:100%;"></iframe>
 ```
 
 

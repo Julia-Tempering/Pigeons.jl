@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Julia code as input to pigeons
+# [Julia code as input to pigeons](@id input-julia)
 
 In typical Bayesian statistics applications, it is 
 easiest to specify the model in a modelling language, 
@@ -10,7 +10,7 @@ such as Turing, but sometimes to get more flexibility or
 speed it is useful to implement the density evaluation 
 manually as a "black-box" Julia function. 
 
-Here we show how this is done using our familiar [unidentifiable toy example](unidentifiable-example.html)
+Here we show how this is done using our familiar [unidentifiable toy example](@ref unidentifiable-example)
 [ported to the Stan language](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/unid.stan).
 
 We first create a custom type, `MyLogPotential` to control dispatch on the interface [`target`](@ref).
@@ -119,14 +119,13 @@ Pigeons have several built-in [`explorer`](@ref) kernels such as
 However when the state space is neither the reals nor the integers, 
 or for performance reasons, it may be necessary to create custom 
 exploration MCMC kernels.
-This is described on the [custom explorers page](input-explorers.html).
+This is described on the [custom explorers page](@ref input-explorers).
 
 
 ## Manipulating the output
 
 Some 
-common post-processing are shown below, see [the section on output processing for more information](output-overview
-.html). 
+common post-processing are shown below, see [the section on output processing for more information](@ref output-overview). 
 
 ```@example julia
 using MCMCChains

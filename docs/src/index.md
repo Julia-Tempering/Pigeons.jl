@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Pigeons
+# [Pigeons](@id index)
 
 ## Summary
 
@@ -22,7 +22,7 @@ These algorithms achieve state-of-the-art performance for approximation
 of challenging probability distributions.
 
 
-## Installing Pigeons
+## [Installing Pigeons](@id installing-pigeons)
 
 1. If you have not done so, install [Julia](https://julialang.org/downloads/). Julia 1.8 and higher are supported. 
 2. Install `Pigeons` using

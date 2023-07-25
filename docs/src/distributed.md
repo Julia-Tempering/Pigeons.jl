@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Distributed and parallel implementation of PT 
+# [Distributed and parallel implementation of PT](@id distributed)
 
 ## Introduction
 

@@ -21,5 +21,5 @@ vector = get_sample(pt)
 length(vector) # = number of iterations = 2^10
 ```
 
-Another option is to use [off-memory processing](output-off-memory.html) which makes no assumption 
+Another option is to use [off-memory processing](@ref output-off-memory) which makes no assumption 
 either on the type of each individual sample.

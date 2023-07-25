@@ -48,7 +48,7 @@ Pigeons.setup_blang("blangDemos")
 
 Next, we run a  
 [Blang implementation](https://github.com/UBC-Stat-ML/blangDemos/blob/master/src/main/java/demos/UnidentifiableProduct.bl) of 
-our usual [unidentifiable toy example](unidentifiable-example.html):
+our usual [unidentifiable toy example](@ref unidentifiable-example):
 
 ```@example blang
 using Pigeons

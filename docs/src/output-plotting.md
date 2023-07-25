@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Plotting
+# [Plotting](@id output-plotting)
 
 Use [`sample_array()`](@ref) to convert target chain 
 samples into a format that can then be consumed by 

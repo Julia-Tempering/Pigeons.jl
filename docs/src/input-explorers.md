@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Custom explorers
+# [Custom explorers](@id input-explorers)
 
 Pigeons have several built-in [`explorer`](@ref) kernels such as 
 [`AutoMALA`](@ref) and a [`SliceSampler`](@ref). 
@@ -37,8 +37,8 @@ Pigeons.initialization(::MyLogPotential, ::AbstractRNG, ::Int) = [0.5, 0.5]
 
 We show how create a new explorer, 
 for pedagogy, a simple [independence Metropolis algorithm](https://bookdown.org/rdpeng/advstatcomp/metropolis-hastings.html#independence-metropolis-algorithm), applied to 
-our familiar [unidentifiable toy example](unidentifiable-example.html), 
-based on [Julia black-box implementation](input-julia.html). 
+our familiar [unidentifiable toy example](@ref unidentifiable-example), 
+based on [Julia black-box implementation](@ref input-julia). 
 
 ```@example explorer
 struct MyIndependenceSampler 
