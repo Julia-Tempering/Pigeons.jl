@@ -18,7 +18,13 @@ end
 struct BreadCrumbsTarget{TBC <: BreadCrumbs}
     bc::TBC
 end
-(bct::BreadCrumbsTarget)(x) = bct.bc.target_log_potential(x)
+function (bct::BreadCrumbsTarget)(x)
+    return if insupport(bct.bc.reference_distribution, x)
+        bct.bc.target_log_potential(x)
+    else
+        eltype(bct.bc.reference_distribution)(-Inf)
+    end
+end
 default_explorer(::BreadCrumbsTarget) = SliceSampler()
 
 # initialization
