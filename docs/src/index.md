@@ -95,20 +95,23 @@ Pigeons takes as input the function ``\gamma``.
 
 Pigeons' outputs can be used for two tasks:
 
-- Approximating expecations of the form ``E[f(X)]``, where ``X \sim \pi``. 
+- Approximating expectations of the form ``E[f(X)]``, where ``X \sim \pi``. 
     For example, the choice ``f(x) = x`` computes the mean, and 
     ``f(x) = I[x \in A]`` computes the probability of ``A`` under ``\pi``.
+    See [manipulating the output of pigeons](@ref output-overview)
 - Approximating the value of the normalization constant ``Z``. For 
     example, in Bayesian statistics, this corresponds to the 
-    [marginal likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood).
+    [marginal likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood). See [approximation of the normalization constant](@ref output-normalization)
 
 Pigeons shines in the following scenarios:
 
 - When the posterior density ``\pi`` is challenging due to 
-    non-convexity and/or concentration on a 
-    sub-manifolds due to unidentifiability.
+    non-convexity and/or [concentration on a 
+    sub-manifolds due to unidentifiability](@ref unidentifiable-example).
 - When the user needs not only ``E[f(X)]`` but also ``Z``. Many existing MCMC tools
     focus on the former and struggle to do the latter in high dimensional 
     problems. 
 - When the posterior density ``\pi`` is defined over a non-standard state-space, 
-    e.g. a combinatorial object such as a phylogenetic tree. 
+    e.g. a combinatorial object such as a phylogenetic tree.
+    See [defining custom explorers](@ref input-explorers) 
+    and [targeting non-julian models](@ref input-nonjulian).

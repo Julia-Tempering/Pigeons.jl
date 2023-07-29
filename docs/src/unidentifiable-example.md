@@ -7,8 +7,8 @@ CurrentModule = Pigeons
 Consider a Bayesian model where the likelihood is a binomial distribution with probability parameter ``p``. 
 Let us consider an over-parameterized model where we 
 write ``p = p_1 p_2``. Assume that each ``p_i`` has a uniform prior on the interval ``[0, 1]``.
-This is an example of an unidentifiable parameterization.
-While this is toy example, in practice many popular 
+This is a toy example of an unidentifiable parameterization.
+In practice many popular 
 Bayesian models are unidentifiable. 
 
 When there are many observations, the posterior of 
