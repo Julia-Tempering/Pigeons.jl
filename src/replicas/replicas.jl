@@ -87,7 +87,7 @@ end
 function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, ::Nothing)
     master_rng = SplittableRandom(inputs.seed)
     split_rngs = split_slice(my_global_indices, master_rng)
-    states = [initialization(inputs.target, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
+    states = [initialization(inputs, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
     recorders = [create_recorders(inputs, shared) for i in eachindex(split_rngs)]
     return Replica.(
                 states, 
@@ -96,3 +96,25 @@ function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, ::Not
                 recorders, 
                 my_global_indices)  # <- replica indices
 end
+
+# default method: defer to user-provided method for their target
+initialization(inp::Inputs, args...) = initialization(inp.target, args...)
+
+# generic method for distribution-type references: sample iid for all replicas
+function initialization(
+    inp::Inputs{T, V, E, R},
+    rng::AbstractRNG,
+    ::Int
+    ) where {T, V, E, R <: DistributionReference}
+    rand(rng, inp.reference.dist)
+end
+
+# for univariate references we need to wrap in vector 
+function initialization(
+    inp::Inputs{T, V, E, R},
+    rng::AbstractRNG,
+    ::Int
+    ) where {T, V, E, R <: DistributionReference{<:UnivariateDistribution}}
+    [rand(rng, inp.reference.dist)]
+end
+
