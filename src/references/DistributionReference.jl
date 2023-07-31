@@ -11,7 +11,7 @@ end
 (ref::DistributionReference)(x) = logpdf(ref.dist, x)
 
 # univariate case
-(ref::DistributionReference{<:UnivariateDistribution})(x) = logpdf(ref.dist, x[begin])
+(ref::DistributionReference{<:UnivariateDistribution})(x) = logpdf(ref.dist, first(x))
 
 # iid sampling
 # general case
