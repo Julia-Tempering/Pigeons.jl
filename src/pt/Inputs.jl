@@ -85,48 +85,6 @@ $FIELDS
     - `:log_potential` - `log_potential()` is called on the state
     """
     trace_type::Symbol = :samples
-
-    # default inner constructor
-    function Inputs{T, V, E, R}(
-        target::T, seed, n_rounds, n_chains, n_chains_variational, reference::R, 
-        variational::V, checkpoint, record, checked_round, multithreaded, 
-        explorer::E, show_report, trace_type
-        ) where {T, V, E, R}
-        new{T, V, E, R}(
-            target, seed, n_rounds, n_chains, n_chains_variational, reference, 
-            variational, checkpoint, record, checked_round, multithreaded, 
-            explorer, show_report, trace_type
-        )
-    end
-
-    # special constructor for when reference is a Distribution: wrap it inside our
-    # DistributionLogPotential type
-    function Inputs{T, V, E, TDist}(
-        target::T, seed, n_rounds, n_chains, n_chains_variational, reference::TDist, 
-        variational::V, checkpoint, record, checked_round, multithreaded, 
-        explorer::E, show_report, trace_type
-        ) where {T, V, E, TDist<:Distribution}
-        dr = DistributionLogPotential(reference)
-        new{T, V, E, typeof(dr)}(
-            target, seed, n_rounds, n_chains, n_chains_variational, dr, 
-            variational, checkpoint, record, checked_round, multithreaded, 
-            explorer, show_report, trace_type
-        )
-    end
-
-    # non-parametrized constructor
-    function Inputs(
-        target::T, seed, n_rounds, n_chains, n_chains_variational, reference::R, 
-        variational::V, checkpoint, record, checked_round, multithreaded, 
-        explorer::E, show_report, trace_type
-        ) where {T, V, E, R}
-        Inputs{T, V, E, R}(
-            target, seed, n_rounds, n_chains, n_chains_variational, reference, 
-            variational, checkpoint, record, checked_round, multithreaded, 
-            explorer, show_report, trace_type
-        )
-    end
-
 end
 
 """

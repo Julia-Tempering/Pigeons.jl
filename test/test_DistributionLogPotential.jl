@@ -11,7 +11,7 @@ using MCMCChains
         ref_dist = product_distribution([Uniform(), Uniform()])
         pt = pigeons(
             target = unid_log_potential,
-            reference = ref_dist,
+            reference = DistributionLogPotential(ref_dist),
             record = [traces]
         )
         @show Chains(sample_array(pt), variable_names(pt))
@@ -19,7 +19,7 @@ using MCMCChains
     @testset "Univariate" begin
         pt = pigeons(
             target    = (x -> logpdf(Normal(3,1), x[begin])),
-            reference = Normal(-3,1),
+            reference = DistributionLogPotential(Normal(-3,1)),
             record    = [traces]
         )
         @show Chains(sample_array(pt), variable_names(pt))
