@@ -105,7 +105,7 @@ function initialization(
     inp::Inputs{T, V, E, R},
     rng::AbstractRNG,
     ::Int
-    ) where {T, V, E, R <: DistributionReference}
+    ) where {T, V, E, R <: DistributionLogPotential}
     rand(rng, inp.reference.dist)
 end
 
@@ -114,7 +114,7 @@ function initialization(
     inp::Inputs{T, V, E, R},
     rng::AbstractRNG,
     ::Int
-    ) where {T, V, E, R <: DistributionReference{<:UnivariateDistribution}}
+    ) where {T, V, E, R <: DistributionLogPotential{<:UnivariateDistribution}}
     [rand(rng, inp.reference.dist)]
 end
 

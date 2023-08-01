@@ -67,7 +67,7 @@ export pigeons, Inputs, PT,
     # for running jobs:
     ChildProcess, MPI,
     # references:
-    DistributionReference,
+    DistributionLogPotential,
     # targets:
     TuringLogPotential, StanLogPotential,
     # some examples

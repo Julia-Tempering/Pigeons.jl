@@ -1,6 +1,6 @@
 using MCMCChains
 
-@testset "DistributionReference" begin
+@testset "DistributionLogPotential" begin
     @testset "Multivariate" begin
         function unid_log_potential(x; n_trials=100, n_successes=50)
             p1, p2 = x

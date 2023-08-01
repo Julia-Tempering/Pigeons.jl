@@ -100,13 +100,13 @@ $FIELDS
     end
 
     # special constructor for when reference is a Distribution: wrap it inside our
-    # DistributionReference type
+    # DistributionLogPotential type
     function Inputs{T, V, E, TDist}(
         target::T, seed, n_rounds, n_chains, n_chains_variational, reference::TDist, 
         variational::V, checkpoint, record, checked_round, multithreaded, 
         explorer::E, show_report, trace_type
         ) where {T, V, E, TDist<:Distribution}
-        dr = DistributionReference(reference)
+        dr = DistributionLogPotential(reference)
         new{T, V, E, typeof(dr)}(
             target, seed, n_rounds, n_chains, n_chains_variational, dr, 
             variational, checkpoint, record, checked_round, multithreaded, 
