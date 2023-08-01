@@ -17,7 +17,7 @@ We outline some useful features here, read
 Make sure to have the third party package `MCMCChains`  installed via 
 
 ```
-using Pkg; Pkg.add("MCMCChains", "StatsPlots")
+using Pkg; Pkg.add("MCMCChains")
 ```
 
 Also make sure to record the trace, with `record = [traces]`:

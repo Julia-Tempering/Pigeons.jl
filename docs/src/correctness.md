@@ -27,9 +27,9 @@ information on where the discrepancy comes from.
 Try to pick the checked round to be small enough that it does not dominate the running time 
 (since it runs in single-threaded, single-process mode), but big enough to achieve 
 the same code coverage as the full algorithm. Setting it to zero (or omitting the argument), 
-disable this functionality.
+disables this functionality.
 
-Did the code above actually used many threads? This depends on the value of
+Did the code above actually use many threads? This depends on the value of
 `Threads.nthreads()`. Julia currently does not allow you to change this value at 
 runtime, so for convenience we provide the following way to run the job in a 
 child process with a set number of Julia threads:
@@ -50,7 +50,7 @@ pt = load(pt_result)
 In this case, since the model is built-in, the check passed successfully as expected. But what 
 if you had a third-party target distribution that is not multi-threaded friendly? 
 I.e. it may write in global variables or 
-other non-thread safe construct. Then you can probably still  use your thread-naive 
+other non-thread safe constructs. Then you can probably still  use your thread-naive 
 target over MPI *processes*. 
 For example, if the thread-unsafety comes from the use of global variables, then each 
 process will have its own copy of the global variables. 

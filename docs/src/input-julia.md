@@ -10,8 +10,7 @@ such as Turing, but sometimes to get more flexibility or
 speed it is useful to implement the density evaluation 
 manually as a "black-box" Julia function. 
 
-Here we show how this is done using our familiar [unidentifiable toy example](@ref unidentifiable-example)
-[ported to the Stan language](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/unid.stan).
+Here we show how this is done using our familiar [unidentifiable toy example](@ref unidentifiable-example).
 
 We first create a custom type, `MyLogPotential` to control dispatch on the interface [`target`](@ref).
 
@@ -28,9 +27,9 @@ end
 ```
 
 Next, we make `MyLogPotential` a 
-[function-like object](https://docs.julialang.org/en/v1/manual/methods/#Function-like-objects), so that e.g.
-`my_log_potential([0.5, 0.5])` will possible and 
-hence satisfy the [`log_potential`](@ref) interface:
+[function-like object](https://docs.julialang.org/en/v1/manual/methods/#Function-like-objects), so that we can write expressions of the form
+`my_log_potential([0.5, 0.5])` and 
+hence `MyLogPotential` satisfies the [`log_potential`](@ref) interface:
 
 ```@example julia
 function (log_potential::MyLogPotential)(x) 
@@ -65,8 +64,9 @@ nothing # hide
 
 Notice that we have specified a reference distribution, in this case the same model but with 
 no observations (hence the prior).
-This needs to be done with Julia "black-box" targets because it is 
-not possible to automatically extract a prior from a .stan file. 
+Indeed, in contrast to targets specified using 
+Turing.jl, it is not possible to construct a 
+reference automatically from Julia "black-box" targets. 
 
 The [`default_explorer()`](@ref) is the [`SliceSampler`](@ref). 
 

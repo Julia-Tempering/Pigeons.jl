@@ -10,12 +10,12 @@ Surprisingly, it is very simple to bridge such code with Pigeons. The only requi
 
 This behaviour is implemented in [`StreamTarget`](@ref), see its documentation for details. 
 In a nutshell, there will be one child process for each PT chain.
-These processes will not necessarily on 
-the same machine; in fact this is a key use case of this bridge. 
+These processes will not necessarily be on 
+the same machine: indeed distributed sampling is the key use case of this bridge. 
 Pigeons will do some 
 lightweight coordination with these child processes to orchestrate non-reversible
 parallel tempering. 
-Interprocess communication only involves pigeons telling the child process 
+Interprocess communication only involves pigeons telling each child process 
 to perform exploration at a pigeons-provided annealing parameter. 
 
 [`StreamTarget`](@ref) implements [`log_potential`](@ref) and [`explorer`](@ref) 
@@ -25,7 +25,7 @@ protobuff, but it has the advantage of being supported by nearly all
 programming languages in existence. 
 Also in many practical cases, since the worker 
 process is invoked only three times per chain per iteration, it is
-unlikely to be the bottleneck (overhead is in the order of 0.1ms).  
+unlikely to be the bottleneck (overhead is in the order of 0.1ms per interprocess call).  
 
 
 
@@ -34,7 +34,7 @@ unlikely to be the bottleneck (overhead is in the order of 0.1ms).
 To demonstrate this capability, we show 
 here how it enables running Blang models in 
 pigeons. 
-Blang is a Bayesian modelling language designed 
+[Blang](https://github.com/UBC-Stat-ML/blangSDK) is a Bayesian modelling language designed 
 for sampling combinatorial spaces such as 
 phylogenetic trees. 
 
@@ -61,5 +61,5 @@ pt = pigeons(target = blang_unidentifiable_example(100, 50))
 nothing # hide
 ```
 
-Creating a target amounts to specifying which command will 
+As shown above, create a [`StreamTarget`](@ref) amounts to specifying which command will 
 be used to create a child process. 

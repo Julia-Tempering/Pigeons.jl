@@ -19,7 +19,7 @@ In many applications, it is useful to approximate the constant ``Z``. For  examp
 
 ## Normalization constant approximation in Pigeons
 
-As a side-product of parallel tempering, we automatically obtain an approximate the natural logarithm of the normalization constant ``\log Z``. This is done automatically using the 
+As a side-product of parallel tempering, we automatically obtain an approximation of the logarithm of the normalization constant ``\log Z``. This is done automatically using the 
 [stepping stone estimator](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3038348/) computed in [`stepping_stone()`](@ref). 
 
 It is shown in the [standard output report](@ref output-reports) produced at each round:
