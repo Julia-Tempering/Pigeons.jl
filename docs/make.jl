@@ -39,7 +39,7 @@ makedocs(;
         "Distributed usage (MPI)" => "mpi.md",
         "Variational PT" => "variational.md", 
         "Supported inputs" => [
-            "Overview" => "input-overview.md",
+            "Inputs overview" => "input-overview.md",
             "Turing.jl model" => "input-turing.md", 
             "Black-box function" => "input-julia.md",
             "Stan model" => "input-stan.md", 
@@ -47,7 +47,7 @@ makedocs(;
             "Custom MCMC" => "input-explorers.md"
         ],
         "Outputs" => [
-            "Overview" => "output-overview.md",
+            "Outputs overview" => "output-overview.md",
             "Quick reports" => "output-reports.md", 
             "Plots" => "output-plotting.md", 
             "log(Z)" => "output-normalization.md", 

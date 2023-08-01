@@ -35,7 +35,7 @@ Pigeons.initialization(::MyLogPotential, ::AbstractRNG, ::Int) = [0.5, 0.5]
 
 ## Creating a new explorer
 
-We show how create a new explorer, 
+We show how to create a new explorer, 
 for pedagogy, a simple [independence Metropolis algorithm](https://bookdown.org/rdpeng/advstatcomp/metropolis-hastings.html#independence-metropolis-algorithm), applied to 
 our familiar [unidentifiable toy example](@ref unidentifiable-example), 
 based on [Julia black-box implementation](@ref input-julia). 
@@ -67,7 +67,7 @@ end
 ## Creating combinations of explorers
 
 To alternate between two explorers, use [`Compose`](@ref): for example continuing on 
-our example, we want to alternate between the two parameters of our model:
+our example, we want to alternate between sampling the two parameters of our model:
 
 ```@example explorer
 pt = pigeons(

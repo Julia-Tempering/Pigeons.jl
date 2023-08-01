@@ -13,7 +13,7 @@ described in [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111
 The global communication barrier can be used 
 to set the number of chains. 
 The theoretical framework of Syed et al., 2021  
-yields that under simplifying assumptions, it is optimal to set the number of chain 
+yields that under simplifying assumptions, it is optimal to set the number of chains 
 (the argument `n_chains` in [`Inputs`](@ref) or  `pigeons()`) to roughly 2Λ.
 
 The global communication barrier is shown 
@@ -43,7 +43,7 @@ nothing # hide
 ## Round trips and tempered restarts
 
 A tempered restart happens when a sample from the reference 
-percolate to the target. 
+percolates to the target. 
 When the reference supports iid sampling, tempered restarts 
 can enable large jumps in the state space. 
 
@@ -94,7 +94,7 @@ nothing # hide
 
 ## Index process
 
-The index process tracks the permutation of chain as machine exchange 
+The index process tracks the permutation of chains as machine exchange 
 annealing parameters. Each row is a chain and each connected line corresponds
 to a replica. To enable this we use the [`index_process`](@ref) recorder:
 

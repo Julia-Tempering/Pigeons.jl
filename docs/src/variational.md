@@ -32,7 +32,7 @@ The fixed reference is used before that point.
 ## Stabilized variational PT 
 
 [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080) describes situations where the variational fitting can 
-cause catastophic forgetting of modes. 
+cause catastrophic forgetting of modes. 
 This is remediated by using both a fixed and a variational 
 reference each linked to two copies of the target, which 
 are also swapped according to a non-reversible swapping 

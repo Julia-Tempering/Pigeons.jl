@@ -45,7 +45,7 @@ Create an issue if you would like another submission system included.
 Follow these instructions to run MPI over several machines:
 
 1. In the cluster login node, follow the [local installation instructions](@ref installing-pigeons). 
-2. Start Julia in the login node, and perform a one-time setup by calling [`setup_mpi()`](@ref). Its argument are the fields in [`MPISettings`](@ref), see the documentation there for details.
+2. Start Julia in the login node, and perform a one-time setup by calling [`setup_mpi()`](@ref). Its arguments are the fields in [`MPISettings`](@ref), see the documentation there for details.
 3. Still in the Julia REPL running in the login node, use:
 
 ```
@@ -60,7 +60,7 @@ mpi_run = pigeons(
 This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread, targeting a one million 
 dimensional target distribution. On the UBC Sockeye cluster, the last 
 round of this run (i.e. the last 1024 iterations) takes 10 seconds to complete, versus more than 
-2 hours if ran serially, i.e. a >700x speed-up. 
+2 hours if run serially, i.e. a >700x speed-up. 
 This is reasonably close to the theoretical 1000x speedup, i.e. we see that the communication costs are negligible. 
 
 You can "watch" the progress of your job (queue status and 

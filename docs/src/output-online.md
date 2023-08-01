@@ -8,7 +8,7 @@ When the dimensionality of a model is large and/or the
 number of MCMC samples is large, the samples may not 
 fit in memory. 
 The most flexible way to deal with this situation is 
-to write sample to disk and process them one at the time, 
+to write samples to disk and process them one at the time, 
 as described in [the off-memory processing documentation](@ref output-off-memory). 
 However, certain statistics can be computed using fixed 
 dimensional sufficient statistics yielding more 
