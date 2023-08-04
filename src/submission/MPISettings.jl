@@ -1,4 +1,3 @@
-
 """
 Global settings needed for MPI job submission:
 $FIELDS
@@ -37,9 +36,9 @@ $FIELDS
     """
     In most case, leave empty as MPIPreferences.use_system_binary() will 
     autodetect, but if it does not, the path to libmpi.so can be specified 
-    this way, e.g. on compute Canada to work the system not setting that 
-    environment variable correctly, use 
-    `/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Compiler/intel2020/openmpi/4.0.3/lib/libmpi`
+    this way, e.g. this is needed on compute Canada clusters (as they are not setting that 
+    environment variable correctly) where it needs to be set to
+    "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Compiler/intel2020/openmpi/4.0.3/lib/libmpi"
     (notice the .so is not included).
     """
     library_name::Union{String, Nothing} = nothing
@@ -59,7 +58,18 @@ end
 """
 $SIGNATURES
 
-Arguments are passed in the constructor of [`MPISettings`](@ref).
+Look first at the list of clusters that have "presets" available, 
+by typing `Pigeons.setup_mpi_` and then tab. These are the most 
+straightforward to use. 
+
+If presets are not available, use `setup_mpi()`. To see the 
+documentation of the arguments of `setup_mpi()`, see 
+[`MPISettings`](@ref)
+(i.e. `args...` are passed to the constructor of [`MPISettings`](@ref)). 
+
+Pull requests to `Pigeons/src/submission/presets.jl` are welcome 
+if you would like to add a new "preset" functions of the form 
+`Pigeons.setup_mpi_...()`.
 """
 setup_mpi(; args...) = setup_mpi(MPISettings(; args...))
 

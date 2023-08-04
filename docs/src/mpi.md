@@ -45,7 +45,7 @@ Create an issue if you would like another submission system included.
 Follow these instructions to run MPI over several machines:
 
 1. In the cluster login node, follow the [local installation instructions](@ref installing-pigeons). 
-2. Start Julia in the login node, and perform a one-time setup by calling [`setup_mpi()`](@ref). Its arguments are the fields in [`MPISettings`](@ref), see the documentation there for details.
+2. Start Julia in the login node, and perform a one-time setup. Read the documentation at [`setup_mpi()`](@ref) for more information. 
 3. Still in the Julia REPL running in the login node, use:
 
 ```
@@ -78,3 +78,25 @@ kill_job(mpi_run)
 ```
 
 To analyze the output, see the documentation page on [post-processing for MPI runs](@ref output-mpi-postprocessing).
+
+
+## Code dependencies
+
+So far we have used examples where the target, explorers, etc 
+are built-in inside the Pigeons module. 
+However in typical use cases,
+some user-provided code needs to be provided to 
+[`ChildProcess`](@ref) and
+and [`MPI`](@ref) so that the other participating Julia 
+processes have access to it. 
+This is done with the argument `dependencies::Vector` (present in 
+both [`ChildProcess`](@ref) and
+and [`MPI`](@ref)). 
+Two types of items can be used in the dependencies `Vector`, and they can be mixed and matched:
+
+- Objects of type Module: for each of those, an `using` statement will be generated in the script used by the child process.
+- String: path to a Julia file containing functions and type definitions, for each of those an `include` call. 
+
+The function `Base.active_project()` is used by the parent 
+process so that child processes inherit the same 
+environment. 
