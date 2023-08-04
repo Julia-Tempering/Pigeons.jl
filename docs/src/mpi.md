@@ -80,23 +80,26 @@ kill_job(mpi_run)
 To analyze the output, see the documentation page on [post-processing for MPI runs](@ref output-mpi-postprocessing).
 
 
+
 ## Code dependencies
 
 So far we have used examples where the target, explorers, etc 
 are built-in inside the Pigeons module. 
 However in typical use cases,
 some user-provided code needs to be provided to 
-[`ChildProcess`](@ref) and
+[`ChildProcess`](@ref) 
 and [`MPI`](@ref) so that the other participating Julia 
 processes have access to it. 
-This is done with the argument `dependencies::Vector` (present in 
-both [`ChildProcess`](@ref) and
+This is done with the argument `dependencies` (of type `Vector`;  present in 
+both [`ChildProcess`](@ref) 
 and [`MPI`](@ref)). 
-Two types of items can be used in the dependencies `Vector`, and they can be mixed and matched:
+Two types of elements can be used in the vector of dependencies, and they can be mixed:
 
-- Objects of type Module: for each of those, an `using` statement will be generated in the script used by the child process.
-- String: path to a Julia file containing functions and type definitions, for each of those an `include` call. 
+- elements of type `Module`: for each of those, an `using` statement will be generated in the script used by the child process;
+- elements of type `String`: a path to a Julia file defining functions and types, for each of those an `include` call is generated. 
 
 The function `Base.active_project()` is used by the parent 
 process so that child processes inherit the same 
-environment. 
+environment as the parent. 
+
+
