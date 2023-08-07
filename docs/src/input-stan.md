@@ -64,9 +64,7 @@ using BridgeStan
 function Pigeons.sample_iid!(
         log_potential::StanLogPotential{M, S, D, StanUnidentifiableExample}, replica, shared) where {M, S, D}
     # sample in constrained space
-    state = replica.state.unconstrained_parameters
-    rng = replica.rng 
-    constrained = rand(rng, 2)
+    constrained = rand(replica.rng, 2)
     # transform to unconstrained space
     replica.state.unconstrained_parameters .= BridgeStan.param_unconstrain(log_potential.model, constrained)
 end
