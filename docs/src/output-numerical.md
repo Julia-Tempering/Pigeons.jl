@@ -22,7 +22,7 @@ using Pkg; Pkg.add("MCMCChains")
 
 Also make sure to record the trace, with `record = [traces]`:
 
-```example numerical
+```@example numerical
 using Pigeons
 using MCMCChains
 
@@ -47,25 +47,25 @@ Computing a mean
 (but see [online statistics](@ref output-online) for 
 a constant memory alternative):
 
-```example numerical
+```@example numerical
 using Statistics 
 m = mean(samples)
 ```
 
 to access an individual entry in this example and the following ones:
 
-```example numerical
+```@example numerical
 m[:p1, :mean]
 ```
 
 Highest posterior density interval:
 
-```example numerical
+```@example numerical
 hpd(samples, alpha = 0.05)
 ```
 
 For ESS estimates:
 
-```example numerical
+```@example numerical
 ess(samples)
 ```
