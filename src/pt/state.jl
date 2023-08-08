@@ -1,9 +1,5 @@
 """
 The state held in each Parallel Tempering [`Replica`](@ref). 
-This interface is only needed for variational Parallel Tempering and for 
-some recorders such as [`OnlineStateRecorder`](@ref) and [`traces`](@ref).
-(Note that, at the moment, explorers automatically detect the variable type 
-and dispatch accordingly.)
 """
 @informal state begin
     """ 
