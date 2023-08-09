@@ -100,6 +100,9 @@ function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_
 end
 
 function launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
+    # try to catch errors as early as possible
+    preflight_checks(pt_arguments)
+    
     path_to_serialized_pt_arguments = "$exec_folder/.pt_argument.jls"
     path_to_serialized_immutables = "$exec_folder/immutables.jls"
 

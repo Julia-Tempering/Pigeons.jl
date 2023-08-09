@@ -1,29 +1,33 @@
-function preflight_checks(pt)
-    if isdisjoint([traces, disk, online], pt.inputs.record)
+function preflight_checks(inputs::Inputs)
+    if isdisjoint([traces, disk, online], inputs.record)
         @info """Neither traces, disk, nor online recorders included. 
                  You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
                  To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
               """
     end
-    if mpi_active() && !pt.inputs.checkpoint
+    if mpi_active() && !inputs.checkpoint
         @warn "To be able to call load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
     end
-    if Threads.nthreads() > 1 && !pt.inputs.multithreaded 
-        @warn "More than one threads are available, but explore!() loop is not parallelized as pt.inputs.multithreaded == false"
+    if Threads.nthreads() > 1 && !inputs.multithreaded 
+        @warn "More than one threads are available, but explore!() loop is not parallelized as inputs.multithreaded == false"
     end
-    if pt.inputs.checked_round > 0 && !pt.inputs.checkpoint
+    if inputs.checked_round > 0 && !inputs.checkpoint
         throw(ArgumentError("activate checkpoint when performing checks"))
     end
-    if disk in pt.inputs.record && !pt.inputs.checkpoint
+    if disk in inputs.record && !inputs.checkpoint
         throw(ArgumentError("activate checkpoint when using the disk recorder"))
     end
-    if pt.inputs.checked_round < 0 || pt.inputs.checked_round > pt.inputs.n_rounds 
+    if inputs.checked_round < 0 || inputs.checked_round > inputs.n_rounds 
         throw(ArgumentError("set checked_round between 0 and n_rounds inclusively"))
     end
-    if typeof(pt.inputs.target) <: StreamTarget && pt.inputs.checkpoint 
+    if typeof(inputs.target) <: StreamTarget && inputs.checkpoint 
         @warn "Checkpoints for StreamTarget do not allow resuming jobs; partial checkpoints (for Shared structs) are still useful for checking Parallelism Invariance"
     end
 end
+
+# when pt_arguments is a string, this means we are resuming an 
+# execution, hence the preflight checks have been performed already
+preflight_checks(pt_arguments::String) = nothing
 
 """
 Perform checks to detect software defects. 
