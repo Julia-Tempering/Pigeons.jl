@@ -44,7 +44,10 @@ using Pigeons
 inputs = Inputs(target = toy_mvn_target(100))
 ```
 
-Have a look at the [`Inputs`](@ref) documentation for an overview of the many options available to configure pigeons. 
+Have a look at the [`Inputs`](@ref) documentation for an overview of the many options available to configure pigeons.
+You will find information there on setting the random `seed`, 
+controlling the number of iterations (via `n_rounds`), 
+and many more options
 
 Then, run PT (locally on one process) using the function [`pigeons()`](@ref):
 

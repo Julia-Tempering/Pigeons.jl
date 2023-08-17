@@ -22,7 +22,11 @@ making sampling difficult, as shown in the [following pair plots](@ref output-pl
 ## Unidentifiable example without PT
 
 Let us look at trace plots obtained from performing 
-single-chain MCMC on this problem:
+single-chain MCMC on this problem. 
+The key part of the code below is the argument 
+`n_chains = 1`: we have designed our PT implementation 
+so that setting the number of chains to one reduces to a 
+standard MCMC algorithm. 
 
 ```@example why
 using Pigeons
@@ -60,7 +64,8 @@ samples
 
 ## Unidentifiable example with PT
 
-Let us enable parallel tempering now:
+Let us enable parallel tempering now, by setting 
+`n_chains` to a value greater than one:
 
 ```@example why
 pt = pigeons(

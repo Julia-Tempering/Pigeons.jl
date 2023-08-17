@@ -11,7 +11,7 @@ and [`run_checks()`](@ref) between rounds.
 """
 function pigeons(pt::PT) 
     only_one_process(pt) do
-        preflight_checks(pt)
+        preflight_checks(pt.inputs)
     end
     prev_reports = nothing
     while next_round!(pt) # NB: while-loop instead of for-loop to support resuming from checkpoint

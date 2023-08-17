@@ -22,7 +22,6 @@ $FIELDS
     """ 
     The number of chains to use for an additional variational reference leg. 
     Set to zero to disable (default). 
-
     Variational inference can also be performed using a single leg, however 
     the two-leg version is more stable: see https://arxiv.org/abs/2206.00080
     """

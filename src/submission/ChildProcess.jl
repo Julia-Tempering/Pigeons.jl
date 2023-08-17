@@ -1,7 +1,9 @@
 """ 
 Flag to run to a new julia 
 process. Useful e.g. to dynamically control 
-the number of threads to use.  
+the number of threads to use or to use MPI on a 
+single machine. 
+
 Fields: 
 
 $FIELDS
@@ -20,10 +22,6 @@ $FIELDS
     process. 
     """
     dependencies::Vector = []
-    # eventually, detect & save which 
-    # modules should be loaded? E.g. could use 
-    #    https://stackoverflow.com/questions/25575406/list-of-loaded-imported-packages-in-julia
-    #    see filter((x) -> typeof(eval(x)) <:  Module && x ≠ :Main, names(Main,imported=true))
 
     """
     If greater than one, run the code locally 
@@ -89,7 +87,7 @@ function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_
     project_file = Base.active_project() 
     # even when running outside of a user defined project, 
     # in normal circumstances Base.active_project() should 
-    # yield some default global envirnment
+    # yield some default global environment
     # (as a corrolary, the director of the active project 
     # should not be used to find other user files)
     @assert !isnothing(project_file) 
@@ -102,6 +100,9 @@ function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_
 end
 
 function launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
+    # try to catch errors as early as possible
+    preflight_checks(pt_arguments)
+    
     path_to_serialized_pt_arguments = "$exec_folder/.pt_argument.jls"
     path_to_serialized_immutables = "$exec_folder/immutables.jls"
 

@@ -62,6 +62,12 @@ Plots.savefig(myplot, "first_dim_of_each.html");
 nothing # hide
 ```
 
+```@raw html
+<iframe src="../first_dim_of_each.html" style="height:500px;width:100%;"></iframe>
+```
+
+
+
 ## Internal organization of the samples
 
 This section can be skipped. 
