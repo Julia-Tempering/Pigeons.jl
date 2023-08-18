@@ -1,8 +1,7 @@
 using Distributions
 using DynamicPPL
-using DistributionsAD: filldist
+using FillArrays: Fill
 using LogExpFunctions: logsumexp
-using MCMCChains: Chains
 
 @model function _GalaxyTuring(y, b_0, B_0)
     # hyperparams
@@ -13,9 +12,9 @@ using MCMCChains: Chains
 
     # prior
     η      ~ Dirichlet(K, α/K)
-    μ      ~ filldist(Normal(b_0, B_0), K)
-    inv_σ2 ~ filldist(Gamma(c_0, 1/C_0), K)
-    
+    μ      ~ product_distribution(Fill(Normal(b_0, B_0), K))
+    inv_σ2 ~ product_distribution(Fill(Gamma(c_0, 1/C_0), K))
+
     # likelihood = prod_i sum_k (...)
     # => loglik = sum_i logsumexp_k(log(...))
     # acc holds outer sum, lps is passed to LSE
@@ -54,6 +53,11 @@ function GalaxyTuring()
     _GalaxyTuring(data, b_0, B_0)
 end
 
-pt = pigeons(target = TuringLogPotential(GalaxyTuring()), record = [traces])
-# plot(Chains(Pigeons.sample_matrix(pt), Pigeons.variable_names(pt))) # TODO: variable_names should detect when variables are vectors
-nothing
+pt = pigeons(
+    target = TuringLogPotential(GalaxyTuring())
+)
+
+# using StatsPlots
+# samples = sample_array(pt);
+# plot(Chains(samples, ["par_$i" for i in 1:size(samples)[2]])) # TODO: variable_names should detect when variables are vectors
+# nothing
