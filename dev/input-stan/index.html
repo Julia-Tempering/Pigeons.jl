@@ -32,16 +32,16 @@ pt = pigeons(target = stan_unid(100, 50), reference = stan_unid(0, 0))</code></p
 ──────────────────────────────────────────────────────────────────────────────────────────────────
   #scans       Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       1.56      0.061   1.16e+06      -6.22     0.0027      0.827      0.469      0.675
+        2       1.56     0.0592   1.14e+06      -6.22     0.0027      0.827      0.469      0.675
         4       1.42      0.007   4.35e+04      -5.12      0.459      0.842      0.367      0.569
-        8       1.13     0.0138   8.72e+04      -5.01      0.706      0.875      0.518      0.608
-       16       1.02      0.024   1.36e+05      -4.45      0.813      0.887      0.515      0.634
-       32       1.86     0.0509   1.94e+05      -5.18       0.64      0.793      0.573      0.624
-       64       1.56      0.103   2.75e+05      -4.83      0.678      0.827      0.546      0.612
-      128       1.52      0.198   3.98e+05      -4.92      0.782      0.831       0.55      0.621
-      256       1.52       0.41   6.47e+05      -5.07       0.76      0.831      0.513       0.61
-      512       1.47      0.791   1.15e+06      -4.95      0.777      0.837       0.58      0.633
- 1.02e+03       1.52       1.62   2.16e+06         -5      0.786      0.831       0.53      0.616
+        8       1.13      0.013   8.72e+04      -5.01      0.706      0.875      0.518      0.608
+       16       1.02     0.0242   1.36e+05      -4.45      0.813      0.887      0.515      0.634
+       32       1.86     0.0499   1.94e+05      -5.18       0.64      0.793      0.573      0.624
+       64       1.56      0.102   2.75e+05      -4.83      0.678      0.827      0.546      0.612
+      128       1.52      0.196   3.98e+05      -4.92      0.782      0.831       0.55      0.621
+      256       1.52      0.404   6.47e+05      -5.07       0.76      0.831      0.513       0.61
+      512       1.47      0.784   1.15e+06      -4.95      0.777      0.837       0.58      0.633
+ 1.02e+03       1.52        1.6   2.16e+06         -5      0.786      0.831       0.53      0.616
 ──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>Notice that we have specified a reference distribution, in this case the same model but with  no observations (hence the prior). This needs to be done with Stan targets because it is  not possible to automatically extract a prior from a .stan file. </p><p>For a <a href="../reference/#Pigeons.StanLogPotential"><code>StanLogPotential</code></a>, the <a href="../reference/#Pigeons.default_explorer-Tuple{Any}"><code>default_explorer()</code></a> is <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a>. </p><h2 id="Sampling-from-the-reference-distribution"><a class="docs-heading-anchor" href="#Sampling-from-the-reference-distribution">Sampling from the reference distribution</a><a id="Sampling-from-the-reference-distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Sampling-from-the-reference-distribution" title="Permalink"></a></h2><p>Ability to sample from the reference distribution can be beneficial, e.g. to jump modes  in multi-modal distribution.  For stan targets, this is done as follows:</p><pre><code class="language-julia hljs">using BridgeStan
 
 function Pigeons.sample_iid!(
@@ -64,16 +64,16 @@ pt = pigeons(target = stan_unid(100, 50), reference = stan_unid(0, 0))</code></p
 ──────────────────────────────────────────────────────────────────────────────────────────────────
   #scans       Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       1.56     0.0085   3.62e+04      -11.6   5.44e-08      0.827      0.469       0.65
-        4       2.04    0.00666   4.65e+04      -5.16      0.167      0.773      0.377      0.581
-        8       1.46      0.012   8.71e+04       -5.8       0.69      0.837      0.493      0.611
-       16       1.58     0.0241   1.24e+05      -5.24      0.161      0.824      0.556      0.634
-       32       1.49     0.0491   1.95e+05      -5.09      0.718      0.834      0.545      0.638
+        2       1.56    0.00242   3.62e+04      -11.6   5.44e-08      0.827      0.469       0.65
+        4       2.04    0.00663   4.65e+04      -5.16      0.167      0.773      0.377      0.581
+        8       1.46     0.0116   8.71e+04       -5.8       0.69      0.837      0.493      0.611
+       16       1.58     0.0233   1.24e+05      -5.24      0.161      0.824      0.556      0.634
+       32       1.49     0.0442   1.95e+05      -5.09      0.718      0.834      0.545      0.638
        64       1.49     0.0932   2.73e+05      -4.92      0.751      0.834      0.519      0.605
-      128       1.53      0.183   3.81e+05      -5.35      0.751       0.83      0.588      0.634
-      256        1.6      0.365   6.22e+05         -5      0.721      0.822       0.55      0.624
-      512       1.42      0.715   1.11e+06      -4.99      0.807      0.842      0.584      0.633
- 1.02e+03       1.51       1.45   2.07e+06      -4.97      0.815      0.832      0.546      0.629
+      128       1.53      0.178   3.81e+05      -5.35      0.751       0.83      0.588      0.634
+      256        1.6      0.386   6.22e+05         -5      0.721      0.822       0.55      0.624
+      512       1.42      0.696   1.11e+06      -4.99      0.807      0.842      0.584      0.633
+ 1.02e+03       1.51       1.41   2.07e+06      -4.97      0.815      0.832      0.546      0.629
 ──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><h2 id="Manipulating-the-output"><a class="docs-heading-anchor" href="#Manipulating-the-output">Manipulating the output</a><a id="Manipulating-the-output-1"></a><a class="docs-heading-anchor-permalink" href="#Manipulating-the-output" title="Permalink"></a></h2><p>Internally, Stan target&#39;s states (of type <a href="../reference/#Pigeons.StanState"><code>StanState</code></a>) are stored in an unconstrained  parameterization provided by Stan  (for example, bounded support variables are mapped to the full real line).  However, sample post-processing functions such as <a href="../reference/#Pigeons.sample_array-Tuple{PT}"><code>sample_array()</code></a> and <a href="../reference/#Pigeons.process_sample"><code>process_sample()</code></a>  convert back to the original (&quot;constrained&quot;) parameterization via <a href="../reference/#Pigeons.extract_sample-Tuple{Any, Any}"><code>extract_sample()</code></a>. </p><p>As a result parameterization issues can be essentially ignored when post-processing, for example some  common post-processing are shown below, see <a href="../output-overview/#output-overview">the section on output processing for more information</a>. </p><pre><code class="language-julia hljs">using MCMCChains
 using StatsPlots
 plotlyjs()
@@ -107,4 +107,4 @@ Quantiles
 
           p1    0.4754    0.5875    0.6935    0.8351    0.9798
           p2    0.4679    0.6010    0.7164    0.8487    0.9795
-</code></pre><iframe src="../stan_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-julia/">« Black-box function</a><a class="docs-footer-nextpage" href="../input-nonjulian/">Non-julian MCMC »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Friday 18 August 2023 15:53">Friday 18 August 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre><iframe src="../stan_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-julia/">« Black-box function</a><a class="docs-footer-nextpage" href="../input-nonjulian/">Non-julian MCMC »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Friday 18 August 2023 17:00">Friday 18 August 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
