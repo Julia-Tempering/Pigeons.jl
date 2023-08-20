@@ -8,7 +8,7 @@ standard out at the end of every iteration
 all_reports() = [  
         # header with    # lambda expression used to 
         # width of 9     # compute that report item
-        "  #scans  "   => pt -> n_scans_in_round(pt.shared.iterators), 
+        "  scans   "   => pt -> n_scans_in_round(pt.shared.iterators), 
         " restarts "   => pt -> n_tempered_restarts(pt), 
         "    Λ     "   => pt -> global_barrier(pt.shared.tempering),
         "  Λ_var   "   => pt -> global_barrier_variational(pt.shared.tempering),
@@ -29,6 +29,9 @@ $SIGNATURES
 Report summary information on the progress of [`pigeons()`](@ref).
 """
 report(pt, prev_header) = only_one_process(pt) do
+    if !isnothing(pt.exec_folder)
+        write_report(pt)
+    end
     if !pt.inputs.show_report
         return nothing
     end
@@ -77,7 +80,6 @@ hr(reports, sep) =
                 reports), 
             sep))
     
-
 function reports_available(pt)
     result = Pair[] 
     for pair in all_reports() 
@@ -89,4 +91,16 @@ function reports_available(pt)
         end
     end
     return result
+end
+
+function write_report(pt)
+    dir = "$(pt.exec_folder)/round=$(pt.shared.iterators.round)"
+    mkpath(dir)
+    open("$dir/report.tsv", "w") do io 
+        for pair in reports_available(pt)
+            name = replace(pair[1], " " => "")
+            value = pair[2](pt)
+            println(io, "$name  $value")
+        end
+    end
 end
