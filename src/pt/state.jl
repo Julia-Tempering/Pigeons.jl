@@ -115,9 +115,9 @@ function variable_names(state::DynamicPPL.TypedVarInfo, _)
     all_names = fieldnames(typeof(state.metadata)) 
     for var_name in all_names
         var = state.metadata[var_name].vals
-        if var isa Number 
+        if var isa Number || (var isa Array && length(var) == 1)
             push!(result, var_name) 
-        else
+        elseif var isa Array
             # flatten vector names following Turing convention
             l = length(var) 
             for i in 1:l 
@@ -125,6 +125,8 @@ function variable_names(state::DynamicPPL.TypedVarInfo, _)
                     Symbol(var_name, "[", join(ind2sub(size(var), i), ","), "]")
                 push!(result, var_and_index_name)
             end
+        else
+            error()
         end
     end
     return result 
