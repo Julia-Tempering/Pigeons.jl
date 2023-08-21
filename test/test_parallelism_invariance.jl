@@ -1,5 +1,3 @@
-using DynamicPPL
-
 include("supporting/turing_models.jl")
 include("supporting/mpi_test_utils.jl")
 

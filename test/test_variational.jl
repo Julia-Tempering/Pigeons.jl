@@ -1,5 +1,3 @@
-using DynamicPPL
-
 include("supporting/turing_models.jl")
 
 function test_variational_Turing()

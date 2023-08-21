@@ -93,7 +93,7 @@ function update_state!(state::DynamicPPL.TypedVarInfo, name::Symbol, index::Int,
     state.metadata[name].vals[index] = value
 end
 function variables(state::DynamicPPL.TypedVarInfo, type::DataType) 
-    all_names = fieldnames(typeof(state.metadata))
+    all_names = fieldnames(typeof(state.metadata)) 
     var_names = []
     for name in all_names
         if typeof(state.metadata[name].vals[1]) <: type
@@ -110,7 +110,29 @@ function extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
     return result
 end
 
-variable_names(state::DynamicPPL.TypedVarInfo, _) = map(x -> "$x", keys(state))
+function variable_names(state::DynamicPPL.TypedVarInfo, _) 
+    result = Symbol[] 
+    all_names = fieldnames(typeof(state.metadata)) 
+    for var_name in all_names
+        var = state.metadata[var_name].vals
+        if var isa Number || (var isa Array && length(var) == 1)
+            push!(result, var_name) 
+        elseif var isa Array
+            # flatten vector names following Turing convention
+            l = length(var) 
+            for i in 1:l 
+                var_and_index_name = 
+                    Symbol(var_name, "[", join(ind2sub(size(var), i), ","), "]")
+                push!(result, var_and_index_name)
+            end
+        else
+            error()
+        end
+    end
+    return result 
+end
+# From Turing.jl/src/utilities/helper.jl
+ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
 
 
 # Stan ----------
