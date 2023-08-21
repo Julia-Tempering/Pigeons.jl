@@ -69,4 +69,9 @@ end
 DynamicPPL.@model function model_with_vectors()
     x ~ MvNormal(zeros(2), I)
     y ~ MvNormal(zeros(2), I)
+    z ~ Multinomial(10, [0.3, 0.2, 0.5])
+end
+
+DynamicPPL.@model function model_with_matrices()
+    y ~ InverseWishart(10, Matrix(1.0I, 2, 2))
 end

@@ -17,5 +17,10 @@ ADgradient() in TuringLogPotential.jl
 
 @testset "Turing-variable-names" begin
     pt = pigeons(target = TuringLogPotential(model_with_vectors()), n_rounds = 2);
-    @test length(variable_names(pt)) == 4
+    @test length(variable_names(pt)) == 7
+end
+
+@testset "Turing-variable-names-matrix" begin
+    pt = pigeons(target = TuringLogPotential(model_with_matrices()), n_rounds = 0);
+    @show variable_names(pt)
 end
