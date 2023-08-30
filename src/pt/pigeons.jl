@@ -6,7 +6,7 @@ Run (a generalization of) Parallel Tempering.
 This will call several rounds of [`run_one_round!()`](@ref), 
 performing adaptation between each round via [`adapt()`](@ref).
 
-This will also call [`report()`](@ref), [`write_checkpoint()`](@ref), 
+This will also call [`report!()`](@ref), [`write_checkpoint()`](@ref), 
 and [`run_checks()`](@ref) between rounds. 
 """
 function pigeons(pt::PT) 
@@ -20,7 +20,7 @@ function pigeons(pt::PT)
         # NB: the local variable pt here is not type-stable b/c adapt(..), e.g. will 
         # change type of tempering.communication_barrier from nothing to a value 
         # but since this loop is ran only a logarithmic # of times no performance hit
-        prev_reports = report(pt, prev_reports)
+        prev_reports = report!(pt, prev_reports)
         write_checkpoint(pt) 
         run_checks(pt)
     end
@@ -158,7 +158,8 @@ function adapt(pt, reduced_recorders)
     updated_shared = Shared(
         pt.shared.iterators, 
         updated_tempering, 
-        updated_explorer)
+        updated_explorer, 
+        pt.shared.reports)
     updated_replicas = pt.replicas # TODO: adapt too? e.g. assign to closest from previous, leveraging checkpoints?
     return PT(pt.inputs, updated_replicas, updated_shared, pt.exec_folder, reduced_recorders)
 end

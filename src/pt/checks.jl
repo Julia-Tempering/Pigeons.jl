@@ -162,7 +162,7 @@ Base.:(==)(a::Compose, b::Compose) = recursive_equal(a, b)
 Base.:(==)(a::Iterators, b::Iterators) = recursive_equal(a, b) 
 Base.:(==)(a::Schedule, b::Schedule) = recursive_equal(a, b)
 Base.:(==)(a::DEO, b::DEO) = recursive_equal(a, b)
-Base.:(==)(a::Shared, b::Shared) = recursive_equal(a, b)
+Base.:(==)(a::Shared, b::Shared) = recursive_equal(a, b, [:reports])
 Base.:(==)(a::BlangTarget, b::BlangTarget) = recursive_equal(a, b)
 Base.:(==)(a::NonReversiblePT, b::NonReversiblePT) = recursive_equal(a, b)
 Base.:(==)(a::InterpolatingPath, b::InterpolatingPath) = recursive_equal(a, b)
@@ -177,11 +177,12 @@ Base.:(==)(a::LocalBarrier, b::LocalBarrier) = recursive_equal(a, b)
 Base.:(==)(a::StanLogPotential, b::StanLogPotential) = 
     a.data == b.data && BridgeStan.name(a.model) == BridgeStan.name(b.model)
 
-function recursive_equal(a::T, b::T) where {T}
+function recursive_equal(a::T, b::T, exclude = []) where {T}
     for f in fieldnames(T)
-        if getfield(a, f) != getfield(b, f)
+        if !(f in exclude) && (getfield(a, f) != getfield(b, f)) 
             return false
         end
     end
     return true
 end
+
