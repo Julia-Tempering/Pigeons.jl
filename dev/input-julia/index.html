@@ -30,16 +30,16 @@ my_log_potential([0.5, 0.5])</code></pre><pre class="documenter-example-output">
 ──────────────────────────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       2.03   0.000518   1.77e+05      -8.65   6.03e-05      0.775          1          1
-        4      0.994   0.000422   3.34e+04      -4.82      0.578       0.89          1          1
-        8       2.25   0.000552   6.06e+04      -5.81      0.201       0.75          1          1
-       16       1.62    0.00112   7.54e+04         -5      0.609       0.82          1          1
-       32       1.25    0.00165   1.44e+05      -4.69      0.706      0.861          1          1
-       64       1.52    0.00334   1.37e+05      -5.05      0.684      0.831          1          1
-      128       1.67    0.00585   1.45e+05      -5.16      0.661      0.815          1          1
-      256       1.56     0.0122   1.67e+05      -5.09      0.762      0.827          1          1
-      512       1.54     0.0236   2.12e+05      -5.07      0.786      0.829          1          1
- 1.02e+03       1.51     0.0445   3.02e+05      -4.91      0.807      0.832          1          1
+        2       2.03   0.000428   1.77e+05      -8.65   6.03e-05      0.775          1          1
+        4      0.994   0.000343   3.34e+04      -4.82      0.578       0.89          1          1
+        8       2.25   0.000574   6.06e+04      -5.81      0.201       0.75          1          1
+       16       1.62   0.000969   7.54e+04         -5      0.609       0.82          1          1
+       32       1.25     0.0018   1.44e+05      -4.69      0.706      0.861          1          1
+       64       1.52    0.00314   1.37e+05      -5.05      0.684      0.831          1          1
+      128       1.67    0.00588   1.45e+05      -5.16      0.661      0.815          1          1
+      256       1.56     0.0118   1.67e+05      -5.09      0.762      0.827          1          1
+      512       1.54     0.0226   2.12e+05      -5.07      0.786      0.829          1          1
+ 1.02e+03       1.51     0.0449   3.02e+05      -4.91      0.807      0.832          1          1
 ──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>Notice that we have specified a reference distribution, in this case the same model but with  no observations (hence the prior). Indeed, in contrast to targets specified using  Turing.jl, it is not possible to construct a  reference automatically from Julia &quot;black-box&quot; targets. </p><p>The <a href="../reference/#Pigeons.default_explorer-Tuple{Any}"><code>default_explorer()</code></a> is the <a href="../reference/#Pigeons.SliceSampler"><code>SliceSampler</code></a>. </p><h2 id="Sampling-from-the-reference-distribution"><a class="docs-heading-anchor" href="#Sampling-from-the-reference-distribution">Sampling from the reference distribution</a><a id="Sampling-from-the-reference-distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Sampling-from-the-reference-distribution" title="Permalink"></a></h2><p>Ability to sample from the reference distribution can be beneficial, e.g. to jump modes  in multi-modal distribution.  For black-box Julia function targets, this is done as follows:</p><pre><code class="language-julia hljs">function Pigeons.sample_iid!(::MyLogPotential, replica, shared)
     state = replica.state
     rng = replica.rng
@@ -55,16 +55,16 @@ pt = pigeons(
 ──────────────────────────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       2.03   0.000191   2.37e+04      -12.1   5.75e-08      0.775          1          1
-        4       1.13   0.000318   3.08e+04      -5.26     0.0854      0.874          1          1
-        8      0.989   0.000624   5.56e+04      -4.09      0.509       0.89          1          1
-       16        1.5   0.000789   9.34e+04      -5.16      0.675      0.834          1          1
-       32       1.58    0.00165   1.17e+05      -5.29       0.73      0.825          1          1
-       64       1.34    0.00258   1.25e+05      -4.79      0.758      0.852          1          1
-      128       1.65    0.00577   1.18e+05      -4.91      0.739      0.817          1          1
-      256       1.46     0.0105   1.18e+05      -5.01      0.732      0.838          1          1
-      512       1.52     0.0203   1.18e+05       -5.1      0.759      0.831          1          1
- 1.02e+03       1.55     0.0406   1.18e+05         -5      0.796      0.828          1          1
+        2       2.03   0.000197   2.37e+04      -12.1   5.75e-08      0.775          1          1
+        4       1.13   0.000321   3.08e+04      -5.26     0.0854      0.874          1          1
+        8      0.989   0.000491   5.56e+04      -4.09      0.509       0.89          1          1
+       16        1.5    0.00095   9.34e+04      -5.16      0.675      0.834          1          1
+       32       1.58     0.0017   1.17e+05      -5.29       0.73      0.825          1          1
+       64       1.34    0.00307   1.25e+05      -4.79      0.758      0.852          1          1
+      128       1.65    0.00567   1.18e+05      -4.91      0.739      0.817          1          1
+      256       1.46     0.0108   1.18e+05      -5.01      0.732      0.838          1          1
+      512       1.52     0.0219   1.18e+05       -5.1      0.759      0.831          1          1
+ 1.02e+03       1.55     0.0428   1.18e+05         -5      0.796      0.828          1          1
 ──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><h2 id="Changing-the-explorer"><a class="docs-heading-anchor" href="#Changing-the-explorer">Changing the explorer</a><a id="Changing-the-explorer-1"></a><a class="docs-heading-anchor-permalink" href="#Changing-the-explorer" title="Permalink"></a></h2><p>Here is an example using <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a> instead of the default  <a href="../reference/#Pigeons.SliceSampler"><code>SliceSampler</code></a>. We only need to add methods to make  our custom type <code>MyLogPotential</code> conform the  <a href="https://github.com/tpapp/LogDensityProblems.jl">LogDensityProblems interface</a>:</p><pre><code class="language-julia hljs">using LogDensityProblems
 
 LogDensityProblems.dimension(lp::MyLogPotential) = 2
@@ -80,16 +80,16 @@ pt = pigeons(
 ──────────────────────────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2        1.5       1.87   2.42e+08      -11.7   4.77e-08      0.834      0.329      0.644
-        4       1.95      0.119    1.2e+07       -5.6      0.148      0.784      0.389      0.471
-        8       1.37    0.00473   2.72e+06      -4.62      0.666      0.848      0.421      0.572
-       16       1.49    0.00987   4.64e+06      -4.51      0.517      0.834      0.452      0.535
-       32       1.37      0.019   9.68e+06       -4.9      0.738      0.848       0.47      0.524
-       64       1.64     0.0406   1.91e+07      -4.96      0.699      0.818      0.472      0.531
-      128        1.5      0.082   3.77e+07       -4.9      0.765      0.834      0.507      0.555
-      256       1.62      0.227   7.68e+07      -4.98       0.76       0.82      0.493      0.553
-      512       1.44      0.383   1.51e+08      -4.91      0.819       0.84      0.493      0.555
- 1.02e+03       1.54      0.712   3.01e+08         -5      0.809      0.829        0.5      0.551
+        2        1.5       1.91   2.42e+08      -11.7   4.77e-08      0.834      0.329      0.644
+        4       1.95      0.116    1.2e+07       -5.6      0.148      0.784      0.389      0.471
+        8       1.37    0.00446   2.72e+06      -4.62      0.666      0.848      0.421      0.572
+       16       1.49    0.00769   4.64e+06      -4.51      0.517      0.834      0.452      0.535
+       32       1.37     0.0161   9.68e+06       -4.9      0.738      0.848       0.47      0.524
+       64       1.64     0.0302   1.91e+07      -4.96      0.699      0.818      0.472      0.531
+      128        1.5     0.0743   3.77e+07       -4.9      0.765      0.834      0.507      0.555
+      256       1.62      0.181   7.68e+07      -4.98       0.76       0.82      0.493      0.553
+      512       1.44      0.336   1.51e+08      -4.91      0.819       0.84      0.493      0.555
+ 1.02e+03       1.54      0.664   3.01e+08         -5      0.809      0.829        0.5      0.551
 ──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>Pigeons have several built-in <a href="../interfaces/#Pigeons.explorer"><code>explorer</code></a> kernels such as  <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a> and a <a href="../reference/#Pigeons.SliceSampler"><code>SliceSampler</code></a>.  However when the state space is neither the reals nor the integers,  or for performance reasons, it may be necessary to create custom  exploration MCMC kernels. This is described on the <a href="../input-explorers/#input-explorers">custom explorers page</a>.</p><h2 id="Manipulating-the-output"><a class="docs-heading-anchor" href="#Manipulating-the-output">Manipulating the output</a><a id="Manipulating-the-output-1"></a><a class="docs-heading-anchor-permalink" href="#Manipulating-the-output" title="Permalink"></a></h2><p>Some  common post-processing are shown below, see <a href="../output-overview/#output-overview">the section on output processing for more information</a>. </p><pre><code class="language-julia hljs">using MCMCChains
 using StatsPlots
 plotlyjs()
@@ -124,4 +124,4 @@ Quantiles
 
      param_1    0.4685    0.5943    0.7068    0.8397    0.9820
      param_2    0.4673    0.5923    0.7052    0.8504    0.9821
-</code></pre><iframe src="../julia_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-turing/">« Turing.jl model</a><a class="docs-footer-nextpage" href="../input-stan/">Stan model »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 03:57">Wednesday 30 August 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre><iframe src="../julia_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-turing/">« Turing.jl model</a><a class="docs-footer-nextpage" href="../input-stan/">Stan model »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 23:48">Wednesday 30 August 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
