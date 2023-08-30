@@ -179,12 +179,10 @@ Base.:(==)(a::StanLogPotential, b::StanLogPotential) =
 
 function recursive_equal(a::T, b::T, exclude = []) where {T}
     for f in fieldnames(T)
-        if f in exclude 
-            println("excluded")
-        end
-        if getfield(a, f) != getfield(b, f) && !(f in exclude)
+        if !(f in exclude) && (getfield(a, f) != getfield(b, f)) 
             return false
         end
     end
     return true
 end
+

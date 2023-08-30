@@ -31,6 +31,10 @@ Only one instance maintained per process.
     reports
 end
 
+Base.show(io::IO, s::Shared) = 
+    print(io, "Shared($(s.iterators), $(s.tempering), $(s.explorer), ...)")
+
+
 """
 $SIGNATURES 
 Create a [`Shared`](@ref) struct based on an [`Inputs`](@ref). 
