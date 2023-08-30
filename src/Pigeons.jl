@@ -12,6 +12,7 @@ import MPI: Comm, Allreduce, Comm_rank,
 
      
 using Base: Forward
+using DataFrames
 using Distributions
 using StatsBase
 using Interpolations

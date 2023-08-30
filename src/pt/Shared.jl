@@ -13,7 +13,7 @@ Only one instance maintained per process.
     """
     See [`Iterators`](@ref).
     """
-    iterators
+    iterators::Iterators
 
     """
     See [`tempering`](@ref).
@@ -24,6 +24,11 @@ Only one instance maintained per process.
     See [`explorer`](@ref).
     """
     explorer
+
+    """
+    Named tuple of DataFrame's
+    """
+    reports
 end
 
 """
@@ -35,6 +40,6 @@ function Shared(inputs)
     iterators = Iterators() 
     tempering = create_tempering(inputs)
     explorer = create_explorer(inputs) 
-    return Shared(iterators, tempering, explorer)
+    return Shared(iterators, tempering, explorer, init_dfs())
 end
 

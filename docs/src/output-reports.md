@@ -32,3 +32,23 @@ nothing # hide
 
 - `max|ρ|` and `mean|ρ|`: maximum and average (across chains) correlation of the random variables ``L^t_i = V(X_i)`` and ``L^{t+1}_i = V(X_i)`` where ``V = \log \pi_N / \pi_1``, ``X_i \sim \pi_{\beta_i}``, and ``t, t+1`` are indices just before and after a call to [`step!()`](@ref). 
 - `min(αₑ)` and `mean(αₑ)`: minimum and average (across chains) of the explorer's acceptance rates. 
+
+
+## Programmatic access
+
+The tables described above can also be accessed as a `DataFrame` via:
+
+```@example prog
+using Pigeons
+pt = pigeons(target = toy_mvn_target(100))
+pt.shared.reports.univariate
+```
+
+Detailed statistics can be accessed via these DataFrames. 
+For example 
+to obtain mean swap acceptance probabilities for each round and 
+pair of communicating chains, use:
+
+```@example prog
+pt.shared.reports.swap_prs
+```
