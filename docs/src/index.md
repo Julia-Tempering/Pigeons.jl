@@ -118,3 +118,24 @@ Pigeons shines in the following scenarios:
     e.g. a combinatorial object such as a phylogenetic tree.
     See [defining custom explorers](@ref input-explorers) 
     and [targeting non-julian models](@ref input-nonjulian).
+
+
+## How to cite Pigeons
+
+Our team works hard to maintain and improve the Pigeons package. Please consider 
+citing our work by referring to [our Pigeons paper](https://arxiv.org/abs/2308.09769).
+
+**BibTeX code for citing Pigeons**
+
+```
+@article{surjanovic2023pigeons,
+  title={Pigeons.jl: {D}istributed sampling from intractable distributions},
+  author={Surjanovic, Nikola and Biron-Lattes, Miguel and Tiede, Paul and Syed, Saifuddin and Campbell, Trevor and Bouchard-C{\^o}t{\'e}, Alexandre},
+  journal={arXiv:2308.09769},
+  year={2023}
+}
+```
+
+**APA**
+
+Surjanovic, N., Biron-Lattes, M., Tiede, P., Syed, S., Campbell, T., & Bouchard-Côté, A. (2023). Pigeons.jl: Distributed sampling from intractable distributions. *arXiv:2308.09769.*
