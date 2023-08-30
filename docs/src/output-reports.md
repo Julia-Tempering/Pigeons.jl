@@ -41,7 +41,7 @@ The tables described above can also be accessed as a `DataFrame` via:
 ```@example prog
 using Pigeons
 pt = pigeons(target = toy_mvn_target(100))
-pt.shared.reports.univariate
+pt.shared.reports.summary
 ```
 
 Detailed statistics can be accessed via these DataFrames. 
@@ -50,5 +50,19 @@ to obtain mean swap acceptance probabilities for each round and
 pair of communicating chains, use:
 
 ```@example prog
-pt.shared.reports.swap_prs
+first(pt.shared.reports.swap_prs, 20)
+```
+
+Creating a plot from this:
+
+```@example prog
+using StatsPlots
+plotlyjs()
+my_plot =  @df pt.shared.reports.swap_prs StatsPlots.plot(:round, :mean, group = :first)
+StatsPlots.savefig(my_plot, "swap_prs.html"); 
+nothing # hide
+```
+
+```@raw html
+<iframe src="../swap_prs.html" style="height:500px;width:100%;"></iframe>
 ```

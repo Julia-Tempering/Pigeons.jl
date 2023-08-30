@@ -13,6 +13,6 @@ end
     swaps_data = pt.shared.reports.swap_prs
     @test size(swaps_data)[1] == 10 * 9
 
-    univ = pt.shared.reports.univariate
+    univ = pt.shared.reports.summary
     @test size(univ)[1] == 10
 end

@@ -108,7 +108,7 @@ macro or_na(expr)
 end
 
 function report_dfs!(pt) 
-    push!(pt.shared.reports.univariate, (
+    push!(pt.shared.reports.summary, (
             pt.shared.iterators.round,
             n_scans_in_round(pt.shared.iterators), 
             @or_na(n_tempered_restarts(pt)),
@@ -136,7 +136,7 @@ end
 const OptFloats = Union{Float64, Missing}[]
 const OptInts = Union{Int, Missing}[]
 init_dfs() = (;
-        univariate = DataFrame(
+        summary = DataFrame(
             round = Int[],
             n_scans = Int[], 
             n_tempered_restarts = OptInts,
