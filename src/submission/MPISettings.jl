@@ -58,6 +58,9 @@ end
 """
 $SIGNATURES
 
+Prerequisite: in order to setup MPI, the current active project should 
+include `MPIPreferences` as a dependency.
+
 Look first at the list of clusters that have "presets" available, 
 by typing `Pigeons.setup_mpi_` and then tab. These are the most 
 straightforward to use. 
