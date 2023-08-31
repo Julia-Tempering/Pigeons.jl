@@ -42,6 +42,7 @@ ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 [compat]
 BridgeStan = "2.1"
 ConcreteStructs = "0.2"
+DataFrames = "1"
 DataStructures = "0.18"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
