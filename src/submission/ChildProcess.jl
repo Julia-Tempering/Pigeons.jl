@@ -83,8 +83,7 @@ end
 
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_mpi::Bool)
     script_path  = launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
-    jl_cmd       = julia_cmd_no_start_up()
-    jl_cmd  = `$jl_cmd --project=$(project_dir())`
+    jl_cmd = `$(julia_cmd_no_start_up()) --project=$(project_dir())`
     # forcing instantiate the project to make sure dependencies exist
     # also, precompile to avoid issues with coordinating access to compile cache
     run(`$jl_cmd -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
