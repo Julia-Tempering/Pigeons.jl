@@ -24,7 +24,8 @@ examples/.CondaPkg
 *.swo
 *.hpp
 *.so
-
+.CondaPkg
+CondaPkg.toml
 examples/benchmarks
 benchmarks
 *.bu
