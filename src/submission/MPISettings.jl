@@ -58,9 +58,6 @@ end
 """
 $SIGNATURES
 
-Prerequisite: in order to setup MPI, the current active project should 
-include `MPIPreferences` as a dependency.
-
 Look first at the list of clusters that have "presets" available, 
 by typing `Pigeons.setup_mpi_` and then tab. These are the most 
 straightforward to use. 
@@ -113,7 +110,7 @@ function setup_mpi(settings::MPISettings)
     
     sh( """
         source $folder/modules.sh
-        $julia --project=$(project_dir()) -e 'using MPIPreferences; MPIPreferences.use_system_binary($specified_lib)'
+        $julia --project=$(project_dir()) -e 'using Pigeons; Pigeons._use_system_binary($specified_lib)'
         """)
 
     touch("$folder/complete") # signals success
@@ -132,3 +129,8 @@ function setup_mpi(settings::MPISettings)
 
     return nothing
 end
+
+# So that users do not have MPIPreferences listed in their direct dependencies 
+# Note we are assuming Julia 1.8+, so the bug described in the "Note" of 
+# https://juliaparallel.org/MPI.jl/stable/configuration/ should not apply here.
+_use_system_binary(; args...) = MPIPreferences.use_system_binary(; arg...)
