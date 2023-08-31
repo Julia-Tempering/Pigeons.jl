@@ -48,7 +48,7 @@ end
 end
 
 @testset "Setup mpi" begin
-    if haskey(ENV,"JULIA_MPI_TEST_BINARY")
+    if ENV["JULIA_MPI_TEST_BINARY"] == "system"
         Pigeons.setup_mpi(; submission_system = :pbs)
         @test Pigeonsis_mpi_setup() == true
     end

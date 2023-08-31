@@ -90,56 +90,56 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
   
 
-  # # # CI is getting too slow! 
-  # # test system MPI using Brew in macOS
-  # # adapted from MPI.jl
-  # test-system-MPI-brew:
-  #   name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.mpi }} - ${{ github.event_name }}
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       version:
-  #         - '1.8'
-  #       os:
-  #         - macos-latest
-  #       mpi:
-  #         - mpich
-  #         - openmpi
-  #   env:
-  #     JULIA_MPI_TEST_BINARY: system
-  #     ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
-  #   steps:
-  #     - uses: actions/checkout@v3
+  # # CI is getting too slow! 
+  # test system MPI using Brew in macOS
+  # adapted from MPI.jl
+  test-system-MPI-brew:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.mpi }} - ${{ github.event_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1.8'
+        os:
+          - macos-latest
+        mpi:
+          - mpich
+          - openmpi
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Install MPI via homebrew
-  #       run: brew install $MPI
-  #       env:
-  #         MPI: ${{ matrix.mpi }}
+      - name: Install MPI via homebrew
+        run: brew install $MPI
+        env:
+          MPI: ${{ matrix.mpi }}
 
-  #     - uses: actions/setup-java@v3
-  #       with:
-  #         distribution: 'temurin'
-  #         java-version: '11'
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
 
-  #     - uses: julia-actions/setup-julia@v1
-  #       with:
-  #         version: ${{ matrix.version }}
-  #         arch: x64
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: x64
 
-  #     - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v1
 
-  #     - name: use system MPI
-  #       shell: julia --color=yes --project=test {0}
-  #       run: |
-  #         using Pkg
-  #         Pkg.instantiate()
-  #         using MPIPreferences
-  #         MPIPreferences.use_system_binary()
-  #         run(`sed -i.bu 's/unknown/MPICH/' test/LocalPreferences.toml`) # fix wrong abi detection for mpich
-  #         rm("test/Manifest.toml")
+      - name: use system MPI
+        shell: julia --color=yes --project=test {0}
+        run: |
+          using Pkg
+          Pkg.instantiate()
+          using MPIPreferences
+          MPIPreferences.use_system_binary()
+          run(`sed -i.bu 's/unknown/MPICH/' test/LocalPreferences.toml`) # fix wrong abi detection for mpich
+          rm("test/Manifest.toml")
       
-  #     - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-runtest@v1
 
 
   docs:
