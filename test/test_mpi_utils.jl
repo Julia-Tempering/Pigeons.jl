@@ -47,6 +47,13 @@ end
     end
 end
 
+@testset "Setup mpi" begin
+    if haskey(ENV,"JULIA_MPI_TEST_BINARY") && ENV["JULIA_MPI_TEST_BINARY"] == "systemq"
+        Pigeons.setup_mpi(; submission_system = :pbs)
+        @test Pigeonsis_mpi_setup() == true
+    end
+end
+
 @testset "GC+multithreading" begin
     mpi_test(2, joinpath(@__DIR__, "supporting/gc_test.jl"))
 end
