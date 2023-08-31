@@ -110,9 +110,10 @@ function setup_mpi(settings::MPISettings)
         else
             """; library_names=[raw"$(settings.library_name)"]"""
         end
+    
     sh( """
         source $folder/modules.sh
-        $julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary($specified_lib)'
+        $julia --project=$(project_dir()) -e 'using MPIPreferences; MPIPreferences.use_system_binary($specified_lib)'
         """)
 
     touch("$folder/complete") # signals success
