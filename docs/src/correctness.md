@@ -16,6 +16,7 @@ enable checkpointing
 ```@example example
 using Pigeons
 pigeons(target = toy_mvn_target(100), checked_round = 3, checkpoint = true)
+nothing # hide
 ```
 
 The above line does the following: the PT algorithm will pause at the end of round 3, spawn 
@@ -38,21 +39,15 @@ child process with a set number of Julia threads:
 pt_result = pigeons(target = toy_mvn_target(100), multithreaded = true, checked_round = 3, checkpoint = true, on = ChildProcess(n_threads = 4))
 ```
 
-Notice that we also add the flag `multithreaded = true`. 
+Notice that we also add the flag `multithreaded = true`, to instruct Pigeons to use 
+the multiple threads available to parallelize exploration across chains (in other use cases, 
+parallelization might get used internally e.g. to parallelize likelihood evaluation).
 
-Notice that this time, instead of returning a [`PT`](@ref) struct, this time we obtain 
-a [`Result`](@ref), which only holds the path where the checkpoints can be found. 
-If you would like to load a result in memory, use:
-```@example example
-pt = load(pt_result)
-```
-
-In this case, since the model is built-in, the check passed successfully as expected. But what 
+Here the check passed successfully as expected. But what 
 if you had a third-party target distribution that is not multi-threaded friendly? 
-I.e. it may write in global variables or 
-other non-thread safe constructs. Then you can probably still  use your thread-naive 
+For example some code sometimes write in global variables or 
+other non-thread safe constructs. In such situation, you can  still  use your thread-naive 
 target over MPI *processes*. 
 For example, if the thread-unsafety comes from the use of global variables, then each 
 process will have its own copy of the global variables. 
-
 
