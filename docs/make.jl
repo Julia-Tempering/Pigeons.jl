@@ -67,6 +67,8 @@ makedocs(;
     ],
 )
 
+rm(joinpath(script_dir, "build", "results"), recursive=true) # delete `results` folder before deploying
+
 deploydocs(;
     repo="github.com/Julia-Tempering/Pigeons.jl",
     devbranch="main",
