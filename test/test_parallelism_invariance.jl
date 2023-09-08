@@ -13,31 +13,33 @@ include("supporting/mpi_test_utils.jl")
 
              # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
             multithreaded = is_stan ? false : true
-            
+
             pigeons(;
-                target, 
+                target,
                 n_rounds = 10,
-                explorer, 
+                explorer,
                 checked_round = 3,
-                multithreaded, 
+                multithreaded,
                 record,
-                checkpoint = true, 
+                checkpoint = true,
                 on = ChildProcess(
                         n_local_mpi_processes = n_mpis,
                         n_threads = multithreaded ? 2 : 1,
-                        mpiexec_args = extra_mpi_args())) 
+                        mpiexec_args = extra_mpi_args(),
+                        dependencies = [BridgeStan]
+                        ))
         end
     end
 
     # Turing:
     for model in [flip_model_unidentifiable(), flip_mixture()]
         pigeons(;
-            target = TuringLogPotential(model), 
+            target = TuringLogPotential(model),
             n_rounds = 4,
-            checked_round = 3, 
+            checked_round = 3,
             multithreaded = true,
             record,
-            checkpoint = true, 
+            checkpoint = true,
             on = ChildProcess(
                     dependencies = [Distributions, DynamicPPL, LinearAlgebra, joinpath(@__DIR__, "supporting/turing_models.jl")],
                     n_local_mpi_processes = n_mpis,
@@ -48,14 +50,14 @@ include("supporting/mpi_test_utils.jl")
     # Blang:
     if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
         Pigeons.setup_blang("blangDemos")
-        pt = pigeons(; 
-            target = Pigeons.blang_ising(), 
+        pt = pigeons(;
+            target = Pigeons.blang_ising(),
             n_rounds = 10,
             n_chains = 4,
-            checked_round = 3, 
-            record, 
-            multithreaded = true, 
-            checkpoint = true, 
+            checked_round = 3,
+            record,
+            multithreaded = true,
+            checkpoint = true,
             on = ChildProcess(
                     n_local_mpi_processes = n_mpis,
                     n_threads = 2,
