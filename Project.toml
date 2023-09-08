@@ -4,14 +4,12 @@ authors = ["Alexandre Bouchard-Côté <bouchard@stat.ubc.ca>, Nikola Surjanovic 
 version = "0.2.5"
 
 [deps]
-BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a"
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
-DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
 Expect = "6a31a4e8-6e70-5a2d-b005-bc2d500d80a5"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
@@ -30,6 +28,7 @@ Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
@@ -38,6 +37,14 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
+
+[weakdeps]
+BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a"
+DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
+
+[extensions]
+PigeonsBridgeStanExt = "BridgeStan"
+PigeonsDynamicPPLExt = "DynamicPPL"
 
 [compat]
 BridgeStan = "2.1"
@@ -68,3 +75,7 @@ StaticArrays = "1.6"
 StatsBase = "0.33, 0.34"
 ZipFile = "0.10"
 julia = "1.8"
+
+[extras]
+BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a"
+DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
