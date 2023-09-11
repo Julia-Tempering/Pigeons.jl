@@ -125,12 +125,3 @@ function sort_includes(main)
         error(msg)
     end
 end
-
-function sh(script::AbstractString)
-    path, io = mktemp()
-    write(io, script)
-    close(io)
-    result = read(`sh $path`, String)
-    println(result)
-    return result
-end

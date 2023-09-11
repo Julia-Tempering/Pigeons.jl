@@ -31,9 +31,8 @@ function safelink(target::AbstractString, link::AbstractString)
     try
         symlink(relative_path, link)
     catch e # on windows, need admin to do symlink (!)
-        if !_safelink_warned[]
-            println("""
-                WARN: could not create symlink($relative_path, $link)
+        @warn   """
+                Could not create symlink($relative_path, $link)
                     If you are running windows, this is a known issue, 
                     you will need to run under admin permission, see: 
                     https://discourse.julialang.org/t/symlink-can-not-create-hardlink-in-windows10/75702
@@ -41,10 +40,6 @@ function safelink(target::AbstractString, link::AbstractString)
                     such as loading checkpoints. 
                 Details: 
                 $e
-                """)
-            _safelink_warned[] = true
-        end
+                """ maxlog=1
     end
 end
-
-const _safelink_warned::Ref{Bool} = Ref(false)

@@ -19,7 +19,7 @@ struct Immutable{T}
 
     1. Enclose large immutable data inside a `Immutable`. 
         Assume the type of data has well defined hash and ==.
-        Internally, we maintain an internal, global Dict indexed 
+        Internally, we maintain a global Dict indexed 
         by hash(data) storing the data. This global Dict is 
         called `immutables`.
     2.  Use flush_immutable() to clear the global immutable state
@@ -32,9 +32,9 @@ struct Immutable{T}
         [`deserialize_immutables!()`](@ref). This restores 
         `immutable`.
     6. Finally, call `Serialization.deserialize()` as usual. 
-        When an `Immutable` instances is being deserialize, we 
+        When an `Immutable` instances is being deserialized, we 
         dispatch deserialization so that the data is retreived 
-        from `immutable`.
+        from `immutables`.
     """
     function Immutable(data::T) where {T}
         key = hash(data)
