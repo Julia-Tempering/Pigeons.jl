@@ -11,7 +11,7 @@ using LogExpFunctions: logsumexp
     C_0 = 1.0
 
     # prior
-    η      ~ Dirichlet(K, α/K)
+    η      ~ Dirichlet(K, α)
     μ      ~ product_distribution(Fill(Normal(b_0, B_0), K))
     inv_σ2 ~ product_distribution(Fill(Gamma(c_0, 1/C_0), K))
 
