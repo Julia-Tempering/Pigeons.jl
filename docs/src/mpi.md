@@ -119,7 +119,6 @@ pt = load(mpi_run) # possible thanks to 'pigeons(..., checkpoint = true)' used a
 ```
 
 
-
 ## Code dependencies
 
 So far we have used examples where the target, explorers, etc 
@@ -139,27 +138,38 @@ Two types of elements can be used in the vector of dependencies, and they can be
 
 Here is an example where we run a custom Ising model in a child process:
 
-```
+```@example deps
 using Pigeons
 
 # making the path absolute can be necessary in some contexts:
-included_path = pkgdir(Pigeons) * "/examples/ising.jl"
+ising_path = pkgdir(Pigeons) * "/examples/ising.jl"
+lazy_path = pkgdir(Pigeons) * "/examples/lazy-ising.jl"
 
-include(included_path)
 result = pigeons(
-    target = IsingLogPotential(1.0, 2),
+    # see examples/lazy-ising.jl why we need Lazy (Documenter.jl-specific issue)
+    target = Pigeons.LazyTarget(Val(:IsingLogPotential)), 
     checkpoint = true,  
     on = ChildProcess(
             n_local_mpi_processes = 2,
             dependencies = [
                 Pigeons, # <- Pigeons itself can be skipped, added automatically
-                included_path # <- this one is needed for this example to work
+                ising_path, # <- these are needed for this example to work
+                lazy_path   # <--+
             ]
 
         )
     )
 pt = load(result)
 ```
+
+Note the use of `LazyTarget(..)`. 
+When starting a child process, the arguments of `pigeons(...)` are used to create 
+an [`Inputs`](@ref) struct, which is serialized. 
+In certain corner cases this serialization may not be possible, for example if the 
+target depends on external processes, or here due to the fact that Documenter.jl 
+defines temporary environments (see examples/lazy-ising.jl for details).
+In these corner cases, you can use a [`LazyTarget`](@ref) to delay the creation of the 
+target so that it is performed in the child processes instead of the calling process.
 
 !!! note
 
