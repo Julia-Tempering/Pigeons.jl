@@ -139,7 +139,9 @@ Two types of elements can be used in the vector of dependencies, and they can be
 
 Here is an example where we run a custom Ising model in a child process:
 
-```@example local
+```
+using Pigeons
+
 # making the path absolute can be necessary in some contexts:
 included_path = pkgdir(Pigeons) * "/examples/ising.jl"
 
@@ -153,6 +155,7 @@ result = pigeons(
                 Pigeons, # <- Pigeons itself can be skipped, added automatically
                 included_path # <- this one is needed for this example to work
             ]
+
         )
     )
 pt = load(result)
