@@ -145,7 +145,7 @@ using Pigeons
 ising_path = pkgdir(Pigeons) * "/examples/ising.jl"
 lazy_path = pkgdir(Pigeons) * "/examples/lazy-ising.jl"
 
-result = pigeons(
+pigeons(
     # see examples/lazy-ising.jl why we need Lazy (Documenter.jl-specific issue)
     target = Pigeons.LazyTarget(Val(:IsingLogPotential)), 
     checkpoint = true,  
@@ -159,9 +159,6 @@ result = pigeons(
 
         )
     )
-
-include(ising_path)
-pt = load(result)
 ```
 
 Note the use of `LazyTarget(..)`. 
