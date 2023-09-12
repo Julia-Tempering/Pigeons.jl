@@ -37,7 +37,7 @@ result = pigeons(
 ```
 
 Alternatively, if instead of using the 2 threads to parallelize across chain, we want to use
-them parallelize e.g. a custom likelihood evalutation over datapoints, set `multithreaded = false` to 
+them to parallelize e.g. a custom likelihood evalutation over datapoints, set `multithreaded = false` to 
 indicate to pigeons it is not responsible for the multithreading (`multithreaded = false` is the default behaviour):
 
 ```@example local
@@ -50,7 +50,7 @@ result = pigeons(
             n_threads = 2))
 ```
 
-To analyze the output, see the documentation page on [post-processing for MPI runs](@ref output-mpi-postprocessing). In a nutshell, one option is to load the state of the sampler 
+To analyze the output, see the documentation page on [post-processing for MPI runs](@ref output-mpi-postprocessing). Briefly, one option is to load the state of the sampler 
 back to your interactive chain via: 
 
 ```@example local
@@ -159,6 +159,8 @@ result = pigeons(
 
         )
     )
+
+include(ising_path)
 pt = load(result)
 ```
 
