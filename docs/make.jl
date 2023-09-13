@@ -36,6 +36,7 @@ makedocs(;
     pages=[
         "Basic usage (local)" => "index.md",
         "Why PT?" => "unidentifiable-example.md",
+        "Parallelization" => "parallel.md", 
         "Distributed usage (MPI)" => "mpi.md",
         "Variational PT" => "variational.md", 
         "Supported inputs" => [
