@@ -29,6 +29,12 @@ stan_bernoulli(y = [0,1,0,0,0,0,0,0,0,1]) =
         json(; y, N = length(y))
     )
 
+stan_banana(dim = 9) = 
+    StanLogPotential(
+        stan_example_path("banana.stan"), 
+        json(; dim)
+    )
+
 observed_range_squared(x) = (maximum(x) - minimum(x))^2
 
 # the centered one is the "harder" one, see https://mc-stan.org/users/documentation/case-studies/divergences_and_bias.html
