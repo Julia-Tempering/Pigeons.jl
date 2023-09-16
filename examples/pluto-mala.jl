@@ -22,6 +22,7 @@ begin
 	using Plots
 	using Statistics
 	using StatsPlots
+	using LogDensityProblemsAD
 	plotly()
 end
 
@@ -40,30 +41,27 @@ md"""
 # AutoMALA demo
 """
 
+# ╔═╡ 09421810-1af2-4f4d-b6c9-9bdead6b3502
+target = Pigeons.toy_mvn_target(2)
+
 # ╔═╡ e1b58e13-cac8-468d-8402-0a23d443e47d
-@bind start_x Slider(0:0.01:1)
+@bind start_x Slider(0:0.1:1)
 
 # ╔═╡ d90ff8fd-b336-4637-8f14-1f8334d9f1ac
-@bind start_y Slider(0:0.01:1)
+@bind start_y Slider(0:0.1:1)
 
 # ╔═╡ 745f5c00-592b-42e9-88a7-96c0619b5da5
 @bind step_size Slider(0.01:0.01:2)
 
-# ╔═╡ 658310b3-bdfd-4d05-9920-98eeef9a73ad
-
-
-# ╔═╡ 09421810-1af2-4f4d-b6c9-9bdead6b3502
-target = Pigeons.toy_mvn_target(2)
-
 # ╔═╡ a974be5a-13b7-4d04-ab93-dcbd487a415f
-start_state = [start_x, start_y]
+start_state = [start_x, start_y];
 
 # ╔═╡ 1faeba12-702a-43de-aa7a-19fb70328cff
 begin
 	pt = PT(Inputs(; target, n_chains = 1, explorer = AutoMALA(; step_size, base_n_refresh = 1, exponent_n_refresh = 0.0, adapt_pre_conditioning = false)))
 	pt.shared.iterators.scan = 2 # avoid skipping accept reject
 	pt
-end
+end;
 
 # ╔═╡ 52bb3627-7c0b-4d89-87c1-06193d60b078
 function sample(n_iters) 
@@ -78,32 +76,42 @@ function sample(n_iters)
 		end
 	end
 	return n_accept/n_iters, hcat(samples...)
-end
+end;
 
 # ╔═╡ 05c7499c-08a6-449f-8a42-1a86c1426da7
 rate, accepted_samples = sample(5000)
 
-# ╔═╡ 27807fd4-16c9-4198-b022-06309bf17689
-step_size
+# ╔═╡ ee99d812-ef5a-4531-a4a6-f408ecc82196
+@bind theta Slider(0.0:0.01:2pi)
+
+# ╔═╡ 495d07b5-1624-44ce-b5ee-50a0347a839e
+delta = [cos(theta), sin(theta)];
 
 # ╔═╡ 2400a6c1-0600-4eff-beff-53090ce78ecf
 begin
 	scatter(accepted_samples[1,:], accepted_samples[2,:], label = "Accepted", alpha = 0.2)
 	scatter!([start_x], [start_y], color = "green", label = "Start point", markersize = 10)
+	plot!([start_x, start_x + 0.1*delta[1]],[start_y, start_y + 0.1*delta[2]],arrow=true,color=:black,linewidth=2,label="")
 end
 
-# ╔═╡ 1d2ee00e-0abb-437b-b797-f31c3e38b44d
+# ╔═╡ ce8fae94-02e7-44e7-8b9b-837ea7f6eb12
+objective = 
+	begin
+		replica = pt.replicas[1]
+		log_potential = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
+		log_potential_autodiff = ADgradient(pt.shared.explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)
+		recorders = replica.recorders
+		est = Pigeons.get_buffer(recorders.buffers, :am_ones_buffer, 2)
+		Pigeons.log_joint_difference_function(log_potential_autodiff, est, start_state, copy(delta), recorders) 
+	end;
 
-
-# ╔═╡ b13fb965-9e28-468d-952e-0c3c3cd0acbe
-
-
-# ╔═╡ de50c5a2-c7fb-4e2e-912e-22739901f76e
-
+# ╔═╡ 6bb4cf26-0b7d-45e1-9689-6d66b829121d
+plot(objective, 0.1:0.001:0.5, label = "Hamiltonian_after_one_leap_frog(epsilon)")
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+LogDensityProblemsAD = "996a588d-648d-4e1f-a8f0-a84b347e47b1"
 Pigeons = "0eb8d820-af6a-4919-95ae-11206f830c31"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
@@ -111,6 +119,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 
 [compat]
+LogDensityProblemsAD = "~1.6.1"
 Pigeons = "~0.2.1"
 Plots = "~1.39.0"
 PlutoUI = "~0.7.52"
@@ -123,7 +132,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.2"
 manifest_format = "2.0"
-project_hash = "2f15eaf9e23e49252fd7f2ad9ad7108f2a311bf1"
+project_hash = "83613d3969b349cd9aed155ff69fe17754e58efb"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1893,23 +1902,22 @@ version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
-# ╠═8ff27bee-c6e5-48c1-9a4c-1b999674f6b4
+# ╟─8ff27bee-c6e5-48c1-9a4c-1b999674f6b4
 # ╟─cee9aed2-766f-4338-8599-666496eb1b47
 # ╟─36158fb4-4f50-44f1-beac-7a5c31de1171
 # ╟─ecb0601d-118c-432e-be58-7742cbff72e1
+# ╠═09421810-1af2-4f4d-b6c9-9bdead6b3502
 # ╠═e1b58e13-cac8-468d-8402-0a23d443e47d
 # ╠═d90ff8fd-b336-4637-8f14-1f8334d9f1ac
 # ╠═745f5c00-592b-42e9-88a7-96c0619b5da5
-# ╠═658310b3-bdfd-4d05-9920-98eeef9a73ad
-# ╠═09421810-1af2-4f4d-b6c9-9bdead6b3502
 # ╟─a974be5a-13b7-4d04-ab93-dcbd487a415f
 # ╟─1faeba12-702a-43de-aa7a-19fb70328cff
 # ╟─52bb3627-7c0b-4d89-87c1-06193d60b078
 # ╠═05c7499c-08a6-449f-8a42-1a86c1426da7
-# ╠═27807fd4-16c9-4198-b022-06309bf17689
-# ╠═2400a6c1-0600-4eff-beff-53090ce78ecf
-# ╠═1d2ee00e-0abb-437b-b797-f31c3e38b44d
-# ╠═b13fb965-9e28-468d-952e-0c3c3cd0acbe
-# ╠═de50c5a2-c7fb-4e2e-912e-22739901f76e
+# ╟─2400a6c1-0600-4eff-beff-53090ce78ecf
+# ╠═ee99d812-ef5a-4531-a4a6-f408ecc82196
+# ╟─6bb4cf26-0b7d-45e1-9689-6d66b829121d
+# ╟─495d07b5-1624-44ce-b5ee-50a0347a839e
+# ╟─ce8fae94-02e7-44e7-8b9b-837ea7f6eb12
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
