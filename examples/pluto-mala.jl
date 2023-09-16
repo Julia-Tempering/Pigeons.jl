@@ -47,10 +47,13 @@ md"""
 @bind start_y Slider(0:0.01:1)
 
 # ╔═╡ 745f5c00-592b-42e9-88a7-96c0619b5da5
-@bind step_size Slider(0.01:0.01:1)
+@bind step_size Slider(0.01:0.01:2)
+
+# ╔═╡ 658310b3-bdfd-4d05-9920-98eeef9a73ad
+
 
 # ╔═╡ 09421810-1af2-4f4d-b6c9-9bdead6b3502
-target = toy_mvn_target(2)
+target = Pigeons.toy_mvn_target(2)
 
 # ╔═╡ a974be5a-13b7-4d04-ab93-dcbd487a415f
 start_state = [start_x, start_y]
@@ -63,26 +66,37 @@ begin
 end
 
 # ╔═╡ 52bb3627-7c0b-4d89-87c1-06193d60b078
-function sample() 
-	pt.replicas[1].state .= start_state
-	Pigeons.step!(pt.shared.explorer, pt.replicas[1], pt.shared)
-	return copy(pt.replicas[1].state)
+function sample(n_iters) 
+	n_accept = 0.0
+	samples = Vector[]
+	for i in 1:n_iters
+		pt.replicas[1].state .= start_state
+		Pigeons.step!(pt.shared.explorer, pt.replicas[1], pt.shared)
+		if pt.replicas[1].state != start_state 
+			push!(samples, copy(pt.replicas[1].state))
+			n_accept += 1
+		end
+	end
+	return n_accept/n_iters, hcat(samples...)
 end
 
 # ╔═╡ 05c7499c-08a6-449f-8a42-1a86c1426da7
-moves = hcat([sample() for i in 1:5000]...)
-
-# ╔═╡ 4825dae3-b2bb-4ff5-9409-7dfdba77730f
-
+rate, accepted_samples = sample(5000)
 
 # ╔═╡ 27807fd4-16c9-4198-b022-06309bf17689
 step_size
 
 # ╔═╡ 2400a6c1-0600-4eff-beff-53090ce78ecf
 begin
-	scatter(moves[1,:], moves[2,:], label = "Accepted")
+	scatter(accepted_samples[1,:], accepted_samples[2,:], label = "Accepted")
 	scatter!([start_x], [start_y], color = "green", label = "Start point", markersize = 10)
 end
+
+# ╔═╡ ffd1ae89-5848-4625-9af3-98335b0491f1
+
+
+# ╔═╡ 0feffc20-0a18-49af-a199-5bcb22113dca
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1883,13 +1897,15 @@ version = "1.4.1+0"
 # ╠═e1b58e13-cac8-468d-8402-0a23d443e47d
 # ╠═d90ff8fd-b336-4637-8f14-1f8334d9f1ac
 # ╠═745f5c00-592b-42e9-88a7-96c0619b5da5
+# ╠═658310b3-bdfd-4d05-9920-98eeef9a73ad
 # ╠═09421810-1af2-4f4d-b6c9-9bdead6b3502
 # ╟─a974be5a-13b7-4d04-ab93-dcbd487a415f
 # ╟─1faeba12-702a-43de-aa7a-19fb70328cff
 # ╟─52bb3627-7c0b-4d89-87c1-06193d60b078
 # ╠═05c7499c-08a6-449f-8a42-1a86c1426da7
-# ╠═4825dae3-b2bb-4ff5-9409-7dfdba77730f
 # ╠═27807fd4-16c9-4198-b022-06309bf17689
 # ╠═2400a6c1-0600-4eff-beff-53090ce78ecf
+# ╠═ffd1ae89-5848-4625-9af3-98335b0491f1
+# ╠═0feffc20-0a18-49af-a199-5bcb22113dca
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
