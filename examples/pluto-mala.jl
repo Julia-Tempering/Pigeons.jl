@@ -88,14 +88,17 @@ step_size
 
 # ╔═╡ 2400a6c1-0600-4eff-beff-53090ce78ecf
 begin
-	scatter(accepted_samples[1,:], accepted_samples[2,:], label = "Accepted")
+	scatter(accepted_samples[1,:], accepted_samples[2,:], label = "Accepted", alpha = 0.2)
 	scatter!([start_x], [start_y], color = "green", label = "Start point", markersize = 10)
 end
 
-# ╔═╡ ffd1ae89-5848-4625-9af3-98335b0491f1
+# ╔═╡ 1d2ee00e-0abb-437b-b797-f31c3e38b44d
 
 
-# ╔═╡ 0feffc20-0a18-49af-a199-5bcb22113dca
+# ╔═╡ b13fb965-9e28-468d-952e-0c3c3cd0acbe
+
+
+# ╔═╡ de50c5a2-c7fb-4e2e-912e-22739901f76e
 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1905,7 +1908,8 @@ version = "1.4.1+0"
 # ╠═05c7499c-08a6-449f-8a42-1a86c1426da7
 # ╠═27807fd4-16c9-4198-b022-06309bf17689
 # ╠═2400a6c1-0600-4eff-beff-53090ce78ecf
-# ╠═ffd1ae89-5848-4625-9af3-98335b0491f1
-# ╠═0feffc20-0a18-49af-a199-5bcb22113dca
+# ╠═1d2ee00e-0abb-437b-b797-f31c3e38b44d
+# ╠═b13fb965-9e28-468d-952e-0c3c3cd0acbe
+# ╠═de50c5a2-c7fb-4e2e-912e-22739901f76e
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
