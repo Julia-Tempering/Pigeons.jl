@@ -53,13 +53,16 @@ target = Pigeons.toy_mvn_target(2)
 # ╔═╡ 745f5c00-592b-42e9-88a7-96c0619b5da5
 @bind step_size Slider(0.01:0.01:2)
 
+# ╔═╡ 13a25a15-356c-4894-b2f2-e2800e7e720c
+@bind compute_accept_reject CheckBox()
+
 # ╔═╡ a974be5a-13b7-4d04-ab93-dcbd487a415f
 start_state = [start_x, start_y];
 
 # ╔═╡ 1faeba12-702a-43de-aa7a-19fb70328cff
 begin
 	pt = PT(Inputs(; target, n_chains = 1, explorer = AutoMALA(; step_size, base_n_refresh = 1, exponent_n_refresh = 0.0, adapt_pre_conditioning = false)))
-	pt.shared.iterators.scan = 2 # avoid skipping accept reject
+	pt.shared.iterators.scan = compute_accept_reject ? 2 : 1 # avoid skipping accept reject
 	pt
 end;
 
@@ -106,7 +109,7 @@ objective =
 	end;
 
 # ╔═╡ 6bb4cf26-0b7d-45e1-9689-6d66b829121d
-plot(objective, 0.1:0.001:0.5, label = "Hamiltonian_after_one_leap_frog(epsilon)")
+plot(objective, 0.0:0.001:0.2, label = "Hamiltonian_after_one_leap_frog(epsilon)")
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1910,13 +1913,14 @@ version = "1.4.1+0"
 # ╠═e1b58e13-cac8-468d-8402-0a23d443e47d
 # ╠═d90ff8fd-b336-4637-8f14-1f8334d9f1ac
 # ╠═745f5c00-592b-42e9-88a7-96c0619b5da5
+# ╠═13a25a15-356c-4894-b2f2-e2800e7e720c
 # ╟─a974be5a-13b7-4d04-ab93-dcbd487a415f
 # ╟─1faeba12-702a-43de-aa7a-19fb70328cff
 # ╟─52bb3627-7c0b-4d89-87c1-06193d60b078
 # ╠═05c7499c-08a6-449f-8a42-1a86c1426da7
 # ╟─2400a6c1-0600-4eff-beff-53090ce78ecf
 # ╠═ee99d812-ef5a-4531-a4a6-f408ecc82196
-# ╟─6bb4cf26-0b7d-45e1-9689-6d66b829121d
+# ╠═6bb4cf26-0b7d-45e1-9689-6d66b829121d
 # ╟─495d07b5-1624-44ce-b5ee-50a0347a839e
 # ╟─ce8fae94-02e7-44e7-8b9b-837ea7f6eb12
 # ╟─00000000-0000-0000-0000-000000000001
