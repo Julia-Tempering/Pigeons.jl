@@ -25,12 +25,15 @@ LogDensityProblems.logdensity(p::LogTargetDensity, θ) = -sum(abs2, θ) / 2  # s
 LogDensityProblems.dimension(p::LogTargetDensity) = p.dim
 LogDensityProblems.capabilities(::Type{LogTargetDensity}) = LogDensityProblems.LogDensityOrder{0}()
 
+(p::LogTargetDensity)(x) = LogDensityProblems.logdensity(p, x)
+Pigeons.initialization(p::LogTargetDensity, _, _) = zeros(p.dim)
+
 # Based off AdvancedHMC README:
-function nuts(D)
+function nuts(logp)
+    D = logp.dim
     # Choose parameter dimensionality and initial parameter value
     initial_θ = randn(D)
-    logp = LogTargetDensity(D)
-
+    
     # Set the number of samples to draw and warmup iterations
     n_samples, n_adapts = 2_000, 1_000
 
@@ -64,9 +67,10 @@ function nuts(D)
     return D, n_steps, ess_value
 end
 
-function single_chain_pigeons_mvn(D, explorer)
+function single_chain_pigeons_mvn(logp, explorer)
     pt = pigeons(;
-        target = toy_mvn_target(D),
+        target = logp,
+        reference = logp,
         n_chains = 1, 
         seed = rand(Int),
         show_report = false,
@@ -81,19 +85,21 @@ function single_chain_pigeons_mvn(D, explorer)
 end
 
 
-function auto_mala(D::Int)
+function auto_mala(logp)
+    D = logp.dim
     explorer = Pigeons.AutoMALA(exponent_n_refresh = 0.35)
-    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    n_steps, ess_value = single_chain_pigeons_mvn(logp, explorer)
     return D, n_steps, ess_value
 end
 
 
-sparse_slicer(D) = slicer(D, true) 
-dense_slicer(D) = slicer(D, false)
+sparse_slicer(logp) = slicer(logp, true) 
+dense_slicer(logp) = slicer(logp, false)
 
-function slicer(D, sparse::Bool)
+function slicer(logp, sparse::Bool)
+    D = logp.dim
     explorer = Pigeons.SliceSampler() 
-    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    n_steps, ess_value = single_chain_pigeons_mvn(logp, explorer)
     return (sparse ? 1 : D), n_steps, ess_value
 end
 
@@ -113,7 +119,8 @@ function scaling_plot(
                 sparse_slicer, 
                 dense_slicer, 
                 nuts, 
-                auto_mala])
+                auto_mala],
+            logp_type = LogTargetDensity)
     cost_plot = plot()
     ess_plot = plot()
     data = Dict()
@@ -127,7 +134,8 @@ function scaling_plot(
         ess = Float64[]
         for i in 0:max
             @show D = 2^i
-            @time replicates = [sampling_fct(D) for j in 1:n_replicates]
+            logp = logp_type(D)
+            @time replicates = [sampling_fct(logp) for j in 1:n_replicates]
             push!(dims, D)
 
             cost_and_ess = mean(
