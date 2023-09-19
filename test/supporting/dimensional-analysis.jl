@@ -171,8 +171,11 @@ function scaling_plot(
         end
     end
 
-    # savefig(cost_plot, "$filename_prefix.pdf")
-    # savefig(ess_plot, "$(filename_prefix)_ess.pdf")
+    return (; n_replicates, max, data, slopes, cost_plot, ess_plot)
+end
 
-    return slopes, cost_plot, ess_plot
+function save_dim_analysis_plots(tuple)
+    filename_prefix = "benchmarks/scalings_nrep=$(tuple.n_replicates)_max=$(tuple.max)"
+    savefig(tuple.cost_plot, "$filename_prefix.pdf")
+    savefig(tuple.ess_plot, "$(filename_prefix)_ess.pdf")
 end
