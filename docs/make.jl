@@ -26,6 +26,7 @@ makedocs(;
     authors="Miguel Biron-Lattes <miguel.biron@stat.ubc.ca>, Alexandre Bouchard-Côté <alexandre.bouchard@gmail.com>, Trevor Campbell <trevor@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Saifuddin Syed <saifuddin.syed@stats.ox.ac.uk>, Paul Tiede <ptiede91@gmail.com>",
     repo="https://github.com/Julia-Tempering/Pigeons.jl/blob/{commit}{path}#{line}",
     sitename="Pigeons.jl",
+    strict=true,
     format=Documenter.HTML(;
         prettyurls=true, # always on, avoids confusion when building locally. If needed, serve the "build" folder locally with LiveServer. #get(ENV, "CI", "false") == "true",
         canonical="https://Julia-Tempering.github.io/Pigeons.jl",

@@ -15,3 +15,7 @@ Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 SplittableRandoms = "8efc31e9-3fb0-4277-b18c-5a3d5d07abad"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
+
+[compat]
+Documenter = "0.27"
+
