@@ -17,10 +17,10 @@ toy_stan_unid_target(n_trials = 100000, n_successes = ceil(Int, n_trials/2)) =
         json(; n_trials, n_successes)
     )
 
-stan_funnel(dim = 9) = 
+stan_funnel(dim = 9, scale = 2.0) = 
     StanLogPotential(
         stan_example_path("funnel.stan"), 
-        json(; dim)
+        json(; dim, scale)
     )
 
 stan_bernoulli(y = [0,1,0,0,0,0,0,0,0,1]) =
