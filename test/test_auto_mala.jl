@@ -3,15 +3,15 @@ include("supporting/dimensional-analysis.jl")
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
-auto_mala(target) =
+automala(target) =
     pigeons(; 
         target, 
         explorer = AutoMALA(), 
         n_chains = 1, n_rounds = 10, record = record_online())
 
 @testset "Scaling law" begin
-    scalings, cost_plot, ess_plot = scaling_plot(10, 1, [auto_mala]) 
-    @test abs(scalings[:auto_mala] - 1.33) < 0.15
+    tuple = scaling_plot(7, sampling_fcts = [auto_mala]) 
+    @test abs(tuple.slopes[:auto_mala] - 1.33) < 0.15
 end
 
 @testset "Step size convergence" begin
@@ -23,8 +23,8 @@ end
 end
 
 @testset "Step size d-scaling" begin
-    step1d    = auto_mala(toy_mvn_target(1)).shared.explorer.step_size
-    step1000d = auto_mala(toy_mvn_target(1000)).shared.explorer.step_size
+    step1d    = automala(toy_mvn_target(1)).shared.explorer.step_size
+    step1000d = automala(toy_mvn_target(1000)).shared.explorer.step_size
     @test step1000d < step1d # make sure we do shrink eps with d 
 
     # should not shrink by more than ~(1000)^(1/3) according to theory
@@ -42,7 +42,7 @@ end
 @testset "AutoMALA dimensional autoscale" begin
     for i in 0:3
         d = 10^i
-        @test mean_mh_accept(auto_mala(toy_mvn_target(d))) > 0.4
+        @test mean_mh_accept(automala(toy_mvn_target(d))) > 0.4
     end
 end
 
