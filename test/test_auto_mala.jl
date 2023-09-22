@@ -16,9 +16,11 @@ end
 
 @testset "Step size convergence" begin
     for t in [toy_mvn_target(1), toy_stan_target(1)]
-        step10rounds = pigeons(target = t, explorer = AutoMALA(), n_chains = 1, n_rounds = 10).shared.explorer.step_size
-        step15rounds = pigeons(target = t, explorer = AutoMALA(), n_chains = 1, n_rounds = 15).shared.explorer.step_size
-        @test isapprox(step10rounds, step15rounds, rtol = 0.1)
+        if !( (t isa Pigeons.StanLogPotential) && is_windows_in_CI() ) 
+            step10rounds = pigeons(target = t, explorer = AutoMALA(), n_chains = 1, n_rounds = 10).shared.explorer.step_size
+            step15rounds = pigeons(target = t, explorer = AutoMALA(), n_chains = 1, n_rounds = 15).shared.explorer.step_size
+            @test isapprox(step10rounds, step15rounds, rtol = 0.1)
+        end
     end
 end
 

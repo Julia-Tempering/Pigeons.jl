@@ -8,24 +8,26 @@ include("supporting/mpi_test_utils.jl")
     # various explorers on a Julia function and on a Stan model
     for explorer in [SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA())]
         for target in [toy_mvn_target(1), toy_stan_target(1)]
-            @show explorer, target
-            @show is_stan = target isa Pigeons.StanLogPotential
+            if !( (target isa Pigeons.StanLogPotential) && is_windows_in_CI() )
+                @show explorer, target
+                @show is_stan = target isa Pigeons.StanLogPotential
 
-             # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
-            multithreaded = is_stan ? false : true
-            
-            pigeons(;
-                target, 
-                n_rounds = 10,
-                explorer, 
-                checked_round = 3,
-                multithreaded, 
-                record,
-                checkpoint = true, 
-                on = ChildProcess(
-                        n_local_mpi_processes = n_mpis,
-                        n_threads = multithreaded ? 2 : 1,
-                        mpiexec_args = extra_mpi_args())) 
+                # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
+                multithreaded = is_stan ? false : true
+                
+                pigeons(;
+                    target, 
+                    n_rounds = 10,
+                    explorer, 
+                    checked_round = 3,
+                    multithreaded, 
+                    record,
+                    checkpoint = true, 
+                    on = ChildProcess(
+                            n_local_mpi_processes = n_mpis,
+                            n_threads = multithreaded ? 2 : 1,
+                            mpiexec_args = extra_mpi_args())) 
+            end
         end
     end
 
