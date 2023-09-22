@@ -26,8 +26,8 @@ jobs:
           - '1.8'
           - '1.9'
         os:
-          # - ubuntu-latest
-          # - macos-latest
+          - ubuntu-latest
+          - macos-latest
           - windows-latest
         arch:
           - x64
