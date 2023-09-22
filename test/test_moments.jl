@@ -1,6 +1,6 @@
 @testset "Moments" begin
     targets = [toy_mvn_target(2)]
-    is_windows_in_CI() || push!(targets, toy_stan_target(1))
+    is_windows_in_CI() || push!(targets, toy_stan_target(2))
     for variational in [nothing, GaussianReference()]
         for target in targets
             @show variational, target

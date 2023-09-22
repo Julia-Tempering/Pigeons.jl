@@ -4,7 +4,7 @@ include("supporting/mpi_test_utils.jl")
 @testset "Parallelism Invariance" begin
     n_mpis = set_n_mpis_to_one_on_windows(2)
     record = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
-    targets = [toy_mvn_target(2)]
+    targets = [toy_mvn_target(1)]
     is_windows_in_CI() || push!(targets, toy_stan_target(1))
 
     # various explorers on a Julia function and on a Stan model
