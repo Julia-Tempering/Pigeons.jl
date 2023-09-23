@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Black-box function · Pigeons.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link rel="canonical" href="https://Julia-Tempering.github.io/Pigeons.jl/input-julia/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Pigeons.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Basic usage (local)</a></li><li><a class="tocitem" href="../unidentifiable-example/">Why PT?</a></li><li><a class="tocitem" href="../parallel/">Parallelization</a></li><li><a class="tocitem" href="../mpi/">Distributed usage (MPI)</a></li><li><a class="tocitem" href="../variational/">Variational PT</a></li><li><span class="tocitem">Supported inputs</span><ul><li><a class="tocitem" href="../input-overview/">Inputs overview</a></li><li><a class="tocitem" href="../input-turing/">Turing.jl model</a></li><li class="is-active"><a class="tocitem" href>Black-box function</a><ul class="internal"><li><a class="tocitem" href="#Sampling-from-the-reference-distribution"><span>Sampling from the reference distribution</span></a></li><li><a class="tocitem" href="#Changing-the-explorer"><span>Changing the explorer</span></a></li><li><a class="tocitem" href="#Manipulating-the-output"><span>Manipulating the output</span></a></li></ul></li><li><a class="tocitem" href="../input-stan/">Stan model</a></li><li><a class="tocitem" href="../input-nonjulian/">Non-julian MCMC</a></li><li><a class="tocitem" href="../input-explorers/">Custom MCMC</a></li></ul></li><li><span class="tocitem">Outputs</span><ul><li><a class="tocitem" href="../output-overview/">Outputs overview</a></li><li><a class="tocitem" href="../output-reports/">Quick reports</a></li><li><a class="tocitem" href="../output-plotting/">Plots</a></li><li><a class="tocitem" href="../output-normalization/">log(Z)</a></li><li><a class="tocitem" href="../output-numerical/">Numerical</a></li><li><a class="tocitem" href="../output-online/">Online stats</a></li><li><a class="tocitem" href="../output-off-memory/">Off-memory</a></li><li><a class="tocitem" href="../output-pt/">PT diagnostics</a></li><li><a class="tocitem" href="../output-custom-types/">Custom types</a></li><li><a class="tocitem" href="../output-mpi-postprocessing/">MPI output</a></li></ul></li><li><a class="tocitem" href="../checkpoints/">Checkpoints</a></li><li><a class="tocitem" href="../correctness/">Correctness checks</a></li><li><a class="tocitem" href="../pt/">More on PT</a></li><li><a class="tocitem" href="../distributed/">More on distributed PT</a></li><li><a class="tocitem" href="../interfaces/">Interfaces</a></li><li><a class="tocitem" href="../reference/">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Supported inputs</a></li><li class="is-active"><a href>Black-box function</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Black-box function</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Julia-Tempering/Pigeons.jl/blob/main/docs/src/input-julia.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="input-julia"><a class="docs-heading-anchor" href="#input-julia">Julia code as input to pigeons</a><a id="input-julia-1"></a><a class="docs-heading-anchor-permalink" href="#input-julia" title="Permalink"></a></h1><p>In typical Bayesian statistics applications, it is  easiest to specify the model in a modelling language,  such as Turing, but sometimes to get more flexibility or  speed it is useful to implement the density evaluation  manually as a &quot;black-box&quot; Julia function. </p><p>Here we show how this is done using our familiar <a href="../unidentifiable-example/#unidentifiable-example">unidentifiable toy example</a>.</p><p>We first create a custom type, <code>MyLogPotential</code> to control dispatch on the interface <a href="../interfaces/#Pigeons.target"><code>target</code></a>.</p><pre><code class="language-julia hljs">using Pigeons
+using Random
+using StatsFuns
+
+struct MyLogPotential
+    n_trials::Int
+    n_successes::Int
+end</code></pre><p>Next, we make <code>MyLogPotential</code> a  <a href="https://docs.julialang.org/en/v1/manual/methods/#Function-like-objects">function-like object</a>, so that we can write expressions of the form <code>my_log_potential([0.5, 0.5])</code> and  hence <code>MyLogPotential</code> satisfies the <a href="../interfaces/#Pigeons.log_potential"><code>log_potential</code></a> interface:</p><pre><code class="language-julia hljs">function (log_potential::MyLogPotential)(x)
+    p1, p2 = x
+    if !(0 &lt; p1 &lt; 1) || !(0 &lt; p2 &lt; 1)
+        return -Inf64
+    end
+    p = p1 * p2
+    return StatsFuns.binomlogpdf(log_potential.n_trials, p, log_potential.n_successes)
+end
+
+# e.g.:
+my_log_potential = MyLogPotential(100, 50)
+my_log_potential([0.5, 0.5])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">-16.91498002656617</code></pre><p>Next, we need to specify how to create fresh <a href="../interfaces/#Pigeons.state"><code>state</code></a> objects: </p><pre><code class="language-julia hljs">Pigeons.initialization(::MyLogPotential, ::AbstractRNG, ::Int) = [0.5, 0.5]</code></pre><p>We can now run the sampler:</p><pre><code class="language-julia hljs">pt = pigeons(
+        target = MyLogPotential(100, 50),
+        reference = MyLogPotential(0, 0)
+    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Info: Neither traces, disk, nor online recorders included.
+│    You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
+└    To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+┌ Warning: It looks like sample_iid!() is not implemented for a
+│ reference_log_potential of type Main.MyLogPotential.
+│ Instead, using step!().
+└ @ Pigeons ~/work/Pigeons.jl/Pigeons.jl/src/targets/target.jl:51
+──────────────────────────────────────────────────────────────────────────────────────────────────
+  scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2       2.03    0.00051   1.77e+05      -8.65   6.03e-05      0.775          1          1
+        4      0.994   0.000488   3.34e+04      -4.82      0.578       0.89          1          1
+        8       2.25   0.000728   6.06e+04      -5.81      0.201       0.75          1          1
+       16       1.62    0.00113   7.54e+04         -5      0.609       0.82          1          1
+       32       1.25    0.00239   1.44e+05      -4.69      0.706      0.861          1          1
+       64       1.52    0.00386   1.37e+05      -5.05      0.684      0.831          1          1
+      128       1.67    0.00722   1.45e+05      -5.16      0.661      0.815          1          1
+      256       1.56     0.0147   1.67e+05      -5.09      0.762      0.827          1          1
+      512       1.54     0.0284   2.12e+05      -5.07      0.786      0.829          1          1
+ 1.02e+03       1.51      0.056   3.02e+05      -4.91      0.807      0.832          1          1
+──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>Notice that we have specified a reference distribution, in this case the same model but with  no observations (hence the prior). Indeed, in contrast to targets specified using  Turing.jl, it is not possible to construct a  reference automatically from Julia &quot;black-box&quot; targets. </p><p>The <a href="../reference/#Pigeons.default_explorer-Tuple{Any}"><code>default_explorer()</code></a> is the <a href="../reference/#Pigeons.SliceSampler"><code>SliceSampler</code></a>. </p><h2 id="Sampling-from-the-reference-distribution"><a class="docs-heading-anchor" href="#Sampling-from-the-reference-distribution">Sampling from the reference distribution</a><a id="Sampling-from-the-reference-distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Sampling-from-the-reference-distribution" title="Permalink"></a></h2><p>Ability to sample from the reference distribution can be beneficial, e.g. to jump modes  in multi-modal distribution.  For black-box Julia function targets, this is done as follows:</p><pre><code class="language-julia hljs">function Pigeons.sample_iid!(::MyLogPotential, replica, shared)
+    state = replica.state
+    rng = replica.rng
+    rand!(rng, state)
+end
+
+pt = pigeons(
+        target = MyLogPotential(100, 50),
+        reference = MyLogPotential(0, 0)
+    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Info: Neither traces, disk, nor online recorders included.
+│    You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
+└    To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+──────────────────────────────────────────────────────────────────────────────────────────────────
+  scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2       2.03   0.000285   2.37e+04      -12.1   5.75e-08      0.775          1          1
+        4       1.13   0.000404   3.08e+04      -5.26     0.0854      0.874          1          1
+        8      0.989   0.000636   5.56e+04      -4.09      0.509       0.89          1          1
+       16        1.5    0.00121   9.34e+04      -5.16      0.675      0.834          1          1
+       32       1.58    0.00235   1.17e+05      -5.29       0.73      0.825          1          1
+       64       1.34    0.00384   1.25e+05      -4.79      0.758      0.852          1          1
+      128       1.65    0.00688   1.18e+05      -4.91      0.739      0.817          1          1
+      256       1.46     0.0128   1.18e+05      -5.01      0.732      0.838          1          1
+      512       1.52     0.0266   1.18e+05       -5.1      0.759      0.831          1          1
+ 1.02e+03       1.55     0.0524   1.18e+05         -5      0.796      0.828          1          1
+──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><h2 id="Changing-the-explorer"><a class="docs-heading-anchor" href="#Changing-the-explorer">Changing the explorer</a><a id="Changing-the-explorer-1"></a><a class="docs-heading-anchor-permalink" href="#Changing-the-explorer" title="Permalink"></a></h2><p>Here is an example using <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a> instead of the default  <a href="../reference/#Pigeons.SliceSampler"><code>SliceSampler</code></a>. We only need to add methods to make  our custom type <code>MyLogPotential</code> conform the  <a href="https://github.com/tpapp/LogDensityProblems.jl">LogDensityProblems interface</a>:</p><pre><code class="language-julia hljs">using LogDensityProblems
+
+LogDensityProblems.dimension(lp::MyLogPotential) = 2
+LogDensityProblems.logdensity(lp::MyLogPotential, x) = lp(x)
+
+pt = pigeons(
+        target = MyLogPotential(100, 50),
+        reference = MyLogPotential(0, 0),
+        explorer = AutoMALA(default_autodiff_backend = :ForwardDiff)
+    )</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Info: Neither traces, disk, nor online recorders included.
+│    You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
+└    To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+──────────────────────────────────────────────────────────────────────────────────────────────────
+  scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2        1.5       2.19   2.42e+08      -11.7   4.77e-08      0.834      0.329      0.644
+        4       2.12      0.136   1.17e+07      -5.52      0.298      0.765      0.458      0.553
+        8       1.33    0.00691   2.49e+06      -5.03      0.527      0.852      0.439      0.558
+       16       1.46     0.0131   4.77e+06      -4.95      0.684      0.837      0.515      0.602
+       32       1.61     0.0259   9.47e+06       -4.9      0.762      0.821      0.468      0.549
+       64       1.53     0.0524   1.92e+07      -4.84      0.688       0.83      0.496      0.541
+      128       1.56      0.104   3.75e+07      -5.03      0.721      0.826      0.512      0.562
+      256       1.54      0.298   7.59e+07      -5.13      0.776      0.829      0.497       0.55
+      512       1.53      0.439   1.52e+08      -4.97      0.799       0.83      0.481      0.544
+ 1.02e+03       1.51      0.852   3.04e+08      -4.93      0.809      0.832      0.496      0.549
+──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>Pigeons have several built-in <a href="../interfaces/#Pigeons.explorer"><code>explorer</code></a> kernels such as  <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a> and a <a href="../reference/#Pigeons.SliceSampler"><code>SliceSampler</code></a>.  However when the state space is neither the reals nor the integers,  or for performance reasons, it may be necessary to create custom  exploration MCMC kernels. This is described on the <a href="../input-explorers/#input-explorers">custom explorers page</a>.</p><h2 id="Manipulating-the-output"><a class="docs-heading-anchor" href="#Manipulating-the-output">Manipulating the output</a><a id="Manipulating-the-output-1"></a><a class="docs-heading-anchor-permalink" href="#Manipulating-the-output" title="Permalink"></a></h2><p>Some  common post-processing are shown below, see <a href="../output-overview/#output-overview">the section on output processing for more information</a>. </p><pre><code class="language-julia hljs">using MCMCChains
+using StatsPlots
+plotlyjs()
+
+pt = pigeons(
+        target = MyLogPotential(100, 50),
+        reference = MyLogPotential(0, 0),
+        explorer = AutoMALA(default_autodiff_backend = :ForwardDiff),
+        record = [traces])
+samples = Chains(sample_array(pt), variable_names(pt))
+my_plot = StatsPlots.plot(samples)
+StatsPlots.savefig(my_plot, &quot;julia_posterior_densities_and_traces.html&quot;);
+
+samples</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chains MCMC chain (1024×2×1 Array{Float64, 3}):
+
+Iterations        = 1:1:1024
+Number of chains  = 1
+Samples per chain = 1024
+parameters        = param_1, param_2
+
+Summary Statistics
+  parameters      mean       std      mcse   ess_bulk   ess_tail      rhat   e ⋯
+      Symbol   Float64   Float64   Float64    Float64    Float64   Float64     ⋯
+
+     param_1    0.7186    0.1528    0.0067   553.3642   790.1977    1.0022     ⋯
+     param_2    0.7143    0.1497    0.0074   421.1867   690.3199    1.0061     ⋯
+                                                                1 column omitted
+
+Quantiles
+  parameters      2.5%     25.0%     50.0%     75.0%     97.5%
+      Symbol   Float64   Float64   Float64   Float64   Float64
+
+     param_1    0.4634    0.5880    0.7104    0.8424    0.9845
+     param_2    0.4767    0.5892    0.7035    0.8377    0.9811
+</code></pre><iframe src="../julia_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-turing/">« Turing.jl model</a><a class="docs-footer-nextpage" href="../input-stan/">Stan model »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Saturday 23 September 2023 17:12">Saturday 23 September 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
