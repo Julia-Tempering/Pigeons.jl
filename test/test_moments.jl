@@ -1,6 +1,8 @@
 @testset "Moments" begin
+    targets = Any[toy_mvn_target(2)]
+    is_windows_in_CI() || push!(targets, toy_stan_target(2))
     for variational in [nothing, GaussianReference()]
-        for target in [toy_mvn_target(2), toy_stan_target(2)]
+        for target in targets
             @show variational, target
             if !(variational isa GaussianReference) || !(target isa Pigeons.ScaledPrecisionNormalPath)
                 pt = pigeons(; 
@@ -20,6 +22,7 @@
                     end
                 end
             end
+            
         end
     end
 end

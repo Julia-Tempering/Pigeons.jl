@@ -1,3 +1,4 @@
+if !is_windows_in_CI()
 @testset "Stan examples" begin
     pigeons(target = Pigeons.stan_eight_schools(true), n_rounds = 2, n_chains = 2)
     pigeons(target = Pigeons.stan_eight_schools(false), n_rounds = 2, n_chains = 2)
@@ -29,4 +30,5 @@ end
         =#
         @test n_restarts > 40 # 100
     end
+end
 end

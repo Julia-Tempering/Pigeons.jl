@@ -2,7 +2,7 @@ function logdensity_and_gradient(target, x)
     g = LogDensityProblemsAD.ADgradient(:ForwardDiff, target, Pigeons.buffers()) 
     return LogDensityProblems.logdensity_and_gradient(g, x)
 end
-
+if !is_windows_in_CI()
 @testset "Gradient agreement" begin
     turing_target = Pigeons.toy_turing_unid_target(10)
     stan_target   = Pigeons.toy_stan_unid_target(10)
@@ -25,3 +25,4 @@ end
     end
 end
 
+end
