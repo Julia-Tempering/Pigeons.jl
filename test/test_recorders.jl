@@ -1,5 +1,5 @@
 @testset "Default recorder groups" begin
-    targets = [toy_mvn_target(10), Pigeons.toy_turing_target(10)]
+    targets = Any[toy_mvn_target(10), Pigeons.toy_turing_target(10)]
     is_windows_in_CI() || push!(targets, toy_stan_target(10))
     for target in targets
         for record in [record_online(), record_default(), []]
