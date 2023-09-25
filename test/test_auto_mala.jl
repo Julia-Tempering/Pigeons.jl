@@ -75,11 +75,11 @@ end
         v = randn(rng, 2)
         startx = copy(x)
         startv = copy(v)
-        Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
-        @assert !(x ≈ startx) && !(v ≈ startv)
+        @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
+        @test !(x ≈ startx) && !(v ≈ startv)
         v .*= -1
-        Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
-        @assert (x ≈ startx) && (v ≈ -startv)
+        @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
+        @test (x ≈ startx) && (v ≈ -startv)
     end
     
 end

@@ -25,7 +25,9 @@ $SIGNATURES
 
 Similar to [`DiagonalPreconditioner`](@ref) but the actual preconditioner used
 at each iteration is a random mixture of the identity and the adapted diagonal
-matrix. Should be more robust to incorrectly estimated standard deviations.
+matrix. This helps with targets featuring distantly separated modes, which induces
+average standard deviations that are much higher than the ones within each mode. 
+Suggested by [Max Hird](https://maxhhird.github.io/) (personal communication).
 """
 struct MixDiagonalPreconditioner <: Preconditioner end
 
