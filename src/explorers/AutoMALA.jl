@@ -21,7 +21,7 @@ In normal circumstance, there should not be a need for tuning,
 however the following optional keyword parameters are available:
 $FIELDS
 """
-@kwdef struct AutoMALA{T}
+@kwdef struct AutoMALA{T,TPrec <: Preconditioner}
     """
     The base number of steps (equivalently, momentum refreshments) between swaps.
     This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`. 
@@ -49,9 +49,9 @@ $FIELDS
     step_size::Float64 = 1.0
 
     """ 
-    If a diagonal pre-conditioning should be learned.
+    A strategy for building a preconditioner.
     """
-    adapt_pre_conditioning::Bool = true
+    preconditioner::TPrec = MixDiagonalPreconditioner()
 
     """
     This gets updated after first iteration; initially `nothing` in 
@@ -63,16 +63,13 @@ $FIELDS
 end
 
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
-    estimated_target_std_dev = 
-        explorer.adapt_pre_conditioning ? 
-            sqrt.(get_transformed_statistic(reduced_recorders, :singleton_variable, Variance)) :
-            nothing
+    estimated_target_std_dev = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
     # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
     updated_step_size = explorer.step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
                 updated_step_size,
-                explorer.adapt_pre_conditioning, 
+                explorer.preconditioner, 
                 estimated_target_std_dev)
 end
 
@@ -136,12 +133,7 @@ function auto_mala!(
 
     momentum = get_buffer(recorders.buffers, :am_momentum_buffer, dim)
     estimated_target_std_dev = get_buffer(recorders.buffers, :am_ones_buffer, dim)
-    estimated_target_std_dev .= 1.0
-    mix = rand(rng) # random interpolation b/w unit and estimated for robustness
-    if !isnothing(explorer.estimated_target_std_deviations)
-        estimated_target_std_dev .= mix .* estimated_target_std_dev .+ (1.0 - mix) .* explorer.estimated_target_std_deviations
-    end
-    
+    init_preconditioner!(estimated_target_std_dev, explorer.preconditioner, rng, explorer.estimated_target_std_deviations)
     start_state = get_buffer(recorders.buffers, :am_state_buffer, dim)
 
     n_refresh = explorer.base_n_refresh * ceil(Int, dim^explorer.exponent_n_refresh)
@@ -306,7 +298,7 @@ function explorer_recorder_builders(explorer::AutoMALA)
         am_factors,
         buffers
     ]
-    if explorer.adapt_pre_conditioning 
+    if explorer.preconditioner isa AdaptedDiagonalPreconditioner
         push!(result, _transformed_online) # for mass matrix adaptation
     end
     return result
