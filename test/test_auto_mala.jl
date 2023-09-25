@@ -59,9 +59,27 @@ end
 
     n_leaps = 40
 
-    start = copy(x)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
-    @test !(x ≈ start)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps)
-    @test x ≈ start
+    @testset "Flip step" begin
+        x = randn(rng, 2)
+        v = randn(rng, 2)
+        startx = copy(x)
+        startv = copy(v)
+        @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
+        @test !(x ≈ startx) && !(v ≈ startv)
+        @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, -0.1, n_leaps)
+        @test (x ≈ startx) && (v ≈ startv)
+    end
+    
+    @testset "Flip momentum" begin
+        x = randn(rng, 2)
+        v = randn(rng, 2)
+        startx = copy(x)
+        startv = copy(v)
+        Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
+        @assert !(x ≈ startx) && !(v ≈ startv)
+        v .*= -1
+        Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
+        @assert (x ≈ startx) && (v ≈ -startv)
+    end
+    
 end
