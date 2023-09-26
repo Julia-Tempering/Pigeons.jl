@@ -63,14 +63,14 @@ $FIELDS
 end
 
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
-    diag_precond = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
+    estimated_target_std_deviations = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
     # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
     updated_step_size = explorer.step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
                 updated_step_size,
                 explorer.preconditioner, 
-                diag_precond)
+                estimated_target_std_deviations)
 end
 
 function step!(explorer::AutoMALA, replica, shared)
