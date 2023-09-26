@@ -39,7 +39,10 @@ adapt_preconditioner(::AdaptedDiagonalPreconditioner, reduced_recorders) =
 
 build_preconditioner!(dest, ::Preconditioner, args...) = fill!(dest, one(eltype(dest)))
 function build_preconditioner!(dest, ::DiagonalPreconditioner, rng, std_devs::Vector)
-    dest .= inv.(std_devs)
+    @assert length(dest) == length(std_devs)
+    @inbounds for i in eachindex(dest)
+        dest[i] = std_devs[i] == 0. ? 1. : inv(std_devs[i])
+    end
 end
 function build_preconditioner!(dest::Vector, ::MixDiagonalPreconditioner, rng, std_devs::Vector)
     @assert length(dest) == length(std_devs)
