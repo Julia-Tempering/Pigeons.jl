@@ -1,5 +1,13 @@
 ###############################################################################
 # Utilities for Hamiltonian Dynamics
+#
+# In the following, diag_precond = M^{1/2}, where M is the mass matrix
+# following "Neal, MCMC using Hamiltonian.." the mass matrix is the covariance matrix of the momentum auxiliary variable
+# Instead fo the momentum, we actually store M^{-1/2} p, which we call transformed momentum or following physics terminology, velocity
+# TODO: the source should be search and replaced momentum -> velocity 
+#
+# Based on the same Neal paper, we try to approximate M ≈ inverse of the covariance of the target
+
 # Note on working on transformed momentum space: when the momentum follows
 # 	p ~ N(0,M)
 # for some positive definite M, the Hamiltonian is 
@@ -45,7 +53,6 @@ function hamiltonian_dynamics!(
 
         logp, grad = conditioned_target_gradient(target_log_potential, state, diag_precond)
         current_log_joint = log_joint(logp, momentum)
-        # @debug "current_log_joint - initial_log_joint = $(current_log_joint - initial_log_joint)"
 
         if !isfinite(current_log_joint)
             # TODO: implement bouncing

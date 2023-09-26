@@ -15,3 +15,5 @@ using Test
 using ForwardDiff
 using LogDensityProblems 
 using LogDensityProblemsAD
+
+is_windows_in_CI() = Sys.iswindows() && (get(ENV, "CI", "false") == "true")
