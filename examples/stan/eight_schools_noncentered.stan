@@ -1,7 +1,7 @@
 data {
   int <lower=0> J; // number of schools
-  real y[J]; // estimated treatment
-  real<lower=0> sigma[J]; // std of estimated effect
+  array[J] real y; // estimated treatment
+  array[J] real<lower=0> sigma; // std of estimated effect
 }
 parameters {
   vector[J] theta_trans; // transformation of theta

@@ -1,6 +1,5 @@
 include("supporting/setup.jl")
 
-is_windows_in_CI() = Sys.iswindows() && (get(ENV, "CI", "false") == "true")
 
 # check we are testing the checked-out version of the repo, not e.g. latest released version
 test_dir = @__DIR__ 
