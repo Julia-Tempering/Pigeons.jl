@@ -28,7 +28,7 @@ backward trajectories. The trajectories are divided into segments, with
 segments being separated by apogees (local maxima) in the energy landscape 
 of -log pi(x). The tuning parameter `K` defines the number of segments to explore. 
 """
-@kwdef struct{T,D} AAPS
+Base.@kwdef struct AAPS{T,D}
     """ 
     Leapfrog step size.
     """
@@ -58,6 +58,7 @@ of -log pi(x). The tuning parameter `K` defines the number of segments to explor
     Cache for the inverse of the mass matrix. 
     """
     inverse_mass_matrix::D = nothing
+    # todo: at the moment, this matrix does nothing .. 
 end
 
 function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempering)
@@ -136,9 +137,9 @@ function aaps!(
     θmax: the parameter value at Wmax.
     rmax: the momentum at Wmax.
     =#
-    θfwd, rfwd, Wmaxf, θmaxf, rmaxf = sample_segment(explorer, state, rtemp, lp0, target_log_potential)
+    θfwd, rfwd, Wmaxf, θmaxf, rmaxf = sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng)
     rtemp = -copy(r) # change momentum direction to move backwards
-    θbwd, rbwd, Wmaxb, θmaxb, rmaxb = sample_segment(explorer, state, rtemp, lp0, target_log_potential)
+    θbwd, rbwd, Wmaxb, θmaxb, rmaxb = sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng)
 
     if Wmaxf > Wmaxb # forward move has been accepted in proposal
         θmax = θmaxf
@@ -162,13 +163,13 @@ function aaps!(
             state = θfwd
             rtemp = rfwd
             θfwd, rfwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, lp0, target_log_potential)
+                sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng)
         else  
             # extend the backward trajectory
             state = θbwd
             rtemp = rbwd
             θbwd, rbwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, lp0, target_log_potential)
+                sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng)
         end
         if Wmax_2 > Wmax
             θmax = θmax_2
@@ -189,7 +190,8 @@ function sample_segment(
     state::Vector,
     r::Vector,
     lp0::Float64,
-    target_log_potential)
+    target_log_potential, 
+    rng::AbstractRNG)
     θ0    = copy(state)
     rtemp = copy(r)
     θmax  = copy(state)
@@ -201,7 +203,11 @@ function sample_segment(
     # propagate forward, checking for apogee, tracking stats, keeping track of next state using gumbel-max trick
     s0 = sign(dot(rtemp, -g0))
     while true
-        leapfrog!(explorer, state, rtemp, model, cv)
+        leap_frog!(
+            target_log_potential, 
+            explorer.estimated_target_std_deviations, 
+            state, rtemp, explorer.ϵ 
+        )
         _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
         s = sign(dot(rtemp, -g0))
         if s != s0
