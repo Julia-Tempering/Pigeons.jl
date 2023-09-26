@@ -7,7 +7,7 @@ AAPS is a simple alternative to the No U-Turn Sampler (NUTS).
 For a given starting position and momentum (x, v), AAPS explores forward and 
 backward trajectories. The trajectories are divided into segments, with 
 segments being separated by apogees in the energy landscape. 
-The tuning parameter `L` defines the number of segments to explore. 
+The tuning parameter `K` defines the number of segments to explore. 
 """
 @kwdef struct{T,D} AAPS
     """ 
@@ -16,9 +16,9 @@ The tuning parameter `L` defines the number of segments to explore.
     ϵ::Float64 = 1.0
 
     """  
-    Maximum number of segments to explore (not counting the initial one).
+    Maximum number of segments to explore.
     """ 
-    L::Int = 5 
+    K::Int = 5 
 
     """ 
     See details in AutoMALA. 
@@ -51,7 +51,7 @@ function adapt_explorer(explorer::AAPS, reduced_recorders, ...)
     end
     # todo: adapt ϵ and L 
     return AAPS(
-        explorer.ϵ, explorer.L, explorer.default_autodiff_backend, 
+        explorer.ϵ, explorer.K, explorer.default_autodiff_backend, 
         explorer.adapt_pre_conditioning, estimated_target_std_dev,
         inverse_mass_matrix
     )
@@ -90,6 +90,10 @@ function _extract_commons_and_run_aaps!(explorer::AAPS, replica, shared, log_pot
     )
 end
 
+""" 
+Main function for AAPS. Note that this implementation uses scheme (1) 
+from the AAPS paper, which results in an acceptance probability of one.
+""" 
 function aaps!(
     rng::AbstractRNG,
     explorer::AAPS,
@@ -106,64 +110,61 @@ function aaps!(
     #= sample the original segment by expanding out forward/backward
     θ: parameter states (in Pigeons this is just the `state`, whereas the 
        original implementation had state.rng, state.θ, etc.) 
-    r: momentum  
-    W: 
-    rmax: 
-    m: 
-    m2: 
-    n: 
+       Last position of the state in the segment (forward or backward).
+    r: momentum. Last position of the momentum in the segment. 
+    Wmax: use of Gumbel-max trick. At Wmax, θmax represents the state that should be 
+       selected according to the chosen weighting function.
+    θmax: the parameter value at Wmax.
+    rmax: the momentum at Wmax.
     =#
-    θfwd, rfwd, Wmaxf, θmaxf, rmaxf, mf, m2f, nf = sample_segment(explorer, state, rtemp, lp0, target_log_potential)
+    θfwd, rfwd, Wmaxf, θmaxf, rmaxf = sample_segment(explorer, state, rtemp, lp0, target_log_potential)
     rtemp = -copy(r) # change momentum direction to move backwards
-    θbwd, rbwd, Wmaxb, θmaxb, rmaxb, mb, m2b, nb = sample_segment(explorer, state, rtemp, lp0, target_log_potential)
+    θbwd, rbwd, Wmaxb, θmaxb, rmaxb = sample_segment(explorer, state, rtemp, lp0, target_log_potential)
 
-    if Wmaxf > Wmaxb
+    if Wmaxf > Wmaxb # forward move has been accepted in proposal
         θmax = θmaxf
         rmax = rmaxf
         Wmax = Wmaxf
-    else # Wmaxb >= Wmaxf
+    else # backward move 
         θmax = θmaxb
         rmax = rmaxb
         Wmax = Wmaxb
     end
-    m = mf + mb
-    m2 = m2f + m2b
-    n = nf + nb
   
     # sample subsequent segments by continuing from the previous endpoints
-    for _ in 1:(explorer.L-1)
+    for _ in 1:(explorer.K-1)
         if isnan(explorer.ϵ)
-            error("aaps!: step size is NaN, try reducing Δ")
+            error("aaps!: step size is NaN, try reducing Δ") # todo
         end
 
         if rand(rng, Bool)
             # extend the forward trajectory
-            state.θ = θfwd
+            # (avoids specifying in advance how many times we move forward/backward)
+            state = θfwd
             rtemp = rfwd
-            θfwd, rfwd, Wmax′, θmax′, rmax′, m′, m2′, n′ = 
+            θfwd, rfwd, Wmax_2, θmax_2, rmax_2 = 
                 sample_segment(explorer, state, rtemp, lp0, target_log_potential)
         else  
             # extend the backward trajectory
-            state.θ = θbwd
+            state = θbwd
             rtemp = rbwd
-            θbwd, rbwd, Wmax′, θmax′, rmax′, m′, m2′, n′ = 
+            θbwd, rbwd, Wmax_2, θmax_2, rmax_2 = 
                 sample_segment(explorer, state, rtemp, lp0, target_log_potential)
         end
-        if Wmax′ > Wmax
-            θmax = θmax′
-            rmax = rmax′
-            Wmax = Wmax′
+        if Wmax_2 > Wmax
+            θmax = θmax_2
+            rmax = rmax_2
+            Wmax = Wmax_2
         end
-        m += m′
-        m2 += m2′
-        n += n′
     end  
     # set the final state and update step size
-    state.θ = copy(θmax)
+    state = copy(θmax)
     r = copy(rmax)
 end
 
-# todo (according to Miguel)
+""" 
+Sample a segment of the trajectory until an apogee is reached. 
+"""
 function sample_segment(
     explorer::AAPS,
     state::Vector,
@@ -174,36 +175,35 @@ function sample_segment(
     rtemp = copy(r)
     θmax  = copy(state)
     rmax  = copy(r)
-    g0    = grad_log_potential(state, model, cv)
-    lp    = joint_log_potential(state, r, model, cv)
-    Wmax  = lp + rand(rng, Gumbel())
-    m     = exp(lp - lp0)
-    m2    = exp(2*(lp - lp0))
-    n     = 1
+    g0    = grad_log_potential(state, model, cv) # todo 
+    _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
+    lp    = log_joint(target_log_potential, state, r)
+    Wmax  = lp + rand(rng, Gumbel()) # todo: why do we repeat this calculation?
   
     # propagate forward, checking for apogee, tracking stats, keeping track of next state using gumbel-max trick
     s0 = sign(dot(rtemp, -g0))
     while true
         leapfrog!(explorer, state, rtemp, model, cv)
-        s = sign(dot(rtemp, -grad_log_potential(state, model, cv)))
+        _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
+        s = sign(dot(rtemp, -g0))
         if s != s0
-            break
+            break # todo: This seems to define a segment as a place where the sign changes 
+            # i.e., either a local minimum or maximum. 
+            # However, the "apogee" in AAPS clearly indicates that we should only 
+            # define new segments when we reach a maximum.
         end
-        n += 1
-        lp = joint_log_potential(state, rtemp, model, cv)
-        m += exp(lp - lp0)
-        m2 += exp(2*(lp - lp0))
+        lp = log_joint(target_log_potential, state, rtemp)
         W = lp + rand(rng, Gumbel())
         if W > Wmax
             Wmax = W
-            θmax = state.θ
+            θmax = state
             rmax = rtemp
         end
     end
-    θfwd, rfwd = copy(state.θ), copy(rtemp)
-    state.θ = θ0
+    θfwd, rfwd = copy(state), copy(rtemp)
+    state = θ0
     
-    return θfwd, rfwd, Wmax, θmax, rmax, m, m2, n
+    return θfwd, rfwd, Wmax, θmax, rmax
 end
 
 
