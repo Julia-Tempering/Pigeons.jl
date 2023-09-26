@@ -106,7 +106,14 @@ automala(target, preconditioner) =
     pt = automala(unbalanced_target, Pigeons.MixDiagonalPreconditioner())
     min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~492
 
+    # check that min ess are ordered as expected
     @test min_ess_id < min_ess_mixdiag < min_ess_diag
+
+    # check that balanced target without preconditioner gives roughly the same
+    # ess as unbalanced_target with DiagonalPreconditioner
+    pt = automala(HetPrecisionNormalLogPotential([1., 1.]), Pigeons.IdentityPreconditioner())
+    min_ess_id_bal = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~3927
+    @test isapprox(min_ess_id_bal, min_ess_diag, rtol=0.01)
 end
 
 pigeons_precond_automala(target, reference, preconditioner) =
