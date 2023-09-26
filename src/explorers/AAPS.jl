@@ -67,7 +67,7 @@ function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempe
         estimated_target_std_dev = sqrt.(estimated_target_variances)
         inverse_mass_matrix = Diagonal(inv.(estimated_target_variances))
     else
-        estimated_target_std_dev = inverse_mass_matrix = nothing 
+        estimated_target_std_dev = inverse_mass_matrix = nothing
     end
     # todo: adapt ϵ and L 
     return AAPS(
@@ -125,7 +125,9 @@ function aaps!(
     randn!(rng, r)
     lp0   = log_joint(target_log_potential, state, r)
     rtemp = copy(r)
-
+    estimated_target_std_dev = get_buffer(recorders.buffers, :aaps_ones_buffer, dim)
+    estimated_target_std_dev .= 1.0
+    # todo: generalize
     #= 
     Sample the original segment by expanding out forward/backward. 
     Some notes on notation:
@@ -137,9 +139,9 @@ function aaps!(
     θmax: the parameter value at Wmax.
     rmax: the momentum at Wmax.
     =#
-    θfwd, rfwd, Wmaxf, θmaxf, rmaxf = sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng)
+    θfwd, rfwd, Wmaxf, θmaxf, rmaxf = sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng, estimated_target_std_dev)
     rtemp = -copy(r) # change momentum direction to move backwards
-    θbwd, rbwd, Wmaxb, θmaxb, rmaxb = sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng)
+    θbwd, rbwd, Wmaxb, θmaxb, rmaxb = sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng, estimated_target_std_dev)
 
     if Wmaxf > Wmaxb # forward move has been accepted in proposal
         θmax = θmaxf
@@ -163,13 +165,13 @@ function aaps!(
             state = θfwd
             rtemp = rfwd
             θfwd, rfwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng)
+                sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng, estimated_target_std_dev)
         else  
             # extend the backward trajectory
             state = θbwd
             rtemp = rbwd
             θbwd, rbwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng)
+                sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng, estimated_target_std_dev)
         end
         if Wmax_2 > Wmax
             θmax = θmax_2
@@ -191,7 +193,8 @@ function sample_segment(
     r::Vector,
     lp0::Float64,
     target_log_potential, 
-    rng::AbstractRNG)
+    rng::AbstractRNG, 
+    estimated_target_std_dev::Vector)
     θ0    = copy(state)
     rtemp = copy(r)
     θmax  = copy(state)
@@ -205,7 +208,7 @@ function sample_segment(
     while true
         leap_frog!(
             target_log_potential, 
-            explorer.estimated_target_std_deviations, 
+            estimated_target_std_dev, 
             state, rtemp, explorer.ϵ 
         )
         _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
