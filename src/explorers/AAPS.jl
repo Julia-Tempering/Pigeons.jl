@@ -1,13 +1,32 @@
+###############################################################################
+# The Pigeons implementation of AAPS is based on code by 
+# Naitong Chen and Trevor Campbell (2023). Reused with their permission.
+# Note:
+# y(x) := M^{-1/2}x => x(y) = M^{1/2}y
+# x ~ p_x => p_y(y) = p_x(M^{1/2}y) |detM|^{1/2} propto p_x(M^{1/2}y) 
+# => grad{log p_y}(y) = M^{1/2} grad(log p_x)(M^{1/2}y) 
+# for p ~ N(0,M), the leapfrog is
+#   p*(x,p)   = p + (eps/2)grad(x)
+#   x'(x,p*)  = x + epsM^{-1}p*
+#   p'(x',p*) = p* + (eps/2)grad(x')
+# if y = M^{-1/2}p => y ~ N(0,I) and p = M^{1/2}y.
+#   y*(x,y)   = M^{1/2}y + (eps/2)grad(x)
+#   x'(x,y*)  = x + epsM^{-1}y*
+#   y'(x',y*) = y* + (eps/2)grad(x')
+###############################################################################
+
 """ 
 $SIGNATURES 
 
 The Apogee to Apogee Path Sampler (AAPS) by Sherlock et al. (2022). 
 
 AAPS is a simple alternative to the No U-Turn Sampler (NUTS).
-For a given starting position and momentum (x, v), AAPS explores forward and 
+It serves a similar purpose as NUTS: the method should be robust to its choice 
+of tuning parameters when compared to standard HMC.
+For a given starting position and momentum (x, v), AAPS explores both forward and 
 backward trajectories. The trajectories are divided into segments, with 
-segments being separated by apogees in the energy landscape. 
-The tuning parameter `K` defines the number of segments to explore. 
+segments being separated by apogees (local maxima) in the energy landscape 
+of -log pi(x). The tuning parameter `K` defines the number of segments to explore. 
 """
 @kwdef struct{T,D} AAPS
     """ 
@@ -16,14 +35,14 @@ The tuning parameter `K` defines the number of segments to explore.
     ϵ::Float64 = 1.0
 
     """  
-    Maximum number of segments to explore.
+    Maximum number of segments (regions between apogees) to explore.
     """ 
     K::Int = 5 
 
     """ 
     See details in AutoMALA. 
     """
-    default_autodiff_backend::Symbol = :ForwardDiff # not used for Stan models
+    default_autodiff_backend::Symbol = :ForwardDiff 
 
     """ 
     See details in AutoMALA.
@@ -36,12 +55,12 @@ The tuning parameter `K` defines the number of segments to explore.
     estimated_target_std_deviations::T = nothing
 
     """ 
-    Cache of the inverse mass matrix. 
+    Cache for the inverse of the mass matrix. 
     """
     inverse_mass_matrix::D = nothing
 end
 
-function adapt_explorer(explorer::AAPS, reduced_recorders, ...)
+function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempering)
     if explorer.adapt_pre_conditioning
         estimated_target_variances = get_transformed_statistic(reduced_recorders, :singleton_variable, Variance)
         estimated_target_std_dev = sqrt.(estimated_target_variances)
@@ -75,7 +94,6 @@ function step!(explorer::AAPS, replica, shared, vi::DynamicPPL.TypedVarInfo)
     DynamicPPL.setall!(replica.state, state)
 end
 
-# Extract info common to all types of target and perform a step!()
 function _extract_commons_and_run_aaps!(explorer::AAPS, replica, shared, log_potential, state::AbstractVector)
     log_potential_autodiff = ADgradient(
         explorer.default_autodiff_backend, log_potential, replica.recorders.buffers
@@ -107,9 +125,10 @@ function aaps!(
     lp0   = log_joint(target_log_potential, state, r)
     rtemp = copy(r)
 
-    #= sample the original segment by expanding out forward/backward
-    θ: parameter states (in Pigeons this is just the `state`, whereas the 
-       original implementation had state.rng, state.θ, etc.) 
+    #= 
+    Sample the original segment by expanding out forward/backward. 
+    Some notes on notation:
+    θ: parameter states (in Pigeons vocabulary this is just `state`.) 
        Last position of the state in the segment (forward or backward).
     r: momentum. Last position of the momentum in the segment. 
     Wmax: use of Gumbel-max trick. At Wmax, θmax represents the state that should be 
@@ -175,7 +194,6 @@ function sample_segment(
     rtemp = copy(r)
     θmax  = copy(state)
     rmax  = copy(r)
-    g0    = grad_log_potential(state, model, cv) # todo 
     _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
     lp    = log_joint(target_log_potential, state, r)
     Wmax  = lp + rand(rng, Gumbel()) # todo: why do we repeat this calculation?
@@ -214,20 +232,3 @@ function explorer_recorder_builders(explorer::AAPS)
     end
     return result
 end
-
-###############################################################################
-# The Pigeons implementation of AAPS is based on code by 
-# Naitong Chen and Trevor Campbell (2023), reused with their permission.
-# Note:
-# y(x) := M^{-1/2}x => x(y) = M^{1/2}y
-# x ~ p_x => p_y(y) = p_x(M^{1/2}y) |detM|^{1/2} propto p_x(M^{1/2}y) 
-# => grad{log p_y}(y) = M^{1/2} grad(log p_x)(M^{1/2}y) 
-# for p ~ N(0,M), the leapfrog is
-#   p*(x,p)   = p + (eps/2)grad(x)
-#   x'(x,p*)  = x + epsM^{-1}p*
-#   p'(x',p*) = p* + (eps/2)grad(x')
-# if y = M^{-1/2}p => y ~ N(0,I) and p = M^{1/2}y.
-#   y*(x,y)   = M^{1/2}y + (eps/2)grad(x)
-#   x'(x,y*)  = x + epsM^{-1}y*
-#   y'(x',y*) = y* + (eps/2)grad(x')
-###############################################################################
