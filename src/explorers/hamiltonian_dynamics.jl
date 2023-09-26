@@ -20,9 +20,9 @@
 log_joint(target, state, momentum) = log_joint(LogDensityProblems.logdensity(target, state), momentum)
 log_joint(logp, momentum) = logp - 0.5 * sqr_norm(momentum)
 
-function conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
+function conditioned_target_gradient(target_log_potential, state, diag_precond)
     logdens, grad = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
-    grad ./= estimated_target_std_dev  # M^{-1/2}grad(log pi)(x)
+    grad ./= diag_precond  # M^{-1/2}grad(log pi)(x)
     return logdens, grad
 end
 
@@ -30,21 +30,24 @@ end
 # we add tricks to make it non-allocating
 function hamiltonian_dynamics!(
             target_log_potential, 
-            estimated_target_std_dev, 
+            diag_precond, 
             state, momentum, step_size, n_steps)
 
     # first half-step
-    _, grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
+    logp, grad = conditioned_target_gradient(target_log_potential, state, diag_precond)
+    initial_log_joint = current_log_joint = log_joint(logp, momentum)
     momentum .+= (step_size/2) .* grad
 
     for i in 1:n_steps 
 
         # full step on position
-        state .+= step_size .* (momentum ./ estimated_target_std_dev) # eps M^{-1/2}y*
+        state .+= step_size .* (momentum ./ diag_precond) # eps M^{-1/2}y*
 
-        logp, grad = conditioned_target_gradient(target_log_potential, state, estimated_target_std_dev)
-        
-        if !isfinite(log_joint(logp, momentum))
+        logp, grad = conditioned_target_gradient(target_log_potential, state, diag_precond)
+        current_log_joint = log_joint(logp, momentum)
+        # @debug "current_log_joint - initial_log_joint = $(current_log_joint - initial_log_joint)"
+
+        if !isfinite(current_log_joint)
             # TODO: implement bouncing
             return false
         end
@@ -67,9 +70,9 @@ end
 
 leap_frog!(
         target_log_potential, 
-        estimated_target_std_dev, 
+        diag_precond, 
         state, momentum, step_size) =
     hamiltonian_dynamics!(
             target_log_potential, 
-            estimated_target_std_dev, 
+            diag_precond, 
             state, momentum, step_size, 1)

@@ -55,7 +55,7 @@ $FIELDS
 
     """
     This gets updated after first iteration; initially `nothing` in 
-    which case a diagonal mass matrix is used.
+    which case an identity mass matrix is used.
     """
     estimated_target_std_deviations::T = nothing
 
@@ -63,14 +63,14 @@ $FIELDS
 end
 
 function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
-    estimated_target_std_dev = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
+    diag_precond = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
     # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
     updated_step_size = explorer.step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
     return AutoMALA(
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend, 
                 updated_step_size,
                 explorer.preconditioner, 
-                estimated_target_std_dev)
+                diag_precond)
 end
 
 function step!(explorer::AutoMALA, replica, shared)
@@ -132,8 +132,8 @@ function auto_mala!(
     dim = length(state)
 
     momentum = get_buffer(recorders.buffers, :am_momentum_buffer, dim)
-    estimated_target_std_dev = get_buffer(recorders.buffers, :am_ones_buffer, dim)
-    init_preconditioner!(estimated_target_std_dev, explorer.preconditioner, rng, explorer.estimated_target_std_deviations)
+    diag_precond = get_buffer(recorders.buffers, :am_ones_buffer, dim)
+    build_preconditioner!(diag_precond, explorer.preconditioner, rng, explorer.estimated_target_std_deviations)
     start_state = get_buffer(recorders.buffers, :am_state_buffer, dim)
 
     n_refresh = explorer.base_n_refresh * ceil(Int, dim^explorer.exponent_n_refresh)
@@ -154,7 +154,7 @@ function auto_mala!(
         proposed_exponent = 
             auto_step_size(
                 target_log_potential, 
-                estimated_target_std_dev, 
+                diag_precond, 
                 state, momentum, 
                 recorders, chain,
                 explorer.step_size, lower_bound, upper_bound)
@@ -163,7 +163,7 @@ function auto_mala!(
         # move to proposed point
         leap_frog!(
             target_log_potential, 
-            estimated_target_std_dev, 
+            diag_precond, 
             state, momentum, proposed_step_size
         )
 
@@ -173,7 +173,7 @@ function auto_mala!(
             reversed_exponent = 
                 auto_step_size(
                     target_log_potential, 
-                    estimated_target_std_dev, 
+                    diag_precond, 
                     state, momentum, 
                     recorders, chain,
                     explorer.step_size, lower_bound, upper_bound)
@@ -198,7 +198,7 @@ end
 
 function auto_step_size(
         target_log_potential, 
-        estimated_target_std_dev, 
+        diag_precond, 
         state, momentum, 
         recorders, chain, 
         step_size, lower_bound, upper_bound)
@@ -209,7 +209,7 @@ function auto_step_size(
     log_joint_difference = 
         log_joint_difference_function(
             target_log_potential, 
-            estimated_target_std_dev, 
+            diag_precond, 
             state, momentum, 
             recorders)
     initial_difference = log_joint_difference(step_size) 
@@ -264,7 +264,7 @@ end
 
 function log_joint_difference_function(
             target_log_potential, 
-            estimated_target_std_dev, 
+            diag_precond, 
             state, momentum, 
             recorders)
 
@@ -279,7 +279,7 @@ function log_joint_difference_function(
     h_before = log_joint(target_log_potential, state, momentum)
     function result(step_size)
         leap_frog!(
-            target_log_potential, estimated_target_std_dev, 
+            target_log_potential, diag_precond, 
             state, momentum, step_size)
         h_after = log_joint(target_log_potential, state, momentum)
         state .= state_before 

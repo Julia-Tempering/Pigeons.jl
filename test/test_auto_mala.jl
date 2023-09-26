@@ -83,3 +83,38 @@ end
     end
     
 end
+
+@testset "Preconditioners: normal target" begin
+    rng = SplittableRandom(1)
+    precs = [100.0, 0.01]
+    unbalanced_target = HetPrecisionNormalLogPotential(precs)
+
+    pt = pigeons(
+        target = unbalanced_target,
+        explorer = AutoMALA(preconditioner = Pigeons.IdentityPreconditioner()),
+        n_chains = 1,
+        n_rounds = 12,
+        record = [traces]
+    )
+    min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~12
+
+    pt = pigeons(
+        target = unbalanced_target,
+        explorer = AutoMALA(preconditioner = Pigeons.DiagonalPreconditioner()),
+        n_chains = 1,
+        n_rounds = 12,
+        record = [traces]
+    )
+    min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~3945
+
+    pt = pigeons(
+        target = unbalanced_target,
+        explorer = AutoMALA(preconditioner = Pigeons.MixDiagonalPreconditioner()),
+        n_chains = 1,
+        n_rounds = 12,
+        record = [traces]
+    )
+    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~492
+
+    @test min_ess_id < min_ess_mixdiag < min_ess_diag
+end

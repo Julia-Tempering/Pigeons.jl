@@ -16,7 +16,8 @@ struct IdentityPreconditioner <: Preconditioner end
 """ 
 $SIGNATURES
 
-Constructs a diagonal preconditioner using the samples from the previous round.
+Constructs a diagonal preconditioner using the estimated precisions of the samples 
+from the previous round.
 """
 struct DiagonalPreconditioner <: Preconditioner end
 
@@ -36,10 +37,11 @@ adapt_preconditioner(::Preconditioner, args...) = nothing
 adapt_preconditioner(::AdaptedDiagonalPreconditioner, reduced_recorders) =
     sqrt.(get_transformed_statistic(reduced_recorders, :singleton_variable, Variance))
 
-init_preconditioner!(dest, ::Preconditioner, args...) = fill!(dest, one(eltype(dest)))
-init_preconditioner!(dest, ::DiagonalPreconditioner, rng, std_devs::Vector) = 
-    copyto!(dest, std_devs)
-function init_preconditioner!(dest, ::MixDiagonalPreconditioner, rng, std_devs::Vector)
+build_preconditioner!(dest, ::Preconditioner, args...) = fill!(dest, one(eltype(dest)))
+function build_preconditioner!(dest, ::DiagonalPreconditioner, rng, std_devs::Vector)
+    dest .= inv.(std_devs)
+end
+function build_preconditioner!(dest, ::MixDiagonalPreconditioner, rng, std_devs::Vector)
     mix   = rand(rng)
-    dest .= mix .* one(mix) .+ (one(mix) - mix) .* std_devs
+    dest .= mix .* one(mix) .+ (one(mix) - mix) ./ std_devs
 end
