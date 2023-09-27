@@ -1,15 +1,15 @@
 data {
   int <lower=0> J; // number of schools
   array[J] real y; // estimated treatment
-  array[J] real<lower=0>; // std of estimated effect
+  array[J] real<lower=0> sigma; // std of estimated effect
 }
 parameters {
-  array[J] real theta_trans; // transformation of theta
+  vector[J] theta_trans; // transformation of theta
   real mu; // hyper-parameter of mean
   real<lower=0> tau; // hyper-parameter of sd
 }
 transformed parameters{
-  array[J] real theta;
+  vector[J] theta;
   // original theta
   theta=theta_trans*tau+mu;
 }

@@ -1,5 +1,5 @@
 data {
-  int <lower=0> J; // number of schools
+  int<lower=0> J; // number of schools
   array[J] real y; // estimated treatment
   array[J] real<lower=0> sigma; // std of estimated effect
 }
