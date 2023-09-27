@@ -57,39 +57,17 @@ Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
 end
 
 function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempering)
-    if explorer.adapt_pre_conditioning
-        estimated_target_variances = get_transformed_statistic(reduced_recorders, :singleton_variable, Variance)
-        estimated_target_std_dev = sqrt.(estimated_target_variances)
-        inverse_mass_matrix = Diagonal(inv.(estimated_target_variances))
-    else
-        estimated_target_std_dev = inverse_mass_matrix = nothing
-    end
-    # todo: adapt ϵ and L 
+    estimated_target_std_deviations = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
+    # TODO: adapt ϵ and K
     return AAPS(
-        explorer.ϵ, explorer.K, explorer.default_autodiff_backend, 
-        explorer.adapt_pre_conditioning, estimated_target_std_dev,
-        inverse_mass_matrix
+        explorer.ϵ, explorer.K, explorer.default_autodiff_backend,
+        explorer.preconditioner, estimated_target_std_deviations
     )
 end
 
-step!(explorer::AAPS, replica, shared) = 
-    step!(explorer, replica, shared, replica.state)
-
-step!(explorer::AAPS, replica, shared, state::StanState) = 
-    step!(explorer, replica, shared, state.unconstrained_parameters)
-
-function step!(explorer::AAPS, replica, shared, state::AbstractVector)
-    log_potential = find_log_potential(replica, shared.tempering, shared)
-    _extract_commons_and_run_aaps!(explorer, replica, shared, log_potential, state)
-end
-
-function step!(explorer::AAPS, replica, shared, vi::DynamicPPL.TypedVarInfo)
-    log_potential = find_log_potential(replica, shared.tempering, shared)
-    state = DynamicPPL.getall(vi)
-    _extract_commons_and_run_aaps!(explorer, replica, shared, log_potential, state)
-    DynamicPPL.setall!(replica.state, state)
-end
-
+#=
+Extract info common to all types of target and perform a step!()
+=#
 function _extract_commons_and_run_aaps!(explorer::AAPS, replica, shared, log_potential, state::AbstractVector)
     log_potential_autodiff = ADgradient(
         explorer.default_autodiff_backend, log_potential, replica.recorders.buffers
@@ -115,14 +93,20 @@ function aaps!(
     state::Vector,
     recorders,
     chain)
-    dim   = length(state)
-    r     = get_buffer(recorders.buffers, :aaps_momentum_buffer, dim)
+    # get buffers
+    dim          = length(state)
+    r            = get_buffer(recorders.buffers, :aaps_momentum_buffer, dim)
+    rtemp        = get_buffer(recorders.buffers, :aaps_temp_momentum_buffer, dim)
+    diag_precond = get_buffer(recorders.buffers, :aaps_diag_precond, dim)
+
+    # initialization
     randn!(rng, r)
-    lp0   = log_joint(target_log_potential, state, r)
-    rtemp = copy(r)
-    estimated_target_std_dev = get_buffer(recorders.buffers, :aaps_ones_buffer, dim)
-    estimated_target_std_dev .= 1.0
-    # todo: generalize
+    init_joint_log = log_joint(target_log_potential, state, r)
+    build_preconditioner!(
+        diag_precond, explorer.preconditioner, rng, explorer.estimated_target_std_deviations
+    )
+
+    # TODO: generalize
     #= 
     Sample the original segment by expanding out forward/backward. 
     Some notes on notation:
@@ -134,9 +118,11 @@ function aaps!(
     θmax: the parameter value at Wmax.
     rmax: the momentum at Wmax.
     =#
-    θfwd, rfwd, Wmaxf, θmaxf, rmaxf = sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng, estimated_target_std_dev)
+    θfwd, rfwd, Wmaxf, θmaxf, rmaxf = sample_segment(
+        explorer, state, rtemp, init_joint_log, target_log_potential, rng, diag_precond
+    )
     rtemp = -copy(r) # change momentum direction to move backwards
-    θbwd, rbwd, Wmaxb, θmaxb, rmaxb = sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng, estimated_target_std_dev)
+    θbwd, rbwd, Wmaxb, θmaxb, rmaxb = sample_segment(explorer, state, rtemp, init_joint_log, target_log_potential, rng, diag_precond)
 
     if Wmaxf > Wmaxb # forward move has been accepted in proposal
         θmax = θmaxf
@@ -160,13 +146,13 @@ function aaps!(
             state = θfwd
             rtemp = rfwd
             θfwd, rfwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng, estimated_target_std_dev)
+                sample_segment(explorer, state, rtemp, init_joint_log, target_log_potential, rng, diag_precond)
         else  
             # extend the backward trajectory
             state = θbwd
             rtemp = rbwd
             θbwd, rbwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, lp0, target_log_potential, rng, estimated_target_std_dev)
+                sample_segment(explorer, state, rtemp, init_joint_log, target_log_potential, rng, diag_precond)
         end
         if Wmax_2 > Wmax
             θmax = θmax_2
@@ -186,10 +172,10 @@ function sample_segment(
     explorer::AAPS,
     state::Vector,
     r::Vector,
-    lp0::Float64,
+    init_joint_log::Float64,
     target_log_potential, 
     rng::AbstractRNG, 
-    estimated_target_std_dev::Vector)
+    diag_precond::Vector)
     θ0    = copy(state)
     rtemp = copy(r)
     θmax  = copy(state)
@@ -203,7 +189,7 @@ function sample_segment(
     while true
         leap_frog!(
             target_log_potential, 
-            estimated_target_std_dev, 
+            diag_precond, 
             state, rtemp, explorer.ϵ 
         )
         _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
@@ -231,8 +217,6 @@ end
 
 function explorer_recorder_builders(explorer::AAPS)
     result = [explorer_acceptance_pr, explorer_n_steps, buffers]
-    if explorer.adapt_pre_conditioning 
-        push!(result, _transformed_online) # mass matrix adaptation
-    end
+    add_precond_recorder_if_needed!(results, explorer)
     return result
 end

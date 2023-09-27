@@ -73,28 +73,6 @@ function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_t
                 estimated_target_std_deviations)
 end
 
-function step!(explorer::AutoMALA, replica, shared)
-    step!(explorer, replica, shared, replica.state)
-end
-
-### Dispatch on state for the behaviours for the different targets ###
-
-    step!(explorer::AutoMALA, replica, shared, state::StanState) = 
-        step!(explorer, replica, shared, state.unconstrained_parameters)
-
-
-    function step!(explorer::AutoMALA, replica, shared, state::AbstractVector)
-        log_potential = find_log_potential(replica, shared.tempering, shared)
-        _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
-    end
-
-    function step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
-        log_potential = find_log_potential(replica, shared.tempering, shared)
-        state = DynamicPPL.getall(vi)
-        _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
-        DynamicPPL.setall!(replica.state, state)
-    end
-
 #=
 Extract info common to all types of target and perform a step!()
 =#
@@ -298,8 +276,6 @@ function explorer_recorder_builders(explorer::AutoMALA)
         am_factors,
         buffers
     ]
-    if explorer.preconditioner isa AdaptedDiagonalPreconditioner
-        push!(result, _transformed_online) # for mass matrix adaptation
-    end
+    add_precond_recorder_if_needed!(results, explorer)
     return result
 end
