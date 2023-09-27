@@ -14,6 +14,7 @@ using Statistics
 using Test
 using ForwardDiff
 using LogDensityProblems
+using LogDensityProblems
 using LogDensityProblemsAD
 using DynamicPPL
 using BridgeStan

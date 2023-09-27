@@ -1,6 +1,9 @@
 """
+"""
 $SIGNATURES
 
+The Metropolis-Adjusted Langevin Algorithm with
+automatic step size selection.
 The Metropolis-Adjusted Langevin Algorithm with
 automatic step size selection.
 
@@ -9,14 +12,25 @@ grown until the acceptance rate is in a reasonable range. A reversibility
 check ensures that the move is reversible with respect to the target.
 The process is started at `step_size`, which at the end of each
 round is set to the average exponent used across all chains.
+Briefly, at each iteration, the step size is exponentially shrunk or
+grown until the acceptance rate is in a reasonable range. A reversibility
+check ensures that the move is reversible with respect to the target.
+The process is started at `step_size`, which at the end of each
+round is set to the average exponent used across all chains.
 
+The number of steps per exploration is set to
+`base_n_refresh * ceil(Int, dim^exponent_n_refresh)`.
 The number of steps per exploration is set to
 `base_n_refresh * ceil(Int, dim^exponent_n_refresh)`.
 
 At each round, an empirical diagonal marginal standard deviation matrix is estimated. At each step,
 a random interpolation between the identity and the estimated standard deviation is used to
 condition the problem.
+At each round, an empirical diagonal marginal standard deviation matrix is estimated. At each step,
+a random interpolation between the identity and the estimated standard deviation is used to
+condition the problem.
 
+In normal circumstance, there should not be a need for tuning,
 In normal circumstance, there should not be a need for tuning,
 however the following optional keyword parameters are available:
 $FIELDS
@@ -25,9 +39,13 @@ $FIELDS
     """
     The base number of steps (equivalently, momentum refreshments) between swaps.
     This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`.
+    This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`.
     """
     base_n_refresh::Int = 3
+    base_n_refresh::Int = 3
 
+    """
+    Used to scale the increase in number of refreshment with dimensionality.
     """
     Used to scale the increase in number of refreshment with dimensionality.
     """
@@ -35,14 +53,21 @@ $FIELDS
 
     """
     The default backend to use for autodiff.
+    exponent_n_refresh::Float64 = 0.35
+
+    """
+    The default backend to use for autodiff.
     See https://github.com/tpapp/LogDensityProblemsAD.jl#backends
 
+    Certain targets may ignore it, e.g. if a manual differential is
     Certain targets may ignore it, e.g. if a manual differential is
     offered or when calling an external program such as Stan.
     """
     default_autodiff_backend::Symbol = :ForwardDiff
 
     """
+    Starting point for the automatic step size algorithm.
+    Gets updated automatically between each round.
     Starting point for the automatic step size algorithm.
     Gets updated automatically between each round.
     """
@@ -67,6 +92,7 @@ function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_t
     # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
     updated_step_size = explorer.step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
     return AutoMALA(
+                explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend,
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend,
                 updated_step_size,
                 explorer.preconditioner,
@@ -93,19 +119,28 @@ Extract info common to all types of target and perform a step!()
 function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared, log_potential, state::AbstractVector)
 
     log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)
+function _extract_commons_and_run_auto_mala!(explorer::AutoMALA, replica, shared, log_potential, state::AbstractVector)
+
+    log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)
     is_first_scan_of_round = shared.iterators.scan == 1
 
     auto_mala!(
         replica.rng,
         explorer,
+        explorer,
         log_potential_autodiff,
+        state,
+        replica.recorders,
         state,
         replica.recorders,
         replica.chain,
         # In the transient phase, the rejection rate for the
         # reversibility check can be high, so skip accept-rejct
+        # In the transient phase, the rejection rate for the
+        # reversibility check can be high, so skip accept-rejct
         # for the initial scan of each round.
         # We only do this on the first scan of each round.
+        # Since the number of iterations per round increases,
         # Since the number of iterations per round increases,
         # the fraction of time we do this decreases to zero.
         !is_first_scan_of_round
@@ -114,6 +149,10 @@ end
 
 function auto_mala!(
         rng::AbstractRNG,
+        explorer::AutoMALA,
+        target_log_potential,
+        state::Vector,
+        recorders,
         explorer::AutoMALA,
         target_log_potential,
         state::Vector,
@@ -131,17 +170,21 @@ function auto_mala!(
     n_refresh = explorer.base_n_refresh * ceil(Int, dim^explorer.exponent_n_refresh)
     for i in 1:n_refresh
         start_state .= state
+        start_state .= state
         randn!(rng, momentum)
         init_joint_log = log_joint(target_log_potential, state, momentum)
         @assert isfinite(init_joint_log) "AutoMALA can only be called on a configuration of positive density."
 
         # Randomly pick a "reasonable" range of MH accept probabilities (in log-scale)
         # We do this to preserve the same irreducibility structure on the augmented space (x, v)
+        # We do this to preserve the same irreducibility structure on the augmented space (x, v)
         # as standard MALA.
         a = rand(rng)
         b = rand(rng)
         lower_bound = log(min(a, b))
         upper_bound = log(max(a, b))
+
+        proposed_exponent =
 
         proposed_exponent =
             auto_step_size(
@@ -160,7 +203,10 @@ function auto_mala!(
         )
 
         if use_mh_accept_reject
+        if use_mh_accept_reject
             # flip
+            momentum .*= -1.0
+            reversed_exponent =
             momentum .*= -1.0
             reversed_exponent =
                 auto_step_size(
@@ -171,16 +217,22 @@ function auto_mala!(
                     explorer.step_size, lower_bound, upper_bound)
             probability =
                 if reversed_exponent == proposed_exponent
+            probability =
+                if reversed_exponent == proposed_exponent
                     final_joint_log = log_joint(target_log_potential, state, momentum)
                     min(1.0, exp(final_joint_log - init_joint_log))
+                    min(1.0, exp(final_joint_log - init_joint_log))
                 else
+                    0.0
                     0.0
                 end
             @record_if_requested!(recorders, :explorer_acceptance_pr, (chain, probability))
             if rand(rng) < probability
+            if rand(rng) < probability
                 # accept: nothing to do, we work in-place
             else
                 # reject: go back to start state
+                state .= start_state
                 state .= start_state
                 # no need to reset momentum as it will get resampled at beginning of the loop
             end
@@ -199,11 +251,14 @@ function auto_step_size(
     @assert lower_bound < upper_bound
 
     log_joint_difference =
+
+    log_joint_difference =
         log_joint_difference_function(
             target_log_potential,
             diag_precond,
             state, momentum,
             recorders)
+    initial_difference = log_joint_difference(step_size)
     initial_difference = log_joint_difference(step_size)
 
     n_steps, exponent =
@@ -217,12 +272,17 @@ function auto_step_size(
 
     @record_if_requested!(recorders, :explorer_n_steps, (chain, 1+n_steps))
     @record_if_requested!(recorders, :am_factors, (chain, 2.0^exponent))
+
+    @record_if_requested!(recorders, :explorer_n_steps, (chain, 1+n_steps))
+    @record_if_requested!(recorders, :am_factors, (chain, 2.0^exponent))
     return exponent
 end
 
 function grow_step_size(log_joint_difference, step_size, upper_bound)
+function grow_step_size(log_joint_difference, step_size, upper_bound)
     n = 1
     while true
+        step_size *= 2.0
         step_size *= 2.0
         diff = log_joint_difference(step_size)
         if !isfinite(diff) || diff < upper_bound
@@ -243,10 +303,20 @@ function shrink_step_size(log_joint_difference, step_size, lower_bound)
         finite when we start this loop: indeed, when the step
         size is too big, we may have to shrink several times
         until we get to a scale giving a finite evaluation.
+        step_size /= 2.0
+        diff = log_joint_difference(step_size)
+        #=
+        Note that shrink is a bit different than grow.
+        We do not assume here that the diff is necessarily
+        finite when we start this loop: indeed, when the step
+        size is too big, we may have to shrink several times
+        until we get to a scale giving a finite evaluation.
         =#
+        if step_size == 0.0
         if step_size == 0.0
             error("Could not find a positive step size with diff > $lower_bound")
         end
+        if diff > lower_bound
         if diff > lower_bound
             return n, -n
         end
@@ -264,6 +334,7 @@ function log_joint_difference_function(
 
     state_before = get_buffer(recorders.buffers, :am_ljdf_state_before_buffer, dim)
     state_before .= state
+    state_before .= state
 
     momentum_before = get_buffer(recorders.buffers, :am_ljdf_momentum_before_buffer, dim)
     momentum_before .= momentum
@@ -275,6 +346,7 @@ function log_joint_difference_function(
             state, momentum, step_size)
         h_after = log_joint(target_log_potential, state, momentum)
         state .= state_before
+        state .= state_before
         momentum .= momentum_before
         return h_after - h_before
     end
@@ -285,6 +357,7 @@ am_factors() = GroupBy(Int, Mean())
 
 function explorer_recorder_builders(explorer::AutoMALA)
     result = [
+        explorer_acceptance_pr,
         explorer_acceptance_pr,
         explorer_n_steps,
         am_factors,
