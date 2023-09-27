@@ -229,6 +229,6 @@ end
 
 function explorer_recorder_builders(explorer::AAPS)
     result = [explorer_acceptance_pr, explorer_n_steps, buffers]
-    add_precond_recorder_if_needed!(results, explorer)
+    add_precond_recorder_if_needed!(result, explorer)
     return result
 end

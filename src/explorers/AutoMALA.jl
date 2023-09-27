@@ -73,6 +73,11 @@ function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_t
                 estimated_target_std_deviations)
 end
 
+function step!(explorer::AutoMALA, replica, shared, state::AbstractVector)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
+    _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
+end
+
 #=
 Extract info common to all types of target and perform a step!()
 =#

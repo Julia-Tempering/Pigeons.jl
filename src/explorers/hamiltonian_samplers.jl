@@ -12,7 +12,7 @@ step!(explorer::HamiltonianSampler, replica, shared) =
 step!(explorer::HamiltonianSampler, replica, shared, state::StanState) = 
     step!(explorer, replica, shared, state.unconstrained_parameters)
 
-function step!(explorer::HamiltonianSampler, replica, shared, state::AbstractVector)
+function step!(explorer::AAPS, replica, shared, state::AbstractVector)
     log_potential = find_log_potential(replica, shared.tempering, shared)
     _extract_commons_and_run_aaps!(explorer, replica, shared, log_potential, state)
 end
