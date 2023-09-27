@@ -2,7 +2,7 @@
 Methods common to all Hamiltonian-based samplers
 =#
 
-const HamiltonianSampler = Union{AutoMALA, AAPS}
+const HamiltonianSampler = Union{MALA, AutoMALA, AAPS}
 
 ### Dispatch on state for the behaviours for the different targets ###
 
