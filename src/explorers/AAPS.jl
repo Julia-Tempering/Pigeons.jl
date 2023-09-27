@@ -1,18 +1,6 @@
 ###############################################################################
 # The Pigeons implementation of AAPS is based on code by 
 # Naitong Chen and Trevor Campbell (2023). Reused with their permission.
-# Note:
-# y(x) := M^{-1/2}x => x(y) = M^{1/2}y
-# x ~ p_x => p_y(y) = p_x(M^{1/2}y) |detM|^{1/2} propto p_x(M^{1/2}y) 
-# => grad{log p_y}(y) = M^{1/2} grad(log p_x)(M^{1/2}y) 
-# for p ~ N(0,M), the leapfrog is
-#   p*(x,p)   = p + (eps/2)grad(x)
-#   x'(x,p*)  = x + epsM^{-1}p*
-#   p'(x',p*) = p* + (eps/2)grad(x')
-# if y = M^{-1/2}p => y ~ N(0,I) and p = M^{1/2}y.
-#   y*(x,y)   = M^{1/2}y + (eps/2)grad(x)
-#   x'(x,y*)  = x + epsM^{-1}y*
-#   y'(x',y*) = y* + (eps/2)grad(x')
 ###############################################################################
 
 """ 
@@ -32,7 +20,7 @@ Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
     """ 
     Leapfrog step size.
     """
-    ϵ::Float64 = 1.0
+    step_size::Float64 = 1.0
 
     """  
     Maximum number of segments (regions between apogees) to explore.
@@ -58,9 +46,9 @@ end
 
 function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempering)
     estimated_target_std_deviations = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
-    # TODO: adapt ϵ and K
+    # TODO: adapt step_size and K
     return AAPS(
-        explorer.ϵ, explorer.K, explorer.default_autodiff_backend,
+        explorer.step_size, explorer.K, explorer.default_autodiff_backend,
         explorer.preconditioner, estimated_target_std_deviations
     )
 end
@@ -86,24 +74,18 @@ struct AAPSState{TV<:Vector{<:Real}}
     position::TV
     velocity::TV
     max_position::TV
-    log_joint::TV
-    wmax::TV
 end
 
 function get_fwd_bwd_states(buffers, dim)
     fwd_state = AAPSState(
         get_buffer(buffers, :aaps_fwd_position_buffer, dim),
         get_buffer(buffers, :aaps_fwd_velocity_buffer, dim),
-        get_buffer(buffers, :aaps_fwd_max_position_buffer, dim),
-        get_buffer(buffers, :aaps_fwd_log_joint_buffer, 1),
-        get_buffer(buffers, :aaps_fwd_wmax_buffer, 1),
+        get_buffer(buffers, :aaps_fwd_max_position_buffer, dim)
     )
     bwd_state = AAPSState(
         get_buffer(buffers, :aaps_bwd_position_buffer, dim),
         get_buffer(buffers, :aaps_bwd_velocity_buffer, dim),
-        get_buffer(buffers, :aaps_bwd_max_position_buffer, dim),
-        get_buffer(buffers, :aaps_bwd_log_joint_buffer, 1),
-        get_buffer(buffers, :aaps_bwd_wmax_buffer, 1),
+        get_buffer(buffers, :aaps_bwd_max_position_buffer, dim)
     )
     fwd_state, bwd_state    
 end
@@ -130,102 +112,86 @@ function aaps!(
         diag_precond, explorer.preconditioner, rng, explorer.estimated_target_std_deviations
     )
     copyto!(fwd_state.position, position)
-    copyto!(bwd_state.position, position)
-    randn!(rng, fwd_state.velocity) # sample velocity ~ N(0,I) <=> sample momentum ~ N(0,diag_precond^2)
+    copyto!(bwd_state.position, position) # start bwd at same position -> requires skipping
+    randn!(rng, fwd_state.velocity)       # sample velocity ~ N(0,I) <=> sample momentum ~ N(0,diag_precond^2)
     bwd_state.velocity .= -1 .* fwd_state.velocity
-    init_log_joint = log_joint(target_log_potential, fwd_state.position, fwd_state.velocity)
-    fwd_state.log_joint[1] = bwd_state.log_joint[1] = init_log_joint
 
     # find the initial segment by moving forward and backward
-    sample_segment!(explorer, fwd_state, target_log_potential, rng, diag_precond)
-    sample_segment!(explorer, bwd_state, target_log_potential, rng, diag_precond)
+    fwd_wmax = sample_segment!(explorer, fwd_state, target_log_potential, rng, diag_precond)
+    bwd_wmax = sample_segment!(explorer, bwd_state, target_log_potential, rng, diag_precond, skip_first=true) # avoids double counting initial state
 
     # update the Gumbel-max-trick decision
-    if fwd_state.wmax > bwd_state.wmax
-        wmax = fwd_state.wmax
-        copyto!(position, fwd_state.position)
+    if fwd_wmax > bwd_wmax
+        wmax = fwd_wmax
+        copyto!(position, fwd_state.max_position)
     else
-        wmax = bwd_state.wmax
-        copyto!(position, bwd_state.position)
+        wmax = bwd_wmax
+        copyto!(position, bwd_state.max_position)
     end
-
 
     # sample segments by continuing from the previous endpoints
     # note that K+1 segments are sampled in total, as in the original AAPS implementation
     # see https://github.com/ChrisGSherlock/AAPS/blob/c48c59d81031745cf08b6b3d3d9ad53287bf3b34/AAPS.cpp#L311
-    for _ in 1:explorer.K
-        if rand(rng, Bool)
-            # extend the forward trajectory
-            # (avoids specifying in advance how many times we move forward/backward)
-            state = θfwd
-            rtemp = rfwd
-            θfwd, rfwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, init_log_joint, target_log_potential, rng, diag_precond)
-        else  
-            # extend the backward trajectory
-            state = θbwd
-            rtemp = rbwd
-            θbwd, rbwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, init_log_joint, target_log_potential, rng, diag_precond)
+    for _ in 1:explorer.K 
+        if rand(rng, Bool) # extend forward trajectory. avoids specifying in advance how many times we move forward/backward
+            fwd_wmax = sample_segment!(explorer, fwd_state, target_log_potential, rng, diag_precond)
+            if fwd_wmax > wmax
+                wmax = fwd_wmax
+                copyto!(position, fwd_state.max_position)
+            end
+        else
+            bwd_wmax = sample_segment!(explorer, bwd_state, target_log_potential, rng, diag_precond)
+            if bwd_wmax > wmax
+                wmax = bwd_wmax
+                copyto!(position, bwd_state.max_position)
+            end
         end
-        if Wmax_2 > Wmax
-            θmax = θmax_2
-            rmax = rmax_2
-            Wmax = Wmax_2
-        end
-    end  
-    # set the final state and update step size
-    state = copy(θmax)
-    r = copy(rmax)
+    end
+    # w(z,z') = exp(log_joint) => proposal always accepted
+    # no need to update position, we work in place
+    # TODO: accept/reject if other proposal is used
 end
 
 """ 
 Sample a segment of the trajectory until an apogee is reached. 
 """
-function sample_segment(
+function sample_segment!(
     explorer::AAPS,
     state::AAPSState,
     target_log_potential, 
     rng::AbstractRNG, 
-    diag_precond::Vector)
-    θ0    = copy(state)
-    rtemp = copy(r)
-    θmax  = copy(state)
-    rmax  = copy(r)
-    _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
-    lp    = init_log_joint
-    Wmax  = lp + rand(rng, Gumbel()) # todo: why do we repeat this calculation?
-  
+    diag_precond::Vector;
+    skip_first::Bool = false # avoid double counting starting state. same as try0 in https://github.com/ChrisGSherlock/AAPS/blob/c48c59d81031745cf08b6b3d3d9ad53287bf3b34/AAPS.cpp#L268
+    )
+    logp, cgrad = conditioned_target_gradient(target_log_potential, state.position, diag_precond)
+    copyto!(state.max_position, state.position)  # reset max to the current position
+    if skip_first
+        ljoint = wmax = -typeof(logp)(Inf)
+    else
+        ljoint = log_joint(logp, state.velocity)
+        wmax   = ljoint + rand(rng, Gumbel())
+    end
+
     # propagate forward, checking for apogee, tracking stats, keeping track of next state using gumbel-max trick
-    s0 = sign(dot(rtemp, -g0))
+    # note: since M is sym ⟹ p^T M^{-1} gradU = (M^{1/2}v)^T M^{-1} gradU = v^T M^{-1/2} gradU = -v^T cgrad
+    # hence, p^T M^{-1} gradU > 0 ⟺ v^T cgrad < 0, and viceversa
+    old_sign = sign(dot(state.velocity, cgrad))
     while true
         leap_frog!(
-            target_log_potential, 
-            diag_precond, 
-            state, rtemp, explorer.ϵ 
-        )
-        _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
-        s = sign(dot(rtemp, -g0))
-        if s != s0
-            break # TODO: This seems to define a segment as a place where the sign changes 
-            # i.e., either a local minimum or maximum. 
-            # However, the "apogee" in AAPS clearly indicates that we should only 
-            # define new segments when we reach a maximum.
-        end
-        lp = log_joint(target_log_potential, state, rtemp)
-        W = lp + rand(rng, Gumbel())
-        if W > Wmax
-            Wmax = W
-            θmax = state
-            rmax = rtemp
+            target_log_potential, diag_precond, state.position, state.velocity,
+            explorer.step_size)
+        logp, cgrad = conditioned_target_gradient(target_log_potential, state.position, diag_precond)
+        new_sign    = sign(dot(state.velocity, cgrad))
+        old_sign < 0 && new_sign > 0 && return wmax
+        old_sign    = new_sign
+        ljoint      = log_joint(logp, state.velocity)
+        w           = ljoint + rand(rng, Gumbel())
+        if w > wmax
+            wmax = w
+            copyto!(state.max_position, state.position)
         end
     end
-    θfwd, rfwd = copy(state), copy(rtemp)
-    state = θ0
-    
-    return θfwd, rfwd, Wmax, θmax, rmax
 end
-
 
 function explorer_recorder_builders(explorer::AAPS)
     result = [explorer_acceptance_pr, explorer_n_steps, buffers]

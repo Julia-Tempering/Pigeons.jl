@@ -1,11 +1,15 @@
-using Pigeons 
+include("supporting/HetPrecisionNormalLogPotential.jl")
+using MCMCChains
 
-pt = pigeons(
-    target = toy_mvn_target(10), 
-    explorer = AAPS(), 
-    n_chains = 1, 
-    n_rounds = 4, 
-    record = [traces]
-)
+aaps(target, preconditioner) =
+    pigeons(; 
+        target, 
+        explorer = AAPS(preconditioner = preconditioner), 
+        n_chains = 1, n_rounds = 12, record = [traces])
 
-samples = get_sample(pt)
+@testset "AAPS" begin
+    rng = SplittableRandom(1)
+    target = HetPrecisionNormalLogPotential(ones(10))
+    pt = aaps(target, Pigeons.IdentityPreconditioner())
+    @show min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess)
+end
