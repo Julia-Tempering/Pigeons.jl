@@ -28,7 +28,7 @@ backward trajectories. The trajectories are divided into segments, with
 segments being separated by apogees (local maxima) in the energy landscape 
 of -log pi(x). The tuning parameter `K` defines the number of segments to explore. 
 """
-Base.@kwdef struct AAPS{T,D}
+Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
     """ 
     Leapfrog step size.
     """
@@ -45,20 +45,15 @@ Base.@kwdef struct AAPS{T,D}
     default_autodiff_backend::Symbol = :ForwardDiff 
 
     """ 
-    See details in AutoMALA.
+    A strategy for building a preconditioner.
     """
-    adapt_pre_conditioning::Bool = true
+    preconditioner::TPrec = MixDiagonalPreconditioner()
 
-    """ 
-    See details in AutoMALA. 
+    """
+    This gets updated after first iteration; initially `nothing` in 
+    which case an identity mass matrix is used.
     """
     estimated_target_std_deviations::T = nothing
-
-    """ 
-    Cache for the inverse of the mass matrix. 
-    """
-    inverse_mass_matrix::D = nothing
-    # todo: at the moment, this matrix does nothing .. 
 end
 
 function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempering)
