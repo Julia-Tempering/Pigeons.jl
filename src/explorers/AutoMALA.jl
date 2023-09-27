@@ -281,6 +281,6 @@ function explorer_recorder_builders(explorer::AutoMALA)
         am_factors,
         buffers
     ]
-    add_precond_recorder_if_needed!(results, explorer)
+    add_precond_recorder_if_needed!(result, explorer)
     return result
 end
