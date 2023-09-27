@@ -82,6 +82,32 @@ function _extract_commons_and_run_aaps!(explorer::AAPS, replica, shared, log_pot
     )
 end
 
+struct AAPSState{TV<:Vector{<:Real}}
+    position::TV
+    velocity::TV
+    max_position::TV
+    log_joint::TV
+    wmax::TV
+end
+
+function get_fwd_bwd_states(buffers, dim)
+    fwd_state = AAPSState(
+        get_buffer(buffers, :aaps_fwd_position_buffer, dim),
+        get_buffer(buffers, :aaps_fwd_velocity_buffer, dim),
+        get_buffer(buffers, :aaps_fwd_max_position_buffer, dim),
+        get_buffer(buffers, :aaps_fwd_log_joint_buffer, 1),
+        get_buffer(buffers, :aaps_fwd_wmax_buffer, 1),
+    )
+    bwd_state = AAPSState(
+        get_buffer(buffers, :aaps_bwd_position_buffer, dim),
+        get_buffer(buffers, :aaps_bwd_velocity_buffer, dim),
+        get_buffer(buffers, :aaps_bwd_max_position_buffer, dim),
+        get_buffer(buffers, :aaps_bwd_log_joint_buffer, 1),
+        get_buffer(buffers, :aaps_bwd_wmax_buffer, 1),
+    )
+    fwd_state, bwd_state    
+end
+
 """ 
 Main function for AAPS. Note that this implementation uses scheme (1) 
 from the AAPS paper, which results in an acceptance probability of one.
@@ -90,69 +116,57 @@ function aaps!(
     rng::AbstractRNG,
     explorer::AAPS,
     target_log_potential,
-    state::Vector,
+    position::Vector,
     recorders,
     chain)
-    # get buffers
-    dim          = length(state)
-    r            = get_buffer(recorders.buffers, :aaps_momentum_buffer, dim)
-    rtemp        = get_buffer(recorders.buffers, :aaps_temp_momentum_buffer, dim)
-    diag_precond = get_buffer(recorders.buffers, :aaps_diag_precond, dim)
 
-    # initialization
-    randn!(rng, r)
-    init_joint_log = log_joint(target_log_potential, state, r)
+    # get buffers
+    dim = length(position)
+    diag_precond = get_buffer(recorders.buffers, :am_ones_buffer, dim)
+    fwd_state, bwd_state = get_fwd_bwd_states(recorders.buffers, dim)
+
+    # initialize
     build_preconditioner!(
         diag_precond, explorer.preconditioner, rng, explorer.estimated_target_std_deviations
     )
+    copyto!(fwd_state.position, position)
+    copyto!(bwd_state.position, position)
+    randn!(rng, fwd_state.velocity) # sample velocity ~ N(0,I) <=> sample momentum ~ N(0,diag_precond^2)
+    bwd_state.velocity .= -1 .* fwd_state.velocity
+    init_log_joint = log_joint(target_log_potential, fwd_state.position, fwd_state.velocity)
+    fwd_state.log_joint[1] = bwd_state.log_joint[1] = init_log_joint
 
-    # TODO: generalize
-    #= 
-    Sample the original segment by expanding out forward/backward. 
-    Some notes on notation:
-    θ: parameter states (in Pigeons vocabulary this is just `state`.) 
-       Last position of the state in the segment (forward or backward).
-    r: momentum. Last position of the momentum in the segment. 
-    Wmax: use of Gumbel-max trick. At Wmax, θmax represents the state that should be 
-       selected according to the chosen weighting function.
-    θmax: the parameter value at Wmax.
-    rmax: the momentum at Wmax.
-    =#
-    θfwd, rfwd, Wmaxf, θmaxf, rmaxf = sample_segment(
-        explorer, state, rtemp, init_joint_log, target_log_potential, rng, diag_precond
-    )
-    rtemp = -copy(r) # change momentum direction to move backwards
-    θbwd, rbwd, Wmaxb, θmaxb, rmaxb = sample_segment(explorer, state, rtemp, init_joint_log, target_log_potential, rng, diag_precond)
+    # find the initial segment by moving forward and backward
+    sample_segment!(explorer, fwd_state, target_log_potential, rng, diag_precond)
+    sample_segment!(explorer, bwd_state, target_log_potential, rng, diag_precond)
 
-    if Wmaxf > Wmaxb # forward move has been accepted in proposal
-        θmax = θmaxf
-        rmax = rmaxf
-        Wmax = Wmaxf
-    else # backward move 
-        θmax = θmaxb
-        rmax = rmaxb
-        Wmax = Wmaxb
+    # update the Gumbel-max-trick decision
+    if fwd_state.wmax > bwd_state.wmax
+        wmax = fwd_state.wmax
+        copyto!(position, fwd_state.position)
+    else
+        wmax = bwd_state.wmax
+        copyto!(position, bwd_state.position)
     end
-  
-    # sample subsequent segments by continuing from the previous endpoints
-    for _ in 1:(explorer.K-1)
-        if isnan(explorer.ϵ)
-            error("aaps!: step size is NaN, try reducing Δ") # todo
-        end
 
+
+    # sample segments by continuing from the previous endpoints
+    # note that K+1 segments are sampled in total, as in the original AAPS implementation
+    # see https://github.com/ChrisGSherlock/AAPS/blob/c48c59d81031745cf08b6b3d3d9ad53287bf3b34/AAPS.cpp#L311
+    for _ in 1:explorer.K
         if rand(rng, Bool)
             # extend the forward trajectory
             # (avoids specifying in advance how many times we move forward/backward)
             state = θfwd
             rtemp = rfwd
             θfwd, rfwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, init_joint_log, target_log_potential, rng, diag_precond)
+                sample_segment(explorer, state, rtemp, init_log_joint, target_log_potential, rng, diag_precond)
         else  
             # extend the backward trajectory
             state = θbwd
             rtemp = rbwd
             θbwd, rbwd, Wmax_2, θmax_2, rmax_2 = 
-                sample_segment(explorer, state, rtemp, init_joint_log, target_log_potential, rng, diag_precond)
+                sample_segment(explorer, state, rtemp, init_log_joint, target_log_potential, rng, diag_precond)
         end
         if Wmax_2 > Wmax
             θmax = θmax_2
@@ -170,9 +184,7 @@ Sample a segment of the trajectory until an apogee is reached.
 """
 function sample_segment(
     explorer::AAPS,
-    state::Vector,
-    r::Vector,
-    init_joint_log::Float64,
+    state::AAPSState,
     target_log_potential, 
     rng::AbstractRNG, 
     diag_precond::Vector)
@@ -181,7 +193,7 @@ function sample_segment(
     θmax  = copy(state)
     rmax  = copy(r)
     _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
-    lp    = log_joint(target_log_potential, state, r)
+    lp    = init_log_joint
     Wmax  = lp + rand(rng, Gumbel()) # todo: why do we repeat this calculation?
   
     # propagate forward, checking for apogee, tracking stats, keeping track of next state using gumbel-max trick
@@ -195,7 +207,7 @@ function sample_segment(
         _, g0 = LogDensityProblems.logdensity_and_gradient(target_log_potential, state) 
         s = sign(dot(rtemp, -g0))
         if s != s0
-            break # todo: This seems to define a segment as a place where the sign changes 
+            break # TODO: This seems to define a segment as a place where the sign changes 
             # i.e., either a local minimum or maximum. 
             # However, the "apogee" in AAPS clearly indicates that we should only 
             # define new segments when we reach a maximum.
