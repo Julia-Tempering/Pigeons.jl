@@ -7,7 +7,7 @@ $SIGNATURES
 
 A multivariate normal implemented in Stan for testing/benchmarking.
 """
-Pigeons.@provides target Pigeons.toy_stan_target(dim::Int, precision = 10.0) =
+Pigeons.toy_stan_target(dim::Int, precision = 10.0) =
     StanLogPotential(
         stan_example_path("mvn.stan"),
         Pigeons.json(; dim, precision)
@@ -37,12 +37,6 @@ Pigeons.stan_banana(dim = 9) =
         json(; dim)
     )
 
-
-Pigeons.stan_bernoulli(y = [0,1,0,0,0,0,0,0,0,1]) =
-    StanLogPotential(
-        stan_example_path("bernoulli.stan"),
-        Pigeons.json(; y, N = length(y))
-    )
 
 observed_range_squared(x) = (maximum(x) - minimum(x))^2
 

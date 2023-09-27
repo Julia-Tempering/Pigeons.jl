@@ -24,6 +24,7 @@ function toy_stan_unid_target end
 function stan_funnel end
 function stan_bernoulli end
 function stan_eight_schools end
+function stan_banana end
 
 
 
