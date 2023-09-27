@@ -77,7 +77,7 @@ function Base.:(==)(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
     return true
 end
 
-Base.:(==)(a::TuringLogPotential, b::TuringLogPotential) = Pigeons.recursive_equal(a, b)
 # TODO: Fix type piracy
 Base.:(==)(a::DynamicPPL.Model, b::DynamicPPL.Model) = Pigeons.recursive_equal(a, b)
 Base.:(==)(a::DynamicPPL.ConditionContext, b::DynamicPPL.ConditionContext) = Pigeons.recursive_equal(a, b)
+Base.:(==)(a::TuringLogPotential, b::TuringLogPotential) = Pigeons.recursive_equal(a, b)
