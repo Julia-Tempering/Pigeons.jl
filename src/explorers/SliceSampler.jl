@@ -14,6 +14,9 @@ $FIELDS
 
     """ Number of passes through all variables per exploration step. """
     n_passes::Int = 3  
+
+    """ Maximum number of interations inside shrink_slice! before erroring out """
+    max_iter::Int = 4_096  
 end
 
 explorer_recorder_builders(::SliceSampler) = [explorer_acceptance_pr, explorer_n_steps]
@@ -147,15 +150,16 @@ function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: I
 end
 
 function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, log_potential)
-   
+    @assert isfinite(z)
     rng = replica.rng
     state = replica.state
     old_position = pointer[]
     Lbar = L
     Rbar = R
+    new_lp = zero(z) # init the variable new_lp so it lives outside the `while` scope
     n = 1
 
-    while true
+    while n <= h.max_iter
         new_position = draw_new_position(Lbar, Rbar, rng, typeof(pointer[]))
         pointer[] = new_position 
         new_lp = log_potential(state)
@@ -175,7 +179,12 @@ function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, l
     end
     # code should never get here, because eventually
     # shrinkage should produce an acceptable point
-    error()
+    error("""Maximum number of iterations $(h.max_iter) reached. Dumping info:
+            - Lbar   = $Lbar
+            - Rbar   = $Rbar
+            - new_lp = $new_lp
+            - z      = $z
+    """)
     return 0.0
 end
 

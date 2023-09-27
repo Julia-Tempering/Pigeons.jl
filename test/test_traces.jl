@@ -3,16 +3,12 @@ using MCMCChains
 @testset "Sample matrix" begin
 
     for use_two_chains in [true, false]
-        targets = [
-            Pigeons.toy_stan_target(3), 
-            Pigeons.toy_turing_target(3)
-        ]
-        if !use_two_chains 
-            push!(targets, toy_mvn_target(3))
-        end
+        targets = Any[Pigeons.toy_turing_target(3)]
+        use_two_chains || push!(targets, toy_mvn_target(3))
+        is_windows_in_CI() || push!(targets, Pigeons.toy_stan_target(3))
+
 
         for target in targets
-            
             pt = pigeons(; 
                     target, 
                     record = [traces],
@@ -31,7 +27,9 @@ using MCMCChains
 end
 
 @testset "Traces" begin
-    for target in [toy_mvn_target(10), toy_stan_target(10), Pigeons.toy_turing_target(10)]
+    targets = Any[toy_mvn_target(10), Pigeons.toy_turing_target(10)]
+    is_windows_in_CI() || push!(targets, toy_stan_target(10))
+    for target in targets
         r = pigeons(; 
                 target, 
                 record = [traces, disk, online], 

@@ -1,7 +1,7 @@
 name = "Pigeons"
 uuid = "0eb8d820-af6a-4919-95ae-11206f830c31"
 authors = ["Alexandre Bouchard-Côté <bouchard@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Paul Tiede <ptiede91@gmail.com>, Trevor Campbell, Miguel Biron-Lattes, Saifuddin Syed"]
-version = "0.2.1"
+version = "0.2.4"
 
 [deps]
 BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a"
@@ -42,6 +42,7 @@ ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 [compat]
 BridgeStan = "2.1"
 ConcreteStructs = "0.2"
+DataFrames = "1"
 DataStructures = "0.18"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
@@ -64,6 +65,6 @@ Roots = "2.0"
 SpecialFunctions = "2.3"
 SplittableRandoms = "0.1"
 StaticArrays = "1.6"
-StatsBase = "0.34"
+StatsBase = "0.33, 0.34"
 ZipFile = "0.10"
-julia = "1.6"
+julia = "1.8"

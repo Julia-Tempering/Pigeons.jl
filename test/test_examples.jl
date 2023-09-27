@@ -5,5 +5,5 @@
     include("../examples/general-reference.jl")
     include("../examples/custom-sampler.jl")
     include("../examples/pluto-demo.jl")
-    # include("../examples/turing-galaxy.jl")
+    include("../examples/turing-galaxy.jl")
 end

@@ -17,20 +17,41 @@ using Random
 
 Random.seed!(123)
 
+abstract type LogDensity end 
+(p::LogDensity)(x) = LogDensityProblems.logdensity(p, x)
+LogDensityProblems.dimension(p::T) where {T <: LogDensity} = p.dim
+LogDensityProblems.capabilities(::Type{T}) where {T <: LogDensity} = LogDensityProblems.LogDensityOrder{1}()
+Pigeons.initialization(p::LogDensity, _, _) = zeros(p.dim)
+
+
 # Define the target distribution using the `LogDensityProblem` interface
-struct LogTargetDensity
+struct IsoNormal <: LogDensity
     dim::Int
 end
-LogDensityProblems.logdensity(p::LogTargetDensity, θ) = -sum(abs2, θ) / 2  # standard multivariate normal
-LogDensityProblems.dimension(p::LogTargetDensity) = p.dim
-LogDensityProblems.capabilities(::Type{LogTargetDensity}) = LogDensityProblems.LogDensityOrder{0}()
+LogDensityProblems.logdensity(p::IsoNormal, θ) = -sum(abs2, θ) / 2  # standard multivariate normal
+
+struct Funnel <: LogDensity 
+    dim::Int
+end
+function LogDensityProblems.logdensity(p::Funnel, z) 
+    # z = (y, x[1], .., x[dim-1])
+    @assert length(z) == p.dim
+    sum = 0.0
+    y = z[1] 
+    sum += logpdf(Normal(0.0, 3.0), y)
+    sigma_for_others = exp(y/2.0)
+    for i in 2:p.dim
+        sum += logpdf(Normal(0.0, sigma_for_others), z[i])
+    end
+    return sum
+end
 
 # Based off AdvancedHMC README:
-function nuts(D)
+function nuts(logp)
+    D = logp.dim
     # Choose parameter dimensionality and initial parameter value
     initial_θ = randn(D)
-    logp = LogTargetDensity(D)
-
+    
     # Set the number of samples to draw and warmup iterations
     n_samples, n_adapts = 2_000, 1_000
 
@@ -46,13 +67,14 @@ function nuts(D)
     #   - multinomial sampling scheme,
     #   - generalised No-U-Turn criteria, and
     #   - windowed adaption for step-size and diagonal mass matrix
-    proposal = NUTS{MultinomialTS, GeneralisedNoUTurn}(integrator)
+    kernel = HMCKernel(Trajectory{MultinomialTS}(integrator, GeneralisedNoUTurn()))
     adaptor = StanHMCAdaptor(MassMatrixAdaptor(metric), StepSizeAdaptor(0.8, integrator))
 
     # Run the sampler to draw samples from the specified Gaussian, where
     #   - `samples` will store the samples
     #   - `stats` will store diagnostic statistics for each sample
-    samples, stats = sample(hamiltonian, proposal, initial_θ, n_samples, adaptor, n_adapts; progress=false)
+    samples, stats = sample(hamiltonian, kernel, initial_θ, n_samples, adaptor, n_adapts; progress=false)
+
 
     # next: compute logp on each sample
     vs = map(s -> LogDensityProblems.logdensity(logp, s), samples)
@@ -63,9 +85,10 @@ function nuts(D)
     return D, n_steps, ess_value
 end
 
-function single_chain_pigeons_mvn(D, explorer)
+function single_chain_pigeons_mvn(logp, explorer)
     pt = pigeons(;
-        target = toy_mvn_target(D),
+        target = logp,
+        reference = logp,
         n_chains = 1, 
         seed = rand(Int),
         show_report = false,
@@ -80,19 +103,21 @@ function single_chain_pigeons_mvn(D, explorer)
 end
 
 
-function auto_mala(D::Int)
+function auto_mala(logp)
+    D = logp.dim
     explorer = Pigeons.AutoMALA(exponent_n_refresh = 0.35)
-    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    n_steps, ess_value = single_chain_pigeons_mvn(logp, explorer)
     return D, n_steps, ess_value
 end
 
 
-sparse_slicer(D) = slicer(D, true) 
-dense_slicer(D) = slicer(D, false)
+sparse_slicer(logp) = slicer(logp, true) 
+dense_slicer(logp) = slicer(logp, false)
 
-function slicer(D, sparse::Bool)
+function slicer(logp, sparse::Bool)
+    D = logp.dim
     explorer = Pigeons.SliceSampler() 
-    n_steps, ess_value = single_chain_pigeons_mvn(D, explorer)
+    n_steps, ess_value = single_chain_pigeons_mvn(logp, explorer)
     return (sparse ? 1 : D), n_steps, ess_value
 end
 
@@ -106,13 +131,14 @@ function compute_ess(vs)
 end
 
 function scaling_plot(
-            max, 
+            max; 
             n_replicates = 1, 
             sampling_fcts = [
                 sparse_slicer, 
                 dense_slicer, 
                 nuts, 
-                auto_mala])
+                auto_mala],
+            logp_type = IsoNormal)
     cost_plot = plot()
     ess_plot = plot()
     data = Dict()
@@ -126,7 +152,8 @@ function scaling_plot(
         ess = Float64[]
         for i in 0:max
             @show D = 2^i
-            @time replicates = [sampling_fct(D) for j in 1:n_replicates]
+            logp = logp_type(D)
+            @time replicates = [sampling_fct(logp) for j in 1:n_replicates]
             push!(dims, D)
 
             cost_and_ess = mean(
@@ -156,10 +183,10 @@ function scaling_plot(
         data[sampler_symbol] = (; dims, costs)
     end
 
-    filename_prefix = "benchmarks/scalings_nrep=$(n_replicates)_max=$max"
+    filename_prefix = "benchmarks/$logp_type/scalings_nrep=$(n_replicates)_max=$max"
 
     slopes = Dict()
-    mkpath("benchmarks")
+    mkpath("benchmarks/$logp_type")
     open("$filename_prefix.txt", "w") do io
         for (k, v) in data 
             xs = log.(v.dims)
@@ -170,8 +197,11 @@ function scaling_plot(
         end
     end
 
-    # savefig(cost_plot, "$filename_prefix.pdf")
-    # savefig(ess_plot, "$(filename_prefix)_ess.pdf")
+    return (; logp_type, n_replicates, max, data, slopes, cost_plot, ess_plot)
+end
 
-    return slopes, cost_plot, ess_plot
+function save_dim_analysis_plots(tuple)
+    filename_prefix = "benchmarks/$(tuple.logp_type)/scalings_nrep=$(tuple.n_replicates)_max=$(tuple.max)"
+    savefig(tuple.cost_plot, "$filename_prefix.pdf")
+    savefig(tuple.ess_plot, "$(filename_prefix)_ess.pdf")
 end

@@ -322,7 +322,7 @@ function next_transmit_index!(e::Entangler)::Int
                     global indices, here $(2 * e.load.n_global_indices)) 
                     is smaller than the transmit_counter_bound 
                     (here $(e.transmit_counter_bound)).
-                    """ maxlog=1 # TODO: double-check and write the proof
+                    """ maxlog=1
         end
     end
     result = e.n_transmits

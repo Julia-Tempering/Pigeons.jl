@@ -10,7 +10,7 @@
 
 `Pigeons` is a Julia package to approximate challenging posterior distributions, and more broadly, Lebesgue integration problems. Pigeons can be used in a multi-threaded context, and/or distributed over hundreds or thousands of MPI-communicating machines.
 
-[For more information, see the documentation.](https://julia-tempering.github.io/Pigeons.jl/dev/)
+[For more information, see the documentation.](https://pigeons.run/dev/)
 
 
 ## Funding and acknowledgments 

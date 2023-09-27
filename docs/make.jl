@@ -36,6 +36,7 @@ makedocs(;
     pages=[
         "Basic usage (local)" => "index.md",
         "Why PT?" => "unidentifiable-example.md",
+        "Parallelization" => "parallel.md", 
         "Distributed usage (MPI)" => "mpi.md",
         "Variational PT" => "variational.md", 
         "Supported inputs" => [
@@ -66,6 +67,8 @@ makedocs(;
         "Reference" => "reference.md",
     ],
 )
+
+rm(joinpath(script_dir, "build", "results"), recursive=true) # delete `results` folder before deploying
 
 deploydocs(;
     repo="github.com/Julia-Tempering/Pigeons.jl",

@@ -60,7 +60,7 @@ import Base.merge
 
 import DynamicPPL
 
-const use_auto_exec_folder = ""
+const use_auto_exec_folder = "use_auto_exec_folder"
 
 include("includes.jl")
 

@@ -3,19 +3,21 @@ include("supporting/dimensional-analysis.jl")
 
 mean_mh_accept(pt) = mean(Pigeons.explorer_mh_prs(pt))
 
-auto_mala(target) =
+automala(target) =
     pigeons(; 
         target, 
         explorer = AutoMALA(), 
         n_chains = 1, n_rounds = 10, record = record_online())
 
 @testset "Scaling law" begin
-    scalings, cost_plot, ess_plot = scaling_plot(10, 1, [auto_mala]) 
-    @test abs(scalings[:auto_mala] - 1.33) < 0.15
+    tuple = scaling_plot(7, sampling_fcts = [auto_mala]) 
+    @test abs(tuple.slopes[:auto_mala] - 1.33) < 0.15
 end
 
 @testset "Step size convergence" begin
-    for t in [toy_mvn_target(1), toy_stan_target(1)]
+    targets = Any[toy_mvn_target(1)]
+    is_windows_in_CI() || push!(targets, toy_stan_target(1))
+    for t in targets
         step10rounds = pigeons(target = t, explorer = AutoMALA(), n_chains = 1, n_rounds = 10).shared.explorer.step_size
         step15rounds = pigeons(target = t, explorer = AutoMALA(), n_chains = 1, n_rounds = 15).shared.explorer.step_size
         @test isapprox(step10rounds, step15rounds, rtol = 0.1)
@@ -23,8 +25,8 @@ end
 end
 
 @testset "Step size d-scaling" begin
-    step1d    = auto_mala(toy_mvn_target(1)).shared.explorer.step_size
-    step1000d = auto_mala(toy_mvn_target(1000)).shared.explorer.step_size
+    step1d    = automala(toy_mvn_target(1)).shared.explorer.step_size
+    step1000d = automala(toy_mvn_target(1000)).shared.explorer.step_size
     @test step1000d < step1d # make sure we do shrink eps with d 
 
     # should not shrink by more than ~(1000)^(1/3) according to theory
@@ -42,7 +44,7 @@ end
 @testset "AutoMALA dimensional autoscale" begin
     for i in 0:3
         d = 10^i
-        @test mean_mh_accept(auto_mala(toy_mvn_target(d))) > 0.4
+        @test mean_mh_accept(automala(toy_mvn_target(d))) > 0.4
     end
 end
 
@@ -57,9 +59,88 @@ end
 
     n_leaps = 40
 
-    start = copy(x)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
-    @test !(x ≈ start)
-    @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, -v, 0.1, n_leaps)
-    @test x ≈ start
+    @testset "Flip step" begin
+        x = randn(rng, 2)
+        v = randn(rng, 2)
+        startx = copy(x)
+        startv = copy(v)
+        @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
+        @test !(x ≈ startx) && !(v ≈ startv)
+        @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, -0.1, n_leaps)
+        @test (x ≈ startx) && (v ≈ startv)
+    end
+    
+    @testset "Flip momentum" begin
+        x = randn(rng, 2)
+        v = randn(rng, 2)
+        startx = copy(x)
+        startv = copy(v)
+        @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
+        @test !(x ≈ startx) && !(v ≈ startv)
+        v .*= -1
+        @test Pigeons.hamiltonian_dynamics!(my_target, some_cond, x, v, 0.1, n_leaps)
+        @test (x ≈ startx) && (v ≈ -startv)
+    end
+    
+end
+
+
+automala(target, preconditioner) =
+    pigeons(; 
+        target, 
+        explorer = AutoMALA(preconditioner = preconditioner), 
+        n_chains = 1, n_rounds = 12, record = [traces])
+
+
+@testset "Preconditioners: normal target" begin
+    rng = SplittableRandom(1)
+    precs = [100.0, 0.01]
+    unbalanced_target = HetPrecisionNormalLogPotential(precs)
+
+    pt = automala(unbalanced_target, Pigeons.IdentityPreconditioner())
+    min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~12
+
+    pt = automala(unbalanced_target, Pigeons.DiagonalPreconditioner())
+    min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~3945
+
+    pt = automala(unbalanced_target, Pigeons.MixDiagonalPreconditioner())
+    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~492
+
+    # check that min ess are ordered as expected
+    @test min_ess_id < min_ess_mixdiag < min_ess_diag
+
+    # check that balanced target without preconditioner gives roughly the same
+    # ess as unbalanced_target with DiagonalPreconditioner
+    pt = automala(HetPrecisionNormalLogPotential([1., 1.]), Pigeons.IdentityPreconditioner())
+    min_ess_id_bal = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~3927
+    @test isapprox(min_ess_id_bal, min_ess_diag, rtol=0.01)
+end
+
+pigeons_precond_automala(target, reference, preconditioner) =
+    pigeons(; 
+        target, reference = reference,
+        explorer = AutoMALA(preconditioner = preconditioner), 
+        n_chains = 5, n_rounds = 12, record = [traces])
+
+@testset "Preconditioners: well-separated modes with small intra-mode variance" begin
+    rng = SplittableRandom(1)
+    dim = 2
+    mu  = 4.
+    mixture_target = DistributionLogPotential(MixtureModel(
+        [MvNormal(fill(-mu,dim), 0.1I), MvNormal(fill( mu,dim), 0.01I)],
+        fill(inv(dim), dim)
+    ))
+    reference = DistributionLogPotential(
+        MvNormal(fill(0., dim), mu*mu*I)
+    )
+    pt = pigeons_precond_automala(mixture_target, reference, Pigeons.IdentityPreconditioner())
+    min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~45
+
+    pt = pigeons_precond_automala(mixture_target, reference, Pigeons.DiagonalPreconditioner())
+    min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~51
+
+    pt = pigeons_precond_automala(mixture_target, reference, Pigeons.MixDiagonalPreconditioner())
+    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~72
+
+    @test min_ess_id < min_ess_diag < min_ess_mixdiag
 end

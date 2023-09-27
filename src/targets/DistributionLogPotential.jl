@@ -23,3 +23,8 @@ end
 function sample_iid!(ref::DistributionLogPotential{D}, replica, shared) where {D<:UnivariateDistribution}
     replica.state[begin] = rand(replica.rng, ref.dist)
 end
+
+# Make it conform the LogDensityProblems interface
+LogDensityProblems.logdensity(log_potential::DistributionLogPotential, x) = log_potential(x)
+LogDensityProblems.dimension(log_potential::DistributionLogPotential) = length(log_potential.dist)
+LogDensityProblems.dimension(::DistributionLogPotential{<:UnivariateDistribution}) = 1
