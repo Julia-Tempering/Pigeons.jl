@@ -75,6 +75,7 @@ function sort_includes!(main)
 end
 
 function sort_includes(main)
+    @assert isfile("src/" * main)
     source_files = String[]
     for (dir, sub_dir, files) in walkdir("src")
         for file in files
