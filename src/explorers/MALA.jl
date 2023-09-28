@@ -64,13 +64,8 @@ function adapt_explorer(explorer::MALA, reduced_recorders, current_pt, new_tempe
         explorer.preconditioner, estimated_target_std_deviations)
 end
 
-function step!(explorer::MALA, replica, shared, state::AbstractVector)
-    log_potential = find_log_potential(replica, shared.tempering, shared)
-    _extract_commons_and_run_mala!(explorer, replica, shared, log_potential, state)
-end
-
 # Extract info common to all types of target and perform a step!()
-function _extract_commons_and_run_mala!(explorer::MALA, replica, shared, log_potential, state::AbstractVector) 
+function _extract_commons_and_run!(explorer::MALA, replica, shared, log_potential, state::AbstractVector) 
     log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)      
     mala!(replica.rng, explorer, log_potential_autodiff, state, replica.recorders, replica.chain)
 end
