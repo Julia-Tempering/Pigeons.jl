@@ -78,6 +78,13 @@ function step!(explorer::AutoMALA, replica, shared, state::AbstractVector)
     _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
 end
 
+function step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
+    state = DynamicPPL.getall(vi)
+    _extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
+    DynamicPPL.setall!(replica.state, state)
+end
+
 #=
 Extract info common to all types of target and perform a step!()
 =#

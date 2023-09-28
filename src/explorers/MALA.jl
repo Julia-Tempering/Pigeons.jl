@@ -69,6 +69,13 @@ function step!(explorer::MALA, replica, shared, state::AbstractVector)
     _extract_commons_and_run_mala!(explorer, replica, shared, log_potential, state)
 end
 
+function step!(explorer::MALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
+    state = DynamicPPL.getall(vi)
+    _extract_commons_and_run_mala!(explorer, replica, shared, log_potential, state)
+    DynamicPPL.setall!(replica.state, state)
+end
+
 # Extract info common to all types of target and perform a step!()
 function _extract_commons_and_run_mala!(explorer::MALA, replica, shared, log_potential, state::AbstractVector) 
     log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)      
