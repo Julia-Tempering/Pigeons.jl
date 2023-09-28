@@ -53,18 +53,6 @@ function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempe
     )
 end
 
-function step!(explorer::AAPS, replica, shared, state::AbstractVector)
-    log_potential = find_log_potential(replica, shared.tempering, shared)
-    _extract_commons_and_run_aaps!(explorer, replica, shared, log_potential, state)
-end
-
-function step!(explorer::AAPS, replica, shared, vi::DynamicPPL.TypedVarInfo)
-    log_potential = find_log_potential(replica, shared.tempering, shared)
-    state = DynamicPPL.getall(vi)
-    _extract_commons_and_run_aaps!(explorer, replica, shared, log_potential, state)
-    DynamicPPL.setall!(replica.state, state)
-end
-
 #=
 Extract info common to all types of target and perform a step!()
 =#
