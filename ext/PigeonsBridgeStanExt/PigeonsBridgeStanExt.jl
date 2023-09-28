@@ -7,6 +7,7 @@ if isdefined(Base, :get_extension)
     using Serialization
     using LogDensityProblemsAD
     using DocStringExtensions
+    using SplittableRandoms
     using Random
 else
     using ..BridgeStan
@@ -14,6 +15,7 @@ else
     using ..Serialization
     using ..LogDensityProblemsAD
     using ..DocStringExtensions
+    using ..SplittableRandoms
     using ..Random
 end
 

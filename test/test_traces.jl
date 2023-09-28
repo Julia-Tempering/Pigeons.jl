@@ -1,4 +1,6 @@
 using MCMCChains
+using DynamicPPL
+using BridgeStan
 
 @testset "Sample matrix" begin
 
@@ -9,19 +11,19 @@ using MCMCChains
 
 
         for target in targets
-            pt = pigeons(; 
-                    target, 
+            pt = pigeons(;
+                    target,
                     record = [traces],
-                    n_rounds = 2, 
+                    n_rounds = 2,
                     n_chains_variational  = use_two_chains ? 10 : 0,
                     variational = use_two_chains ? GaussianReference() : nothing
                 )
 
-            mtx = sample_array(pt) 
+            mtx = sample_array(pt)
             @test size(mtx) == (4, 3, use_two_chains ? 2 : 1)
             @test length(variable_names(pt)) == 3
             chain = Chains(sample_array(pt), variable_names(pt))
-        end 
+        end
     end
 
 end
@@ -30,13 +32,13 @@ end
     targets = Any[toy_mvn_target(10), Pigeons.toy_turing_target(10)]
     is_windows_in_CI() || push!(targets, toy_stan_target(10))
     for target in targets
-        r = pigeons(; 
-                target, 
-                record = [traces, disk, online], 
+        r = pigeons(;
+                target,
+                record = [traces, disk, online],
                 multithreaded = false,  # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
-                checkpoint = true, 
-                on = ChildProcess(n_local_mpi_processes = 2, n_threads = 1)) # setting to more than 1 puts too much pressure on CI instances? 
-        pt = load(r)        
+                checkpoint = true,
+                on = ChildProcess(n_local_mpi_processes = 2, n_threads = 1, dependencies=[DynamicPPL, BridgeStan])) # setting to more than 1 puts too much pressure on CI instances?
+        pt = load(r)
         @test length(pt.reduced_recorders.traces) == 1024
         marginal = [get_sample(pt, 10, i)[1] for i in 1:1024]
         s = get_sample(pt, 10)
@@ -53,4 +55,3 @@ end
         end
     end
 end
-

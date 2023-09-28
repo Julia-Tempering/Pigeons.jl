@@ -85,7 +85,3 @@ variable_names(state::Array, log_potential) = map(i -> "param_$i", 1:length(stat
 # crashes.
 continuous_variables(state::StreamState) = []
 variable_names(state::StreamState) = []
-
-
-# From Turing.jl/src/utilities/helper.jl
-ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
