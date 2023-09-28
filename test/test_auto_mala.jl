@@ -130,9 +130,7 @@ pigeons_precond_automala(target, reference, preconditioner) =
         [MvNormal(fill(-mu,dim), 0.1I), MvNormal(fill( mu,dim), 0.01I)],
         fill(inv(dim), dim)
     ))
-    reference = DistributionLogPotential(
-        MvNormal(fill(0., dim), mu*mu*I)
-    )
+    reference = DistributionLogPotential(MvNormal(fill(0., dim), mu*mu*I))
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.IdentityPreconditioner())
     min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~45
 
