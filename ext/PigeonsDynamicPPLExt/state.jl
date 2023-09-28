@@ -16,6 +16,10 @@ function Pigeons.variables(state::DynamicPPL.TypedVarInfo, type::DataType)
     return var_names
 end
 
+# From Turing.jl/src/utilities/helper.jl
+ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
+
+
 function Pigeons.extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
     DynamicPPL.invlink!!(state, Pigeons.turing_model(log_potential))
     result = DynamicPPL.getall(state)

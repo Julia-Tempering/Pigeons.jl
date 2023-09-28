@@ -22,19 +22,19 @@ Pigeons.toy_stan_unid_target(n_trials = 100000, n_successes = ceil(Int, n_trials
 Pigeons.stan_funnel(dim = 9, scale = 2.0) =
     StanLogPotential(
         stan_example_path("funnel.stan"),
-        json(; dim, scale)
+        Pigeons.json(; dim, scale)
     )
 
 Pigeons.stan_bernoulli(y = [0,1,0,0,0,0,0,0,0,1]) =
     StanLogPotential(
         stan_example_path("bernoulli.stan"),
-        json(; y, N = length(y))
+        Pigeons.json(; y, N = length(y))
     )
 
 Pigeons.stan_banana(dim = 9) =
     StanLogPotential(
         stan_example_path("banana.stan"),
-        json(; dim)
+        Pigeons.json(; dim)
     )
 
 

@@ -7,6 +7,7 @@ if isdefined(Base, :get_extension)
     using LogDensityProblems
     using LogDensityProblemsAD
     using DocStringExtensions
+    using SplittableRandoms
     using Random
 else
     import ..DynamicPPL
@@ -14,6 +15,7 @@ else
     using ..LogDensityProblems
     using ..LogDensityProblemsAD
     using ..DocStringExtensions
+    using ..SplittableRandoms
     using ..Random
 end
 
