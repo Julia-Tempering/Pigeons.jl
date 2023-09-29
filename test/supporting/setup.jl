@@ -1,3 +1,6 @@
+using DynamicPPL
+using BridgeStan
+
 using Pigeons
 
 # all the quick imports
@@ -15,7 +18,5 @@ using Test
 using ForwardDiff
 using LogDensityProblems
 using LogDensityProblemsAD
-using DynamicPPL
-using BridgeStan
 
 is_windows_in_CI() = Sys.iswindows() && (get(ENV, "CI", "false") == "true")
