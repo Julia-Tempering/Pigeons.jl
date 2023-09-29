@@ -20,4 +20,5 @@ methods using either [the disk](@ref output-off-memory) or
 - [PT-specific diagnostics.](@ref output-pt)
 - [Post-processing for MPI runs.](@ref output-mpi-postprocessing)
 - [Output for custom types.](@ref output-custom-types)
+- [Extended output, i.e. including non-target chains](@ref output-extended)
 - [Further customization using "recorders".](@ref collecting-statistics)

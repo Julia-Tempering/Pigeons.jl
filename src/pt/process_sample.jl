@@ -17,22 +17,24 @@ which can then be used to obtain summary statistics, diagnostics, create trace p
 and pair plots (via [PairPlots](https://sefffal.github.io/PairPlots.jl/dev/chains/)).
 """
 function sample_array(pt::PT)
-    targets = target_chains(pt)
-    dim, size = sample_dim_size(pt, targets)
-    result = zeros(size, dim, length(targets)) 
-    for t_index in eachindex(targets) 
-        t = targets[t_index] 
+    chains = chains_with_samples(pt)
+    dim, size = sample_dim_size(pt, chains)
+    result = zeros(size, dim, length(chains)) 
+    for chain_index in eachindex(chains) 
+        t = chains[chain_index] 
         sample = get_sample(pt, t) 
         for i in 1:size 
             vector = sample[i] 
-            result[i, :, t_index] .= vector
+            result[i, :, chain_index] .= vector
         end
     end
     return result
 end
 
-function sample_dim_size(pt::PT, targets = target_chains(pt))
-    sample = get_sample(pt, targets[1]) 
+chains_with_samples(pt) = pt.inputs.extended_traces ? (1:n_chains(pt.inputs)) : target_chains(pt)
+
+function sample_dim_size(pt::PT, chains)
+    sample = get_sample(pt, chains[1]) 
     return length(sample[1]), length(sample)
 end
 
