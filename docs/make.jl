@@ -57,6 +57,7 @@ makedocs(;
             "Off-memory" => "output-off-memory.md", 
             "PT diagnostics" => "output-pt.md", 
             "Custom types" => "output-custom-types.md",
+            "Extended output" => "output-extended.md",
             "MPI output" => "output-mpi-postprocessing.md"
         ],
         "Checkpoints" => "checkpoints.md",

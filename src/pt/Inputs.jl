@@ -78,12 +78,20 @@ $FIELDS
     show_report::Bool = true
 
     """
-    Type of traces to collect:
+    Type of traces that the [`traces`](@ref) recorder will collect:
 
     - `:samples` - `extract_sample()` is called on the state, or
     - `:log_potential` - `log_potential()` is called on the state
     """
     trace_type::Symbol = :samples
+
+    """
+    Whether the [`traces`](@ref) and [`disk`](@ref) recorders will 
+    store samples for all 
+    the chains (extended = true) or just for the target(s) 
+    (extended = false).
+    """
+    extended_traces::Bool = false
 end
 
 """

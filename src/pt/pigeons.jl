@@ -110,6 +110,8 @@ function explore!(pt, replica, explorer)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
         @record_if_requested!(replica.recorders, :online, extract_sample(replica.state, log_potential))
         @record_if_requested!(replica.recorders, :_transformed_online, replica.state)
+    end
+    if pt.inputs.extended_traces || is_target(pt.shared.tempering.swap_graphs, replica.chain)
         @record_if_requested!(
             replica.recorders, 
             :traces, 
