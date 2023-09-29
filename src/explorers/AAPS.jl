@@ -53,6 +53,29 @@ function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempe
     )
 end
 
+# uses the autoMALA internal `auto_step_size` to find a step size
+function find_reasonable_step_size(
+    old_step_size::Real,
+    replica, 
+    target_log_potential, 
+    state::AbstractVector;
+    lower_bound = -3.0, # exp(-3) ~ 5%
+    upper_bound = 0.0
+    )
+    recorders      = replica.recorders
+    dim            = length(state)
+    temp_position  = get_buffer(recorders.buffers, :aaps_fwd_position_buffer, dim)
+    temp_velocity  = get_buffer(recorders.buffers, :aaps_fwd_velocity_buffer, dim)
+    temp_precond   = get_buffer(recorders.buffers, :aaps_diag_precond, dim)
+    temp_position .= state
+    randn!(replica.rng, temp_velocity)
+    fill!(temp_precond, one(eltype(temp_precond)))
+    exponent = auto_step_size(
+        target_log_potential, temp_precond, temp_position, temp_velocity, 
+        recorders, replica.chain, old_step_size, lower_bound, upper_bound)
+    return old_step_size * (2.0^exponent)
+end
+
 #=
 Extract info common to all types of target and perform a step!()
 =#
@@ -61,21 +84,8 @@ function _extract_commons_and_run!(explorer::AAPS, replica, shared, log_potentia
         explorer.default_autodiff_backend, log_potential, replica.recorders.buffers
     )
     if shared.iterators.round == 1 && shared.iterators.scan == 1
-        recorders = replica.recorders
-        dim = length(state)
-        temp_position = get_buffer(recorders.buffers, :aaps_fwd_position_buffer, dim)
-        temp_velocity = get_buffer(recorders.buffers, :aaps_fwd_velocity_buffer, dim)
-        temp_precond  = get_buffer(recorders.buffers, :aaps_diag_precond, dim)
-        temp_position .= state
-        randn!(replica.rng, temp_velocity)
-        fill!(temp_precond, one(eltype(temp_precond)))
-        old_step_size = explorer.step_size_ref[]
-        println("old_step_size: $old_step_size")
-        exponent = auto_step_size(
-            log_potential_autodiff, temp_precond, temp_position, temp_velocity, 
-            recorders, replica.chain, old_step_size, -3.0, 0.0)
-        explorer.step_size_ref[] = old_step_size * (2.0 ^exponent)
-        println("new step size: $(explorer.step_size_ref[])")
+        explorer.step_size_ref[] = find_reasonable_step_size(
+            explorer.step_size_ref[], replica, log_potential_autodiff, state)
     end
     aaps!(
         replica.rng,
