@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>MPI output · Pigeons.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link rel="canonical" href="https://Julia-Tempering.github.io/Pigeons.jl/output-mpi-postprocessing/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Pigeons.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Basic usage (local)</a></li><li><a class="tocitem" href="../unidentifiable-example/">Why PT?</a></li><li><a class="tocitem" href="../parallel/">Parallelization</a></li><li><a class="tocitem" href="../mpi/">Distributed usage (MPI)</a></li><li><a class="tocitem" href="../variational/">Variational PT</a></li><li><span class="tocitem">Supported inputs</span><ul><li><a class="tocitem" href="../input-overview/">Inputs overview</a></li><li><a class="tocitem" href="../input-turing/">Turing.jl model</a></li><li><a class="tocitem" href="../input-julia/">Black-box function</a></li><li><a class="tocitem" href="../input-stan/">Stan model</a></li><li><a class="tocitem" href="../input-nonjulian/">Non-julian MCMC</a></li><li><a class="tocitem" href="../input-explorers/">Custom MCMC</a></li></ul></li><li><span class="tocitem">Outputs</span><ul><li><a class="tocitem" href="../output-overview/">Outputs overview</a></li><li><a class="tocitem" href="../output-reports/">Quick reports</a></li><li><a class="tocitem" href="../output-plotting/">Plots</a></li><li><a class="tocitem" href="../output-normalization/">log(Z)</a></li><li><a class="tocitem" href="../output-numerical/">Numerical</a></li><li><a class="tocitem" href="../output-online/">Online stats</a></li><li><a class="tocitem" href="../output-off-memory/">Off-memory</a></li><li><a class="tocitem" href="../output-pt/">PT diagnostics</a></li><li><a class="tocitem" href="../output-custom-types/">Custom types</a></li><li><a class="tocitem" href="../output-extended/">Extended output</a></li><li class="is-active"><a class="tocitem" href>MPI output</a><ul class="internal"><li><a class="tocitem" href="#Loading-the-distributed-output-back-into-your-interactive-shell"><span>Loading the distributed output back into your interactive shell</span></a></li><li class="toplevel"><a class="tocitem" href="#Perform-post-processing-by-loading-samples-from-disk-one-at-a-time"><span>Perform post-processing by loading samples from disk one at a time</span></a></li></ul></li></ul></li><li><a class="tocitem" href="../checkpoints/">Checkpoints</a></li><li><a class="tocitem" href="../correctness/">Correctness checks</a></li><li><a class="tocitem" href="../pt/">More on PT</a></li><li><a class="tocitem" href="../distributed/">More on distributed PT</a></li><li><a class="tocitem" href="../interfaces/">Interfaces</a></li><li><a class="tocitem" href="../reference/">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Outputs</a></li><li class="is-active"><a href>MPI output</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>MPI output</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Julia-Tempering/Pigeons.jl/blob/main/docs/src/output-mpi-postprocessing.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="output-mpi-postprocessing"><a class="docs-heading-anchor" href="#output-mpi-postprocessing">Post-processing for MPI runs (plotting, summaries, etc)</a><a id="output-mpi-postprocessing-1"></a><a class="docs-heading-anchor-permalink" href="#output-mpi-postprocessing" title="Permalink"></a></h1><p>Two options are available to post-process samples produced from  MPI runs: (1) loading   the distributed output back into your interactive shell, or (2) perform post-processing by loading samples from disk one at a time. </p><p>Option (1) is more convenient than (2) but it uses more RAM.</p><h2 id="Loading-the-distributed-output-back-into-your-interactive-shell"><a class="docs-heading-anchor" href="#Loading-the-distributed-output-back-into-your-interactive-shell">Loading the distributed output back into your interactive shell</a><a id="Loading-the-distributed-output-back-into-your-interactive-shell-1"></a><a class="docs-heading-anchor-permalink" href="#Loading-the-distributed-output-back-into-your-interactive-shell" title="Permalink"></a></h2><p>Many of Pigeons&#39; post-processing tools take as input a <a href="../reference/#Pigeons.PT"><code>PT</code></a> struct. When running locally, <a href="../reference/#Pigeons.pigeons-Tuple{}"><code>pigeons()</code></a> returns a <a href="../reference/#Pigeons.PT"><code>PT</code></a> struct,  however, when running a job via <a href="../reference/#Pigeons.MPI"><code>MPI</code></a> or <a href="../reference/#Pigeons.ChildProcess"><code>ChildProcess</code></a>,  <a href="../reference/#Pigeons.pigeons-Tuple{}"><code>pigeons()</code></a> returns a <a href="../reference/#Pigeons.Result"><code>Result</code></a> struct (which only holds the   directory where samples are stored). </p><p>Use <a href="../reference/#Pigeons.load-Tuple{Any}"><code>load()</code></a> to convert a <a href="../reference/#Pigeons.Result"><code>Result</code></a> into a  <a href="../reference/#Pigeons.PT"><code>PT</code></a> struct.  This will load the information distributed across several machines  into the interactive node.</p><p>Once you have a <a href="../reference/#Pigeons.PT"><code>PT</code></a> struct, proceed in the same way as  when running PT locally, e.g. <a href="../output-plotting/#output-plotting">see the page on plotting</a>,  <a href="../output-online/#output-online">the page on online statistics</a>,  and <a href="../output-numerical/#output-numerical">the page on sample summaries and diagnostics</a>.</p><p>For example, here is how to modify the posterior density and trace plot  example from <a href="../output-plotting/#output-plotting">the plotting page</a> to run as a local MPI job  instead of in-process (the lines differing from the local version are marked  with (*)):</p><pre><code class="language-julia hljs">using Pigeons
+using MCMCChains
+using StatsPlots
+plotlyjs()
+
+# example target: Binomial likelihood with parameter p = p1 * p2
+an_unidentifiable_model = Pigeons.toy_turing_unid_target(100, 50)
+
+pt_result = pigeons(target = an_unidentifiable_model,
+                # (*) run in two new MPI processes
+                on = ChildProcess(n_local_mpi_processes = 2),
+                # (*) signal that we want the PT object to be
+                #     serialized at the end of each round
+                checkpoint = true,
+                n_rounds = 12,
+                # make sure to record the trace
+                # (each machine keeps its own during sampling)
+                record = [traces; round_trip; record_default()])
+
+# (*) load the result across all machines into this interactive node
+pt = load(pt_result)
+
+# collect the statistics and convert to MCMCChains&#39; Chains
+# to have axes labels matching variable names in Turing and Stan
+samples = Chains(sample_array(pt), variable_names(pt))
+
+# create the trace plots
+my_plot = StatsPlots.plot(samples)
+StatsPlots.savefig(my_plot, &quot;mpi_posterior_densities_and_traces.html&quot;);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Entangler initialized 2 MPI processes; 1 threads per process
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  scans     restarts      Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2          0       3.24      0.204   2.21e+06      -8.14    0.00178       0.64          1          1
+        4          0       1.64       1.36   8.19e+05      -5.04     0.0352      0.818          1          1
+        8          0       1.17     0.0615   1.55e+06      -4.42      0.708      0.871          1          1
+       16          1        1.2    0.00845   3.06e+06      -4.03      0.549      0.867          1          1
+       32          6       1.11      0.016   5.95e+06      -4.77      0.754      0.877          1          1
+       64         11       1.35     0.0298   1.19e+07      -4.79      0.698       0.85          1          1
+      128         25        1.6     0.0903   2.33e+07      -4.97      0.725      0.823          1          1
+      256         43       1.51      0.142   4.62e+07      -4.92      0.758      0.832          1          1
+      512         92       1.46      0.293   9.35e+07         -5      0.806      0.838          1          1
+ 1.02e+03        188       1.49      0.596   1.87e+08      -4.92      0.798      0.834          1          1
+ 2.05e+03        384        1.5       1.17   3.74e+08      -4.96      0.811      0.834          1          1
+  4.1e+03        748       1.48       2.38   7.45e+08      -4.94      0.826      0.835          1          1
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><iframe src="../mpi_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe><h1 id="Perform-post-processing-by-loading-samples-from-disk-one-at-a-time"><a class="docs-heading-anchor" href="#Perform-post-processing-by-loading-samples-from-disk-one-at-a-time">Perform post-processing by loading samples from disk one at a time</a><a id="Perform-post-processing-by-loading-samples-from-disk-one-at-a-time-1"></a><a class="docs-heading-anchor-permalink" href="#Perform-post-processing-by-loading-samples-from-disk-one-at-a-time" title="Permalink"></a></h1><p>Here instead of keeping samples in memory, we instruct the machines to  store them on the fly in a shared directory.  We do this using the <a href="../reference/#Pigeons.disk-Tuple{}"><code>disk</code></a> <a href="../interfaces/#Pigeons.recorder"><code>recorder</code></a>. </p><p>Then we process the sample one at the time using <a href="../reference/#Pigeons.process_sample"><code>process_sample()</code></a>. </p><p>Here is an example where the target is 1000-dimensional but we are only  interested in the first coordinate:</p><pre><code class="language-julia hljs">using Pigeons
+using Plots
+
+# example target: a 1000 dimensional target
+high_d_target = Pigeons.toy_mvn_target(1000)
+
+pt_result = pigeons(target = high_d_target,
+                # run in two new MPI processes
+                on = ChildProcess(n_local_mpi_processes = 2),
+                checkpoint = true,
+                # save samples to disk as we go
+                record = [disk])
+
+# process the samples one by one, keeping only the first dimension
+first_dim_of_each = Vector{Float64}()
+process_sample(pt_result) do chain, scan, sample
+    # each sample here is a Vector{Float64} of length 1000
+    # in general, it will is produced by extract_sample()
+    push!(first_dim_of_each, sample[1])
+end
+
+plotlyjs()
+myplot = Plots.plot(first_dim_of_each)
+Plots.savefig(myplot, &quot;first_dim_of_each.html&quot;);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Entangler initialized 2 MPI processes; 1 threads per process
+──────────────────────────────────────────────────────
+  scans        Λ      log(Z₁/Z₀)   min(α)     mean(α)
+────────── ────────── ────────── ────────── ──────────
+        2          9  -1.18e+03  7.04e-107   0.000359
+        4       8.97  -1.17e+03  1.31e-102    0.00346
+        8       8.38   -1.2e+03  1.13e-107     0.0692
+       16       8.94  -1.18e+03   1.65e-93    0.00618
+       32       8.96  -1.16e+03   1.45e-70    0.00487
+       64       8.85  -1.17e+03   2.13e-83     0.0164
+      128       8.88  -1.16e+03   1.23e-68     0.0129
+      256       8.92  -1.15e+03   4.23e-64    0.00884
+      512       8.92  -1.16e+03   5.16e-68    0.00893
+ 1.02e+03       8.93  -1.16e+03   6.65e-66    0.00732
+──────────────────────────────────────────────────────</code></pre><iframe src="../first_dim_of_each.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../output-extended/">« Extended output</a><a class="docs-footer-nextpage" href="../checkpoints/">Checkpoints »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Friday 29 September 2023 21:32">Friday 29 September 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
