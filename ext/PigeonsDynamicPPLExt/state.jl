@@ -67,6 +67,14 @@ function Pigeons.slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, 
     return cached_lp
 end
 
+function step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
+    log_potential = find_log_potential(replica, shared.tempering, shared)
+    state = DynamicPPL.getall(vi)
+    _extract_commons_and_run!(explorer, replica, shared, log_potential, state)
+    DynamicPPL.setall!(replica.state, state)
+end
+
+
 ## TODO: This is type piracy and should be fixed upstream
 function Base.:(==)(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
     # as of Jan 2023, DynamicPPL does not supply == for TypedVarInfo

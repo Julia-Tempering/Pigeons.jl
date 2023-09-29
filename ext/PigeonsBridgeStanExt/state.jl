@@ -21,6 +21,10 @@ end
 Pigeons.step!(explorer::AutoMALA, replica, shared, state::StanState) =
 Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
 
+step!(explorer::Pigeons.HamiltonianSampler, replica, shared, state::StanState) =
+    step!(explorer, replica, shared, state.unconstrained_parameters)
+
+
 
 Pigeons.variable_names(::StanState, log_potential) = BridgeStan.param_names(Pigeons.stan_model(log_potential))
 

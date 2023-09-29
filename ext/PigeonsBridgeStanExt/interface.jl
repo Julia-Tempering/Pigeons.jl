@@ -20,6 +20,8 @@ end
 
 
 
+
+
 Base.show(io::IO, slp::StanLogPotential) =
     print(io, "StanLogPotential($(name(slp.model)))")
 
