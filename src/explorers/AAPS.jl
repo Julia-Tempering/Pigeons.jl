@@ -18,9 +18,9 @@ of -log pi(x). The tuning parameter `K` defines the number of segments to explor
 """
 Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
     """ 
-    Leapfrog step size.
+    Reference to the leapfrog step size.
     """
-    step_size::Float64 = 1.0
+    step_size_ref::Base.RefValue{Float64} = Ref(1.0)
 
     """  
     Maximum number of segments (regions between apogees) to explore.
@@ -48,7 +48,7 @@ function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempe
     estimated_target_std_deviations = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
     # TODO: adapt step_size and K
     return AAPS(
-        explorer.step_size, explorer.K, explorer.default_autodiff_backend,
+        explorer.step_size_ref, explorer.K, explorer.default_autodiff_backend,
         explorer.preconditioner, estimated_target_std_deviations
     )
 end
@@ -59,7 +59,24 @@ Extract info common to all types of target and perform a step!()
 function _extract_commons_and_run!(explorer::AAPS, replica, shared, log_potential, state::AbstractVector)
     log_potential_autodiff = ADgradient(
         explorer.default_autodiff_backend, log_potential, replica.recorders.buffers
-    )      
+    )
+    if shared.iterators.round == 1 && shared.iterators.scan == 1
+        recorders = replica.recorders
+        dim = length(state)
+        temp_position = get_buffer(recorders.buffers, :aaps_fwd_position_buffer, dim)
+        temp_velocity = get_buffer(recorders.buffers, :aaps_fwd_velocity_buffer, dim)
+        temp_precond  = get_buffer(recorders.buffers, :aaps_diag_precond, dim)
+        temp_position .= state
+        randn!(replica.rng, temp_velocity)
+        fill!(temp_precond, one(eltype(temp_precond)))
+        old_step_size = explorer.step_size_ref[]
+        println("old_step_size: $old_step_size")
+        exponent = auto_step_size(
+            log_potential_autodiff, temp_precond, temp_position, temp_velocity, 
+            recorders, replica.chain, old_step_size, -3.0, 0.0)
+        explorer.step_size_ref[] = old_step_size * (2.0 ^exponent)
+        println("new step size: $(explorer.step_size_ref[])")
+    end
     aaps!(
         replica.rng,
         explorer, 
@@ -104,7 +121,7 @@ function aaps!(
 
     # get buffers
     dim = length(position)
-    diag_precond = get_buffer(recorders.buffers, :am_ones_buffer, dim)
+    diag_precond = get_buffer(recorders.buffers, :aaps_diag_precond, dim)
     fwd_state, bwd_state = get_fwd_bwd_states(recorders.buffers, dim)
 
     # initialize
@@ -163,7 +180,11 @@ function sample_segment!(
     diag_precond::Vector;
     skip_first::Bool = false # avoid double counting starting state. same as try0 in https://github.com/ChrisGSherlock/AAPS/blob/c48c59d81031745cf08b6b3d3d9ad53287bf3b34/AAPS.cpp#L268
     )
+    step_size   = explorer.step_size_ref[]
     logp, cgrad = conditioned_target_gradient(target_log_potential, state.position, diag_precond)
+    isinf(logp) && error("""
+        sample_segment!: initial configuration has infinite density (logp=$logp)
+    """)
     copyto!(state.max_position, state.position)  # reset max to the current position
     if skip_first
         ljoint = wmax = -typeof(logp)(Inf)
@@ -179,8 +200,14 @@ function sample_segment!(
     while true
         leap_frog!(
             target_log_potential, diag_precond, state.position, state.velocity,
-            explorer.step_size)
+            step_size)
         logp, cgrad = conditioned_target_gradient(target_log_potential, state.position, diag_precond)
+
+        # check correctness
+        (isnan(logp) || isinf(logp)) && error("""
+            sample_segment!: invalid density (logp=$logp). Try decreasing the step size.
+        """)
+
         new_sign    = sign(dot(state.velocity, cgrad))
         old_sign < 0 && new_sign > 0 && return wmax
         old_sign    = new_sign
