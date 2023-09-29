@@ -6,7 +6,7 @@ CurrentModule = Pigeons
 
 !!! note
 
-    We use the package `BridgeStan.jl` which will attempt 
+    We use the package `BridgeStan.jl` as a package extension which will attempt 
     to automatically install Stan. 
     For `BridgeStan.jl` to work, a C++ compiler and 
     `make` are needed, see 
@@ -21,6 +21,7 @@ Here we show how this is done using our familiar [unidentifiable toy example](@r
 [ported to the Stan language](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/unid.stan).
 
 ```@example stan
+using BridgeStan
 using Pigeons 
 using Random
 
