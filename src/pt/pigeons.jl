@@ -108,6 +108,8 @@ function explore!(pt, replica, explorer)
     end
     process_ac!(log_potential, replica, before)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
+        # for the online stats, we ignore pt.inputs.extended_traces 
+        # because the recorders do not support grouping by chains
         @record_if_requested!(replica.recorders, :online, extract_sample(replica.state, log_potential))
         @record_if_requested!(replica.recorders, :_transformed_online, replica.state)
     end
