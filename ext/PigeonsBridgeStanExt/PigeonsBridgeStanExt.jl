@@ -15,7 +15,7 @@ else
     using ..Serialization
     using ..LogDensityProblemsAD
     using ..DocStringExtensions
-    using ..SplittableRandoms
+    using ..SplittableRandoms: SplittableRandom, split
     using ..Random
 end
 

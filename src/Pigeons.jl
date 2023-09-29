@@ -90,6 +90,8 @@ export pigeons, Inputs, PT,
 # This is required to make extensions work with < 1.9 versions
 if !isdefined(Base, :get_extension)
     using Requires
+    # I need to explicitly do using here for Requires to work
+    using SplittableRandoms
 end
 
 @static if !isdefined(Base, :get_extension)
