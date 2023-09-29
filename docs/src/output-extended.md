@@ -5,9 +5,9 @@ CurrentModule = Pigeons
 # [Extended output (i.e., for all chains)](@id output-extended)
 
 So far when outputting traces (either to memory via [`traces`](@ref) or to disk via [`disk`](@ref)), 
-we have been storing only those samples for the target distribution. 
+we have been storing only the target distribution's samples. 
 This is the most common scenario and the default. 
-Here we show how to change that default to instead store the output from all chains. 
+Here we show how to instead store the samples from all chains. 
 
 This can be useful in scenarios where all distributions $$\pi_i$$ are of interest, e.g. 
 in certain statistical mechanics applications and for Bayesian inference under model 
