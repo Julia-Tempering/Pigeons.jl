@@ -25,6 +25,6 @@ import Pigeons: StanLogPotential
 
 include(joinpath(@__DIR__, "interface.jl"))
 include(joinpath(@__DIR__, "state.jl"))
-include(joinpath(@__DIR__, "toy_stan_target.jl"))
+include(joinpath(@__DIR__, "toy_examples.jl"))
 
 end
