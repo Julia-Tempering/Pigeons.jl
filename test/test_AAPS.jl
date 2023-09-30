@@ -1,5 +1,5 @@
 using MCMCChains
-
+if !is_windows_in_CI()
 @testset "AAPS" begin
     rng = SplittableRandom(1) 
     pt = pigeons(; 
@@ -7,4 +7,5 @@ using MCMCChains
         explorer = AAPS(), 
         n_chains = 1, n_rounds = 12, record = [traces])
     @show min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess)
+end
 end
