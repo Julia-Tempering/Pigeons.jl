@@ -22,6 +22,21 @@ Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
     """
     step_size_ref::Base.RefValue{Float64} = Ref(1.0)
 
+    """ 
+    Log of the lower bound on the acceptance probability used for adapting the step size.
+    """
+    adapt_log_lower_bound::Float64 = -0.001   # smallest value with which I can make stan_banana(1) work
+
+    """ 
+    Log of the upper bound on the acceptance probability used for adapting the step size.
+    """
+    adapt_log_upper_bound::Float64 = Inf64    # don't increase the step size
+
+    """ 
+    Only adapt the step size during the first `adapt_until_round` rounds.
+    """
+    adapt_until_round::Int64 = typemax(Int64) # stan_banana(1) won't work otherwise
+
     """  
     Maximum number of segments (regions between apogees) to explore.
     """ 
@@ -46,21 +61,21 @@ end
 
 function adapt_explorer(explorer::AAPS, reduced_recorders, current_pt, new_tempering)
     estimated_target_std_deviations = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
-    # TODO: adapt step_size and K
+    # TODO: adapt K
     return AAPS(
-        explorer.step_size_ref, explorer.K, explorer.default_autodiff_backend,
+        explorer.step_size_ref, explorer.adapt_log_lower_bound, 
+        explorer.adapt_log_upper_bound, explorer.adapt_until_round,
+        explorer.K, explorer.default_autodiff_backend,
         explorer.preconditioner, estimated_target_std_deviations
     )
 end
 
 # uses the autoMALA internal `auto_step_size` to find a step size
 function find_reasonable_step_size(
-    old_step_size::Real,
+    explorer::AAPS,
     replica, 
     target_log_potential, 
-    state::AbstractVector;
-    lower_bound = -3.0, # exp(-3) ~ 5%
-    upper_bound = 0.0
+    state::AbstractVector
     )
     recorders      = replica.recorders
     dim            = length(state)
@@ -69,10 +84,14 @@ function find_reasonable_step_size(
     temp_precond   = get_buffer(recorders.buffers, :aaps_diag_precond, dim)
     temp_position .= state
     randn!(replica.rng, temp_velocity)
-    fill!(temp_precond, one(eltype(temp_precond)))
-    exponent = auto_step_size(
+    build_preconditioner!(
+        temp_precond, explorer.preconditioner, replica.rng, explorer.estimated_target_std_deviations
+    )
+    old_step_size  = explorer.step_size_ref[]
+    exponent       = auto_step_size(
         target_log_potential, temp_precond, temp_position, temp_velocity, 
-        recorders, replica.chain, old_step_size, lower_bound, upper_bound)
+        recorders, replica.chain, old_step_size, 
+        explorer.adapt_log_lower_bound, explorer.adapt_log_upper_bound)
     return old_step_size * (2.0^exponent)
 end
 
@@ -83,9 +102,15 @@ function _extract_commons_and_run!(explorer::AAPS, replica, shared, log_potentia
     log_potential_autodiff = ADgradient(
         explorer.default_autodiff_backend, log_potential, replica.recorders.buffers
     )
-    if shared.iterators.round == 1 && shared.iterators.scan == 1
-        explorer.step_size_ref[] = find_reasonable_step_size(
-            explorer.step_size_ref[], replica, log_potential_autodiff, state)
+    # TODO: if allowed for more replicas, all of them would write to the shares ref
+    # need to move this elsewhere where there's only one process acting. but where?
+    if shared.iterators.scan == 1 && shared.iterators.round <= explorer.adapt_until_round
+        if n_chains(shared.tempering) == 1
+            explorer.step_size_ref[] = find_reasonable_step_size(
+                explorer, replica, log_potential_autodiff, state)
+        else
+            @warn "Step-size adaptation for more than 1 chain is unsupported. Skipping." maxlog=1
+        end
     end
     aaps!(
         replica.rng,
@@ -192,8 +217,9 @@ function sample_segment!(
     )
     step_size   = explorer.step_size_ref[]
     logp, cgrad = conditioned_target_gradient(target_log_potential, state.position, diag_precond)
-    isinf(logp) && error("""
-        sample_segment!: initial configuration has infinite density (logp=$logp)
+    (isnan(logp) || isinf(logp)) && error("""
+        sample_segment!: invalid initial density (logp=$logp).
+        AAPS must be initialized at a point with finite density.
     """)
     copyto!(state.max_position, state.position)  # reset max to the current position
     if skip_first
@@ -213,9 +239,9 @@ function sample_segment!(
             step_size)
         logp, cgrad = conditioned_target_gradient(target_log_potential, state.position, diag_precond)
 
-        # check correctness
         (isnan(logp) || isinf(logp)) && error("""
-            sample_segment!: invalid density (logp=$logp). Try decreasing the step size.
+            sample_segment!: invalid density (logp=$logp). 
+            Try decreasing the step size (got step_size=$step_size)
         """)
 
         new_sign    = sign(dot(state.velocity, cgrad))
