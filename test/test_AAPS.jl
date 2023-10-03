@@ -1,11 +1,10 @@
 using MCMCChains
 if !is_windows_in_CI()
-@testset "AAPS" begin
-    rng = SplittableRandom(1) 
-    pt = pigeons(; 
-        target = Pigeons.stan_banana(1), 
-        explorer = AAPS(), 
-        n_chains = 1, n_rounds = 12, record = [traces])
-    @show min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess)
-end
+    @testset "AAPS" begin
+        pt = pigeons(; 
+            target = Pigeons.stan_banana(1), 
+            explorer = AAPS(step_size = 2. ^(-4)), 
+            n_chains = 1, n_rounds = 12, record = [traces])
+        @test abs(23-minimum(ess(Chains(sample_array(pt))).nt.ess)) < 1            
+    end
 end
