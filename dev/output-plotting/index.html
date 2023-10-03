@@ -21,18 +21,18 @@ my_plot = StatsPlots.plot(samples)
 StatsPlots.savefig(my_plot, &quot;posterior_densities_and_traces.html&quot;);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">─────────────────────────────────────────────────────────────────────────────────────────────────────────────
   scans     restarts      Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2          0       3.24    0.00118   7.34e+05      -8.14    0.00178       0.64          1          1
-        4          0       1.64    0.00237   1.44e+06      -5.04     0.0352      0.818          1          1
-        8          0       1.17    0.00445   2.81e+06      -4.42      0.708      0.871          1          1
-       16          1        1.2     0.0113   5.89e+06      -4.03      0.549      0.867          1          1
-       32          6       1.11     0.0223   1.15e+07      -4.77      0.754      0.877          1          1
-       64         11       1.35     0.0443   2.31e+07      -4.79      0.698       0.85          1          1
-      128         25        1.6     0.0883   4.57e+07      -4.97      0.725      0.823          1          1
-      256         43       1.51      0.173   9.03e+07      -4.92      0.758      0.832          1          1
-      512         92       1.46      0.418   1.82e+08         -5      0.806      0.838          1          1
- 1.02e+03        188       1.49      0.846   3.65e+08      -4.92      0.798      0.834          1          1
- 2.05e+03        384        1.5       1.52    7.3e+08      -4.96      0.811      0.834          1          1
-  4.1e+03        748       1.48       3.16   1.46e+09      -4.94      0.826      0.835          1          1
+        2          0       3.24     0.0012   7.34e+05      -8.14    0.00178       0.64          1          1
+        4          0       1.64    0.00243   1.44e+06      -5.04     0.0352      0.818          1          1
+        8          0       1.17    0.00443   2.81e+06      -4.42      0.708      0.871          1          1
+       16          1        1.2    0.00892   5.89e+06      -4.03      0.549      0.867          1          1
+       32          6       1.11     0.0173   1.15e+07      -4.77      0.754      0.877          1          1
+       64         11       1.35     0.0338   2.31e+07      -4.79      0.698       0.85          1          1
+      128         25        1.6     0.0826   4.57e+07      -4.97      0.725      0.823          1          1
+      256         43       1.51      0.189   9.03e+07      -4.92      0.758      0.832          1          1
+      512         92       1.46      0.371   1.82e+08         -5      0.806      0.838          1          1
+ 1.02e+03        188       1.49      0.727   3.65e+08      -4.92      0.798      0.834          1          1
+ 2.05e+03        384        1.5       1.43    7.3e+08      -4.96      0.811      0.834          1          1
+  4.1e+03        748       1.48       2.86   1.46e+09      -4.94      0.826      0.835          1          1
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><iframe src="../posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe><h2 id="Posterior-pair-plots"><a class="docs-heading-anchor" href="#Posterior-pair-plots">Posterior pair plots</a><a id="Posterior-pair-plots-1"></a><a class="docs-heading-anchor-permalink" href="#Posterior-pair-plots" title="Permalink"></a></h2><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The code snippet in this section only works with Julia 1.9.  See https://sefffal.github.io/PairPlots.jl/dev/chains/ for a workaround.</p></div></div><p>Make sure to have the third party packages <code>MCMCChains</code>, <code>CairoMakie</code> and <code>PairPlots</code> installed via </p><pre><code class="nohighlight hljs">using Pkg; Pkg.add(&quot;MCMCChains&quot;, &quot;CairoMakie&quot;, &quot;PairPlots&quot;)</code></pre><pre><code class="nohighlight hljs">using Pigeons
 using MCMCChains
 using CairoMakie
@@ -52,4 +52,4 @@ samples = Chains(sample_array(pt), variable_names(pt))
 my_plot = PairPlots.pairplot(samples) 
 
 CairoMakie.save(&quot;pair_plot.svg&quot;, my_plot)
-nothing # hide</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../output-reports/">« Quick reports</a><a class="docs-footer-nextpage" href="../output-normalization/">log(Z) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Saturday 30 September 2023 19:05">Saturday 30 September 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing # hide</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../output-reports/">« Quick reports</a><a class="docs-footer-nextpage" href="../output-normalization/">log(Z) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 3 October 2023 17:03">Tuesday 3 October 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
