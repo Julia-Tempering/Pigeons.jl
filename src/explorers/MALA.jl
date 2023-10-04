@@ -92,6 +92,7 @@ function mala!(rng::AbstractRNG, explorer::MALA, target_log_potential, state::Ve
         else # reject: go back to start state
             state .= start_state # momentum gets resampled at next iteration anyway
         end
+        @record_if_requested!(recorders, :explorer_n_steps, (chain, 1)) # MALA always only does one leapfrog
     end
 end
 
