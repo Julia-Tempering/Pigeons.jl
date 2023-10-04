@@ -14,6 +14,8 @@ which also cover checks of the Hamiltonian dynamics.
             record = record_online(), 
             seed = 1
         )
+        println("Number of leapfrog evals: ")
+        println(Pigeons.explorer_n_steps(pt)[1])
     catch e 
         error_thrown = true 
     end 
