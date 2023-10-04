@@ -75,6 +75,14 @@ nothing # hide
 where the `args...` passed to `pigeons` are forwarded 
 to [`Inputs`](@ref).
 
+Continuing on the above example, to perform two additional rounds of sampling, use the following (see also: [more advanced checkpoint/resume options at the checkpoint page](@ref checkpoint-page)):
+
+```@example example
+pt = increment_n_rounds!(pt, 2)
+pigeons(pt)
+nothing # hide
+```
+
 
 ## Scope 
 
