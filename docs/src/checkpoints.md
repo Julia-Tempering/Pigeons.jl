@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# Checkpoints
+# [Checkpoints](@id checkpoints-page)
 
 Pigeons can write a "checkpoint" periodically 
 to ensure that not more than half of the work is lost in 
@@ -32,7 +32,7 @@ from the latest run and perform more sampling:
 pt = PT("results/latest")
 
 # do two more rounds of sampling
-pt = Pigeons.increment_n_rounds!(pt, 2)
+pt = increment_n_rounds!(pt, 2)
 pt = pigeons(pt)
 nothing # hide
 ```
@@ -42,7 +42,7 @@ help. Continuing on the above example, we will now do one more round, but
 this time using 2 local MPI processes:
 
 ```@example example
-pt = Pigeons.increment_n_rounds!(pt, 1)
+pt = increment_n_rounds!(pt, 1)
 result = pigeons(pt.exec_folder, ChildProcess(n_local_mpi_processes = 2))
 nothing # hide
 ```
@@ -51,7 +51,7 @@ We conclude with an example showing that it is not necessary to load
 the PT object into the interactive node in order to increase the number of rounds:
 
 ```@example example
-new_exec_folder = Pigeons.increment_n_rounds!(result.exec_folder, 1)
+new_exec_folder = increment_n_rounds!(result.exec_folder, 1)
 result = pigeons(new_exec_folder, ChildProcess(n_local_mpi_processes = 2))
 nothing # hide
 ```
