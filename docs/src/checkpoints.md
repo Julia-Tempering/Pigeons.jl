@@ -34,19 +34,27 @@ pt = PT("results/latest")
 # do two more rounds of sampling
 pt = Pigeons.increment_n_rounds!(pt, 2)
 pt = pigeons(pt)
+nothing # hide
 ```
 
-This is useful when you realize you will need more CPU or machines to 
+This is useful when you realize you will need more CPUs or machines to 
 help. Continuing on the above example, we will now do one more round, but 
 this time using 2 local MPI processes:
 
 ```@example example
 pt = Pigeons.increment_n_rounds!(pt, 1)
 result = pigeons(pt.exec_folder, ChildProcess(n_local_mpi_processes = 2))
+nothing # hide
 ```
 
-The above example also demonstrates that it is not necessary to load 
-the PT object into the interactive node in order to increase the number of rounds. 
+We conclude with an example showing that it is not necessary to load 
+the PT object into the interactive node in order to increase the number of rounds:
+
+```@example example
+new_exec_folder = Pigeons.increment_n_rounds!(result.exec_folder, 1)
+result = pigeons(new_exec_folder, ChildProcess(n_local_mpi_processes = 2))
+nothing # hide
+```
 
 
 ## Large immutable data

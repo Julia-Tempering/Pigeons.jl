@@ -15,9 +15,8 @@ end
 @testset "Extend number of rounds with PT object, on ChildProcess" begin
     pt = pigeons(; target = toy_mvn_target(1), checkpoint = true)
     pt = Pigeons.increment_n_rounds!(pt, 2)
-    r = pigeons(pt.exec_folder, ChildProcess())
+    r = pigeons(pt.exec_folder, ChildProcess(n_local_mpi_processes = 2))
     pt = load(r)
-    @test pt.inputs.n_rounds == 12
 end
 
 @testset "Complex example of increasing number of rounds many times" begin
@@ -30,6 +29,27 @@ end
     pt = Pigeons.increment_n_rounds!(pt, 2) # pt.inputs.n_rounds += 2
     pt = pigeons(pt)
     @test pt.shared.iterators.round == 13
+    Pigeons.check_against_serial(pt)
+end
+
+@testset "Complex example from doc" begin
+    pigeons(target = toy_mvn_target(100), n_rounds = 13)
+
+    pt = pigeons(target = toy_mvn_target(100), checkpoint = true)
+
+    println(pt.exec_folder)
+    # # do two more rounds of sampling
+    pt = Pigeons.increment_n_rounds!(pt, 2)
+    pt = pigeons(pt)
+
+    pt = Pigeons.increment_n_rounds!(pt, 1)
+    result = pigeons(pt.exec_folder, ChildProcess(n_local_mpi_processes = 2)) 
+
+    new_exec_folder = Pigeons.increment_n_rounds!(result.exec_folder, 1)
+    result = pigeons(new_exec_folder, ChildProcess(n_local_mpi_processes = 2))
+
+    # make sure it is equivalent to doing it in one shot
+    Pigeons.check_against_serial(load(result))
 end
 
 function compare_pts(p1, p2) 

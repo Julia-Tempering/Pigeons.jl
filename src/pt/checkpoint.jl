@@ -31,16 +31,21 @@ function PT(source_exec_folder::AbstractString;
     end 
 
     exec_folder = pt_exec_folder(true, exec_folder)
-    
     checkpoint_folder = "$source_exec_folder/round=$round/checkpoint"
+
     deserialize_immutables!("$source_exec_folder/immutables.jls")
     shared = deserialize("$checkpoint_folder/shared.jls") 
     inputs = deserialize("$source_exec_folder/inputs.jls")
     reduced_recorders = deserialize("$checkpoint_folder/reduced_recorders.jls")
-    
-    checkpoint_symlinks(checkpoint_folder, exec_folder, round)
+
     replicas = create_replicas(inputs, shared, FromCheckpoint(checkpoint_folder))
-    return PT(inputs, replicas, shared, exec_folder, reduced_recorders)
+    result = PT(inputs, replicas, shared, exec_folder, reduced_recorders)
+    
+    only_one_process(result) do
+        checkpoint_symlinks!(checkpoint_folder, exec_folder, round)
+    end
+    
+    return result
 end
 
 """$SIGNATURES"""
@@ -134,9 +139,9 @@ function write_checkpoint(pt)
     end
 end
 
-function checkpoint_symlinks(input_checkpoint_folder, exec_folder, round_index, same_inputs = true)
+function checkpoint_symlinks!(input_checkpoint_folder, exec_folder, round_index, same_inputs = true)
     input_exec_folder = (dirname ∘ dirname)(input_checkpoint_folder)
-    if !isfile("$exec_folder/immutables.jls")
+    if !isfile("$exec_folder/immutables.jls") # immutables.jls can already exist when it gets created by subnmission_utils already
         safelink(
             "$input_exec_folder/immutables.jls", 
             "$exec_folder/immutables.jls")
@@ -173,7 +178,7 @@ function increment_n_rounds!(source_exec_folder::String, increment::Int)
     deserialize_immutables!("$source_exec_folder/immutables.jls")
     inputs = deserialize("$source_exec_folder/inputs.jls")
     inputs.n_rounds += increment
-    checkpoint_symlinks(checkpoint_folder, exec_folder, round, false)
+    checkpoint_symlinks!(checkpoint_folder, exec_folder, round, false)
     serialize("$exec_folder/inputs.jls", inputs) 
     return exec_folder
 end
