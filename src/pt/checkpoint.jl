@@ -18,7 +18,7 @@ containing all the information for the new run.
 """
 function PT(source_exec_folder::AbstractString; 
             round = latest_checkpoint_folder(source_exec_folder),
-            fresh_exec_folder = use_auto_exec_folder)  
+            exec_folder = use_auto_exec_folder)  
     if round == 0
         error("no checkpoint is available yet for $source_exec_folder")
     elseif round < 0
@@ -30,17 +30,22 @@ function PT(source_exec_folder::AbstractString;
         source_exec_folder = "results/$resolved"
     end 
 
-    fresh_exec_folder = pt_exec_folder(true, fresh_exec_folder)
-    
+    exec_folder = pt_exec_folder(true, exec_folder)
     checkpoint_folder = "$source_exec_folder/round=$round/checkpoint"
+
     deserialize_immutables!("$source_exec_folder/immutables.jls")
     shared = deserialize("$checkpoint_folder/shared.jls") 
     inputs = deserialize("$source_exec_folder/inputs.jls")
     reduced_recorders = deserialize("$checkpoint_folder/reduced_recorders.jls")
-    
-    checkpoint_symlinks(checkpoint_folder, fresh_exec_folder, shared.iterators.round)
+
     replicas = create_replicas(inputs, shared, FromCheckpoint(checkpoint_folder))
-    return PT(inputs, replicas, shared, fresh_exec_folder, reduced_recorders)
+    result = PT(inputs, replicas, shared, exec_folder, reduced_recorders)
+    
+    only_one_process(result) do
+        checkpoint_symlinks!(checkpoint_folder, exec_folder, round)
+    end
+    
+    return result
 end
 
 """$SIGNATURES"""
@@ -134,17 +139,46 @@ function write_checkpoint(pt)
     end
 end
 
-function checkpoint_symlinks(input_checkpoint_folder, fresh_exec_folder, round_index)
+function checkpoint_symlinks!(input_checkpoint_folder, exec_folder, round_index, same_inputs = true)
     input_exec_folder = (dirname ∘ dirname)(input_checkpoint_folder)
-    safelink(
-        "$input_exec_folder/immutables.jls", 
-        "$fresh_exec_folder/immutables.jls")
-    safelink(
+    if !isfile("$exec_folder/immutables.jls") # immutables.jls can already exist when it gets created by subnmission_utils already
+        safelink(
+            "$input_exec_folder/immutables.jls", 
+            "$exec_folder/immutables.jls")
+    end
+    if same_inputs    
+        safelink(
             "$input_exec_folder/inputs.jls", 
-            "$fresh_exec_folder/inputs.jls")
+            "$exec_folder/inputs.jls")
+    end
     for r = 1:round_index
         target = "$input_exec_folder/round=$r"
-        link = "$fresh_exec_folder/round=$r"
+        link = "$exec_folder/round=$r"
         safelink(target, link)
     end
+end
+
+function increment_n_rounds!(pt::PT, increment::Int)
+    pt.inputs.n_rounds += increment 
+    new_exec_folder = pt.exec_folder 
+    if pt.exec_folder !== nothing 
+        new_exec_folder = increment_n_rounds!(pt.exec_folder, increment)
+    end
+    return PT(pt.inputs, pt.replicas, pt.shared, new_exec_folder, pt.reduced_recorders)
+end
+
+function increment_n_rounds!(source_exec_folder::String, increment::Int) 
+    if source_exec_folder == "results/latest" || source_exec_folder == "results/latest/"
+        resolved = readlink("results/latest")
+        source_exec_folder = "results/$resolved"
+    end 
+    round = latest_checkpoint_folder(source_exec_folder)
+    exec_folder = pt_exec_folder(true, use_auto_exec_folder)
+    checkpoint_folder = "$source_exec_folder/round=$round/checkpoint"
+    deserialize_immutables!("$source_exec_folder/immutables.jls")
+    inputs = deserialize("$source_exec_folder/inputs.jls")
+    inputs.n_rounds += increment
+    checkpoint_symlinks!(checkpoint_folder, exec_folder, round, false)
+    serialize("$exec_folder/inputs.jls", inputs) 
+    return exec_folder
 end
