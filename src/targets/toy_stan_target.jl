@@ -29,10 +29,10 @@ stan_bernoulli(y = [0,1,0,0,0,0,0,0,0,1]) =
         json(; y, N = length(y))
     )
 
-stan_banana(dim = 9) = 
+stan_banana(dim = 9, scale = 1.0) = 
     StanLogPotential(
         stan_example_path("banana.stan"), 
-        json(; dim)
+        json(; dim, scale)
     )
 
 observed_range_squared(x) = (maximum(x) - minimum(x))^2

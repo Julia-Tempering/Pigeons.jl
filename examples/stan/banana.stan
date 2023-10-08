@@ -5,6 +5,7 @@
 // y_{1:d}|x ~ N(x^2, s_b) // s_b = sqrt(inv(2b)), b = 5    (50 easier)
 data {
     int<lower=1> dim;
+    real<lower=0> scale;
 }
 transformed data {
     real a, b, s_a, s_b;
@@ -19,5 +20,5 @@ parameters {
 }
 model {
     x ~ normal(0, s_a);
-    y ~ normal(square(x), s_b);
+    y ~ normal(square(x), scale*s_b);
 }
