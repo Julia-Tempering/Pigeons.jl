@@ -20,7 +20,12 @@ function PT(source_exec_folder::AbstractString;
             round = latest_checkpoint_folder(source_exec_folder),
             exec_folder = use_auto_exec_folder)  
     if round == 0
-        error("no checkpoint is available yet for $source_exec_folder")
+        error("""
+        No checkpoint found for $source_exec_folder. 
+        This can happen if:
+            1. You did not set checkpoint=true.
+            2. You have not loaded in all the dependencies that were used during your previous run.
+            """)
     elseif round < 0
         throw(ArgumentError("round should be positive"))
     end
