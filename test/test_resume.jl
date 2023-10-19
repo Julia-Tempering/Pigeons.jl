@@ -15,6 +15,13 @@ end
     end
 end
 
+@testset "Extend number of rounds with PT object, from MPI to another MPI run" begin
+    pt = pigeons(; target = toy_mvn_target(1), checkpoint = true, on = ChildProcess(n_local_mpi_processes = 2))
+    exec = increment_n_rounds!(pt.exec_folder, 2)
+    r = pigeons(exec, ChildProcess(n_local_mpi_processes = 3))
+    Pigeons.check_against_serial(load(r))
+end
+
 @testset "Extend number of rounds with PT object, on ChildProcess" begin
     pt = pigeons(; target = toy_mvn_target(1), checkpoint = true)
     pt = increment_n_rounds!(pt, 2)
