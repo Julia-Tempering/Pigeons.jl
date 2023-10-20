@@ -8,11 +8,11 @@ include("supporting/mpi_test_utils.jl")
     is_windows_in_CI() || push!(targets, toy_stan_target(1))
 
     # various explorers on a Julia function and on a Stan model
-    mixed_AM = Mix((
+    mixed_AM = Mix(
         AutoMALA(preconditioner=Pigeons.IdentityPreconditioner()),
         AutoMALA(preconditioner=Pigeons.MixDiagonalPreconditioner()),
         AutoMALA(preconditioner=Pigeons.DiagonalPreconditioner())
-    ))
+    )
     for explorer in [SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA()), mixed_AM]
         for target in targets
             @show explorer, target
