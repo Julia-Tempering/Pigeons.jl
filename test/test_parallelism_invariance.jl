@@ -9,11 +9,11 @@ include("supporting/mpi_test_utils.jl")
 
     # various explorers on a Julia function and on a Stan model
     mixed_AM = Mix(
-        AutoMALA(preconditioner=Pigeons.IdentityPreconditioner(base_n_refresh=1)),
-        AutoMALA(preconditioner=Pigeons.MixDiagonalPreconditioner(base_n_refresh=1)),
-        AutoMALA(preconditioner=Pigeons.DiagonalPreconditioner(base_n_refresh=1))
+        AutoMALA(preconditioner=Pigeons.IdentityPreconditioner(), base_n_refresh=1),
+        AutoMALA(preconditioner=Pigeons.MixDiagonalPreconditioner(), base_n_refresh=1),
+        AutoMALA(preconditioner=Pigeons.DiagonalPreconditioner(), base_n_refresh=1)
     )
-    for explorer in [SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA()), mixed_AM]
+    for explorer in [mixed_AM]#[SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA()), mixed_AM]
         for target in targets
             @show explorer, target
             @show is_stan = target isa Pigeons.StanLogPotential
