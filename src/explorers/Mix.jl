@@ -2,7 +2,6 @@
 $SIGNATURES
 
 Randomly alternate between different explorers. 
-E.g. `Mix(SliceSampler(), AutoMALA())`
 $FIELDS
 """
 @auto struct Mix
