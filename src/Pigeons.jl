@@ -85,7 +85,7 @@ export pigeons, Inputs, PT,
     # variational references:
     GaussianReference, 
     # samplers 
-    SliceSampler, AutoMALA, Compose, AAPS, MALA
+    SliceSampler, AutoMALA, Compose, AAPS, MALA, Mix
 end # End module
 
 
