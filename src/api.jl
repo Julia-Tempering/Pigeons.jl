@@ -17,3 +17,6 @@ pigeons(; on = ThisProcess(), args...) =
     pigeons(Inputs(; args...), on)
 
 pigeons(pt_arguments, ::ThisProcess) = pigeons(PT(pt_arguments))
+
+pigeons(bc::BreadCrumbs; on = ThisProcess(), args...) = 
+    pigeons(Inputs(; target=BreadCrumbsTarget(bc), args...), on)

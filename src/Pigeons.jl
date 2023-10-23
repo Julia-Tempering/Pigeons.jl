@@ -64,7 +64,7 @@ const use_auto_exec_folder = "use_auto_exec_folder"
 
 include("includes.jl")
 
-export pigeons, Inputs, PT, 
+export pigeons, Inputs, PT, BreadCrumbs,
     # for running jobs:
     ChildProcess, MPI,
     # references:
