@@ -29,7 +29,7 @@ Note: Recompile with -Xlint:unchecked for details.
 &gt; Task :startScripts
 &gt; Task :installDist
 
-BUILD SUCCESSFUL in 1m 21s
+BUILD SUCCESSFUL in 1m 24s
 6 actionable tasks: 6 executed</code></pre><p>Next, we run a   <a href="https://github.com/UBC-Stat-ML/blangDemos/blob/master/src/main/java/demos/UnidentifiableProduct.bl">Blang implementation</a> of  our usual <a href="../unidentifiable-example/#unidentifiable-example">unidentifiable toy example</a>:</p><pre><code class="language-julia hljs">using Pigeons
 
 blang_unidentifiable_example(n_trials, n_successes) =
@@ -42,19 +42,19 @@ pt = pigeons(target = blang_unidentifiable_example(100, 50))</code></pre><pre cl
 Preprocess {
   2 samplers constructed with following prototypes:
     RealScalar sampled via: [RealSliceSampler]
-} [ endingBlock=Preprocess blockTime=862.4ms blockNErrors=0 ]
+} [ endingBlock=Preprocess blockTime=1.128s blockNErrors=0 ]
 Inference {
   ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2      0.992      0.398   1.68e+07      -4.05      0.621       0.89
-        4       1.42     0.0806   6.44e+05      -4.43      0.192      0.842
-        8       1.44      0.102   7.26e+05      -5.35      0.581       0.84
-       16        1.7      0.146   1.43e+06      -4.72      0.577      0.811
-       32       1.51      0.281   2.84e+06       -4.8      0.602      0.833
-       64       1.52      0.525   5.59e+06      -4.95      0.727      0.831
-      128       1.56      0.558   1.11e+07      -4.93      0.713      0.827
-      256       1.52      0.981   2.21e+07      -5.06       0.78      0.831
-      512       1.52       2.02    4.4e+07      -4.97      0.793      0.831
- 1.02e+03       1.54       2.66   8.76e+07      -4.97      0.789      0.829
-────────────────────────────────────────────────────────────────────────────</code></pre><p>As shown above, create a <a href="../reference/#Pigeons.StreamTarget"><code>StreamTarget</code></a> amounts to specifying which command will  be used to create a child process. </p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-stan/">« Stan model</a><a class="docs-footer-nextpage" href="../input-explorers/">Custom MCMC »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Saturday 21 October 2023 21:25">Saturday 21 October 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+        2      0.992      0.526   1.63e+07      -4.05      0.621       0.89
+        4       1.42     0.0878    6.4e+05      -4.43      0.192      0.842
+        8       1.44      0.114   8.66e+05      -5.35      0.581       0.84
+       16        1.7      0.191   1.44e+06      -4.72      0.577      0.811
+       32       1.51      0.397   2.85e+06       -4.8      0.602      0.833
+       64       1.52      0.737   5.56e+06      -4.95      0.727      0.831
+      128       1.56      0.854    1.1e+07      -4.93      0.713      0.827
+      256       1.52       1.75    2.2e+07      -5.06       0.78      0.831
+      512       1.52       2.81   4.38e+07      -4.97      0.793      0.831
+ 1.02e+03       1.54       3.81   8.74e+07      -4.97      0.789      0.829
+────────────────────────────────────────────────────────────────────────────</code></pre><p>As shown above, create a <a href="../reference/#Pigeons.StreamTarget"><code>StreamTarget</code></a> amounts to specifying which command will  be used to create a child process. </p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-stan/">« Stan model</a><a class="docs-footer-nextpage" href="../input-explorers/">Custom MCMC »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Monday 23 October 2023 22:50">Monday 23 October 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
