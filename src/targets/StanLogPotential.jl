@@ -91,7 +91,7 @@ end
 function initialization(target::StanLogPotential, rng::AbstractRNG, _::Int64)
     d_unc = BridgeStan.param_unc_num(target.model) # number of unconstrained parameters 
     init = zeros(d_unc) 
-    return StanState(init)
+    return StanState(init, StanRNG(target.model, rand(rng, UInt32)))
 end
 
 default_reference(target::StanLogPotential) = target

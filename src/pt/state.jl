@@ -142,13 +142,14 @@ Holds a vector in BridgeStan's unconstrained parameterization.
 """
 @concrete mutable struct StanState 
     unconstrained_parameters
+    rng::StanRNG # <- needed when processing samples and there is a Stan "generate block" present
 end
 
 continuous_variables(state::StanState) = SINGLETON_VAR # all Stan variables should be continuous 
 discrete_variables(state::StanState) = []
 
-extract_sample(state::StanState, log_potential) = 
-    BridgeStan.param_constrain(stan_model(log_potential), state.unconstrained_parameters)
+extract_sample(state::StanState, log_potential) =
+    r = BridgeStan.param_constrain(stan_model(log_potential), state.unconstrained_parameters; include_tp = true, include_gq = true, rng = state.rng)
 
 function update_state!(state::StanState, name::Symbol, index, value) 
     @assert name === :singleton_variable
@@ -163,5 +164,5 @@ function variable(state::StanState, name::Symbol)
     end
 end
 
-variable_names(::StanState, log_potential) = BridgeStan.param_names(stan_model(log_potential))
+variable_names(::StanState, log_potential) = BridgeStan.param_names(stan_model(log_potential); include_tp = true, include_gq = true)
 
