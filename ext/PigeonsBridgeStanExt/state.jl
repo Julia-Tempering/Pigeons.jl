@@ -21,8 +21,8 @@ end
 Pigeons.step!(explorer::AutoMALA, replica, shared, state::StanState) =
 Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
 
-step!(explorer::Pigeons.HamiltonianSampler, replica, shared, state::StanState) =
-    step!(explorer, replica, shared, state.unconstrained_parameters)
+Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, state::StanState) =
+    Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
 
 
 

@@ -67,7 +67,7 @@ function Pigeons.slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, 
     return cached_lp
 end
 
-function step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
+function Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
     log_potential = find_log_potential(replica, shared.tempering, shared)
     state = DynamicPPL.getall(vi)
     _extract_commons_and_run!(explorer, replica, shared, log_potential, state)
