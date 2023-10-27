@@ -1,7 +1,9 @@
 @testset "APIs" begin
     r = pigeons(target = toy_mvn_target(1), checkpoint = true, on = ChildProcess())
-    # less often used API: specify the path (string) to a checkpoint
+    # less often used APIs: specify the path (string) to a checkpoint
     pigeons(r.exec_folder)
+    # ... and to run on child
+    pigeons(r.exec_folder, ChildProcess())
 
     # test with no recorders 
     pigeons(target = toy_mvn_target(1), record = [])

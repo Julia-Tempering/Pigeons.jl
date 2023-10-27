@@ -7,7 +7,8 @@ called `results/latest``
 """
 function next_exec_folder()
     formatted_time = Dates.format(now(), dateformat"yyyy-mm-dd-HH-MM-SS")
-    result = abspath("results/all/$formatted_time-$(randstring(8))")
+    rng = SplittableRandom(getpid() * now().instant.periods.value)
+    result = abspath("results/all/$formatted_time-$(randstring(rng, 8))")
     mkpath(result)
     _ensure_symlinked(result)
     return result

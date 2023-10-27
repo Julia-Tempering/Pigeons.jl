@@ -34,5 +34,16 @@ See [`create_replicas`](@ref).
     my_globals = my_global_indices(entangler.load)
     chain_to_replica_global_indices = PermutedDistributedArray(my_globals, entangler)
     locals = _create_locals(my_globals, inputs, shared, source)
+    init_permutation!(locals, chain_to_replica_global_indices)
     return EntangledReplicas(locals, chain_to_replica_global_indices)
+end
+
+function init_permutation!(locals, chain_to_replica_global_indices)
+    indices = Int[] 
+    new_values = Int[]
+    for replica in locals 
+        push!(indices, replica.chain) 
+        push!(new_values, replica.replica_index)
+    end
+    permuted_set!(chain_to_replica_global_indices, indices, new_values)
 end
