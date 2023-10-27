@@ -122,7 +122,7 @@ function _use_system_binary(; args...)
     catch e 
         # we need to do this because the way MPIPreferences signal you have to restart is via 
         # error("You will need to restart Julia for the changes to take effect")
-        if e.mgs == "You will need to restart Julia for the changes to take effect"
+        if e.msg == "You will need to restart Julia for the changes to take effect"
             # nothing to do, MPI submissions are in separate processes so there is
             # no need to ask the restart Julia
         else
