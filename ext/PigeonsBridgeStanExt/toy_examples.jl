@@ -2,11 +2,7 @@ stan_example_path(name) =
     dirname(dirname(pathof(Pigeons))) * "/examples/stan/$name"
 
 
-"""
-$SIGNATURES
 
-A multivariate normal implemented in Stan for testing/benchmarking.
-"""
 Pigeons.toy_stan_target(dim::Int, precision = 10.0) =
     StanLogPotential(
         stan_example_path("mvn.stan"),

@@ -13,12 +13,25 @@ the current session.
     extra_information # if extra information needed for i.i.d. sampling
 end
 
+"""
+A state for stan target.
+Holds a vector in BridgeStan's unconstrained parameterization.
+"""
+@auto mutable struct StanState
+    unconstrained_parameters
+end
+
 stan_model(log_potential::StanLogPotential) = log_potential.model
 stan_model(log_potential::InterpolatedLogPotential) = log_potential.path.target.model
 
 
 # These are functions for the stan examples
 # TODO: Should these really be in the main repo or the examples folder?
+"""
+$SIGNATURES
+
+A multivariate normal implemented in Stan for testing/benchmarking.
+"""
 function toy_stan_target end
 function toy_stan_unid_target end
 function stan_funnel end

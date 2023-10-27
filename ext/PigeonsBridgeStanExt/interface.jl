@@ -26,13 +26,7 @@ Base.show(io::IO, slp::StanLogPotential) =
     print(io, "StanLogPotential($(name(slp.model)))")
 
 
-"""
-A state for stan target.
-Holds a vector in BridgeStan's unconstrained parameterization.
-"""
-Pigeons.@auto mutable struct StanState
-    unconstrained_parameters
-end
+
 
 function stan_threads_options()
     if Threads.nthreads() > 1
@@ -62,9 +56,9 @@ end
 Pigeons.default_explorer(::StanLogPotential) = AutoMALA()
 
 """
-Evaluate the log potential at a given point `x` of type `StanState`.
+Evaluate the log potential at a given point `x` of type `Pigeons.StanState`.
 """
-(log_potential::StanLogPotential)(state::StanState) =
+(log_potential::StanLogPotential)(state::Pigeons.StanState) =
     LogDensityProblems.logdensity(log_potential, state.unconstrained_parameters)
 
 LogDensityProblemsAD.ADgradient(::Symbol, log_potential::StanLogPotential, buffers::Pigeons.Augmentation) =
@@ -91,7 +85,7 @@ end
 function Pigeons.initialization(target::StanLogPotential, rng::AbstractRNG, _::Int64)
     d_unc = BridgeStan.param_unc_num(target.model) # number of unconstrained parameters
     init = zeros(d_unc)
-    return StanState(init)
+    return Pigeons.StanState(init)
 end
 
 Pigeons.default_reference(target::StanLogPotential) = target

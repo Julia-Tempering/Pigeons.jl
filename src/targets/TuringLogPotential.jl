@@ -16,4 +16,10 @@ turing_model(log_potential::InterpolatedLogPotential) = log_potential.path.targe
 # These are functions for the stan examples
 # TODO: Should these really be in the main repo or the examples folder?
 function toy_turing_target end
+
+"""
+$SIGNATURES
+
+A toy Turing model used for testing (unidentifiable 2-dim params for a bernoulli).
+"""
 function toy_turing_unid_target end

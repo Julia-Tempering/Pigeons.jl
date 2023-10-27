@@ -17,11 +17,6 @@ DynamicPPL.@model function toy_turing_unid_model(n_trials, n_successes)
     return n_successes
 end
 
-"""
-$SIGNATURES
-
-A toy Turing model used for testing (unidentifiable 2-dim params for a bernoulli).
-"""
 Pigeons.@provides target function Pigeons.toy_turing_unid_target(n_trials = 100000, n_successes = ceil(Int, n_trials/2))
     return Pigeons.TuringLogPotential(toy_turing_unid_model(n_trials, n_successes))
 end
