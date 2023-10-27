@@ -31,10 +31,10 @@ Pigeons.stan_bernoulli(y = [0,1,0,0,0,0,0,0,0,1]) =
         Pigeons.json(; y, N = length(y))
     )
 
-Pigeons.stan_banana(dim = 9) =
+Pigeons.stan_banana(dim = 9, scale=1.0) =
     StanLogPotential(
         stan_example_path("banana.stan"),
-        Pigeons.json(; dim)
+        Pigeons.json(; dim, scale)
     )
 
 
