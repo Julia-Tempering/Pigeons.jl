@@ -7,8 +7,12 @@ project_root_dir = dirname(test_dir) # <- pigeons dir
 Pkg.activate("$test_dir/supporting/env-pigeons-only")
 Pkg.develop(PackageSpec(path=project_root_dir))
 
-using Test 
-@test_throws "UndefVarError: `toy_mvn_target` not defined" pigeons(target = toy_mvn_target(1))
+using Test
+if VERSION < v"1.9"
+    @test_throws "UndefVarError: toy_mvn_target not defined" pigeons(target = toy_mvn_target(1))
+else
+    @test_throws "UndefVarError: `toy_mvn_target` not defined" pigeons(target = toy_mvn_target(1))
+end
 
 using Pigeons
 pigeons(target = toy_mvn_target(1))
