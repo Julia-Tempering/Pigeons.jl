@@ -104,8 +104,8 @@ automala(target, preconditioner) =
     min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~3945
 
     pt = automala(unbalanced_target, Pigeons.MixDiagonalPreconditioner())
-    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~492
-
+    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~849
+    
     # check that min ess are ordered as expected
     @test min_ess_id < min_ess_mixdiag < min_ess_diag
 
@@ -127,18 +127,17 @@ pigeons_precond_automala(target, reference, preconditioner) =
     dim = 2
     mu  = 4.
     mixture_target = DistributionLogPotential(MixtureModel(
-        [MvNormal(fill(-mu,dim), 0.1I), MvNormal(fill( mu,dim), 0.01I)],
-        fill(inv(dim), dim)
+        [MvNormal(fill(-mu,dim), 0.1I), MvNormal(fill(mu,dim), 0.01I)]
     ))
     reference = DistributionLogPotential(MvNormal(fill(0., dim), mu*mu*I))
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.IdentityPreconditioner())
-    min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~45
-
+    min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~46
+    
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.DiagonalPreconditioner())
-    min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~51
-
+    min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~52
+    
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.MixDiagonalPreconditioner())
-    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~72
+    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~79
 
     @test min_ess_id < min_ess_diag < min_ess_mixdiag
 end
