@@ -9,7 +9,7 @@ ADgradient() in TuringLogPotential.jl
 
     @show Threads.nthreads()
 
-    logz_mala = Pigeons.stepping_stone_pair(pigeons(; target, explorer = AutoMALA(adapt_pre_conditioning = false)))
+    logz_mala = Pigeons.stepping_stone_pair(pigeons(; target, explorer = AutoMALA(preconditioner = Pigeons.IdentityPreconditioner())))
     logz_slicer = Pigeons.stepping_stone_pair(pigeons(; target, explorer = SliceSampler()))
 
     @test abs(logz_mala[1] - logz_slicer[1]) < 0.1
