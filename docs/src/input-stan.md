@@ -6,7 +6,7 @@ CurrentModule = Pigeons
 
 !!! note
 
-    We use the package `BridgeStan.jl` which will attempt 
+    We use the package `BridgeStan.jl` as a package extension which will attempt 
     to automatically install Stan. 
     For `BridgeStan.jl` to work, a C++ compiler and 
     `make` are needed, see 
@@ -21,6 +21,7 @@ Here we show how this is done using our familiar [unidentifiable toy example](@r
 [ported to the Stan language](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/unid.stan).
 
 ```@example stan
+using BridgeStan
 using Pigeons 
 using Random
 
@@ -76,7 +77,7 @@ nothing # hide
 
 ## Manipulating the output
 
-Internally, Stan target's states (of type [`StanState`](@ref)) are stored in an unconstrained 
+Internally, Stan target's states are stored in an unconstrained 
 parameterization provided by Stan 
 (for example, bounded support variables are mapped to the full real line). 
 However, sample post-processing functions such as [`sample_array()`](@ref) and [`process_sample()`](@ref) 
