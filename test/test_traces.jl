@@ -1,4 +1,8 @@
 using MCMCChains
+using DynamicPPL
+using BridgeStan
+using DynamicPPL
+using BridgeStan
 
 @testset "Sample matrix" begin
     for extended_traces in [true, false]
@@ -7,21 +11,22 @@ using MCMCChains
             use_two_chains || push!(targets, toy_mvn_target(3))
             is_windows_in_CI() || push!(targets, Pigeons.toy_stan_target(3))
 
+
             for target in targets
-                pt = pigeons(; 
-                        target, 
+                pt = pigeons(;
+                        target,
                         extended_traces,
                         record = [traces],
-                        n_rounds = 2, 
+                        n_rounds = 2,
                         n_chains_variational  = use_two_chains ? 10 : 0,
                         variational = use_two_chains ? GaussianReference() : nothing
                     )
 
-                mtx = sample_array(pt) 
+                mtx = sample_array(pt)
                 @test size(mtx) == (4, 3, (use_two_chains ? 2 : 1) * (extended_traces ? 10 : 1))
                 @test length(variable_names(pt)) == 3
                 chain = Chains(sample_array(pt), variable_names(pt))
-            end 
+            end
         end
     end
 end
@@ -31,14 +36,14 @@ end
     is_windows_in_CI() || push!(targets, toy_stan_target(10))
     for extended_traces in [true, false]
         for target in targets
-            r = pigeons(; 
-                    target, 
-                    record = [traces, disk, online], 
+            r = pigeons(;
+                    target,
+                    record = [traces, disk, online],
                     extended_traces,
                     multithreaded = false,  # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
-                    checkpoint = true, 
-                    on = ChildProcess(n_local_mpi_processes = 2, n_threads = 1)) # setting to more than 1 puts too much pressure on CI instances? 
-            pt = load(r)        
+                    checkpoint = true,
+                    on = ChildProcess(n_local_mpi_processes = 2, n_threads = 1, dependencies=[DynamicPPL, BridgeStan])) # setting to more than 1 puts too much pressure on CI instances?
+            pt = load(r)
             @test length(pt.reduced_recorders.traces) == 1024 * (extended_traces ? 10 : 1)
             for chain in Pigeons.chains_with_samples(pt)
                 marginal = [get_sample(pt, chain, i)[1] for i in 1:1024]
@@ -60,5 +65,3 @@ end
         end
     end
 end
-
-

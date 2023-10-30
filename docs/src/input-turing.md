@@ -5,11 +5,11 @@ CurrentModule = Pigeons
 # [Turing.jl model as input to pigeons](@id input-turing)
 
 To target the posterior distribution specified by 
-a [Turing.jl](https://github.com/TuringLang/Turing.jl) model use 
-a [`TuringLogPotential`](@ref):
+a [Turing.jl](https://github.com/TuringLang/Turing.jl) model first load `Turing`
+or `DynamicPPL` and use [`TuringLogPotential`](@ref):
 
 ```@example turing
-using Pigeons, Distributions, DistributionsAD, DynamicPPL
+using DynamicPPL, Pigeons, Distributions, DistributionsAD
 
 DynamicPPL.@model function my_turing_model(n_trials, n_successes)
     p1 ~ Uniform(0, 1)
