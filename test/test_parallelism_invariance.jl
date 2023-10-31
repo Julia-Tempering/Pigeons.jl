@@ -8,9 +8,10 @@ include("supporting/mpi_test_utils.jl")
     is_windows_in_CI() || push!(targets, toy_stan_target(1))
 
     # various explorers on a Julia function and on a Stan model
+    # this should be basically the same as autoMALA with the default preconditioner
     mixed_AM = Mix(
         AutoMALA(preconditioner=Pigeons.IdentityPreconditioner(), base_n_refresh=1),
-        AutoMALA(preconditioner=Pigeons.MixDiagonalPreconditioner(), base_n_refresh=1),
+        AutoMALA(preconditioner=Pigeons.MixDiagonalPreconditioner(0,0), base_n_refresh=1), # turn off zero-one inflation
         AutoMALA(preconditioner=Pigeons.DiagonalPreconditioner(), base_n_refresh=1)
     )
     for explorer in [SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA()), mixed_AM]
@@ -35,6 +36,7 @@ include("supporting/mpi_test_utils.jl")
                         mpiexec_args = extra_mpi_args(),
                         dependencies = [BridgeStan]
                         ))
+            @test true # lets us count the number of tests passed
         end
     end
 
@@ -52,6 +54,7 @@ include("supporting/mpi_test_utils.jl")
                     n_local_mpi_processes = n_mpis,
                     n_threads = 2,
                     mpiexec_args = extra_mpi_args()))
+        @test true
     end
 
     # Blang:
@@ -69,5 +72,6 @@ include("supporting/mpi_test_utils.jl")
                     n_local_mpi_processes = n_mpis,
                     n_threads = 2,
                     mpiexec_args = extra_mpi_args()))
+        @test true
     end
 end

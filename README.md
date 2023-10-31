@@ -7,6 +7,7 @@
 [![Build Status](https://github.com/Julia-Tempering/Pigeons.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Julia-Tempering/Pigeons.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/Julia-Tempering/Pigeons.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/Julia-Tempering/Pigeons.jl)
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
+[![arXiv](https://img.shields.io/badge/arXiv-2308.09769-b31b1b.svg)](https://arxiv.org/abs/2308.09769)
 
 `Pigeons` is a Julia package to approximate challenging posterior distributions, and more broadly, Lebesgue integration problems. Pigeons can be used in a multi-threaded context, and/or distributed over hundreds or thousands of MPI-communicating machines.
 
