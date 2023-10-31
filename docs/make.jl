@@ -1,6 +1,6 @@
-# make sure we are using the version contained 
-# in whatever state the parent directory is; 
-# this is the intended behaviour both for CI and 
+# make sure we are using the version contained
+# in whatever state the parent directory is;
+# this is the intended behaviour both for CI and
 # local development
 using Pkg
 script_dir = @__DIR__
@@ -8,10 +8,11 @@ Pkg.activate(script_dir)
 parent_dir = dirname(script_dir)
 Pkg.develop(PackageSpec(path=parent_dir))
 
-
+using DynamicPPL
+using BridgeStan
 using Pigeons
 using Documenter
-using DocStringExtensions 
+using DocStringExtensions
 using Plots
 
 # based on: https://github.com/JuliaPlots/PlotlyJS.jl/blob/master/docs/make.jl
@@ -36,33 +37,33 @@ makedocs(;
     pages=[
         "Basic usage (local)" => "index.md",
         "Why PT?" => "unidentifiable-example.md",
-        "Parallelization" => "parallel.md", 
+        "Parallelization" => "parallel.md",
         "Distributed usage (MPI)" => "mpi.md",
-        "Variational PT" => "variational.md", 
+        "Variational PT" => "variational.md",
         "Supported inputs" => [
             "Inputs overview" => "input-overview.md",
-            "Turing.jl model" => "input-turing.md", 
+            "Turing.jl model" => "input-turing.md",
             "Black-box function" => "input-julia.md",
-            "Stan model" => "input-stan.md", 
-            "Non-julian MCMC" => "input-nonjulian.md", 
+            "Stan model" => "input-stan.md",
+            "Non-julian MCMC" => "input-nonjulian.md",
             "Custom MCMC" => "input-explorers.md"
         ],
         "Outputs" => [
             "Outputs overview" => "output-overview.md",
-            "Quick reports" => "output-reports.md", 
-            "Plots" => "output-plotting.md", 
-            "log(Z)" => "output-normalization.md", 
-            "Numerical" => "output-numerical.md", 
-            "Online stats" => "output-online.md", 
-            "Off-memory" => "output-off-memory.md", 
-            "PT diagnostics" => "output-pt.md", 
+            "Quick reports" => "output-reports.md",
+            "Plots" => "output-plotting.md",
+            "log(Z)" => "output-normalization.md",
+            "Numerical" => "output-numerical.md",
+            "Online stats" => "output-online.md",
+            "Off-memory" => "output-off-memory.md",
+            "PT diagnostics" => "output-pt.md",
             "Custom types" => "output-custom-types.md",
             "Extended output" => "output-extended.md",
             "MPI output" => "output-mpi-postprocessing.md"
         ],
         "Checkpoints" => "checkpoints.md",
         "Correctness checks" => "correctness.md",
-        "More on PT" => "pt.md", 
+        "More on PT" => "pt.md",
         "More on distributed PT" => "distributed.md",
         "Interfaces" => Pigeons.informal_doc(@__DIR__, Pigeons),
         "Reference" => "reference.md",
