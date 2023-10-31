@@ -1,23 +1,24 @@
 #=
-Extremely minimalistic test case. Essentially just checks that no error is thrown. 
+Extremely minimalistic test case.
 For a more comprehensive set of tests see the AutoMALA tests, 
 which also cover checks of the Hamiltonian dynamics.
 =#
-@testset "Basic MALA check" begin
-    error_thrown = false 
-    try 
-        pt = pigeons(
-            target = toy_mvn_target(10), 
+@testset "MALA" begin
+    pt = pigeons(; 
+            target = toy_mvn_target(2), 
+            n_chains = 2, 
             explorer = MALA(),
-            n_chains = 1, 
-            n_rounds = 10, 
-            record = record_online(), 
-            seed = 1
-        )
-        println("Number of leapfrog evals: ")
-        println(Pigeons.explorer_n_steps(pt)[1])
-    catch e 
-        error_thrown = true 
-    end 
-    @test !error_thrown
+            record = [Pigeons.online], 
+            n_rounds = 10);
+    for var_name in Pigeons.continuous_variables(pt)
+        m = mean(pt, var_name)
+        for i in eachindex(m)
+            @test abs(m[i] - 0.0) < 0.03
+        end
+        v = var(pt, var_name)
+        for i in eachindex(v)
+            @test abs(v[i] - 0.1) < 0.03
+        end
+    end
+            
 end

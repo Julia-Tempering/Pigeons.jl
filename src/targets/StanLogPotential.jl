@@ -19,6 +19,7 @@ Holds a vector in BridgeStan's unconstrained parameterization.
 """
 @auto mutable struct StanState
     unconstrained_parameters
+    rng
 end
 
 stan_model(log_potential::StanLogPotential) = log_potential.model

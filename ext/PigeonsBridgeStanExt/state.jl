@@ -3,7 +3,8 @@ Pigeons.continuous_variables(state::Pigeons.StanState) = Pigeons.SINGLETON_VAR #
 Pigeons.discrete_variables(state::Pigeons.StanState) = []
 
 Pigeons.extract_sample(state::Pigeons.StanState, log_potential) =
-    BridgeStan.param_constrain(Pigeons.stan_model(log_potential), state.unconstrained_parameters)
+    BridgeStan.param_constrain(Pigeons.stan_model(log_potential), state.unconstrained_parameters; include_tp = true, include_gq = true, rng = state.rng)
+
 
 function Pigeons.update_state!(state::Pigeons.StanState, name::Symbol, index, value)
     @assert name === :singleton_variable
@@ -26,7 +27,8 @@ Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, state::Pige
 
 
 
-Pigeons.variable_names(::Pigeons.StanState, log_potential) = BridgeStan.param_names(Pigeons.stan_model(log_potential))
+Pigeons.variable_names(::Pigeons.StanState, log_potential) = BridgeStan.param_names(Pigeons.stan_model(log_potential); include_tp = true, include_gq = true)
+
 
 function Pigeons.slice_sample!(h::SliceSampler, state::Pigeons.StanState, log_potential, cached_lp, replica)
     cached_lp = Pigeons.cached_log_potential(log_potential, state, cached_lp)
@@ -37,10 +39,11 @@ function Pigeons.slice_sample!(h::SliceSampler, state::Pigeons.StanState, log_po
     return cached_lp
 end
 
+
 Base.:(==)(a::StanLogPotential, b::StanLogPotential) =
     a.data == b.data && BridgeStan.name(a.model) == BridgeStan.name(b.model)
-
-Base.:(==)(a::Pigeons.StanState, b::Pigeons.StanState) = Pigeons.recursive_equal(a, b)
+# TODO: Fix type piracy
+Base.:(==)(a::StanRNG, b::StanRNG) = Pigeons.recursive_equal(a, b)
 
 (log_potential::Pigeons.ScaledPrecisionNormalLogPotential)(x::Pigeons.StanState) = log_potential(x.unconstrained_parameters)
 Random.rand!(rng::AbstractRNG, state::Pigeons.StanState{Vector{Float64}}, log_potential::Pigeons.ScaledPrecisionNormalLogPotential) =

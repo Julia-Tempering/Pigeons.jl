@@ -85,7 +85,7 @@ end
 function Pigeons.initialization(target::StanLogPotential, rng::AbstractRNG, _::Int64)
     d_unc = BridgeStan.param_unc_num(target.model) # number of unconstrained parameters
     init = zeros(d_unc)
-    return Pigeons.StanState(init)
+    return Pigeons.StanState(init, StanRNG(target.model, rand(rng, UInt32)))
 end
 
 Pigeons.default_reference(target::StanLogPotential) = target
