@@ -7,32 +7,32 @@ inputs = Inputs(target = toy_mvn_target(100))</code></pre><pre class="documenter
 ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2        7.5   6.13e-05   1.28e+04       -122   2.66e-15      0.167
-        4       5.59    8.3e-05   1.47e+04       -119    2.6e-07      0.378
-        8       6.04    0.00012   1.86e+04       -115    0.00129      0.329
-       16       7.27   0.000189   2.42e+04       -118     0.0134      0.193
-       32       6.97   0.000312   3.05e+04       -114      0.107      0.225
-       64       7.03   0.000553   4.13e+04       -117     0.0531      0.219
-      128       7.23    0.00104   6.08e+04       -114     0.0944      0.196
-      256       7.05     0.0019   6.77e+04       -115       0.13      0.217
-      512       7.14    0.00358   7.18e+04       -115      0.171      0.207
- 1.02e+03       7.19     0.0069   7.91e+04       -115      0.172      0.201
+        2        7.5   5.58e-05   1.28e+04       -122   2.66e-15      0.167
+        4       5.59   8.12e-05   1.47e+04       -119    2.6e-07      0.378
+        8       6.04   0.000117   1.86e+04       -115    0.00129      0.329
+       16       7.27   0.000191   2.42e+04       -118     0.0134      0.193
+       32       6.97   0.000313   3.05e+04       -114      0.107      0.225
+       64       7.03   0.000556   4.13e+04       -117     0.0531      0.219
+      128       7.23    0.00105   6.08e+04       -114     0.0944      0.196
+      256       7.05    0.00192   6.77e+04       -115       0.13      0.217
+      512       7.14     0.0036   7.18e+04       -115      0.171      0.207
+ 1.02e+03       7.19    0.00692   7.91e+04       -115      0.172      0.201
 ────────────────────────────────────────────────────────────────────────────</code></pre><p>This runs PT on a 100-dimensional MVN toy example with 10 chains  for <span>$2047 = 2^{11} - 1$</span> iterations, and  returns a <a href="reference/#Pigeons.PT"><code>PT</code></a> struct containing the results of  this run (more later on how to access information inside  a PT struct). Each line in the output provides information on a <em>round</em>, where the number of iteration  per round doubles at each round and adaptation is performed  between rounds. </p><p>Since the above two julia lines are the most common operations in this package, creating inputs and running PT can be done in one line  as follows:</p><pre><code class="language-julia hljs">pt = pigeons(target = toy_mvn_target(100));</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Info: Neither traces, disk, nor online recorders included.
 │    You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
 └    To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
 ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2        7.5   5.32e-05   1.28e+04       -122   2.66e-15      0.167
-        4       5.59   7.65e-05   1.47e+04       -119    2.6e-07      0.378
-        8       6.04   0.000118   1.86e+04       -115    0.00129      0.329
-       16       7.27    0.00019   2.42e+04       -118     0.0134      0.193
-       32       6.97   0.000313   3.05e+04       -114      0.107      0.225
-       64       7.03   0.000556   4.13e+04       -117     0.0531      0.219
+        2        7.5   5.11e-05   1.28e+04       -122   2.66e-15      0.167
+        4       5.59   7.66e-05   1.47e+04       -119    2.6e-07      0.378
+        8       6.04   0.000116   1.86e+04       -115    0.00129      0.329
+       16       7.27   0.000187   2.42e+04       -118     0.0134      0.193
+       32       6.97    0.00031   3.05e+04       -114      0.107      0.225
+       64       7.03   0.000565   4.13e+04       -117     0.0531      0.219
       128       7.23    0.00104   6.08e+04       -114     0.0944      0.196
-      256       7.05    0.00192   6.77e+04       -115       0.13      0.217
-      512       7.14    0.00359   7.18e+04       -115      0.171      0.207
- 1.02e+03       7.19    0.00692   7.91e+04       -115      0.172      0.201
+      256       7.05     0.0019   6.77e+04       -115       0.13      0.217
+      512       7.14    0.00358   7.18e+04       -115      0.171      0.207
+ 1.02e+03       7.19    0.00689   7.91e+04       -115      0.172      0.201
 ────────────────────────────────────────────────────────────────────────────</code></pre><p>where the <code>args...</code> passed to <code>pigeons</code> are forwarded  to <a href="reference/#Pigeons.Inputs"><code>Inputs</code></a>.</p><p>Continuing on the above example, to perform two additional rounds of sampling, use the following (see also: <a href="checkpoints/#checkpoints-page">more advanced checkpoint/resume options at the checkpoint page</a>):</p><pre><code class="language-julia hljs">pt = increment_n_rounds!(pt, 2)
 pigeons(pt)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Info: Neither traces, disk, nor online recorders included.
 │    You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
@@ -49,4 +49,4 @@ pigeons(pt)</code></pre><pre class="documenter-example-output"><code class="nohi
   author={Surjanovic, Nikola and Biron-Lattes, Miguel and Tiede, Paul and Syed, Saifuddin and Campbell, Trevor and Bouchard-C{\^o}t{\&#39;e}, Alexandre},
   journal={arXiv:2308.09769},
   year={2023}
-}</code></pre><p><strong>APA</strong></p><p>Surjanovic, N., Biron-Lattes, M., Tiede, P., Syed, S., Campbell, T., &amp; Bouchard-Côté, A. (2023). Pigeons.jl: Distributed sampling from intractable distributions. <em>arXiv:2308.09769.</em></p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="unidentifiable-example/">Why PT? »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 31 October 2023 00:26">Tuesday 31 October 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+}</code></pre><p><strong>APA</strong></p><p>Surjanovic, N., Biron-Lattes, M., Tiede, P., Syed, S., Campbell, T., &amp; Bouchard-Côté, A. (2023). Pigeons.jl: Distributed sampling from intractable distributions. <em>arXiv:2308.09769.</em></p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="unidentifiable-example/">Why PT? »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 31 October 2023 04:19">Tuesday 31 October 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
