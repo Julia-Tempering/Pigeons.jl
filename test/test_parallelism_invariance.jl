@@ -36,6 +36,7 @@ include("supporting/mpi_test_utils.jl")
                         mpiexec_args = extra_mpi_args(),
                         dependencies = [BridgeStan]
                         ))
+            @test true # lets us count the number of tests passed
         end
     end
 
@@ -53,6 +54,7 @@ include("supporting/mpi_test_utils.jl")
                     n_local_mpi_processes = n_mpis,
                     n_threads = 2,
                     mpiexec_args = extra_mpi_args()))
+        @test true
     end
 
     # Blang:
@@ -70,5 +72,6 @@ include("supporting/mpi_test_utils.jl")
                     n_local_mpi_processes = n_mpis,
                     n_threads = 2,
                     mpiexec_args = extra_mpi_args()))
+        @test true
     end
 end
