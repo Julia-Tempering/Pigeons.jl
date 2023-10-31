@@ -52,7 +52,7 @@ end
 function Pigeons.step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
     log_potential = Pigeons.find_log_potential(replica, shared.tempering, shared)
     state = DynamicPPL.getall(vi)
-    Pigeons._extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
+    Pigeons._extract_commons_and_run!(explorer, replica, shared, log_potential, state)
     DynamicPPL.setall!(replica.state, state)
 end
 
