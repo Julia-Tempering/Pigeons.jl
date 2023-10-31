@@ -33,6 +33,7 @@ makedocs(;
         canonical="https://Julia-Tempering.github.io/Pigeons.jl",
         edit_link="main",
         assets=String[],
+        size_threshold = nothing # overrides default size limit for a single html file
     ),
     pages=[
         "Basic usage (local)" => "index.md",
