@@ -19,9 +19,6 @@ function Pigeons.variable(state::Pigeons.StanState, name::Symbol)
     end
 end
 
-Pigeons.step!(explorer::AutoMALA, replica, shared, state::Pigeons.StanState) =
-Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
-
 Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, state::Pigeons.StanState) =
     Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
 

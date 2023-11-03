@@ -1,8 +1,7 @@
 """
 $SIGNATURES
 
-The Metropolis-Adjusted Langevin Algorithm with
-automatic step size selection.
+Hamiltonian Monte Carlo with automatic step size selection.
 
 Briefly, at each iteration, the step size is exponentially shrunk or
 grown until the acceptance rate is in a reasonable range. A reversibility
@@ -21,7 +20,12 @@ In normal circumstance, there should not be a need for tuning,
 however the following optional keyword parameters are available:
 $FIELDS
 """
-@kwdef struct AutoMALA{T,TPrec <: Preconditioner}
+@kwdef struct AutoHMC{T,TPrec <: Preconditioner}
+    """
+    The number of leapfrog updates to take at each MCMC step.
+    """
+    n_leaps::Int = 3
+    
     """
     The base number of steps (equivalently, momentum refreshments) between swaps.
     This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`.
@@ -31,7 +35,7 @@ $FIELDS
     """
     Used to scale the increase in number of refreshment with dimensionality.
     """
-    exponent_n_refresh::Float64 = 0.35
+    exponent_n_refresh::Float64 = 0.25
 
     """
     The default backend to use for autodiff.
@@ -62,11 +66,23 @@ $FIELDS
     # TODO: add option(s) for transformations? For now, doing it only for Turing
 end
 
-function adapt_explorer(explorer::AutoMALA, reduced_recorders, current_pt, new_tempering)
+"""
+$SIGNATURES
+
+The Metropolis-Adjusted Langevin Algorithm with
+automatic step size selection.
+
+This is a special case of [`AutoHMC`](@ref) with `n_leaps=1`.
+"""
+AutoMALA(; exponent_n_refresh=0.35, kwargs...) = AutoHMC(;n_leaps=1, kwargs...)
+
+function adapt_explorer(explorer::AutoHMC, reduced_recorders, current_pt, new_tempering)
     estimated_target_std_deviations = adapt_preconditioner(explorer.preconditioner, reduced_recorders)
     # use the mean across chains of the mean shrink/grow factor to compute a new baseline stepsize
     updated_step_size = explorer.step_size * mean(mean.(values(value(reduced_recorders.am_factors))))
-    return AutoMALA(
+    # TODO: tune n_leaps
+    return AutoHMC(
+                explorer.n_leaps,
                 explorer.base_n_refresh, explorer.exponent_n_refresh, explorer.default_autodiff_backend,
                 updated_step_size,
                 explorer.preconditioner,
@@ -76,12 +92,12 @@ end
 #=
 Extract info common to all types of target and perform a step!()
 =#
-function _extract_commons_and_run!(explorer::AutoMALA, replica, shared, log_potential, state::AbstractVector)
+function _extract_commons_and_run!(explorer::AutoHMC, replica, shared, log_potential, state::AbstractVector)
 
     log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)
     is_first_scan_of_round = shared.iterators.scan == 1
 
-    auto_mala!(
+    auto_hmc!(
         replica.rng,
         explorer,
         log_potential_autodiff,
@@ -98,9 +114,9 @@ function _extract_commons_and_run!(explorer::AutoMALA, replica, shared, log_pote
     )
 end
 
-function auto_mala!(
+function auto_hmc!(
         rng::AbstractRNG,
-        explorer::AutoMALA,
+        explorer::AutoHMC,
         target_log_potential,
         state::Vector,
         recorders,
@@ -119,7 +135,7 @@ function auto_mala!(
         start_state .= state
         randn!(rng, momentum)
         init_joint_log = log_joint(target_log_potential, state, momentum)
-        @assert isfinite(init_joint_log) "AutoMALA can only be called on a configuration of positive density."
+        @assert isfinite(init_joint_log) "AutoHMC can only be called on a configuration of positive density."
 
         # Randomly pick a "reasonable" range of MH accept probabilities (in log-scale)
         # We do this to preserve the same irreducibility structure on the augmented space (x, v)
@@ -135,14 +151,15 @@ function auto_mala!(
                 diag_precond,
                 state, momentum,
                 recorders, chain,
-                explorer.step_size, lower_bound, upper_bound)
+                explorer.step_size, lower_bound, upper_bound, explorer.n_leaps)
         proposed_step_size = explorer.step_size * 2.0^proposed_exponent
 
         # move to proposed point
-        leap_frog!(
+        hamiltonian_dynamics!(
             target_log_potential,
             diag_precond,
-            state, momentum, proposed_step_size
+            state, momentum, proposed_step_size,
+            explorer.n_leaps
         )
 
         if use_mh_accept_reject
@@ -154,7 +171,7 @@ function auto_mala!(
                     diag_precond,
                     state, momentum,
                     recorders, chain,
-                    explorer.step_size, lower_bound, upper_bound)
+                    explorer.step_size, lower_bound, upper_bound, explorer.n_leaps)
             probability =
                 if reversed_exponent == proposed_exponent
                     final_joint_log = log_joint(target_log_potential, state, momentum)
@@ -179,7 +196,8 @@ function auto_step_size(
         diag_precond,
         state, momentum,
         recorders, chain,
-        step_size, lower_bound, upper_bound)
+        step_size, lower_bound, upper_bound,
+        n_leaps)
 
     @assert step_size > 0
     @assert lower_bound < upper_bound
@@ -189,7 +207,7 @@ function auto_step_size(
             target_log_potential,
             diag_precond,
             state, momentum,
-            recorders)
+            recorders, n_leaps)
     initial_difference = log_joint_difference(step_size)
 
     n_steps, exponent =
@@ -244,7 +262,8 @@ function log_joint_difference_function(
             target_log_potential,
             diag_precond,
             state, momentum,
-            recorders)
+            recorders,
+            n_leaps)
 
     dim = length(state)
 
@@ -256,9 +275,9 @@ function log_joint_difference_function(
 
     h_before = log_joint(target_log_potential, state, momentum)
     function result(step_size)
-        leap_frog!(
+        hamiltonian_dynamics!(
             target_log_potential, diag_precond,
-            state, momentum, step_size)
+            state, momentum, step_size, n_leaps)
         h_after = log_joint(target_log_potential, state, momentum)
         state .= state_before
         momentum .= momentum_before
@@ -269,7 +288,7 @@ end
 
 am_factors() = GroupBy(Int, Mean())
 
-function explorer_recorder_builders(explorer::AutoMALA)
+function explorer_recorder_builders(explorer::AutoHMC)
     result = [
         explorer_acceptance_pr,
         explorer_n_steps,

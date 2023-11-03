@@ -39,7 +39,8 @@ end
 function hamiltonian_dynamics!(
             target_log_potential, 
             diag_precond, 
-            state, momentum, step_size, n_steps)
+            state, momentum, step_size, n_steps,
+            max_logjoint_diff = 1000.0)
 
     # first half-step
     logp, grad = conditioned_target_gradient(target_log_potential, state, diag_precond)
@@ -57,6 +58,9 @@ function hamiltonian_dynamics!(
         if !isfinite(current_log_joint)
             # TODO: implement bouncing
             return false
+        elseif abs(current_log_joint-initial_log_joint) > max_logjoint_diff
+            # trajectory diverged
+            return false
         end
 
         # Neal's trick to merge successive half-steps
@@ -67,8 +71,11 @@ function hamiltonian_dynamics!(
 
     # last half-step
     momentum .+= (step_size/2) .* grad
-
+    current_log_joint = log_joint(logp, momentum)
     if !isfinite(sqr_norm(momentum))
+        return false
+    elseif abs(current_log_joint-initial_log_joint) > max_logjoint_diff
+        # trajectory diverged
         return false
     end
 
