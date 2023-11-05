@@ -84,10 +84,12 @@ compare_checkpoints(checkpoint_folder1, checkpoint_folder2, immutables) =
         end
     end
 
-function compare_serialized(file1, file2, immutables = nothing)
+function compare_serialized(file1, file2)
     first  = deserialize(file1)
     second = deserialize(file2)
-    if first != second
+    if !recursive_equal(first, second)
+        println("typeof(first): $(typeof(first))")
+        println("typeof(second): $(typeof(second))")
         error(
             """
             detected non-reproducibility, to investigate, type in the REPL:
@@ -97,14 +99,49 @@ function compare_serialized(file1, file2, immutables = nothing)
              second = deserialize("$file2");
             ─────────────────────────────────
             If you are using custom stuct, either mutable or containing
-            mutables, you may just need to add custom ==, see
+            mutables, you may just need to extend `recursive_equal`; see
             src/pt/checks.jl.
             """
         )
     end
 end
 
-function Base.:(==)(a::GroupBy, b::GroupBy)
+#=
+Implementation of recursive_equal
+=#
+function recursive_equal(a, b) # by default defer to ==
+    if a != b
+        println("typeof(a) = $(typeof(a))")
+        println("typeof(b) = $(typeof(b))")
+        return false
+    end
+    return true
+end
+const RecursiveEqualInnerType = 
+    Union{
+        StanState,SplittableRandom,Replica,Augmentation,AutoMALA,SliceSampler,
+        Compose,Mix,Iterators,Schedule,DEO,BlangTarget,NonReversiblePT,
+        InterpolatingPath,InterpolatedLogPotential,RoundTripRecorder,
+        OnlineStateRecorder,LocalBarrier,NamedTuple,Vector{<:InterpolatedLogPotential}
+    }
+recursive_equal(a::RecursiveEqualInnerType, b::RecursiveEqualInnerType) =
+    _recursive_equal(a,b)
+function _recursive_equal(a::T, b::T, exclude::NTuple{N,Symbol}=()) where {T,N}
+    for f in fieldnames(T)
+        if !(f in exclude || recursive_equal(getfield(a, f), getfield(b, f)))
+            println("a.f = $(getfield(a, f))")
+            println("b.f = $(getfield(b, f))")
+            return false
+        end
+    end
+    return true
+end
+recursive_equal(a::Shared, b::Shared) = _recursive_equal(a, b, (:reports,))
+
+#=
+leaf methods of recursive_equal
+=#
+function recursive_equal(a::GroupBy, b::GroupBy)
     # as of Jan 2023, OnlineStat uses a default method of
     # descending into the fields, which is somehow not valid for GroupBy,
     # probably due to undeterminism of underlying OrderedCollections.OrderedDict
@@ -119,12 +156,10 @@ function Base.:(==)(a::GroupBy, b::GroupBy)
     end
     return true
 end
-
-# CovMatrix contains a cache matrix, which is NaN until value(.) is called
-Base.:(==)(a::CovMatrix, b::CovMatrix) = value(a) == value(b)
-
 Base.keys(a::GroupBy) = keys(a.value)
 
+# CovMatrix contains a cache matrix, which is NaN until value(.) is called
+recursive_equal(a::CovMatrix, b::CovMatrix) = value(a) == value(b)
 
 #=
 Since the state reside in different processes, there are not generic way to
@@ -135,37 +170,5 @@ But we still want to perform checks on the rest of the PT state
 TODO: in the future, add an optional get_hash() in the Stream protocol
 to improve this.
 =#
-Base.:(==)(a::StreamState, b::StreamState) = true
-Base.:(==)(a::NonReproducible, b::NonReproducible) = true
-
-# mutable (incl imm with mut fields) structs do not have a nice ===, overload those:
-# TODO: This is type-piracy we need to fix this
-Base.:(==)(a::StanState, b::StanState) = recursive_equal(a, b)
-Base.:(==)(a::SplittableRandom, b::SplittableRandom) = recursive_equal(a, b)
-Base.:(==)(a::Replica, b::Replica) = recursive_equal(a, b)
-Base.:(==)(a::Augmentation, b::Augmentation) = recursive_equal(a, b)
-Base.:(==)(a::AutoMALA, b::AutoMALA) = recursive_equal(a, b)
-Base.:(==)(a::SliceSampler, b::SliceSampler) = recursive_equal(a, b)
-Base.:(==)(a::Compose, b::Compose) = recursive_equal(a, b)
-Base.:(==)(a::Mix, b::Mix) = recursive_equal(a, b)
-Base.:(==)(a::Iterators, b::Iterators) = recursive_equal(a, b)
-Base.:(==)(a::Schedule, b::Schedule) = recursive_equal(a, b)
-Base.:(==)(a::DEO, b::DEO) = recursive_equal(a, b)
-Base.:(==)(a::Shared, b::Shared) = recursive_equal(a, b, [:reports])
-Base.:(==)(a::BlangTarget, b::BlangTarget) = recursive_equal(a, b)
-Base.:(==)(a::NonReversiblePT, b::NonReversiblePT) = recursive_equal(a, b)
-Base.:(==)(a::InterpolatingPath, b::InterpolatingPath) = recursive_equal(a, b)
-Base.:(==)(a::InterpolatedLogPotential, b::InterpolatedLogPotential) = recursive_equal(a, b)
-Base.:(==)(a::RoundTripRecorder, b::RoundTripRecorder) = recursive_equal(a, b)
-Base.:(==)(a::OnlineStateRecorder, b::OnlineStateRecorder) = recursive_equal(a, b)
-Base.:(==)(a::LocalBarrier, b::LocalBarrier) = recursive_equal(a, b)
-
-
-function recursive_equal(a::T, b::T, exclude = []) where {T}
-    for f in fieldnames(T)
-        if !(f in exclude) && (getfield(a, f) != getfield(b, f))
-            return false
-        end
-    end
-    return true
-end
+recursive_equal(a::StreamState, b::StreamState) = true
+recursive_equal(a::NonReproducible, b::NonReproducible) = true

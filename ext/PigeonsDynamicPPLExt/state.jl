@@ -75,8 +75,7 @@ function Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi
 end
 
 
-## TODO: This is type piracy and should be fixed upstream
-function Base.:(==)(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
+function Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
     # as of Jan 2023, DynamicPPL does not supply == for TypedVarInfo
     if length(a.metadata) != length(b.metadata)
         return false
@@ -88,8 +87,6 @@ function Base.:(==)(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
     end
     return true
 end
-
-Base.:(==)(a::TuringLogPotential, b::TuringLogPotential) = Pigeons.recursive_equal(a, b)
-# TODO: Fix type piracy
-Base.:(==)(a::DynamicPPL.Model, b::DynamicPPL.Model) = Pigeons.recursive_equal(a, b)
-Base.:(==)(a::DynamicPPL.ConditionContext, b::DynamicPPL.ConditionContext) = Pigeons.recursive_equal(a, b)
+Pigeons.recursive_equal(
+    a::Union{TuringLogPotential,DynamicPPL.Model,DynamicPPL.ConditionContext}, 
+    b) = Pigeons._recursive_equal(a, b)

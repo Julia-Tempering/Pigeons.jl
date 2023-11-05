@@ -40,10 +40,9 @@ function Pigeons.slice_sample!(h::SliceSampler, state::Pigeons.StanState, log_po
 end
 
 
-Base.:(==)(a::StanLogPotential, b::StanLogPotential) =
+Pigeons.recursive_equal(a::StanLogPotential, b::StanLogPotential) =
     a.data == b.data && BridgeStan.name(a.model) == BridgeStan.name(b.model)
-# TODO: Fix type piracy
-Base.:(==)(a::StanRNG, b::StanRNG) = Pigeons.recursive_equal(a, b)
+Pigeons.recursive_equal(a::StanRNG, b::StanRNG) = Pigeons._recursive_equal(a, b)
 
 (log_potential::Pigeons.ScaledPrecisionNormalLogPotential)(x::Pigeons.StanState) = log_potential(x.unconstrained_parameters)
 Random.rand!(rng::AbstractRNG, state::Pigeons.StanState{Vector{Float64}}, log_potential::Pigeons.ScaledPrecisionNormalLogPotential) =
