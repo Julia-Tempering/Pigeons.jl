@@ -88,8 +88,6 @@ function compare_serialized(file1, file2)
     first  = deserialize(file1)
     second = deserialize(file2)
     if !recursive_equal(first, second)
-        println("typeof(first): $(typeof(first))")
-        println("typeof(second): $(typeof(second))")
         error(
             """
             detected non-reproducibility, to investigate, type in the REPL:
@@ -107,16 +105,19 @@ function compare_serialized(file1, file2)
 end
 
 #=
-Implementation of recursive_equal
+Rationale for recursive_equal: mutable (incl imm with mut fields) structs 
+sometimes will treat `==` as `===`, which is too strict for the purpose of 
+checking parallelism invariance.
 =#
-function recursive_equal(a, b) # by default defer to ==
-    if a != b
-        println("typeof(a) = $(typeof(a))")
-        println("typeof(b) = $(typeof(b))")
-        return false
-    end
-    return true
-end
+
+# default method: defer to `==` (enough for most types)
+recursive_equal(a, b) = a==b
+
+#=
+For types on this list, we use the default recursive version `_recursive_equal`.
+Note that this list is not exhaustive; some types in Pigeons' extensions
+also call `_recursive_equal`.
+=#
 const RecursiveEqualInnerType = 
     Union{
         StanState,SplittableRandom,Replica,Augmentation,AutoMALA,SliceSampler,
@@ -129,17 +130,18 @@ recursive_equal(a::RecursiveEqualInnerType, b::RecursiveEqualInnerType) =
 function _recursive_equal(a::T, b::T, exclude::NTuple{N,Symbol}=()) where {T,N}
     for f in fieldnames(T)
         if !(f in exclude || recursive_equal(getfield(a, f), getfield(b, f)))
-            println("a.f = $(getfield(a, f))")
-            println("b.f = $(getfield(b, f))")
             return false
         end
     end
     return true
 end
+
+# types for which some fields need to be excluded
 recursive_equal(a::Shared, b::Shared) = _recursive_equal(a, b, (:reports,))
 
 #=
-leaf methods of recursive_equal
+leaf methods of recursive_equal: these do not need to be recursive but are still
+needed in place of the default `==`.
 =#
 function recursive_equal(a::GroupBy, b::GroupBy)
     # as of Jan 2023, OnlineStat uses a default method of
