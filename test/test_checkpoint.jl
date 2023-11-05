@@ -1,7 +1,7 @@
 function compare_pts(p1, p2)
-    @test p1.replicas == p2.replicas
-    @test p1.shared == p2.shared
-    @test p1.reduced_recorders == p2.reduced_recorders
+    @test Pigeons.recursive_equal(p1.replicas, p2.replicas)
+    @test Pigeons.recursive_equal(p1.shared, p2.shared)
+    @test Pigeons.recursive_equal(p1.reduced_recorders, p2.reduced_recorders)
 end
 
 @testset "Checkpoints" begin

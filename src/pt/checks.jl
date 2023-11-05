@@ -123,7 +123,8 @@ const RecursiveEqualInnerType =
         StanState,SplittableRandom,Replica,Augmentation,AutoMALA,SliceSampler,
         Compose,Mix,Iterators,Schedule,DEO,BlangTarget,NonReversiblePT,
         InterpolatingPath,InterpolatedLogPotential,RoundTripRecorder,
-        OnlineStateRecorder,LocalBarrier,NamedTuple,Vector{<:InterpolatedLogPotential}
+        OnlineStateRecorder,LocalBarrier,NamedTuple,Vector{<:InterpolatedLogPotential},
+        Vector{<:Replica}
     }
 recursive_equal(a::RecursiveEqualInnerType, b::RecursiveEqualInnerType) =
     _recursive_equal(a,b)
