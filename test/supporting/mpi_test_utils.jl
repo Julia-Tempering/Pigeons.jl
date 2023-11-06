@@ -6,10 +6,8 @@ function mpi_test(n_processes::Int, test_file::String; options = [])
     project_dir = dirname(project_file)
     run(`$jl_cmd --project=$project_dir -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
     resolved_test_file = abspath(test_file)
-    mpiexec() do exe
-        mpi_args = extra_mpi_args()
-        run(`$exe $mpi_args -n $n_processes $jl_cmd -t 2 --project=$project_dir $resolved_test_file $options`)
-    end
+    mpi_args = extra_mpi_args()
+    run(`$(mpiexec()) $mpi_args -n $n_processes $jl_cmd -t 2 --project=$project_dir $resolved_test_file $options`)
 end
 
 function set_n_mpis_to_one_on_windows(default_n_mpis::Int)
