@@ -124,13 +124,14 @@ const RecursiveEqualInnerType =
         Compose,Mix,Iterators,Schedule,DEO,BlangTarget,NonReversiblePT,
         InterpolatingPath,InterpolatedLogPotential,RoundTripRecorder,
         OnlineStateRecorder,LocalBarrier,NamedTuple,Vector{<:InterpolatedLogPotential},
-        Vector{<:Replica}
+        Vector{<:Replica}, Tuple
     }
 recursive_equal(a::RecursiveEqualInnerType, b::RecursiveEqualInnerType) =
     _recursive_equal(a,b)
 function _recursive_equal(a::T, b::T, exclude::NTuple{N,Symbol}=()) where {T,N}
     for f in fieldnames(T)
         if !(f in exclude || recursive_equal(getfield(a, f), getfield(b, f)))
+            println("$f is different between a and b:\n\ta.f=$(getfield(a, f))\n\tb.f=$(getfield(b, f))")
             return false
         end
     end
