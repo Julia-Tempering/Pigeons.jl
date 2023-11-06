@@ -72,11 +72,9 @@ function pigeons(pt_arguments, new_process::ChildProcess)
         # write("output.txt", merge(oc))
         run(julia_cmd, wait = new_process.wait)
     else
-        mpiexec() do exe
-            mpi_cmd = `$exe $(new_process.mpiexec_args) -n $(new_process.n_local_mpi_processes)`
-            cmd     = `$mpi_cmd $julia_cmd`
-            run(cmd, wait = new_process.wait)
-        end
+        mpi_cmd = `$(mpiexec()) $(new_process.mpiexec_args) -n $(new_process.n_local_mpi_processes)`
+        cmd     = `$mpi_cmd $julia_cmd`
+        run(cmd, wait = new_process.wait)
     end
     return Result{PT}(exec_folder)
 end
