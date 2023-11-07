@@ -96,7 +96,7 @@ function compare_serialized(file1, file2)
              first  = deserialize("$file1");
              second = deserialize("$file2");
             ─────────────────────────────────
-            If you are using custom stuct, either mutable or containing
+            If you are using a custom struct, either mutable or containing
             mutables, you may just need to extend `recursive_equal`; see
             src/pt/checks.jl.
             """
@@ -104,13 +104,22 @@ function compare_serialized(file1, file2)
     end
 end
 
-#=
-Rationale for recursive_equal: mutable (incl imm with mut fields) structs 
-sometimes will treat `==` as `===`, which is too strict for the purpose of 
-checking parallelism invariance.
-=#
 
-# default method: defer to `==` (enough for most types)
+"""
+$SIGNATURES
+Recursively check equality between two objects by comparing their fields.
+By default calls `==` but for certain types we dispatch a custom method. 
+This is necessary because for some mutable structs (and even immutable ones with
+mutable fields) `==` actually dispatches `===`. The latter is too strict for the 
+purpose of checking that two checkpoints are equal.
+
+If you are using custom struct and encounter a failed correctness check, you may
+need to provide a special equality check for this type. In most cases it will be
+enough to overload `recursive_equal` as follows
+```julia
+Pigeons.recursive_equal(a::MyType, b::MyType) = Pigeons._recursive_equal(a,b)
+```
+"""
 recursive_equal(a, b) = a==b
 
 #=
@@ -150,8 +159,8 @@ function recursive_equal(a::GroupBy, b::GroupBy)
     # as of Jan 2023, OnlineStat uses a default method of
     # descending into the fields, which is somehow not valid for GroupBy,
     # probably due to undeterminism of underlying OrderedCollections.OrderedDict
-    common_keys = keys(a)
-    if common_keys != keys(b)
+    common_keys = keys(a.value)
+    if common_keys != keys(b.value)
         return false
     end
     for key in common_keys
@@ -161,7 +170,6 @@ function recursive_equal(a::GroupBy, b::GroupBy)
     end
     return true
 end
-Base.keys(a::GroupBy) = keys(a.value)
 
 # CovMatrix contains a cache matrix, which is NaN until value(.) is called
 recursive_equal(a::CovMatrix, b::CovMatrix) = value(a) == value(b)
