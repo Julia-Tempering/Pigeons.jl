@@ -43,7 +43,7 @@ function Pigeons.variable_names(state::DynamicPPL.TypedVarInfo, _)
                 push!(result, var_and_index_name)
             end
         else
-            error()
+            error("don't know how to handle var `$var_name` of type $(typeof(var))")
         end
     end
     return result
