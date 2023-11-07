@@ -75,18 +75,13 @@ function Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi
 end
 
 
-function Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
-    # as of Jan 2023, DynamicPPL does not supply == for TypedVarInfo
-    if length(a.metadata) != length(b.metadata)
-        return false
-    end
-    for i in 1:length(a.metadata)
-        if a.metadata[i].vals != b.metadata[i].vals
-            return false
-        end
-    end
-    return true
-end
+Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo) =
+    # as of Nov 2023, DynamicPPL does not supply == for TypedVarInfo
+    length(a.metadata) == length(b.metadata) &&
+        variable_names(a,1) == variable_names(b,1) && # second argument is not used
+        DynamicPPL.getall(a) == DynamicPPL.getall(b)
+    
+
 Pigeons.recursive_equal(
     a::Union{TuringLogPotential,DynamicPPL.Model,DynamicPPL.ConditionContext}, 
     b) = Pigeons._recursive_equal(a, b)
