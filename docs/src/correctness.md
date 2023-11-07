@@ -52,7 +52,8 @@ For example, if the thread-unsafety comes from the use of global variables, then
 process will have its own copy of the global variables. 
 
 !!! note "Failed equality check"
-    If you are using custom struct, either mutable or containing mutables, it
+    If you are using a custom struct that is either mutable or containing 
+    mutables, it
     is possible that the check will fail even if your implementation is sound.
     This is caused by `==` dispatching `===` on your type, which is too strict
     for the purpose of comparing two deserialized checkpoints. See

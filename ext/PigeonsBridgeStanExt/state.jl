@@ -19,13 +19,8 @@ function Pigeons.variable(state::Pigeons.StanState, name::Symbol)
     end
 end
 
-Pigeons.step!(explorer::AutoMALA, replica, shared, state::Pigeons.StanState) =
-Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
-
 Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, state::Pigeons.StanState) =
     Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
-
-
 
 Pigeons.variable_names(::Pigeons.StanState, log_potential) = BridgeStan.param_names(Pigeons.stan_model(log_potential); include_tp = true, include_gq = true)
 

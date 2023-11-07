@@ -48,13 +48,6 @@ function Pigeons.variable_names(state::DynamicPPL.TypedVarInfo, _)
     return result
 end
 
-function Pigeons.step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
-    log_potential = Pigeons.find_log_potential(replica, shared.tempering, shared)
-    state = DynamicPPL.getall(vi)
-    Pigeons._extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
-    DynamicPPL.setall!(replica.state, state)
-end
-
 function Pigeons.slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, replica)
     cached_lp = Pigeons.cached_log_potential(log_potential, state, cached_lp)
     for i in 1:length(state.metadata)

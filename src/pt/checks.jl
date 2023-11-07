@@ -119,6 +119,7 @@ enough to overload `recursive_equal` as follows
 ```julia
 Pigeons.recursive_equal(a::MyType, b::MyType) = Pigeons._recursive_equal(a,b)
 ```
+For examples of more specific checks, refer to the code of `PigeonsBridgeStanExt`.
 """
 recursive_equal(a, b) = a==b
 

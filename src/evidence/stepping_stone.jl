@@ -39,18 +39,18 @@ end
 # Determine which chains to use for normalization constant estimation 
 
 # For one-leg: all chains
-stepping_stone_keys(::PT, log_sum_ratios, ::NonReversiblePT) = keys(log_sum_ratios)
+stepping_stone_keys(::PT, log_sum_ratios::GroupBy, ::NonReversiblePT) = keys(log_sum_ratios.value)
 
 # use only the variational leg for 2-legs PT 
 # rationale: for should give lower error for given compute since 
 #            it the KL should be lower between target and variational
-function stepping_stone_keys(pt::PT, log_sum_ratios, ::StabilizedPT)
+function stepping_stone_keys(pt::PT, log_sum_ratios::GroupBy, ::StabilizedPT)
     # Note: we rely on the variational leg being in increasing order 
     #       (the roles of 2 legs were swapped on 2023/07/20)
     indexer = pt.shared.tempering.indexer 
     variational_indices = Set(variational_leg_indices(indexer))
     result = Vector{Tuple{Int, Int}}()
-    for (i, j) in keys(log_sum_ratios)
+    for (i, j) in keys(log_sum_ratios.value)
         if i in variational_indices && j in variational_indices 
             push!(result, (i, j))
         end
