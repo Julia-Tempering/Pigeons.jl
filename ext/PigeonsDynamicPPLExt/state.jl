@@ -32,28 +32,20 @@ function Pigeons.variable_names(state::DynamicPPL.TypedVarInfo, _)
     all_names = fieldnames(typeof(state.metadata))
     for var_name in all_names
         var = state.metadata[var_name].vals
-        if var isa Number || (var isa Array && length(var) == 1)
+        if var isa Number || (var isa AbstractArray && length(var) == 1)
             push!(result, var_name)
-        elseif var isa Array
+        elseif var isa AbstractArray
             # flatten vector names following Turing convention
-            l = length(var)
-            for i in 1:l
+            for i in eachindex(var)
                 var_and_index_name =
                     Symbol(var_name, "[", join(ind2sub(size(var), i), ","), "]")
                 push!(result, var_and_index_name)
             end
         else
-            error()
+            error("don't know how to handle var `$var_name` of type $(typeof(var))")
         end
     end
     return result
-end
-
-function Pigeons.step!(explorer::AutoMALA, replica, shared, vi::DynamicPPL.TypedVarInfo)
-    log_potential = Pigeons.find_log_potential(replica, shared.tempering, shared)
-    state = DynamicPPL.getall(vi)
-    Pigeons._extract_commons_and_run_auto_mala!(explorer, replica, shared, log_potential, state)
-    DynamicPPL.setall!(replica.state, state)
 end
 
 function Pigeons.slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, replica)
@@ -75,21 +67,13 @@ function Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi
 end
 
 
-## TODO: This is type piracy and should be fixed upstream
-function Base.:(==)(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo)
-    # as of Jan 2023, DynamicPPL does not supply == for TypedVarInfo
-    if length(a.metadata) != length(b.metadata)
-        return false
-    end
-    for i in 1:length(a.metadata)
-        if a.metadata[i].vals != b.metadata[i].vals
-            return false
-        end
-    end
-    return true
-end
+Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo) =
+    # as of Nov 2023, DynamicPPL does not supply == for TypedVarInfo
+    length(a.metadata) == length(b.metadata) &&
+        variable_names(a,1) == variable_names(b,1) && # second argument is not used
+        DynamicPPL.getall(a) == DynamicPPL.getall(b)
+    
 
-Base.:(==)(a::TuringLogPotential, b::TuringLogPotential) = Pigeons.recursive_equal(a, b)
-# TODO: Fix type piracy
-Base.:(==)(a::DynamicPPL.Model, b::DynamicPPL.Model) = Pigeons.recursive_equal(a, b)
-Base.:(==)(a::DynamicPPL.ConditionContext, b::DynamicPPL.ConditionContext) = Pigeons.recursive_equal(a, b)
+Pigeons.recursive_equal(
+    a::Union{TuringLogPotential,DynamicPPL.Model,DynamicPPL.ConditionContext}, 
+    b) = Pigeons._recursive_equal(a, b)

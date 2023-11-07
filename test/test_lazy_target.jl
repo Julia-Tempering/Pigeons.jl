@@ -13,5 +13,5 @@ include("supporting/lazy.jl")
     pt1 = load(r)
     pt2 = pigeons(target = toy_mvn_target(1))
 
-    @test pt1.replicas == pt2.replicas
+    @test Pigeons.recursive_equal(pt1.replicas, pt2.replicas)
 end
