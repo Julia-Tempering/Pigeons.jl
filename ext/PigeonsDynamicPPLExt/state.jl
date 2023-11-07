@@ -32,12 +32,11 @@ function Pigeons.variable_names(state::DynamicPPL.TypedVarInfo, _)
     all_names = fieldnames(typeof(state.metadata))
     for var_name in all_names
         var = state.metadata[var_name].vals
-        if var isa Number || (var isa Array && length(var) == 1)
+        if var isa Number || (var isa AbstractArray && length(var) == 1)
             push!(result, var_name)
-        elseif var isa Array
+        elseif var isa AbstractArray
             # flatten vector names following Turing convention
-            l = length(var)
-            for i in 1:l
+            for i in eachindex(var)
                 var_and_index_name =
                     Symbol(var_name, "[", join(ind2sub(size(var), i), ","), "]")
                 push!(result, var_and_index_name)
