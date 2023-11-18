@@ -3,7 +3,10 @@ Pigeons.continuous_variables(state::Pigeons.StanState) = Pigeons.SINGLETON_VAR #
 Pigeons.discrete_variables(state::Pigeons.StanState) = []
 
 Pigeons.extract_sample(state::Pigeons.StanState, log_potential) =
-    BridgeStan.param_constrain(Pigeons.stan_model(log_potential), state.unconstrained_parameters; include_tp = true, include_gq = true, rng = state.rng)
+    [
+        BridgeStan.param_constrain(Pigeons.stan_model(log_potential), state.unconstrained_parameters; include_tp = true, include_gq = true, rng = state.rng);
+        log_potential(state)
+    ]
 
 
 function Pigeons.update_state!(state::Pigeons.StanState, name::Symbol, index, value)
@@ -22,7 +25,11 @@ end
 Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, state::Pigeons.StanState) =
     Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
 
-Pigeons.variable_names(::Pigeons.StanState, log_potential) = BridgeStan.param_names(Pigeons.stan_model(log_potential); include_tp = true, include_gq = true)
+Pigeons.variable_names(::Pigeons.StanState, log_potential) = 
+    [
+        BridgeStan.param_names(Pigeons.stan_model(log_potential); include_tp = true, include_gq = true);
+        :log_density 
+    ]
 
 
 function Pigeons.slice_sample!(h::SliceSampler, state::Pigeons.StanState, log_potential, cached_lp, replica)

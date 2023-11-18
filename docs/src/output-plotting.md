@@ -42,6 +42,10 @@ pt = pigeons(target = an_unidentifiable_model,
 # to have axes labels matching variable names in Turing and Stan
 samples = Chains(sample_array(pt), variable_names(pt))
 
+# since the above line is frequently needed, Pigeons includes 
+# an MCMCChains extension allowinging you to use the shorter form:
+samples = Chains(pt)
+
 # create the trace plots
 my_plot = StatsPlots.plot(samples)
 StatsPlots.savefig(my_plot, "posterior_densities_and_traces.html"); 
@@ -50,6 +54,33 @@ nothing # hide
 
 ```@raw html
 <iframe src="../posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
+```
+
+## Monitoring the log density
+
+The value of the log density is appended to each sample. Continuing the 
+above example, this can be seen 
+from the variable names indexing the flattened vector created by 
+[`sample_array()`](@ref):
+
+```@example traces
+variable_names(pt)
+```
+
+When using the `Chains(pt)` constructor as shown above, the 
+un-normalized log density is stored inside MCMCChains' "internal" 
+storage so will not appear in plots by default. To show it, use the following:
+
+```@example traces
+params, internals = MCMCChains.get_sections(chain) 
+
+my_plot = StatsPlots.plot(internals)
+StatsPlots.savefig(my_plot, "logdensity.html"); 
+nothing # hide
+```
+
+```@raw html
+<iframe src="../logdensity.html" style="height:500px;width:100%;"></iframe>
 ```
 
 ## Posterior pair plots
@@ -80,7 +111,7 @@ pt = pigeons(target = an_unidentifiable_model,
                 # make sure to record the trace:
                 record = [traces; round_trip; record_default()])
 
-samples = Chains(sample_array(pt), variable_names(pt))
+samples = Chains(pt)
 # Warning: the line below only works for Julia 1.9
 #          see https://sefffal.github.io/PairPlots.jl/dev/chains/ for a workaround
 my_plot = PairPlots.pairplot(samples) 

@@ -28,14 +28,16 @@ The state held in each Parallel Tempering [`Replica`](@ref).
 
     """
     $SIGNATURES
-    Extract a flattened vector (i.e. concatenation of all variables, with discrete
-    ones converted to Float64) ready for post-processing.
+    Extract a sample for postprocessing. By default, calls `copy()` but many overloads are 
+        defined for different kinds of states.
+    
+    Typically, this will be a flattened vector (i.e. concatenation of all variables, with discrete
+    ones converted to Float64) ready for post-processing. 
+
+    The corresponding un-normalized log density might be appended at the very end.
 
     If the state is transformed (e.g. for HMC), this will create a fresh vector
     with an un-transformed (i.e. original parameterization) state in it.
-
-    When no transformations are needed, a copy should be created
-    (this is the default behaviour).
     """
     extract_sample(state, log_potential) = copy(state)
 
@@ -44,6 +46,9 @@ The state held in each Parallel Tempering [`Replica`](@ref).
 
     A list of string labels for the flattened vectors returned by
     [`extract_sample()`](@ref).
+
+    The key `:log_density` is used when the un-normalized log density 
+    is included.
     """
     variable_names(state, log_potential) = @abstract
 end
@@ -67,6 +72,8 @@ function update_state!(state::Array, name::Symbol, index, value)
     state[index] = value
 end
 
+extract_sample(state::Array, log_potential) = [state; log_potential(state)]
+
 function variable(state::Array, name::Symbol)
     if name === :singleton_variable
         state
@@ -77,7 +84,7 @@ end
 
 function variables end
 
-variable_names(state::Array, log_potential) = map(i -> "param_$i", 1:length(state))
+variable_names(state::Array, log_potential) = [map(i -> Symbol("param_$i"), 1:length(state)); :log_density]
 
 
 # For the stream interface, view the state as a black box

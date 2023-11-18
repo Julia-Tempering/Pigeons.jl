@@ -24,6 +24,7 @@ function Pigeons.extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
     DynamicPPL.invlink!!(state, Pigeons.turing_model(log_potential))
     result = DynamicPPL.getall(state)
     DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), Pigeons.turing_model(log_potential))
+    push!(result, log_potential(state))
     return result
 end
 
@@ -45,6 +46,7 @@ function Pigeons.variable_names(state::DynamicPPL.TypedVarInfo, _)
             error("don't know how to handle var `$var_name` of type $(typeof(var))")
         end
     end
+    push!(result, :log_density)
     return result
 end
 

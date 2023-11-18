@@ -11,7 +11,6 @@ using BridgeStan
             use_two_chains || push!(targets, toy_mvn_target(3))
             is_windows_in_CI() || push!(targets, Pigeons.toy_stan_target(3))
 
-
             for target in targets
                 pt = pigeons(;
                         target,
@@ -23,9 +22,15 @@ using BridgeStan
                     )
 
                 mtx = sample_array(pt)
-                @test size(mtx) == (4, 3, (use_two_chains ? 2 : 1) * (extended_traces ? 10 : 1))
-                @test length(variable_names(pt)) == 3
-                chain = Chains(sample_array(pt), variable_names(pt))
+                @test size(mtx) == (4, 3 + 1, (use_two_chains ? 2 : 1) * (extended_traces ? 10 : 1))
+                @test length(variable_names(pt)) == 4
+                @test :log_density in variable_names(pt)
+                chain = Chains(pt)
+                params, internals = MCMCChains.get_sections(chain) 
+
+                @test length(keys(params)) == 3 
+                @test length(keys(internals)) == 1 
+                @test :log_density in keys(internals) 
             end
         end
     end

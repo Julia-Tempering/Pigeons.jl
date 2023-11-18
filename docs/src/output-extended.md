@@ -45,7 +45,7 @@ pt = pigeons(target = an_unidentifiable_model,
 
 # collect the statistics and convert to MCMCChains' Chains
 # to have axes labels matching variable names in Turing and Stan
-samples = Chains(sample_array(pt), variable_names(pt))
+samples = Chains(pt)
 
 # create the trace plots
 my_plot = StatsPlots.plot(samples)

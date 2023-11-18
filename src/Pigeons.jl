@@ -97,6 +97,7 @@ end
     function __init__()
         @require DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8" include(joinpath(@__DIR__, "../ext/PigeonsDynamicPPLExt/PigeonsDynamicPPLExt.jl"))
         @require BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a" include(joinpath(@__DIR__, "../ext/PigeonsBridgeStanExt/PigeonsBridgeStanExt.jl"))
+        @require MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d" include(joinpath(@__DIR__, "../ext/PigeonsMCMCChainsExt/PigeonsMCMCChainsExt.jl"))
     end
 end
 
