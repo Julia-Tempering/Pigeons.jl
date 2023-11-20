@@ -10,7 +10,7 @@ if !is_windows_in_CI()
                         record = [traces; record_default()],
                         target = log_potential_from_posterior_db(posterior_json_file), n_rounds = 2)
         # make sure transformed and generated quantities included:
-        @test length(variable_names(pt)) == 429
+        @test length(variable_names(pt)) == 429 + 1 # +1 for log_density
     end
 
     @testset "Stan examples" begin

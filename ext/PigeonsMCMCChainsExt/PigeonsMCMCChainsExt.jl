@@ -13,5 +13,4 @@ end
 
 MCMCChains.Chains(pt::PT) = Chains(sample_array(pt), variable_names(pt), Dict(:internals => [:log_density]))
 
-
 end

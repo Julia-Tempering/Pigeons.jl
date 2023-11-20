@@ -119,3 +119,7 @@ my_plot = PairPlots.pairplot(samples)
 CairoMakie.save("pair_plot.svg", my_plot)
 nothing # hide
 ```
+
+```@raw html
+<iframe src="../pair_plot.svg" style="height:500px;width:100%;"></iframe>
+```

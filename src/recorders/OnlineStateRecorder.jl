@@ -9,6 +9,9 @@ OnlineStateRecorder(from_another::OnlineStateRecorder) = OnlineStateRecorder(cop
 
 """
 $SIGNATURES 
+
+the online statistics are computed on the 
+result of calling [`extract_sample()`](@ref). 
 """
 Statistics.mean(pt::PT, variable_name::Symbol = :singleton_variable) = get_statistic(pt, variable_name, Mean) 
 
