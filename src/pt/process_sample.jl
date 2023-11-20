@@ -79,6 +79,10 @@ Base.setindex!(::SampleArray, v, i::Int) = error("You cannot set the elements of
 
 """
 $(SIGNATURES)
+
+The `chain` option can be omitted and by default the 
+first chain targetting the distribution of interest will be used 
+(in many cases, there will be only one, in variational cases, two).
 """
 get_sample(pt::PT, chain = target_chains(pt)[1]) = SampleArray(pt, chain)
 

@@ -6,7 +6,7 @@ CurrentModule = Pigeons
 
 Use [`sample_array()`](@ref) to convert target chain 
 samples into a format that can then be consumed by 
-third party packages such as 
+third party plotting packages such as 
 [MCMCChains.jl](https://github.com/TuringLang/MCMCChains.jl) 
 and [PairPlots.jl](https://sefffal.github.io/PairPlots.jl/).
 
