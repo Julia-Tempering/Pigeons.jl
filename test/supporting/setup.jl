@@ -1,3 +1,4 @@
+using MCMCChains
 using DynamicPPL
 using BridgeStan
 
