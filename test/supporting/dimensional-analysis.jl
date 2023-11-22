@@ -94,7 +94,7 @@ function single_chain_pigeons_mvn(logp, explorer)
         show_report = false,
         explorer, 
         record = [traces],
-        trace_type = :log_potential
+        extractor = Pigeons.LogPotentialExtractor()
     )
     vs = get_sample(pt, 1) 
     @show ess_value = compute_ess(vs) 

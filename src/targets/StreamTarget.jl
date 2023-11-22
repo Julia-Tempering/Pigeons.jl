@@ -46,29 +46,7 @@ Return [`StreamState`](@ref) by following these steps:
 """
 initialization(target::StreamTarget, rng::AbstractRNG, replica_index::Int64) = @abstract 
 
-""" 
-States used in the replicas when a [`StreamTarget`](@ref) is used. 
-"""
-struct StreamState 
-    worker_process::ExpectProc
-    replica_index::Int
-    """ 
-    $SIGNATURES 
 
-    Create a worker process based on the supplied `cmd`. 
-    The work for the provided `replica_index` will be delegated to it.
-
-    See [`StreamTarget`](@ref).
-    """ 
-    function StreamState(cmd::Cmd, replica_index::Int)
-        worker_process = 
-            ExpectProc(
-                cmd,
-                Inf # no timeout
-            )
-        return new(worker_process, replica_index)
-    end
-end
 
 # Internals
 

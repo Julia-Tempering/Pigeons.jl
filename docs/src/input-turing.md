@@ -47,7 +47,7 @@ plotlyjs()
 pt = pigeons(
         target = TuringLogPotential(my_turing_model(100, 50)), 
         record = [traces])
-samples = Chains(sample_array(pt), variable_names(pt))
+samples = Chains(pt)
 my_plot = StatsPlots.plot(samples)
 StatsPlots.savefig(my_plot, "turing_posterior_densities_and_traces.html"); 
 

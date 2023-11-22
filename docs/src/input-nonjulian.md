@@ -63,3 +63,9 @@ nothing # hide
 
 As shown above, create a [`StreamTarget`](@ref) amounts to specifying which command will 
 be used to create a child process. 
+
+To terminate the child processes associated with a stream target, use:
+
+```@example blang
+Pigeons.kill_child_processes(pt)
+```

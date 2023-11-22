@@ -12,6 +12,7 @@ methods using either [the disk](@ref output-off-memory) or
 [constant-memory statistics](@ref output-online). 
 
 - [Interpreting pigeons' standard output](@ref output-reports)
+- [Working with traces](@ref output-traces)
 - [Creating plots.](@ref output-plotting)
 - [Approximation of the normalization constant.](@ref output-normalization)
 - [Numerical summaries and diagnostics.](@ref output-numerical)

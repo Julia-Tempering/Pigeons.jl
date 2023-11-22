@@ -17,5 +17,5 @@ ADgradient() in TuringLogPotential.jl
 
 @testset "Turing-variable-names" begin
     pt = pigeons(target = TuringLogPotential(model_with_vectors()), n_rounds = 2);
-    @test length(variable_names(pt)) == 4
+    @test length(sample_names(pt)) == 4 + 1 # +1 for :log_density
 end

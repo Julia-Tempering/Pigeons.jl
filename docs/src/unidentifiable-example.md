@@ -44,7 +44,7 @@ pt = pigeons(
         record = [traces])
 
 # collect the statistics and convert to MCMCChains' Chains
-samples = Chains(sample_array(pt), variable_names(pt))
+samples = Chains(pt)
 # create the trace plots
 my_plot = StatsPlots.plot(samples)
 StatsPlots.savefig(my_plot, "no_pt_posterior_densities_and_traces.html"); 
@@ -74,7 +74,7 @@ pt = pigeons(
         record = [traces, round_trip])
 
 # collect the statistics and convert to MCMCChains' Chains
-samples = Chains(sample_array(pt), variable_names(pt))
+samples = Chains(pt)
 # create the trace plots
 my_plot = StatsPlots.plot(samples)
 StatsPlots.savefig(my_plot, "with_pt_posterior_densities_and_traces.html"); 

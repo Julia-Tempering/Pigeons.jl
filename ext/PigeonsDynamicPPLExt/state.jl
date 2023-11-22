@@ -24,10 +24,11 @@ function Pigeons.extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
     DynamicPPL.invlink!!(state, Pigeons.turing_model(log_potential))
     result = DynamicPPL.getall(state)
     DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), Pigeons.turing_model(log_potential))
+    push!(result, log_potential(state))
     return result
 end
 
-function Pigeons.variable_names(state::DynamicPPL.TypedVarInfo, _)
+function Pigeons.sample_names(state::DynamicPPL.TypedVarInfo, _)
     result = Symbol[]
     all_names = fieldnames(typeof(state.metadata))
     for var_name in all_names
@@ -45,6 +46,7 @@ function Pigeons.variable_names(state::DynamicPPL.TypedVarInfo, _)
             error("don't know how to handle var `$var_name` of type $(typeof(var))")
         end
     end
+    push!(result, :log_density)
     return result
 end
 
@@ -70,7 +72,7 @@ end
 Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo) =
     # as of Nov 2023, DynamicPPL does not supply == for TypedVarInfo
     length(a.metadata) == length(b.metadata) &&
-        variable_names(a,1) == variable_names(b,1) && # second argument is not used
+        sample_names(a,1) == sample_names(b,1) && # second argument is not used
         DynamicPPL.getall(a) == DynamicPPL.getall(b)
     
 

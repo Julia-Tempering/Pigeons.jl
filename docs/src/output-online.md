@@ -35,8 +35,17 @@ using Statistics
 mean(pt)
 ```
 
+To be more precise, the online statistics are computed on the 
+result of calling [`extract_sample()`](@ref). 
+Use [`sample_names()`](@ref) to obtain the description of each 
+coordinate:
 
-## Adding other online statistics
+```@example online
+sample_names(pt)
+```
+
+
+## Including other online statistics
 
 The computation of online statistics makes use of 
 [OnlineStats.jl](https://joshday.github.io/OnlineStats.jl/latest/). 

@@ -52,6 +52,7 @@ makedocs(;
         "Outputs" => [
             "Outputs overview" => "output-overview.md",
             "Quick reports" => "output-reports.md",
+            "Traces" => "output-traces.md",
             "Plots" => "output-plotting.md",
             "log(Z)" => "output-normalization.md",
             "Numerical" => "output-numerical.md",

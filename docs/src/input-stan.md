@@ -95,7 +95,7 @@ pt = pigeons(
         target = stan_unid(100, 50), 
         reference = stan_unid(0, 0), 
         record = [traces])
-samples = Chains(sample_array(pt), variable_names(pt))
+samples = Chains(pt)
 my_plot = StatsPlots.plot(samples)
 StatsPlots.savefig(my_plot, "stan_posterior_densities_and_traces.html"); 
 

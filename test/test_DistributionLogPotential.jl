@@ -1,5 +1,3 @@
-using MCMCChains
-
 @testset "DistributionLogPotential" begin
     @testset "Multivariate" begin
         function unid_log_potential(x; n_trials=100, n_successes=50)
@@ -14,7 +12,7 @@ using MCMCChains
             reference = DistributionLogPotential(ref_dist),
             record = [traces]
         )
-        @show Chains(sample_array(pt), variable_names(pt))
+        @show Chains(pt)
     end
     @testset "Univariate" begin
         pt = pigeons(
@@ -22,6 +20,6 @@ using MCMCChains
             reference = DistributionLogPotential(Normal(-3,1)),
             record    = [traces]
         )
-        @show Chains(sample_array(pt), variable_names(pt))
+        @show Chains(pt)
     end
 end

@@ -56,8 +56,3 @@ end
 pt = pigeons(
     target = TuringLogPotential(GalaxyTuring())
 )
-
-# using StatsPlots
-# samples = sample_array(pt);
-# plot(Chains(samples, ["par_$i" for i in 1:size(samples)[2]])) # TODO: variable_names should detect when variables are vectors
-# nothing
