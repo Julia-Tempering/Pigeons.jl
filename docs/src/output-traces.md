@@ -87,7 +87,7 @@ Pigeons.sample_names(state, log_potential, extractor::OnlyFirstExtractor) =
     Pigeons.sample_names(state, log_potential)[1:1]
 ```
 
-Pigeons provides an extractor to keep only the value of the log potential:
+To keep only the value of the log potential, you can use the following built-in [`LogPotentialExtractor`](@ref):
 
 ```@example record-traces
 pt = pigeons(;  target, 
