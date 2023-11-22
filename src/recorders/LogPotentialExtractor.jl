@@ -6,4 +6,4 @@ struct LogPotentialExtractor end
 
 extract_sample(state, log_potential, extractor::LogPotentialExtractor) = [log_potential(state)]
 
-variable_names(state, log_potential, extractor::LogPotentialExtractor) = [:log_density]
+sample_names(state, log_potential, extractor::LogPotentialExtractor) = [:log_density]

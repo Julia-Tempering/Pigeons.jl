@@ -37,11 +37,11 @@ get_sample(pt)
 ```
 
 In the special case where each state is a vector, use 
-[`variable_names`](@ref) to obtain description of the 
+[`sample_names`](@ref) to obtain description of the 
 vector components:
 
 ```@example record-traces
-variable_names(pt)
+sample_names(pt)
 ```
 
 Still in the special case where each state is a vector, 
@@ -79,12 +79,12 @@ sample_array(pt)
 ```
 
 Optionally, it is a good idea to also adjust the behaviour 
-of [`variable_names`](@ref) accordingly. For example, `variables_names` gets called 
+of [`sample_names`](@ref) accordingly. For example, `variables_names` gets called 
 when creating MCMCChains object so that e.g. plots are labelled correctly.
 
 ```@example record-traces
-Pigeons.variable_names(state, log_potential, extractor::OnlyFirstExtractor) = 
-    Pigeons.variable_names(state, log_potential)[1:1]
+Pigeons.sample_names(state, log_potential, extractor::OnlyFirstExtractor) = 
+    Pigeons.sample_names(state, log_potential)[1:1]
 ```
 
 Pigeons provides an extractor to keep only the value of the log potential:

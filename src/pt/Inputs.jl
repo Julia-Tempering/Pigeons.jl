@@ -74,7 +74,7 @@ $FIELDS
 
     """ 
     Passed to [`extract_sample`](@ref) and 
-    [`variable_names`](@ref) to determine how 
+    [`sample_names`](@ref) to determine how 
     samples should be extracted for [`traces`](@ref). 
 
     The value `nothing` signals default behaviour.

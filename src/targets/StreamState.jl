@@ -21,4 +21,4 @@ struct StreamState
 end
 
 extract_sample(state::StreamState, log_potential) = extract_sample(state, log_potential, LogPotentialExtractor()) 
-variable_names(state::StreamState, log_potential) = variable_names(state, log_potential, LogPotentialExtractor()) 
+sample_names(state::StreamState, log_potential) = sample_names(state, log_potential, LogPotentialExtractor()) 

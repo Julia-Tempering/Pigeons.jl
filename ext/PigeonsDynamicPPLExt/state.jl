@@ -28,7 +28,7 @@ function Pigeons.extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
     return result
 end
 
-function Pigeons.variable_names(state::DynamicPPL.TypedVarInfo, _)
+function Pigeons.sample_names(state::DynamicPPL.TypedVarInfo, _)
     result = Symbol[]
     all_names = fieldnames(typeof(state.metadata))
     for var_name in all_names
@@ -72,7 +72,7 @@ end
 Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo) =
     # as of Nov 2023, DynamicPPL does not supply == for TypedVarInfo
     length(a.metadata) == length(b.metadata) &&
-        variable_names(a,1) == variable_names(b,1) && # second argument is not used
+        sample_names(a,1) == sample_names(b,1) && # second argument is not used
         DynamicPPL.getall(a) == DynamicPPL.getall(b)
     
 

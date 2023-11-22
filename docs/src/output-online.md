@@ -37,11 +37,11 @@ mean(pt)
 
 To be more precise, the online statistics are computed on the 
 result of calling [`extract_sample()`](@ref). 
-Use [`variable_names()`](@ref) to obtain the description of each 
+Use [`sample_names()`](@ref) to obtain the description of each 
 coordinate:
 
 ```@example online
-variable_names(pt)
+sample_names(pt)
 ```
 
 

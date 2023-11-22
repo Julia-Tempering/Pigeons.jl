@@ -52,14 +52,14 @@ The state held in each Parallel Tempering [`Replica`](@ref).
     The key `:log_density` is used when the un-normalized log density 
     is included.
     """
-    variable_names(state, log_potential, extractor::Nothing) = variable_names(state, log_potential)
+    sample_names(state, log_potential, extractor::Nothing) = sample_names(state, log_potential)
 end
 
 extract_sample(state, log_potential) = copy(state)
 
-function variable_names(pt::PT)
+function sample_names(pt::PT)
     a_replica = locals(pt.replicas)[1]
-    return variable_names(a_replica.state, find_log_potential(a_replica, pt.shared.tempering, pt.shared), pt.inputs.extractor)
+    return sample_names(a_replica.state, find_log_potential(a_replica, pt.shared.tempering, pt.shared), pt.inputs.extractor)
 end
 
 # Implementations
@@ -88,11 +88,10 @@ end
 
 function variables end
 
-variable_names(state::Array, log_potential) = [map(i -> Symbol("param_$i"), 1:length(state)); :log_density]
+sample_names(state::Array, log_potential) = [map(i -> Symbol("param_$i"), 1:length(state)); :log_density]
 
 
 # For the stream interface, view the state as a black box
 # and also we don't want that running with default block of recorders
 # crashes.
 continuous_variables(state::StreamState) = []
-variable_names(state::StreamState) = []

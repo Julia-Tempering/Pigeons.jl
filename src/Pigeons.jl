@@ -71,7 +71,7 @@ export pigeons, Inputs, PT,
     # some examples
     toy_mvn_target, toy_stan_target,
     # post-processing helpers
-    sample_array, variable_names, increment_n_rounds!,
+    sample_array, sample_names, increment_n_rounds!,
     # recorders:
     index_process, swap_acceptance_pr, log_sum_ratio, online, round_trip, energy_ac1, traces, disk,
     record_online, record_default,

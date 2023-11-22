@@ -40,7 +40,7 @@ pt = pigeons(target = an_unidentifiable_model,
 
 # collect the statistics and convert to MCMCChains' Chains
 # to have axes labels matching variable names in Turing and Stan
-samples = Chains(sample_array(pt), variable_names(pt))
+samples = Chains(sample_array(pt), sample_names(pt))
 
 # since the above line is frequently needed, Pigeons includes 
 # an MCMCChains extension allowinging you to use the shorter form:
@@ -64,7 +64,7 @@ from the variable names indexing the flattened vector created by
 [`sample_array()`](@ref):
 
 ```@example traces
-variable_names(pt)
+sample_names(pt)
 ```
 
 When using the `Chains(pt)` constructor as shown above, the 

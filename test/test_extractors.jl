@@ -5,6 +5,6 @@
         n_chains = 2,
         record = [traces; round_trip; record_default()])
     samples = Chains(pt)
-    @test variable_names(pt) == [:log_density]
+    @test sample_names(pt) == [:log_density]
     Pigeons.kill_child_processes(pt)    
 end

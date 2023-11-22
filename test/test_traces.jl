@@ -23,8 +23,8 @@ using BridgeStan
 
                 mtx = sample_array(pt)
                 @test size(mtx) == (4, 3 + 1, (use_two_chains ? 2 : 1) * (extended_traces ? 10 : 1))
-                @test length(variable_names(pt)) == 4
-                @test :log_density in variable_names(pt)
+                @test length(sample_names(pt)) == 4
+                @test :log_density in sample_names(pt)
                 chain = Chains(pt)
                 params, internals = MCMCChains.get_sections(chain) 
 

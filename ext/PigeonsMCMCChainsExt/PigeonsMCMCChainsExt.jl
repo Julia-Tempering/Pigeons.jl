@@ -9,6 +9,6 @@ else
     using ..MCMCChains
 end
 
-MCMCChains.Chains(pt::PT) = Chains(sample_array(pt), variable_names(pt), Dict(:internals => [:log_density]))
+MCMCChains.Chains(pt::PT) = Chains(sample_array(pt), sample_names(pt), Dict(:internals => [:log_density]))
 
 end
