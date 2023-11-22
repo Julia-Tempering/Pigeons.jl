@@ -1,6 +1,6 @@
 """
 Signal that only the log potential should be recorded into 
-[`traces`](@ref). See `extractor` in [`Inputs`](@ref).
+[`traces`](@ref). See `pt.inputs.extractor`.
 """
 struct LogPotentialExtractor end 
 
