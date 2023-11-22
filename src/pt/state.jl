@@ -38,8 +38,10 @@ The state held in each Parallel Tempering [`Replica`](@ref).
 
     If the state is transformed (e.g. for HMC), this will create a fresh vector
     with an un-transformed (i.e. original parameterization) state in it.
+
+    The argument `extractor` is passed from the [`Inputs`](@ref).
     """
-    extract_sample(state, log_potential) = copy(state)
+    extract_sample(state, log_potential, extractor::Nothing) = extract_sample(state, log_potential)
 
     """
     $SIGNATURES
@@ -50,12 +52,14 @@ The state held in each Parallel Tempering [`Replica`](@ref).
     The key `:log_density` is used when the un-normalized log density 
     is included.
     """
-    variable_names(state, log_potential) = @abstract
+    variable_names(state, log_potential, extractor::Nothing) = variable_names(state, log_potential)
 end
+
+extract_sample(state, log_potential) = copy(state)
 
 function variable_names(pt::PT)
     a_replica = locals(pt.replicas)[1]
-    return variable_names(a_replica.state, find_log_potential(a_replica, pt.shared.tempering, pt.shared))
+    return variable_names(a_replica.state, find_log_potential(a_replica, pt.shared.tempering, pt.shared), pt.inputs.extractor)
 end
 
 # Implementations

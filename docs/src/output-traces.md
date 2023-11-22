@@ -59,27 +59,43 @@ You may want to save only some statistics of interest, or a subset of the dimens
 take up less memory. 
 
 We show here an example saving only the 
-value of the log potential:
+value of the first coordinate:
 
 ```@example record-traces
-StateType = typeof(pt.replicas[1].state) 
-LogPotentialType = typeof(pt.shared.tempering.log_potentials[1]) 
+struct OnlyFirstExtractor end 
 
-Pigeons.extract_sample(state::StateType, log_potential::LogPotentialType) = 
-    log_potential(state)
+Pigeons.extract_sample(state, log_potential, extractor::OnlyFirstExtractor) = 
+    Pigeons.extract_sample(state, log_potential)[1:1]
+
 
 pt = pigeons(;  target, 
                 n_rounds = 3,
+                # custom method to extract samples:
+                extractor = OnlyFirstExtractor(),
                 # make sure to record the trace:
                 record = [traces; round_trip; record_default()])
 
 sample_array(pt)
 ```
 
-For completeness, it is a good idea to also adjust the behaviour 
-of [`variable_names`](@ref) accordingly:
+Optionally, it is a good idea to also adjust the behaviour 
+of [`variable_names`](@ref) accordingly. For example, `variables_names` gets called 
+when creating MCMCChains object so that e.g. plots are labelled correctly.
 
 ```@example record-traces
-Pigeons.variable_names(state::StateType, log_potential::LogPotentialType) = 
-    [:log_density]
+Pigeons.variable_names(state, log_potential, extractor::OnlyFirstExtractor) = 
+    Pigeons.variable_names(state, log_potential)[1:1]
+```
+
+Pigeons provides an extractor to keep only the value of the log potential:
+
+```@example record-traces
+pt = pigeons(;  target, 
+                n_rounds = 3,
+                # custom method to extract samples:
+                extractor = Pigeons.LogPotentialExtractor(),
+                # make sure to record the trace:
+                record = [traces; round_trip; record_default()])
+
+sample_array(pt)
 ```

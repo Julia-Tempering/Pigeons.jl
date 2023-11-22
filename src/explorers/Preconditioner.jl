@@ -31,7 +31,7 @@ average standard deviations that are much higher than the ones within each mode.
 Suggested by [Max Hird](https://maxhhird.github.io/) (personal communication).
 Furthermore, we use a zero-one-inflated Uniform(0,1) distribution for the mixing
 proportion in order to make the preconditioner robust to extreme mismatch of
-scales (see the autoMALA paper for more details).
+scales (see the automala paper for more details).
 
 $FIELDS
 """

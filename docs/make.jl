@@ -32,8 +32,7 @@ makedocs(;
         prettyurls=true, # always on, avoids confusion when building locally. If needed, serve the "build" folder locally with LiveServer. #get(ENV, "CI", "false") == "true",
         canonical="https://Julia-Tempering.github.io/Pigeons.jl",
         edit_link="main",
-        assets=String[],
-        size_threshold = nothing # overrides default size limit for a single html file
+        assets=String[]
     ),
     pages=[
         "Basic usage (local)" => "index.md",

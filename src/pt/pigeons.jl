@@ -110,7 +110,7 @@ function explore!(pt, replica, explorer)
     if is_target(pt.shared.tempering.swap_graphs, replica.chain)
         # for the online stats, we ignore pt.inputs.extended_traces 
         # because the recorders do not support grouping by chains
-        @record_if_requested!(replica.recorders, :online, extract_sample(replica.state, log_potential))
+        @record_if_requested!(replica.recorders, :online, extract_sample(replica.state, log_potential, pt.inputs.extractor))
         @record_if_requested!(replica.recorders, :_transformed_online, replica.state)
     end
     if pt.inputs.extended_traces || is_target(pt.shared.tempering.swap_graphs, replica.chain)
@@ -120,20 +120,13 @@ function explore!(pt, replica, explorer)
             (; 
                 chain = replica.chain, 
                 scan = pt.shared.iterators.scan, 
-                contents = 
-                    if pt.inputs.trace_type == :samples
-                        extract_sample(replica.state, log_potential)
-                    elseif pt.inputs.trace_type == :log_potential 
-                        log_potential(replica.state) 
-                    else
-                        error()
-                    end
+                contents = extract_sample(replica.state, log_potential, pt.inputs.extractor)
             )
         )
         @record_if_requested!(
             replica.recorders, 
             :disk, 
-            (; pt, replica)
+            (; pt, replica, contents = extract_sample(replica.state, log_potential, pt.inputs.extractor))
         )
     end 
 end

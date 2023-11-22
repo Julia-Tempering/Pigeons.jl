@@ -6,7 +6,7 @@ used to create Parallel Tempering algorithms.
 Fields (see source file for default values):
 $FIELDS
 """
-@kwdef mutable struct Inputs{T, V, E, R}
+@kwdef mutable struct Inputs{T, V, E, R, X}
     """ The target distribution. """
     target::T
 
@@ -72,18 +72,21 @@ $FIELDS
     """
     explorer::E = nothing
 
+    """ 
+    Passed to [`extract_sample`](@ref) and 
+    [`variable_names`](@ref) to determine how 
+    samples should be extracted for [`traces`](@ref). 
+
+    The value `nothing` signals default behaviour.
+    Use [`LogPotentialExtractor`](@ref) to extract 
+    only the log potential. 
+    """
+    extractor::X = nothing
+
     """
     Show sampling report?
     """
     show_report::Bool = true
-
-    """
-    Type of traces that the [`traces`](@ref) recorder will collect:
-
-    - `:samples` - `extract_sample()` is called on the state, or
-    - `:log_potential` - `log_potential()` is called on the state
-    """
-    trace_type::Symbol = :samples
 
     """
     Whether the [`traces`](@ref) and [`disk`](@ref) recorders will 
