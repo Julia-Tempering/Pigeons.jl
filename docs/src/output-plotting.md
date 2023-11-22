@@ -72,7 +72,7 @@ un-normalized log density is stored inside MCMCChains' "internal"
 storage so will not appear in plots by default. To show it, use the following:
 
 ```@example traces
-params, internals = MCMCChains.get_sections(chain) 
+params, internals = MCMCChains.get_sections(samples) 
 
 my_plot = StatsPlots.plot(internals)
 StatsPlots.savefig(my_plot, "logdensity.html"); 
