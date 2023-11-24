@@ -16,7 +16,7 @@ $FIELDS
     n_passes::Int = 3
 
     """ Maximum number of interations inside shrink_slice! before erroring out """
-    max_iter::Int = 1_024 # ~= log2(1e308)
+    max_iter::Int = 1_024 # == log2(prevfloat(Inf))
 end
 
 explorer_recorder_builders(::SliceSampler) = [explorer_acceptance_pr, explorer_n_steps]
@@ -46,7 +46,7 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, ca
     # iterate over coordinates
     for c in eachindex(state)
         pointer = Ref(state, c)
-        cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
+        cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cached_lp, typeof(pointer[])) # note: when state is mixed, pointer is RefArray{generic common type} for all coordinates, so can't use it to dispatch 
 
         # check we still have a healthy state
         if !isfinite(cached_lp)
@@ -61,8 +61,8 @@ function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, ca
     return cached_lp
 end
 
-# handle Bools separately: sample from the full conditional
-function slice_sample_coord!(h, replica, pointer::Base.Ref{Bool}, log_potential, cached_lp)
+# handle Bools separately: sample from the full conditional (requires 1 density eval)
+function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp, ::Type{Bool})
     state = replica.state
     rng = replica.rng
     if pointer[]                    # currently true => already have lp1
@@ -85,7 +85,8 @@ function slice_sample_coord!(h, replica, pointer::Base.Ref{Bool}, log_potential,
     end
 end
 
-function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
+# generic case: use slicing
+function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp, ::Type)
     rng = replica.rng
     z = cached_lp - randexp(rng) # log(vertical draw)
     L, R, lp_L, lp_R = slice_double(h, replica, z, pointer, log_potential)

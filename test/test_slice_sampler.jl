@@ -14,6 +14,23 @@ Pigeons.initialization(log_potential::UnitInterval, ::AbstractRNG, ::Int) = [0.5
     pigeons(target = UnitInterval(true))
 end
 
+@testset "Check inf potential throws" begin
+    log_potential(x::AbstractVector) = log_potential(first(x))
+    log_potential(x) = iszero(x) ? x : Inf
+    state = [0.0]
+    cached_lp = -Inf
+    replica = Replica(state, 1, SplittableRandom(1), (;), 1)
+    @test_throws ErrorException slice_sample!(SliceSampler(), state, log_potential, cached_lp, replica)
+end
+
+@testset "Check slice_shrink! throws on unattainable z level" begin
+    log_potential(x) = zero(eltype(x))
+    state = [0.0]
+    cached_lp = prevfloat(Inf)
+    replica = Replica(state, 1, SplittableRandom(1), (;), 1)
+    @test_throws ErrorException slice_sample!(SliceSampler(), state, log_potential, cached_lp, replica)
+end
+
 include("supporting/turing_models.jl")
 
 function test_slice_sampler_logprob_counts()
@@ -42,9 +59,13 @@ end
 
 function test_slice_sampler_vector()
     rng = SplittableRandom(1)
-    log_potential = (x) -> logpdf(Bernoulli(0.5), x[1]) + logpdf(Normal(0.0, 1.0), x[2])
+    log_potential(x) = begin
+        logpdf(Bernoulli(0.5), first(x)) + 
+        logpdf(Binomial(10), x[2]) + 
+        logpdf(Normal(0.0, 1.0), last(x))        
+    end
     h = SliceSampler()
-    state = Number[0, 0.0]
+    state = Number[false, 0, 0.0]
     n = 1000
     states = Vector{typeof(state)}(undef, n)
     cached_lp = -Inf
@@ -53,8 +74,8 @@ function test_slice_sampler_vector()
         cached_lp = slice_sample!(h, state, log_potential, cached_lp, replica)
         states[i] = copy(state)
     end
-    @test all(abs.(mean(states) - [0.5, 0.0]) .≤ 0.2)
-    @test all(abs.(std(states) - [0.5, 1.0]) .≤ 0.2)
+    @test all(abs.(mean(states) - [0.5, 5.0, 0.0]) .≤ 0.2)
+    @test all(abs.(std(states) - [0.5, std(Binomial(10)), 1.0]) .≤ 0.2)
 end
 
 function test_slice_sampler_Turing()
