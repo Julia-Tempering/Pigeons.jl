@@ -8,7 +8,8 @@
             DynamicPPL.logjoint(log_potential.model, vi)
         end
     catch e
-        (isa(e, DomainError) | isa(e, BoundsError)) ? -Inf : error("Unknown error in evaluation of the Turing log_potential.")
+        (isa(e, DomainError) || isa(e, BoundsError)) && return -Inf
+        rethrow(e)
     end
 
 """
