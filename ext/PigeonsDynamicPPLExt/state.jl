@@ -50,25 +50,24 @@ function Pigeons.sample_names(state::DynamicPPL.TypedVarInfo, _)
     return result
 end
 
-function Pigeons.slice_sample!(h::SliceSampler, state::DynamicPPL.TypedVarInfo, log_potential, cached_lp, replica)
-    cached_lp = Pigeons.cached_log_potential(log_potential, state, cached_lp)
-    for i in 1:length(state.metadata)
-        for c in 1:length(state.metadata[i].vals)
-            pointer = Ref(state.metadata[i].vals, c)
-            cached_lp = Pigeons.slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
-        end
+#=
+explorer implementations
+=#
+function Pigeons.slice_sample!(h::SliceSampler, vi::DynamicPPL.TypedVarInfo, log_potential, cached_lp, replica)
+    for meta in vi.metadata
+        cached_lp = Pigeons.slice_sample!(h, meta.vals, log_potential, cached_lp, replica)
     end
     return cached_lp
 end
-
 function Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
-    log_potential = find_log_potential(replica, shared.tempering, shared)
     state = DynamicPPL.getall(vi)
-    _extract_commons_and_run!(explorer, replica, shared, log_potential, state)
+    Pigeons.step!(explorer, replica, shared, state)
     DynamicPPL.setall!(replica.state, state)
 end
 
-
+#=
+specialized equality checks
+=#
 Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo) =
     # as of Nov 2023, DynamicPPL does not supply == for TypedVarInfo
     length(a.metadata) == length(b.metadata) &&
