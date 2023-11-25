@@ -22,7 +22,8 @@ if !is_windows_in_CI()
         pigeons(target = Pigeons.stan_funnel(1), record = [online], n_chains = 1, n_rounds = 5, explorer = SliceSampler())
     
         # check we get reasonable accept on one real example 
-        pt = pigeons(target = pp.posterior, reference = pp.prior, n_rounds = 5, n_chains = 2)
+        post_prior = Pigeons.stan_mRNA_post_prior_pair()
+        pt = pigeons(target = post_prior.posterior, reference = post_prior.prior, n_rounds = 5, n_chains = 2)
         @test minimum(Pigeons.explorer_mh_prs(pt)) > 0.3
     end
 

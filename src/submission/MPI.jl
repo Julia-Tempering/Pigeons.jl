@@ -109,21 +109,22 @@ function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
     #    MethodError(f=Core.Compiler.widenconst, args=(Symbol("#342"),), world=0x0000000000001342)
     export JULIA_PKG_PRECOMPILE_AUTO=0
 
-    mpiexec $(mpi_submission.mpiexec_args) --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
+    mpiexec $(cmd_to_string(mpi_submission.mpiexec_args)) --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
     write(script_path, code)
     return script_path
 end
 
+cmd_to_string(cmd::Cmd) = "$cmd"[2:(end-1)]
 
 # Internal: "rosetta stone" of submission commands
 const _rosetta = (;
     queue_concept = [:submit,   :del,     :directive, :job_name,    :output_file,   :error_file,    :submit_dir,            :job_status,    :job_status_all,    :ncpu_info],
 
     # tested:
-    pbs           = [`qsub`,    `qdel`,   "#PBS",     "-N ",        "-o ",          "-e ",          "\$PBS_O_WORKDIR",      `qstat -x`,     `qstat -u`,         `pbsnodes -aSj -F dsv`],
-    slurm         = [`sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue --job`, `squeue -u`,        `sinfo`],
+    pbs           = [`qsub`,    `qdel`,   "#PBS",     "-N ",        "-o ",          "-e ",          "\$PBS_O_WORKDIR",      `qstat -x`,     `qstat -u`,         `pbsnodes`],
+    slurm         = [`sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue --job`, `squeue -u`,        `sinfo -o%C`],
     
     # not yet tested:
     lsf           = [`bsub`,    `bkill`,  "#BSUB",    "-J ",        "-o ",          "-e ",          "\$LSB_SUBCWD",         `bjobs`,        `bjobs -u`,         `bhosts`],
