@@ -20,6 +20,10 @@ if !is_windows_in_CI()
 
         # some examples where an error is interpreted as -Inf:
         pigeons(target = Pigeons.stan_funnel(1), record = [online], n_chains = 1, n_rounds = 5, explorer = SliceSampler())
+    
+        # check we get reasonable accept on one real example 
+        pt = pigeons(target = pp.posterior, reference = pp.prior, n_rounds = 5, n_chains = 2)
+        @test minimum(Pigeons.explorer_mh_prs(pt)) > 0.3
     end
 
     @testset "Stan restarts" begin
