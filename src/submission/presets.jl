@@ -27,5 +27,5 @@ setup_mpi_compute_canada() =
     setup_mpi(
         submission_system = :slurm,
         environment_modules = ["intel", "openmpi", "julia"],
-        library_name = library_name = "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Compiler/intel2020/openmpi/4.0.3/lib/libmpi"
+        library_name = "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Compiler/intel2020/openmpi/4.0.3/lib/libmpi"
     )
