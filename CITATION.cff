@@ -1,8 +1,5 @@
 cff-version: 1.0.0
 message: "If you use this software, please cite it as below."
-authors:
-
-title: "Pigeons.jl: Distributed sampling from intractable distributions"
 preferred-citation:
   type: article
   authors:
