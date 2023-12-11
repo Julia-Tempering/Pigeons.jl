@@ -33,7 +33,7 @@ identify cases where a fixed diagonal preconditioner performs worse than using
 no preconditioner at all.
 We use a zero-one-inflated Uniform(0,1) distribution for the mixing
 proportion in order to make the preconditioner robust to extreme mismatch of
-scales (see [the autoMALA paper](https://arxiv.org/abs/2310.16782) for more details).
+scales (see [the automala paper](https://arxiv.org/abs/2310.16782) for more details).
 
 $FIELDS
 """
