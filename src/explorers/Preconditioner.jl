@@ -27,11 +27,13 @@ $SIGNATURES
 Similar to [`DiagonalPreconditioner`](@ref) but the actual preconditioner used
 at each iteration is a random mixture of the identity and the adapted diagonal
 matrix. This helps with targets featuring distantly separated modes, which induces
-average standard deviations that are much higher than the ones within each mode. 
-Suggested by [Max Hird](https://maxhhird.github.io/) (personal communication).
-Furthermore, we use a zero-one-inflated Uniform(0,1) distribution for the mixing
+average standard deviations that are much higher than the ones within each mode.
+Even in the family of Gaussian targets, [Hird & Livingstone (2023)](https://arxiv.org/abs/2312.04898)
+identify cases where a fixed diagonal preconditioner performs worse than using 
+no preconditioner at all.
+We use a zero-one-inflated Uniform(0,1) distribution for the mixing
 proportion in order to make the preconditioner robust to extreme mismatch of
-scales (see the automala paper for more details).
+scales (see [the autoMALA paper](https://arxiv.org/abs/2310.16782) for more details).
 
 $FIELDS
 """
