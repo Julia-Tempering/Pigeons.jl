@@ -34,6 +34,5 @@ Our team works hard to maintain and improve the Pigeons package. Please consider
 }
 ```
 
-**APA**
-
+**APA** </br>
 Surjanovic, N., Biron-Lattes, M., Tiede, P., Syed, S., Campbell, T., & Bouchard-Côté, A. (2023). Pigeons.jl: Distributed sampling from intractable distributions. *arXiv:2308.09769.*
