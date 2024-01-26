@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Julia-Tempering/Pigeons.jl,39,24
+/Julia-Tempering/Pigeons.jl/blob/main/test/supporting/HetPrecisionNormalLogPotential.jl,24,2
+/Julia-Tempering/Pigeons.jl/tree/main/examples,13,4
+/Julia-Tempering/Pigeons.jl/blob/8cb8d5ad5e2ad3f5dea26e6d68f494c8b6cdc7c6/src/explorers/AutoMALA.jl,12,1
+/Julia-Tempering/Pigeons.jl/blob/484c9d10b101818724303f7816457286e9da9ac0/src/explorers/AutoMALA.jl,10,3
+/Julia-Tempering/Pigeons.jl/blob/main/src/targets/toy_mvn_target.jl,10,2
+/Julia-Tempering/Pigeons.jl/issues/194,8,3
+/Julia-Tempering/Pigeons.jl/blob/484c9d10b101818724303f7816457286e9da9ac0/src/paths/ScaledPrecisionNormalPath.jl,8,2
+/Julia-Tempering/Pigeons.jl/blob/484c9d10b101818724303f7816457286e9da9ac0/src/explorers/explorer.jl,8,1
+/Julia-Tempering/Pigeons.jl/issues,8,1
