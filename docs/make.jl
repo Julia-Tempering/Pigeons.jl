@@ -69,6 +69,7 @@ makedocs(;
         "More on distributed PT" => "distributed.md",
         "Interfaces" => Pigeons.informal_doc(@__DIR__, Pigeons),
         "Reference" => "reference.md",
+        "Google Summer of Code" => "gsoc.md"
     ],
 )
 
