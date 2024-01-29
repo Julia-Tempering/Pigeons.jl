@@ -17,12 +17,76 @@ Work on this project would include:
 - Engaging with researchers interested in using a Python/R interface and implementing additional suggested features. 
 
 **Recommended Skills:** Familiarity with Python and/or R. A basic knowledge of 
-statistical concepts and a desire to learn the basics of Julia.
+statistical concepts and a desire to learn the basics of Julia and Bayesian inference.
 
 **Expected Results:** An interface for Pigeons in either Python or R (or both). 
 
-**Mentors:** Alexandre Bouchard-Côté, Trevor Campbell, and Nikola Surjanovic
+**Mentors:** [Alexandre Bouchard-Côté](https://github.com/alexandrebouchard), 
+[Trevor Campbell](https://github.com/trevorcampbell/), and 
+[Nikola Surjanovic](https://github.com/nikola-sur).
 
 **Expected Project Size:** 175 hours or 350 hours. 
 
 **Difficulty:** Medium.
+
+<br>
+
+## Automated Parameter Tuning
+
+The core algorithm behind Pigeons, parallel tempering, has recently had [major developments](https://arxiv.org/abs/1905.02939). 
+Some questions remain regarding the selection of tuning parameters in parallel tempering. 
+While these have been partially theoretically resolved, it remains to automate 
+the selection procedure in software such as Pigeons.
+Work on this project would include:
+
+- Development of an automated parameter selection procedure (e.g., the number of chains in parallel tempering). 
+
+- Simulations to compare theoretical results and empirical performance.
+
+- Further work on parallelization of Pigeons (e.g., automated selection of number of machines and instances of parallel tempering).
+
+**Recommended Skills:** Familiarity with Julia and distributed/parallel computing. 
+A basic knowledge of statistical concepts. A desire to learn about the parallel tempering algorithm.
+
+**Expected Results:** An automated tuning parameter selection procedure and a simplified user interface. 
+
+**Mentors:** [Alexandre Bouchard-Côté](https://github.com/alexandrebouchard), 
+[Trevor Campbell](https://github.com/trevorcampbell/), and 
+[Nikola Surjanovic](https://github.com/nikola-sur).
+
+**Expected Project Size:** 175 hours or 350 hours. 
+
+**Difficulty:** Medium to Hard, depending on the chosen tasks.
+
+<br>
+
+## Automated Families for Variational Inference and MCMC 
+
+The core algorithm behind Pigeons, parallel tempering, has recently had [major developments](https://arxiv.org/abs/1905.02939). 
+In particular, [recent work](https://arxiv.org/abs/2206.00080) combines variational inference methods with 
+parallel tempering to improve the performance of both. 
+At the moment, Pigeons only implements basic variational families (e.g., mean-field Gaussians). 
+Work on this project would include:
+
+- Incorporating new and existing variational families within Pigeons 
+
+- Automated selection of variational families depending on the given computational problem 
+
+- Experimental comparison of the performance of various variational families on 
+given computational tasks
+
+**Recommended Skills:** Familiarity with Julia. 
+A basic knowledge of Bayesian statistical concepts. A desire to learn about parallel tempering  
+and variational inference. 
+
+**Expected Results:** An implementation of a rich collection of variational families within Pigeons, 
+and an automated variational family selection procedure. 
+
+**Mentors:** [Alexandre Bouchard-Côté](https://github.com/alexandrebouchard), 
+[Trevor Campbell](https://github.com/trevorcampbell/), and 
+[Nikola Surjanovic](https://github.com/nikola-sur).
+
+**Expected Project Size:** 175 hours or 350 hours. 
+
+**Difficulty:** Medium to Hard, depending on the chosen tasks.
+
