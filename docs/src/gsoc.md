@@ -98,9 +98,9 @@ difficult sampling problems. In the field of machine learning, it is common to c
 methods across several standard data sets. 
 In contrast, such collections of standard data sets and models do not exist or 
 are limited in scope in the field of statistics.
-Work on this project would include:
-
-- Development of a website and user submission portal for difficult inference and sampling problems.
+(For example, the current, most commonly used library of difficult sampling problems, 
+[posteriordb](https://github.com/stan-dev/posteriordb), does not emphasize 
+difficult distributions such as non-log-concave targets.) Work on this project would include:
 
 - Searching for difficult sampling problems in the literature and implementing some examples in Julia.
 
