@@ -29,7 +29,6 @@ statistical concepts and a desire to learn the basics of Julia and Bayesian infe
 
 **Difficulty:** Medium.
 
-<br>
 
 ## Automated Parameter Tuning
 
@@ -58,7 +57,6 @@ A basic knowledge of statistical concepts. A desire to learn about the parallel 
 
 **Difficulty:** Medium to Hard, depending on the chosen tasks.
 
-<br>
 
 ## Automated Families for Variational Inference and MCMC 
 
@@ -89,7 +87,6 @@ and an automated variational family selection procedure.
 
 **Difficulty:** Medium to Hard, depending on the chosen tasks.
 
-<br>
 
 ## Library of Difficult Sampling Problems 
 
@@ -119,3 +116,19 @@ A basic knowledge of statistical concepts. A desire to learn about the parallel 
 
 **Difficulty:** Easy to Medium, depending on the chosen tasks.
 
+
+
+# [Contributor Guidance](@id guidance)
+
+Potential contributors are encouraged to provide a short CV or resume.
+
+After selecting one of the projects listed on this page, in your application please also include: 
+
+- A list of goals for each week of your participation in the program. 
+
+- How our team can best support you during your Google Summer of Code experience.  
+
+Participants are also allowed to propose their own modifications to projects listed on this page. 
+If you plan to moderately deviate from the project proposals listed here, please also 
+describe your plan in the application and contact the listed mentors or organization 
+administrators beforehand.
