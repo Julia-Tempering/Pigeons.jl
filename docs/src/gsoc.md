@@ -109,7 +109,7 @@ difficult distributions such as non-log-concave targets.) Work on this project w
 **Recommended Skills:** Familiarity with Julia, Markdown, and some basics of website development. 
 A basic knowledge of statistical concepts. A desire to learn about the parallel tempering algorithm.
 
-**Expected Results:** A website hosting a collection of difficult sampling problems with a user submission portal. 
+**Expected Results:** A collection of difficult sampling problems and implementations in Julia. 
 
 **Mentors:** [Alexandre Bouchard-Côté](https://github.com/alexandrebouchard), 
 [Trevor Campbell](https://github.com/trevorcampbell/), and 
