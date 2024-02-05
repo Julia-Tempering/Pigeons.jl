@@ -20,6 +20,10 @@ condition the problem.
 In normal circumstance, there should not be a need for tuning,
 however the following optional keyword parameters are available:
 $FIELDS
+
+Reference: Biron-Lattes, M., Surjanovic, N., Syed, S., Campbell, T., and Bouchard-Côté, A.
+(2023). autoMALA: Locally adaptive Metropolis-adjusted Langevin algorithm. *Accepted 
+for AISTATS 2024*. [arXiv:2310.16782](https://arxiv.org/abs/2310.16782).
 """
 @kwdef struct AutoMALA{T,TPrec <: Preconditioner}
     """

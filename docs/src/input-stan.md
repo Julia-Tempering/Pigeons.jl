@@ -49,7 +49,7 @@ Notice that we have specified a reference distribution, in this case the same mo
 no observations (hence the prior). This needs to be done with Stan targets because it is 
 not possible to automatically extract a prior from a .stan file. 
 
-For a [`StanLogPotential`](@ref), the [`default_explorer()`](@ref) is [`AutoMALA`](@ref). 
+For a [`StanLogPotential`](@ref), the [`default_explorer()`](@ref) is [`AutoMALA`](@ref)[^1]. 
 
 
 
@@ -106,4 +106,7 @@ samples
 <iframe src="../stan_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
 ```
 
+[^1]: Biron-Lattes, M., Surjanovic, N., Syed, S., Campbell, T., and Bouchard-Côté, A.
+(2023). autoMALA: Locally adaptive Metropolis-adjusted Langevin algorithm. *Accepted 
+for AISTATS 2024*. [arXiv:2310.16782](https://arxiv.org/abs/2310.16782).
 
