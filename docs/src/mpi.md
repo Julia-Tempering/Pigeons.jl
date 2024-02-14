@@ -54,7 +54,7 @@ To analyze the output, see the documentation page on [post-processing for MPI ru
 back to your interactive chain via: 
 
 ```@example local
-pt = load(result) # possible thanks to 'pigeons(..., checkpoint = true)' used above
+pt = Pigeons.load(result) # possible thanks to 'pigeons(..., checkpoint = true)' used above
 ```
 
 ## Running MPI on a cluster
@@ -86,12 +86,12 @@ mpi_run = pigeons(
     target = toy_mvn_target(1000000), 
     n_chains = 1000,
     checkpoint = true,
-    on = MPI(
+    on = MPIProcesses(
         n_mpi_processes = 1000,
         n_threads = 1))
 ```
 
-This will start a distributed PT algorithm with 1000 chains on 1000 MPI processes, each using one thread, targeting a one million 
+This will start a distributed PT algorithm with 1000 chains on 1000 MPIProcesses processes, each using one thread, targeting a one million 
 dimensional target distribution. On the UBC Sockeye cluster, the last 
 round of this run (i.e. the last 1024 iterations) takes 10 seconds to complete, versus more than 
 2 hours if run serially, i.e. a >700x speed-up. 
@@ -115,7 +115,7 @@ To analyze the output, see the documentation page on [post-processing for MPI ru
 back to your interactive chain via: 
 
 ```
-pt = load(mpi_run) # possible thanks to 'pigeons(..., checkpoint = true)' used above
+pt = Pigeons.load(mpi_run) # possible thanks to 'pigeons(..., checkpoint = true)' used above
 ```
 
 
@@ -126,11 +126,11 @@ are built-in inside the Pigeons module.
 However in typical use cases,
 some user-provided code needs to be provided to 
 [`ChildProcess`](@ref) 
-and [`MPI`](@ref) so that the other participating Julia 
+and [`MPIProcesses`](@ref) so that the other participating Julia 
 processes have access to it. 
 This is done with the argument `dependencies` (of type `Vector`;  present in 
 both [`ChildProcess`](@ref) 
-and [`MPI`](@ref)). 
+and [`MPIProcesses`](@ref)). 
 Two types of elements can be used in the vector of dependencies, and they can be mixed:
 
 - elements of type `Module`: for each of those, an `using` statement will be generated in the script used by the child process;

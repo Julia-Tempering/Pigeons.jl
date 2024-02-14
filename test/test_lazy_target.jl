@@ -10,7 +10,7 @@ include("supporting/lazy.jl")
                             n_threads = 2,
                             dependencies = ["$(@__DIR__)/supporting/lazy.jl"]
                     ))
-    pt1 = load(r)
+    pt1 = Pigeons.load(r)
     pt2 = pigeons(target = toy_mvn_target(1))
 
     @test Pigeons.recursive_equal(pt1.replicas, pt2.replicas)

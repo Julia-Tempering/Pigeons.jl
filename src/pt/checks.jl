@@ -6,7 +6,7 @@ function preflight_checks(inputs::Inputs)
               """
     end
     if mpi_active() && !inputs.checkpoint
-        @warn "To be able to call load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
+        @warn "To be able to call Pigeons.load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
     end
     if Threads.nthreads() > 1 && !inputs.multithreaded
         @warn "More than one threads are available, but explore!() loop is not parallelized as inputs.multithreaded == false"
@@ -56,7 +56,7 @@ function check_against_serial(pt)
     # run a serial copy
     dependencies =
         if isfile("$(pt.exec_folder)/.dependencies.jls")
-            # this process was itself spawn using ChildProcess/MPI
+            # this process was itself spawn using ChildProcess/MPIProcesses
             # so use the same dependencies as this process
             deserialize("$(pt.exec_folder)/.dependencies.jls")
         else
