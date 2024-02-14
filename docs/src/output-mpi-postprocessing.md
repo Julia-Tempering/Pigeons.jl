@@ -21,7 +21,7 @@ however, when running a job via [`MPI`](@ref) or [`ChildProcess`](@ref),
 [`pigeons()`](@ref) returns a [`Result`](@ref) struct (which only holds the  
 directory where samples are stored). 
 
-Use [`load()`](@ref) to convert a [`Result`](@ref) into a 
+Use `Pigeons.load(..)` to convert a [`Result`](@ref) into a 
 [`PT`](@ref) struct. 
 This will load the information distributed across several machines 
 into the interactive node.
@@ -59,7 +59,7 @@ pt_result = pigeons(target = an_unidentifiable_model,
                 record = [traces; round_trip; record_default()])
 
 # (*) load the result across all machines into this interactive node
-pt = load(pt_result)
+pt = Pigeons.load(pt_result)
 
 # collect the statistics and convert to MCMCChains' Chains
 # to have axes labels matching variable names in Turing and Stan

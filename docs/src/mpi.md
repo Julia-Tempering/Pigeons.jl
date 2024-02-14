@@ -54,7 +54,7 @@ To analyze the output, see the documentation page on [post-processing for MPI ru
 back to your interactive chain via: 
 
 ```@example local
-pt = load(result) # possible thanks to 'pigeons(..., checkpoint = true)' used above
+pt = Pigeons.load(result) # possible thanks to 'pigeons(..., checkpoint = true)' used above
 ```
 
 ## Running MPI on a cluster
@@ -115,7 +115,7 @@ To analyze the output, see the documentation page on [post-processing for MPI ru
 back to your interactive chain via: 
 
 ```
-pt = load(mpi_run) # possible thanks to 'pigeons(..., checkpoint = true)' used above
+pt = Pigeons.load(mpi_run) # possible thanks to 'pigeons(..., checkpoint = true)' used above
 ```
 
 

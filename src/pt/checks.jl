@@ -6,7 +6,7 @@ function preflight_checks(inputs::Inputs)
               """
     end
     if mpi_active() && !inputs.checkpoint
-        @warn "To be able to call load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
+        @warn "To be able to call Pigeons.load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
     end
     if Threads.nthreads() > 1 && !inputs.multithreaded
         @warn "More than one threads are available, but explore!() loop is not parallelized as inputs.multithreaded == false"

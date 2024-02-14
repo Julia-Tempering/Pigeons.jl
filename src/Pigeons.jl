@@ -76,7 +76,8 @@ export pigeons, Inputs, PT,
     index_process, swap_acceptance_pr, log_sum_ratio, online, round_trip, energy_ac1, traces, disk,
     record_online, record_default,
     # utils to run on scheduler:
-    Result, load, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
+    Result, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
+    # load, <- removed to avoid clash - see https://github.com/Julia-Tempering/Pigeons.jl/issues/200
     # getting information out of an execution:
     stepping_stone, n_tempered_restarts, n_round_trips, process_sample, get_sample,
     # variational references:
