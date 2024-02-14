@@ -4,7 +4,7 @@
 # If we do not do this, we will end up testing the 
 # latest released version instead of the one checked out.
 
-# We have to do this because ChildProcess/MPI depend on  
+# We have to do this because ChildProcess/MPIProcesses depend on  
 # a single toml file to know how to load Pigeons and other 
 # dependencies. 
 

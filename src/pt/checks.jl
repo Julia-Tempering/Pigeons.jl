@@ -56,7 +56,7 @@ function check_against_serial(pt)
     # run a serial copy
     dependencies =
         if isfile("$(pt.exec_folder)/.dependencies.jls")
-            # this process was itself spawn using ChildProcess/MPI
+            # this process was itself spawn using ChildProcess/MPIProcesses
             # so use the same dependencies as this process
             deserialize("$(pt.exec_folder)/.dependencies.jls")
         else

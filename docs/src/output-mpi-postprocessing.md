@@ -17,7 +17,7 @@ Option (1) is more convenient than (2) but it uses more RAM.
 
 Many of Pigeons' post-processing tools take as input a [`PT`](@ref) struct.
 When running locally, [`pigeons()`](@ref) returns a [`PT`](@ref) struct, 
-however, when running a job via [`MPI`](@ref) or [`ChildProcess`](@ref), 
+however, when running a job via [`MPIProcesses`](@ref) or [`ChildProcess`](@ref), 
 [`pigeons()`](@ref) returns a [`Result`](@ref) struct (which only holds the  
 directory where samples are stored). 
 

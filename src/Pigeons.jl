@@ -63,7 +63,7 @@ include("includes.jl")
 
 export pigeons, Inputs, PT,
     # for running jobs:
-    ChildProcess, MPI,
+    ChildProcess, MPIProcesses,
     # references:
     DistributionLogPotential,
     # targets:
