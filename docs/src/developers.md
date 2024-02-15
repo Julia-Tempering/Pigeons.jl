@@ -10,6 +10,10 @@
 8. If all goes well, the bots will take it from here. After the Julia registry merges our release PR, TagBot will create a tag for the release automatically.
 
 
+# Creating a release without a PR
+
+Do step 7 above with the latest commit on main ([example](https://github.com/Julia-Tempering/Pigeons.jl/commit/f363507f08e60df582750b198b9f49cbd8f5d34a)).
+
 # Running tests
 
 See `test/README.md`.
