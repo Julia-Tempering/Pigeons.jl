@@ -2,7 +2,7 @@
 CurrentModule = Pigeons
 ```
 
-# [Why PT? An example.](@id unidentifiable-example)
+# [Why Parallel Tempering (PT)? An example.](@id unidentifiable-example)
 
 Consider a Bayesian model where the likelihood is a binomial distribution with probability parameter ``p``. 
 Let us consider an over-parameterized model where we 
