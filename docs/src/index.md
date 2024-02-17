@@ -16,7 +16,7 @@ of the following algorithms:
 
 - Non-Reversible Parallel Tempering (NRPT), 
     [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-- Variational PT, [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080). 
+- Variational parallel tempering (Variational PT), [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080). 
 - autoMALA, [Biron-Lattes et al., 2023](https://arxiv.org/abs/2310.16782).
 
 These algorithms achieve state-of-the-art performance for approximation 
@@ -50,7 +50,7 @@ You will find information there on setting the random `seed`,
 controlling the number of iterations (via `n_rounds`), 
 and many more options
 
-Then, run PT (locally on one process) using the function [`pigeons()`](@ref):
+Then, run parallel tempering (PT) locally on one process using the function [`pigeons()`](@ref):
 
 ```@example example
 pt = pigeons(inputs);
