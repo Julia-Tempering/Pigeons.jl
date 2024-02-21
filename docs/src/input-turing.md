@@ -27,6 +27,18 @@ Both real and integer-valued random variables are supported.
 For a [`TuringLogPotential`](@ref), the [`default_explorer()`](@ref) is the [`SliceSampler`](@ref) and the [`default_reference()`](@ref) is the 
 prior distribution encoded in the Turing model. 
 
+### Using DynamicPPL.@addlogprob!
+
+The macro `DynamicPPL.@addlogprob!` is sometimes used when additional flexibility is needed while incrementing the log probability. To do so with Pigeons.jl, you will need to enclose the call to `DynamicPPL.@addlogprob!` within an if statement as shown below. Failing to do so will lead to invalid results.
+
+```julia 
+DynamicPPL.@model function my_turing_model(my_data)
+    # code here
+    if DynamicPPL.leafcontext(__context__) !== DynamicPPL.PriorContext() 
+        DynamicPPL.@addlogprob! logpdf(MyDist(parms), my_data)
+    end
+end
+```
 
 ## Manipulating the output
 
