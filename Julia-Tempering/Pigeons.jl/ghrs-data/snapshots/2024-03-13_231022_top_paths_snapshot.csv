@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Julia-Tempering/Pigeons.jl,68,40
+/Julia-Tempering/Pigeons.jl/tree/main/examples,21,6
+/Julia-Tempering/Pigeons.jl/blob/main/src/explorers/SliceSampler.jl,10,1
+/Julia-Tempering/Pigeons.jl/tree/main/docs,10,1
+/Julia-Tempering/Pigeons.jl/issues,8,3
+/Julia-Tempering/Pigeons.jl/tree/main/src,8,3
+/Julia-Tempering/Pigeons.jl/blob/main/examples/custom-sampler.jl,6,2
+/Julia-Tempering/Pigeons.jl/blob/main/examples/general-reference.jl,6,2
+/Julia-Tempering/Pigeons.jl/blob/main/docs/src/index.md,6,1
+/Julia-Tempering/Pigeons.jl/blob/main/test/test_slice_sampler.jl,6,1
