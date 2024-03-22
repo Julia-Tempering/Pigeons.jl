@@ -8,7 +8,7 @@ In most contexts both 1 and 2 are needed for an ergonomic UI.
 
 """ 
 Flag to run on MPI.
-Before using, you have to call once [`setup_mpi`](@ref).
+Settings can be changed by calling [`setup_mpi`](@ref) before running.
 
 Fields: 
 
@@ -49,7 +49,7 @@ $FIELDS
 end
 
 """
-$SIGNATURES
+$TYPEDSIGNATURES
 """
 function pigeons(pt_arguments, mpi_submission::MPIProcesses)
     if !is_mpi_setup()
