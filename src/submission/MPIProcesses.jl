@@ -95,8 +95,8 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
 
     exec_str = (
                 mpi_settings.submission_system == :slurm ?
-                "srun -n \$SLURM_NTASKS" :
-                "mpiexec --merge-stderr-to-stdout --output-filename $(exec_folder)"
+                string("srun -n \$SLURM_NTASKS $(join(mpi_submission.mpiexec_args.exec, " "))") :
+                string("mpiexec $(join(mpi_submission.mpiexec_args.exec, " ")) --merge-stderr-to-stdout --output-filename $(exec_folder)")
     )
 
     code = """
@@ -115,7 +115,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     #    MethodError(f=Core.Compiler.widenconst, args=(Symbol("#342"),), world=0x0000000000001342)
     export JULIA_PKG_PRECOMPILE_AUTO=0
 
-    $(exec_str) $(mpi_submission.mpiexec_args) $julia_cmd
+    $(exec_str) $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
     write(script_path, code)
