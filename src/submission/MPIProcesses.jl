@@ -8,7 +8,7 @@ In most contexts both 1 and 2 are needed for an ergonomic UI.
 
 """ 
 Flag to run on MPI.
-Before using, you have to call once [`setup_mpi`](@ref).
+Settings can be changed by calling [`setup_mpi`](@ref) before running.
 
 Fields: 
 
@@ -49,7 +49,7 @@ $FIELDS
 end
 
 """
-$SIGNATURES
+$TYPEDSIGNATURES
 """
 function pigeons(pt_arguments, mpi_submission::MPIProcesses)
     if !is_mpi_setup()
@@ -93,6 +93,12 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     r = rosetta()
     resource_str = resource_string(mpi_submission, mpi_settings.submission_system)
 
+    exec_str = (
+                mpi_settings.submission_system == :slurm ?
+                string("srun -n \$SLURM_NTASKS $(join(mpi_submission.mpiexec_args.exec, " "))") :
+                string("mpiexec $(join(mpi_submission.mpiexec_args.exec, " ")) --merge-stderr-to-stdout --output-filename $(exec_folder)")
+    )
+
     code = """
     #!/bin/bash
     $resource_str
@@ -109,7 +115,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     #    MethodError(f=Core.Compiler.widenconst, args=(Symbol("#342"),), world=0x0000000000001342)
     export JULIA_PKG_PRECOMPILE_AUTO=0
 
-    mpiexec $(mpi_submission.mpiexec_args) --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
+    $(exec_str) $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
     write(script_path, code)

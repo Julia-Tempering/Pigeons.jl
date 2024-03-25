@@ -56,15 +56,13 @@ function load_mpi_settings()
 end
 
 """
-$SIGNATURES
+$TYPEDSIGNATURES
 
 Look first at the list of clusters that have "presets" available, 
 by typing `Pigeons.setup_mpi_` and then tab. These are the most 
 straightforward to use. 
 
-If presets are not available, use `setup_mpi()`. To see the 
-documentation of the arguments of `setup_mpi()`, see 
-[`MPISettings`](@ref)
+Use `setup_mpi()` if presets are not available. See [`MPISettings`](@ref) for information on the arguments of `setup_mpi()`, 
 (i.e. `args...` are passed to the constructor of [`MPISettings`](@ref)). 
 
 Pull requests to `Pigeons/src/submission/presets.jl` are welcome 
@@ -83,9 +81,9 @@ modules_string(settings::MPISettings) =
         )
 
 """
-$SIGNATURES
+$TYPEDSIGNATURES
 
-Run this function once before running MPI jobs. 
+Execute this function once before running MPI jobs. 
 This should be done on the head node of a compute cluster.
 The setting are permanently saved. 
 See [`MPISettings`](@ref).
