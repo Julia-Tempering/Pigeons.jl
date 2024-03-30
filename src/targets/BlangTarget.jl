@@ -138,6 +138,7 @@ function setup_blang(
 
     if organization == "UBC-Stat-ML" && repo_name in precompiled_blang_libs
         # setup precompiled blang
+        @warn "Using a precompiled build for $repo_name: double check it is up to date" maxlog=1
         cd(auto_install_folder) do
             url = "https://www.stat.ubc.ca/~bouchard/pub/$repo_name.zip"
             run(`curl $url --output $repo_name.zip`)
