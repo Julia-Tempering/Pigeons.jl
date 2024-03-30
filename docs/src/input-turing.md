@@ -76,7 +76,7 @@ It is sometimes useful to provide a custom initialization, for example to start 
 This can be done as follows:
 
 ```@example custom_init
-using DynamicPPL, Pigeons, Distributions, DistributionsAD
+using DynamicPPL, Pigeons, Distributions, DistributionsAD, Random
 
 DynamicPPL.@model function toy_beta_binom_model(n_trials, n_successes)
     p ~ Uniform(0, 1)
