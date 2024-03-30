@@ -9,28 +9,16 @@ end
 
     # 14/7/23 - found and fixed a bug (upstream in Blang SDK)
     
-    # The gradle task sometimes fails in CI 
-    # when it tries to access the network, e.g. 
-    #   https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5557665969/jobs/10151752331
-    #   [look for java.net.SocketException: Broken pipe (Write failed)]
-    # probably some throttling related issue?
-    # As a work-around, retry up to 10 times 
-    # (when it is already installed, setup_blang() does nothing)
-    success = false
-    for i in 1:10 
-        try
-            Pigeons.setup_blang("blangDemos")
-            Pigeons.setup_blang("nowellpack")
-            success = true
-        catch e 
-            @error "Something went wrong" exception=(e, catch_backtrace())
-            remove_repo("blangDemos")
-            remove_repo("nowellpack")
-        end
+    # These are using pre-compiled zips
+    Pigeons.setup_blang("blangDemos")
+    Pigeons.setup_blang("nowellpack")
+
+    try
+        # For code coverage only, test the compilation route on some gradle project
+        Pigeons.setup_blang("inits")
+    catch 
     end
-    if !success 
-        error("Unable to setup blang")
-    end
+            
     for target in [
             Pigeons.blang_ising(), 
             Pigeons.blang_unid(), 
