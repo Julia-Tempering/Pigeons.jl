@@ -117,6 +117,8 @@ $SIGNATURES
 """
 blang_ising() = blang_ising(`--model.N 15`)
 
+const precompiled_blang_libs = ["nowellpack", "blangDemos"]
+
 """
 $SIGNATURES 
 
@@ -134,15 +136,27 @@ function setup_blang(
         return nothing
     end
 
-    cd(auto_install_folder) do # NB: github CI does not allow the test code to clone a repo using git@.., so it has to be over https 
-        run(`git clone https://github.com/$organization/$repo_name.git`)
-    end 
+    if organization == "UBC-Stat-ML" && repo_name in precompiled_blang_libs
+        # setup precompiled blang
+        @warn "Using a precompiled build for $repo_name: double check it is up to date" maxlog=1
+        cd(auto_install_folder) do
+            url = "https://www.stat.ubc.ca/~bouchard/pub/$repo_name.zip"
+            run(`curl $url --output $repo_name.zip`)
+            run(`unzip $repo_name.zip`)
+        end
+    else
+        # download from git, build
+        cd(auto_install_folder) do # NB: github CI does not allow the test code to clone a repo using git@.., so it has to be over https 
+            run(`git clone https://github.com/$organization/$repo_name.git`)
+        end 
 
-    cd(repo_path) do
-        gradle_exec = Sys.iswindows() ? "gradlew.bat" : "gradlew"
-        resolved_gradle_exec = abspath("$repo_path/$gradle_exec")
-        run(`$resolved_gradle_exec installDist`)
-    end 
+        cd(repo_path) do
+            gradle_exec = Sys.iswindows() ? "gradlew.bat" : "gradlew"
+            resolved_gradle_exec = abspath("$repo_path/$gradle_exec")
+            run(`$resolved_gradle_exec installDist`)
+        end 
+    end
+
     return nothing
 end
 
@@ -150,6 +164,7 @@ end
 
 blang_repo_path(repo_name) = 
     "$(mkpath(mpi_settings_folder()))/$repo_name"
+
 
 function blang_executable(repo_name, qualified_main_class)
     repo_path = blang_repo_path(repo_name)
