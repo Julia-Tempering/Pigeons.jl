@@ -150,7 +150,7 @@ function Pigeons.resource_string(m::MPIProcesses, ::Val{:custom})
     """
 end
 ```
-
+and then setting the `submission_system` in [`MPI_Settings`](@ref) to `:custom`.
 Some systems may also require additional execution flags. Slurm sytems using `srun` often need their mpi specified with the `--mpi` flag. 
 Extra flags can be added to execution with `mpiexec_args` when constructing an [`MPIProcess`](@ref).
  
