@@ -17,28 +17,23 @@ ys = dta[!,2]
 model_file = joinpath(dirname(@__DIR__), "examples", "stan", "mRNA.stan")
 mRNA_target = StanLogPotential(model_file, Pigeons.json(; N, ts, ys))
 prior_ref = DistributionLogPotential(product_distribution(
-    Uniform(-2,1),Uniform(-5,5),Uniform(-5,5),Uniform(-5,5),Uniform(-2,2)
+    Uniform(-2,1), Uniform(-5,5), Uniform(-5,5), Uniform(-5,5), Uniform(-2,2)
 ))
-function Pigeons.sample_iid!(ref::typeof(prior_ref), replica, shared)
-    rand!(replica.rng, ref.dist, replica.state.unconstrained_parameters)
-end
-function Pigeons.initialization(
-    inp::Inputs{typeof(mRNA_target), V, E, R},
-    rng::AbstractRNG,
-    idx::Int
-    ) where {V, E, R <: DistributionLogPotential}
-    Pigeons.initialization(inp.target, rng, idx)
-end
-(ref::typeof(prior_ref))(state::Pigeons.StanState) = logpdf(ref.dist, state.unconstrained_parameters)
 
 # run
 pt = pigeons(
     target = mRNA_target, 
     reference = prior_ref, 
-    record=[traces; round_trip; record_default()],
+    record = [traces; round_trip; record_default()],
     multithreaded = false,
     n_chains = 15,
-    n_rounds = 14,
+    n_rounds = 4,
+    # checkpoint = true,
+    # on = ChildProcess(
+    #     n_local_mpi_processes = 4,
+    #     n_threads = 1,
+    #     dependencies = [BridgeStan]
+    # )
 )
 samples = Chains(pt)
 fig = pairplot(samples[:,1:5,:])
