@@ -51,7 +51,7 @@ end
     results = pigeons(
         target = mRNA_target, 
         reference = prior_ref, 
-        record = [traces; round_trip; record_default()],
+        record = [round_trip; record_default()],
         multithreaded = false,
         n_chains = 15, # Λ ~ 7
         n_rounds = 4,  # use >=16 to get close to figure in the paper
