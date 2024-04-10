@@ -48,7 +48,7 @@ end
     ))
 
     # run
-    pt = pigeons(
+    results = pigeons(
         target = mRNA_target, 
         reference = prior_ref, 
         record = [traces; round_trip; record_default()],
