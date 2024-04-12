@@ -18,15 +18,8 @@ function Pigeons.StanLogPotential(stan_file, data, extra_information = nothing)
     return result
 end
 
-
-
-
-
 Base.show(io::IO, slp::StanLogPotential) =
     print(io, "StanLogPotential($(name(slp.model)))")
-
-
-
 
 function stan_threads_options()
     if Threads.nthreads() > 1
@@ -90,10 +83,27 @@ end
 
 Pigeons.default_reference(target::StanLogPotential) = target
 
-# Allocation-free version of the BridgeStan functions.
-# Also add custom error handling code.
-# The rest of this file is a modification of BridgeStan's source
 
+#=
+DistributionLogPotential interface
+=#
+(ref::Pigeons.DistributionLogPotential)(state::Pigeons.StanState) = 
+    ref(state.unconstrained_parameters)
+
+function Pigeons.sample_iid!(
+    ref::Pigeons.DistributionLogPotential, 
+    replica::Pigeons.Replica{<:Pigeons.StanState}, 
+    shared
+    )
+    rand!(replica.rng, ref.dist, replica.state.unconstrained_parameters)
+end
+
+
+#=
+Allocation-free version of the BridgeStan functions.
+Also add custom error handling code.
+The rest of this file is a modification of BridgeStan's source
+=#
 function stan_log_density!(sm::BridgeStan.StanModel, q::Vector{Float64}, lp = Ref(0.0), err = Ref{Cstring}(); propto = true, jacobian = true)
     rc = ccall(
         Libc.Libdl.dlsym(sm.lib, "bs_log_density"),

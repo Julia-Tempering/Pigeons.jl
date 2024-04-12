@@ -93,7 +93,6 @@ automala(target, preconditioner) =
 
 
 @testset "Preconditioners: normal target" begin
-    rng = SplittableRandom(1)
     precs = [100.0, 0.01]
     unbalanced_target = HetPrecisionNormalLogPotential(precs)
 
@@ -123,21 +122,22 @@ pigeons_precond_automala(target, reference, preconditioner) =
         n_chains = 5, n_rounds = 12, record = [traces])
 
 @testset "Preconditioners: well-separated modes with small intra-mode variance" begin
-    rng = SplittableRandom(1)
     dim = 2
     mu  = 4.
     mixture_target = DistributionLogPotential(MixtureModel(
         [MvNormal(fill(-mu,dim), 0.1I), MvNormal(fill(mu,dim), 0.01I)]
     ))
     reference = DistributionLogPotential(MvNormal(fill(0., dim), mu*mu*I))
+    Pigeons.initialization(::typeof(mixture_target), _, _) = [-2.582922688415907, -5.853005515555686]
+
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.IdentityPreconditioner())
-    min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~46
+    min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess)
     
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.DiagonalPreconditioner())
-    min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~52
+    min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess)
     
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.MixDiagonalPreconditioner())
-    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~79
+    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess)
 
     @test min_ess_id < min_ess_diag < min_ess_mixdiag
 end
