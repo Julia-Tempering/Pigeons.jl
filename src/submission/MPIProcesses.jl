@@ -159,7 +159,7 @@ function add_custom_submission_system(θ::NamedTuple)
 
     #Empty custom submission system params
     while length(Pigeons._rosetta.custom) > 0
-        Pigeons._rosetta.custom = popfirst!(Pigeons._rosetta.custom)
+        popfirst!(Pigeons._rosetta.custom)
     end
 
     append!(
@@ -178,7 +178,7 @@ function add_custom_submission_system(θ::NamedTuple)
             ncpu_info
         ]
     ) 
-    warn("Custom submission system added to the rosetta stone. You will also need to define a resource_string function for this submission system.")
+    @warn("Custom submission system added to the rosetta stone. You will also need to define a resource_string function for this submission system.")
     return nothing
 end
 
