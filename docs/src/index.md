@@ -17,7 +17,7 @@ of the following algorithms:
 - Non-Reversible Parallel Tempering (NRPT), 
     [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
 - Variational parallel tempering (Variational PT), [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080). 
-- autoMALA, [Biron-Lattes et al., 2023](https://arxiv.org/abs/2310.16782).
+- autoMALA, [Biron-Lattes et al., 2024](https://proceedings.mlr.press/v238/biron-lattes24a.html).
 
 These algorithms achieve state-of-the-art performance for approximation 
 of challenging probability distributions.
