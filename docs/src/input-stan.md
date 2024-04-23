@@ -106,7 +106,8 @@ samples
 <iframe src="../stan_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe>
 ```
 
-[^1]: Biron-Lattes, M., Surjanovic, N., Syed, S., Campbell, T., and Bouchard-Côté, A.
-(2023). autoMALA: Locally adaptive Metropolis-adjusted Langevin algorithm. *Accepted 
-for AISTATS 2024*. [arXiv:2310.16782](https://arxiv.org/abs/2310.16782).
+[^1]: Biron-Lattes, M., Surjanovic, N., Syed, S., Campbell, T., & Bouchard-Côté, A.. (2024).
+autoMALA: Locally adaptive Metropolis-adjusted Langevin algorithm. *Proceedings of The 27th 
+International Conference on Artificial Intelligence and Statistics*, in *Proceedings of 
+Machine Learning Research* 238:4600-4608. Available from https://proceedings.mlr.press/v238/biron-lattes24a.html.
 
