@@ -21,6 +21,7 @@ at each round and can also be accessed via
 [`global_barrier()`](@ref).
 
 ```@example pt
+using DynamicPPL
 using Pigeons
 
 pt = pigeons(target = Pigeons.toy_turing_unid_target(100, 50))
@@ -32,6 +33,7 @@ labelled Λ and Λ_var for the fixed and variational global barriers
 respectively:
 
 ```@example pt
+using DynamicPPL
 using Pigeons
 
 pt = pigeons(target = Pigeons.toy_turing_unid_target(100, 50), 
