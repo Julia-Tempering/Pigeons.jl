@@ -87,6 +87,15 @@ Pigeons.default_reference(target::StanLogPotential) = target
 #=
 DistributionLogPotential interface
 =#
+
+"""
+Evaluate a `DistributionLogPotential` on a `StanState`.
+
+!!! warning
+
+    The distribution enclosed by the log potential must be defined on the 
+    **unconstrained space**.
+"""
 (ref::Pigeons.DistributionLogPotential)(state::Pigeons.StanState) = 
     ref(state.unconstrained_parameters)
 
