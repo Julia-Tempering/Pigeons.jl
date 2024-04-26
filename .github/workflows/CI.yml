@@ -39,7 +39,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
       - uses: julia-actions/cache@v1
@@ -120,7 +120,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
 
@@ -150,7 +150,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@latest
         with:
           version: '1.9'
       - uses: julia-actions/julia-buildpkg@v1
