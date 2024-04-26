@@ -21,7 +21,7 @@ abstract type LogDensity end
 (p::LogDensity)(x) = LogDensityProblems.logdensity(p, x)
 LogDensityProblems.dimension(p::T) where {T <: LogDensity} = p.dim
 LogDensityProblems.capabilities(::Type{T}) where {T <: LogDensity} = LogDensityProblems.LogDensityOrder{1}()
-Pigeons.initialization(p::LogDensity, _, _) = zeros(p.dim)
+Pigeons.initialization(p::LogDensity, ::AbstractRNG, ::Int64) = zeros(p.dim)
 
 
 # Define the target distribution using the `LogDensityProblem` interface
