@@ -119,25 +119,34 @@ pigeons_precond_automala(target, reference, preconditioner) =
     pigeons(; 
         target, reference = reference,
         explorer = AutoMALA(preconditioner = preconditioner), 
-        n_chains = 5, n_rounds = 12, record = [traces])
+        n_chains = 6, n_rounds = 11, record = [traces;Pigeons.reversibility_rate])
 
 @testset "Preconditioners: well-separated modes with small intra-mode variance" begin
     dim = 2
     mu  = 4.
     mixture_target = DistributionLogPotential(MixtureModel(
-        [MvNormal(fill(-mu,dim), 0.1I), MvNormal(fill(mu,dim), 0.01I)]
+        [MvNormal(fill(-mu,dim), 0.01I), MvNormal(fill(mu,dim), 0.001I)]
     ))
     reference = DistributionLogPotential(MvNormal(fill(0., dim), mu*mu*I))
-    Pigeons.initialization(::typeof(mixture_target), _, _) = [-2.582922688415907, -5.853005515555686]
 
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.IdentityPreconditioner())
     min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess)
-    
+    min_rr_id = minimum(Pigeons.recorder_values(pt, :reversibility_rate))
+
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.DiagonalPreconditioner())
     min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess)
-    
+    min_rr_diag = minimum(Pigeons.recorder_values(pt, :reversibility_rate))
+
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.MixDiagonalPreconditioner())
     min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess)
+    min_rr_mixdiag = minimum(Pigeons.recorder_values(pt, :reversibility_rate))
 
     @test min_ess_id < min_ess_diag < min_ess_mixdiag
+    
+    # check acceptance probability ≤ reversibility_rate (acceptance implies rev check passed)
+    @show (min_rr_id, min_rr_diag, min_rr_mixdiag)
+    @test all(
+        t -> 0 ≤ first(t) ≤ last(t) ≤ 1,
+        zip(Pigeons.explorer_mh_prs(pt), Pigeons.recorder_values(pt, :reversibility_rate))
+    )
 end
