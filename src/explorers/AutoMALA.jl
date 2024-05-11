@@ -21,9 +21,10 @@ In normal circumstance, there should not be a need for tuning,
 however the following optional keyword parameters are available:
 $FIELDS
 
-Reference: Biron-Lattes, M., Surjanovic, N., Syed, S., Campbell, T., and Bouchard-Côté, A.
-(2023). autoMALA: Locally adaptive Metropolis-adjusted Langevin algorithm. *Accepted 
-for AISTATS 2024*. [arXiv:2310.16782](https://arxiv.org/abs/2310.16782).
+Reference: Biron-Lattes, M., Surjanovic, N., Syed, S., Campbell, T., & Bouchard-Côté, A.. (2024). 
+[autoMALA: Locally adaptive Metropolis-adjusted Langevin algorithm](https://proceedings.mlr.press/v238/biron-lattes24a.html). 
+*Proceedings of The 27th International Conference on Artificial Intelligence and Statistics*, 
+in *Proceedings of Machine Learning Research* 238:4600-4608.
 """
 @kwdef struct AutoMALA{T,TPrec <: Preconditioner}
     """
@@ -159,8 +160,10 @@ function auto_mala!(
                     state, momentum,
                     recorders, chain,
                     explorer.step_size, lower_bound, upper_bound)
+            reversibility_passed = reversed_exponent == proposed_exponent
+            @record_if_requested!(recorders, :reversibility_rate, (chain, reversibility_passed))
             probability =
-                if reversed_exponent == proposed_exponent
+                if reversibility_passed
                     final_joint_log = log_joint(target_log_potential, state, momentum)
                     min(1.0, exp(final_joint_log - init_joint_log))
                 else
@@ -283,3 +286,10 @@ function explorer_recorder_builders(explorer::AutoMALA)
     add_precond_recorder_if_needed!(result, explorer)
     return result
 end
+
+"""
+$SIGNATURES
+
+Records the success rate for the [`AutoMALA`](@ref) reversibility check. 
+"""
+@provides recorder reversibility_rate() = GroupBy(Int, Mean())
