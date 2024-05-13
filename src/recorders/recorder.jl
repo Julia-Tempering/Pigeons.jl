@@ -45,10 +45,13 @@ end
 """ 
 $SIGNATURES
 
-Returns a generator for the values of `recorder` at every chain.
+Returns a generator for the values of a recorder of type `OnlineStatsBase.GroupBy`.
 """
-recorder_values(pt::PT, recorder::Symbol) = 
-    (value(v) for v in values(value(pt.reduced_recorders[recorder])))
+recorder_values(pt::PT, recorder_name::Symbol) = 
+    recorder_values(pt.reduced_recorders, recorder_name::Symbol)
+recorder_values(reduced_recorders, recorder_name::Symbol) = 
+    recorder_values(reduced_recorders[recorder_name])
+recorder_values(recorder::GroupBy) = (value(v) for v in values(value(recorder)))
 
 """ 
 Average MH swap acceptance probabilities for each pairs 
