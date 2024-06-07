@@ -42,11 +42,11 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
-      - uses: julia-actions/cache@v1
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
-      - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v3
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-runtest@latest
+      - uses: julia-actions/julia-processcoverage@latest
+      - uses: codecov/codecov-action@v4
         with:
           files: lcov.info
 
@@ -74,7 +74,7 @@ jobs:
     - uses: julia-actions/setup-julia@latest
       with:
         version: ${{ matrix.version }}
-    - uses: julia-actions/cache@v1
+    - uses: julia-actions/cache@v2
 
     - name: use OpenMPI_jll
       shell: julia --color=yes --project=test {0}
@@ -100,7 +100,7 @@ jobs:
         version:
           - '1'
         os:
-          - macos-12 # temporary fix for https://github.com/JuliaParallel/MPI.jl/issues/828
+          - macos-latest
         mpi:
           - mpich
           - openmpi
@@ -111,9 +111,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install MPI via homebrew
-        run: brew install $MPI
-        env:
-          MPI: ${{ matrix.mpi }}
+        run: |
+          brew install "${{ matrix.mpi }}"
 
       - uses: actions/setup-java@v4
         with:
@@ -124,7 +123,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
 
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
 
       - name: use system MPI
         shell: julia --color=yes --project=test {0}
@@ -132,11 +131,13 @@ jobs:
           using Pkg
           Pkg.instantiate()
           using MPIPreferences
-          MPIPreferences.use_system_binary()
+          mpi_prefix = readchomp(`brew --prefix ${{ matrix.mpi }}`)
+          libdir = joinpath(mpi_prefix, "lib")
+          MPIPreferences.use_system_binary(; extra_paths=[libdir])
           run(`sed -i.bu 's/unknown/MPICH/' test/LocalPreferences.toml`) # fix wrong abi detection for mpich
           rm("test/Manifest.toml")
       
-      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-runtest@latest
 
 
   docs:
@@ -153,8 +154,8 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.9'
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-docdeploy@v1
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-docdeploy@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
