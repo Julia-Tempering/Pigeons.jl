@@ -87,7 +87,8 @@ nothing # hide
 
 ## Scope 
 
-We describe here the class of problems that can be approached using Pigeons.
+We describe here the class of problems that can be approached using Pigeons. 
+In summary: [computational Lebesgue integration](https://ubc-stat-ml.github.io/lebesgue/).
 
 Let ``\pi(x)`` denote a probability density called the **target**. 
 In many problems, e.g. in Bayesian statistics, the density $\pi$ is typically 
