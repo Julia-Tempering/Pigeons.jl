@@ -40,6 +40,7 @@ using ZipFile
 using ForwardDiff
 using LogDensityProblems
 using LogDensityProblemsAD
+using JSON
 
 import Serialization.serialize
 import Serialization.deserialize
