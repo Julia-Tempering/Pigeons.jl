@@ -1,5 +1,5 @@
 """
-$SIGNATURES 
+$TYPEDSIGNATURES 
 
 Run (a generalization of) Parallel Tempering. 
 
