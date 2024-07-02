@@ -2,9 +2,8 @@
 $SIGNATURES 
 
 Performs three operations using a `DynamicPPL.Model`. First, we run forward simulation
-and record the output of the model, which should be an instantiation of the observation
-variable `obs_var`. Currently we assume that a single object is observed and returned
-whenever `model(rng)` is called.
+and record the output of the model. Currently we assume that a single object is observed
+and returned whenever `model(rng)` is called.
 Secondly, we condition the model using the sampled observation. Finally, we
 take a step with `explorer` on the conditioned model starting from the values that
 generated the observation. The function returns the unconstrained values of the 
