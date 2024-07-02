@@ -15,7 +15,7 @@ using HypothesisTests
 
     @testset "SliceSampler" begin
         explorer = SliceSampler(n_passes=10)
-        @test first(Pigeons.invariance_test(target, explorer, rng))
+        @test first(Pigeons.invariance_test(target, explorer, rng; condition_on=(:n_successes,)))
     end
 end
 

@@ -23,7 +23,8 @@ function Pigeons.invariance_test(
     rng::SplittableRandom,
     ::Type{two_sample_hypothesis_test} = ApproximateTwoSampleKSTest;
     n_iid_samples::Integer = 10_000,
-    marginal_pvalue_threshold::Real = 0.005
+    marginal_pvalue_threshold::Real = 0.005,
+    simulator_kwargs...
     ) where {two_sample_hypothesis_test <: HypothesisTest}
     
     # allocate storage for the initial and final samples
@@ -32,7 +33,7 @@ function Pigeons.invariance_test(
 
     # iterate iid samples
     for n in eachindex(initial_values)
-        inits, finals = Pigeons.forward_sample_condition_and_explore(target, explorer, rng)
+        inits, finals = Pigeons.forward_sample_condition_and_explore(target, explorer, rng; simulator_kwargs...)
         initial_values[n] = inits
         final_values[n] = finals
     end

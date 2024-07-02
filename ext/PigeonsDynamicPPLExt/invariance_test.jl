@@ -2,28 +2,30 @@
 $SIGNATURES 
 
 Performs three operations using a `DynamicPPL.Model`. First, we run forward simulation
-and record the output of the model. Currently we assume that a single object is observed
-and returned whenever `model(rng)` is called.
-Secondly, we condition the model using the sampled observation. Finally, we
+and record the output of the model, capturing the simulated values for every variable
+in `condition_on`. Then, we condition the model using the sampled observations. Finally, we
 take a step with `explorer` on the conditioned model starting from the values that
 generated the observation. The function returns the unconstrained values of the 
 initial and final states.
 """
-function Pigeons.forward_sample_condition_and_explore(model::DynamicPPL.Model, explorer, rng::SplittableRandom)
+function Pigeons.forward_sample_condition_and_explore(
+    model::DynamicPPL.Model,
+    explorer,
+    rng::SplittableRandom;
+    condition_on::NTuple{N,Symbol}
+    ) where {N}
     # forward simulation
-    obs, vi = DynamicPPL.evaluate!!(model, rng)
-    vns = DynamicPPL._getvns(vi, DynamicPPL.SampleFromPrior())
+    vi = last(DynamicPPL.evaluate!!(model, rng))
 
-    # find the VarName of the generated observation
-    # TODO: this is hacky since two variables might have the same sampled values.
-    obs_var = first(vn for vn in vns if vi[vn] === obs)
+    # make a generator of Pairs for each variable in `condition_on` and its sampled value
+    obs_pairs = ((vn=DynamicPPL.VarName(sym); vn => vi[vn]) for sym in condition_on)
 
-    # condition the model using the sampled observation
-    conditioned_model = DynamicPPL.condition(model, obs_var=>obs);
+    # condition the model using the sampled observations, and evaluate it
+    conditioned_model = DynamicPPL.condition(model, obs_pairs...)
     cond_vi = last(DynamicPPL.evaluate!!(conditioned_model, rng))
     vns_cond = DynamicPPL._getvns(cond_vi, DynamicPPL.SampleFromPrior())
 
-    # set the values of cond_vi to the ones that generated the observation
+    # set the values of cond_vi to the ones that generated the observations
     foreach(vns_cond) do vn
         setindex!(cond_vi,vi[vn],vn) # note: vi[vn] is always in constrained space, even if vi is link!!'d
     end
@@ -41,5 +43,5 @@ function Pigeons.forward_sample_condition_and_explore(model::DynamicPPL.Model, e
     return (;init_values=init_values, final_values=DynamicPPL.getall(final_state))
 end
 
-Pigeons.forward_sample_condition_and_explore(target::TuringLogPotential, args...) =
-    Pigeons.forward_sample_condition_and_explore(target.model, args...)
+Pigeons.forward_sample_condition_and_explore(target::TuringLogPotential, args...; kwargs...) =
+    Pigeons.forward_sample_condition_and_explore(target.model, args...; kwargs...)
