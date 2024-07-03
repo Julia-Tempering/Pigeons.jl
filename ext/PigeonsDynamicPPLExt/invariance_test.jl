@@ -18,7 +18,7 @@ function Pigeons.forward_sample_condition_and_explore(
     vi = last(DynamicPPL.evaluate!!(model, rng))
 
     # make a generator of Pairs for each variable in `condition_on` and its sampled value
-    obs_pairs = ((vn=DynamicPPL.VarName(sym); vn => vi[vn]) for sym in condition_on)
+    obs_pairs = ((vn=DynamicPPL.VarName{sym}(); vn => vi[vn]) for sym in condition_on)
 
     # condition the model using the sampled observations, and evaluate it
     conditioned_model = DynamicPPL.condition(model, obs_pairs...)
