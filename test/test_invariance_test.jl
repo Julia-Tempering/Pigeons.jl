@@ -12,10 +12,9 @@ using HypothesisTests
     model = product_of_probs(100)
     target = TuringLogPotential(model)
     rng = SplittableRandom(1)
-
-    @testset "SliceSampler" begin
-        explorer = SliceSampler(n_passes=10)
+    explorers = (SliceSampler(n_passes=10), AutoMALA(base_n_refresh=10))
+    for explorer in explorers
+        @show explorer
         @test first(Pigeons.invariance_test(target, explorer, rng; condition_on=(:n_successes,)))
     end
 end
-

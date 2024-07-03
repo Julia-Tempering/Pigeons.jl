@@ -42,9 +42,10 @@ initial state `init_state`. Returns the modified state.
     [`AutoMALA`](@ref) takes the `base_n_refresh::Int` argument.
 """
 function explorer_step(rng::SplittableRandom, target, explorer, init_state)
-    inputs  = Inputs(target=target, explorer=explorer, n_chains=1)
-    shared  = Pigeons.Shared(inputs)
-    replica = Pigeons.Replica(init_state, 1, rng, (;), 1)
+    inputs    = Inputs(target=target, explorer=explorer, n_chains=1)
+    shared    = Pigeons.Shared(inputs)
+    recorders = create_recorders(explorer_recorder_builders(explorer))
+    replica   = Pigeons.Replica(init_state, 1, rng, recorders, 1)
     Pigeons.step!(explorer, replica, shared)
     return replica.state
 end
