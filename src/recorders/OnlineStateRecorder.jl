@@ -57,7 +57,7 @@ end
 """
 $SIGNATURES
 """
-continuous_variables(pt::PT) = continuous_variables(locals(pt.replicas)[1].state) 
+continuous_variables(pt::PT) = continuous_variables(first(locals(pt.replicas)).state) 
 
 """
 `OnlineStat` types to be computed when the [`online()`] 

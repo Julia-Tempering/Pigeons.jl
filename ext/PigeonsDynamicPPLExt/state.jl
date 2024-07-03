@@ -1,20 +1,22 @@
 # DynamicPPL ----------
-Pigeons.continuous_variables(state::DynamicPPL.TypedVarInfo) = Pigeons.variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)
-Pigeons.discrete_variables(state::DynamicPPL.TypedVarInfo) = Pigeons.variables(state::DynamicPPL.TypedVarInfo, Integer)
-Pigeons.variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = state.metadata[name].vals
+Pigeons.continuous_variables(state::DynamicPPL.TypedVarInfo) = 
+    push!(variables(state::DynamicPPL.TypedVarInfo, AbstractFloat), :singleton_variable) # adding :singleton_variable allows us to handle samplers with adaptive preconditioners
+Pigeons.discrete_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, Integer)
+
+# note: this returns unconstrained parameters when the varinfo is linked 
+# (default in pigeons as of Jul-24), and constrained otherwise
+Pigeons.variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = 
+    if name === :singleton_variable
+        DynamicPPL.getall(state)
+    else
+        state.metadata[name].vals
+    end
+
 function Pigeons.update_state!(state::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value)
     state.metadata[name].vals[index] = value
 end
-function Pigeons.variables(state::DynamicPPL.TypedVarInfo, type::DataType)
-    all_names = fieldnames(typeof(state.metadata))
-    var_names = []
-    for name in all_names
-        if typeof(state.metadata[name].vals[1]) <: type
-            var_names = vcat(var_names, name)
-        end
-    end
-    return var_names
-end
+variables(vi::DynamicPPL.TypedVarInfo{<:NamedTuple{names}}, ::Type{T}) where {names,T} =
+    [name for (name, meta) in zip(names, vi.metadata) if eltype(meta.vals) <: T]
 
 # From Turing.jl/src/utilities/helper.jl
 ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
@@ -60,9 +62,9 @@ function Pigeons.slice_sample!(h::SliceSampler, vi::DynamicPPL.TypedVarInfo, log
     return cached_lp
 end
 function Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
-    state = DynamicPPL.getall(vi)
-    Pigeons.step!(explorer, replica, shared, state)
-    DynamicPPL.setall!(replica.state, state)
+    vector_state = DynamicPPL.getall(vi)
+    Pigeons.step!(explorer, replica, shared, vector_state)
+    DynamicPPL.setall!(replica.state, vector_state)
 end
 
 #=

@@ -21,6 +21,24 @@ Given a `DynamicPPL.Model` from Turing.jl, create a
 Pigeons.@provides target Pigeons.TuringLogPotential(model::DynamicPPL.Model) =
     TuringLogPotential(model, false)
 
+is_fully_continuous(vi::DynamicPPL.TypedVarInfo) =
+    all(meta -> eltype(meta.vals) <: AbstractFloat, vi.metadata)
+
+function Pigeons.initialization(
+    inp::Inputs{<:Pigeons.TuringLogPotential, <:Any, <:Pigeons.HamiltonianSampler}, 
+    args...
+    )
+    vi = Pigeons.initialization(inp.target, args...)
+    is_fully_continuous(vi) || throw(ArgumentError("""
+
+        An explorer of type $(typeof(inp.explorer)) cannot be directly used with
+        DynamicPPL models describing discrete variables. Use SliceSampler instead,
+        for example.
+
+    """))
+    return vi
+end
+
 function Pigeons.initialization(target::TuringLogPotential, rng::AbstractRNG, _::Int64)
     result = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext())
     DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
