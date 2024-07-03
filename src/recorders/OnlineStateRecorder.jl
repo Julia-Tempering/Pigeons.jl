@@ -60,6 +60,11 @@ $SIGNATURES
 continuous_variables(pt::PT) = continuous_variables(first(locals(pt.replicas)).state) 
 
 """
+$SIGNATURES
+"""
+recorded_continuous_variables(state) = continuous_variables(state)
+
+"""
 `OnlineStat` types to be computed when the [`online()`] 
 recorder is enabled. 
 """
@@ -83,7 +88,7 @@ function record!(recorder::OnlineStateRecorder, state)
     if isempty(recorder.stats)
         initialize_online_state_recorder!(recorder.stats, state)
     end 
-    for name in continuous_variables(state) 
+    for name in recorded_continuous_variables(state) 
         for stat in registered_online_types # NB: the more natural "for key in keys(recorder.stats)" leads to allocations in the inner loop
             key = Pair(name, stat)
             fit!(recorder.stats[key], variable(state, name))
@@ -97,7 +102,7 @@ initialize_online_state_recorder!(stats, state) =
     end 
 
 initialize_online_state_recorder!(stats, state, ::Type{T}) where {T} = 
-    for name in continuous_variables(state)
+    for name in recorded_continuous_variables(state)
         var = variable(state, name) 
         collection = [T() for i in eachindex(var)] 
         key = Pair(name, T)

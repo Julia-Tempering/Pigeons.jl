@@ -20,7 +20,7 @@ end
 variational_recorder_builders(::GaussianReference) = [_transformed_online]
 
 function update_reference!(reduced_recorders, variational::GaussianReference, state)
-    if discrete_variables(state) != [] error("Updating a Gaussian reference with discrete variables.") end
+    isempty(discrete_variables(state)) || error("Updating a Gaussian reference with discrete variables.")
     for var_name in continuous_variables(state)
         variational.mean[var_name] = get_transformed_statistic(reduced_recorders, var_name, Mean)
         variational.standard_deviation[var_name] = sqrt.(get_transformed_statistic(reduced_recorders, var_name, Variance))
