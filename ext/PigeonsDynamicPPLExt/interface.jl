@@ -21,11 +21,11 @@ Given a `DynamicPPL.Model` from Turing.jl, create a
 Pigeons.@provides target Pigeons.TuringLogPotential(model::DynamicPPL.Model) =
     TuringLogPotential(model, false)
 
+# Catch using TuringLogPotential with non-continuous variables
 is_fully_continuous(vi::DynamicPPL.TypedVarInfo) =
     all(meta -> eltype(meta.vals) <: AbstractFloat, vi.metadata)
-
 function Pigeons.initialization(
-    inp::Inputs{<:Pigeons.TuringLogPotential, <:Any, <:Pigeons.HamiltonianSampler}, 
+    inp::Inputs{<:Pigeons.TuringLogPotential, <:Any, <:Pigeons.GradientBasedSampler}, 
     args...
     )
     vi = Pigeons.initialization(inp.target, args...)
@@ -38,6 +38,17 @@ function Pigeons.initialization(
     """))
     return vi
 end
+
+# Catch using TuringLogPotential with GradientBasedSampler and 
+# GaussianReference (not yet supported)
+Pigeons.initialization(
+    ::Inputs{<:Pigeons.TuringLogPotential, <:Pigeons.GaussianReference, <:Pigeons.GradientBasedSampler},
+    args...) = error("""
+    
+    Using a TuringLogPotential with a gradient-based sampler and Gaussian 
+    variational reference is not yet supported. You can use a non-gradient 
+    explorer like SliceSampler.
+    """)
 
 function Pigeons.initialization(target::TuringLogPotential, rng::AbstractRNG, _::Int64)
     result = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext())

@@ -22,7 +22,6 @@ Pigeons.variable(state::DynamicPPL.TypedVarInfo, name::Symbol) =
         state.metadata[name].vals
     end
 
-# singleton_variable is only used for recording, so nothing to update when we see it
 Pigeons.update_state!(vi::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value) =
     vi.metadata[name].vals[index] = value
 
@@ -69,7 +68,7 @@ function Pigeons.slice_sample!(h::SliceSampler, vi::DynamicPPL.TypedVarInfo, log
     end
     return cached_lp
 end
-function Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
+function Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
     vector_state = DynamicPPL.getall(vi)
     Pigeons.step!(explorer, replica, shared, vector_state)
     DynamicPPL.setall!(replica.state, vector_state)

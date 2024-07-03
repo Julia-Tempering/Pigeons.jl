@@ -40,7 +40,7 @@ explorer implementations
 =#
 Pigeons.slice_sample!(h::SliceSampler, state::Pigeons.StanState, args...) =
     Pigeons.slice_sample!(h, state.unconstrained_parameters, args...)
-Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, state::Pigeons.StanState) =
+Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, state::Pigeons.StanState) =
     Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
 
 (log_potential::Pigeons.ScaledPrecisionNormalLogPotential)(x::Pigeons.StanState) = log_potential(x.unconstrained_parameters)
