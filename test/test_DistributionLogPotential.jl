@@ -67,7 +67,7 @@ end
                 n_local_mpi_processes = n_mpis,
                 n_threads = 1,
                 mpiexec_args = extra_mpi_args(),
-                dependencies = [Bijectors,BridgeStan]
+                dependencies = [Bijectors,BridgeStan,ForwardDiff]
             )
         )
         @test true
