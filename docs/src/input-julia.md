@@ -96,11 +96,13 @@ nothing # hide
 ## Changing the explorer 
 
 Here is an example using [`AutoMALA`](@ref) instead of the default 
-[`SliceSampler`](@ref). We only need to add methods to make 
+[`SliceSampler`](@ref), a gradient-based sampler. For simplicity, we'll use the ForwardDiff backend.
+We only need to add methods to make 
 our custom type `MyLogPotential` conform the 
 [LogDensityProblems interface](https://github.com/tpapp/LogDensityProblems.jl):
 
 ```@example julia
+using ForwardDiff
 using LogDensityProblems
 
 LogDensityProblems.dimension(lp::MyLogPotential) = 2
