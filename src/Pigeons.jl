@@ -37,7 +37,6 @@ using Printf
 using Statistics
 using RecipesBase
 using ZipFile
-using ForwardDiff
 using LogDensityProblems
 using LogDensityProblemsAD
 using JSON
