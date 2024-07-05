@@ -10,52 +10,39 @@ import MPI: Comm, Allreduce, Comm_rank,
             Allgather, Comm_split, isend, recv,
             bcast, tag_ub
 
-
-using Base: Forward
 using DataFrames
-using Distributions
-using StatsBase
-using Interpolations
-using Roots
 using Dates
-using OnlineStats
-using MacroTools
+using Distributions
 using DocStringExtensions
-using LinearAlgebra
-using SpecialFunctions
-using Serialization
-using ConcreteStructs
-using Random
-using Graphs
-using DataStructures
-using Preferences
-using MPIPreferences
 using Expect
-using LogExpFunctions
-using StaticArrays
-using Printf
-using Statistics
-using RecipesBase
-using ZipFile
-using ForwardDiff
+using Graphs
+using Interpolations
+using JSON
+using LinearAlgebra
 using LogDensityProblems
 using LogDensityProblemsAD
-using JSON
+using LogExpFunctions
+using MPIPreferences
+using MacroTools
+using OnlineStatsBase
+using OrderedCollections
+using Printf
+using Random
+using RecipesBase
+using Roots
+using Serialization
+using SpecialFunctions: beta
+using StaticArraysCore
+using Statistics
+using StatsBase
+using ZipFile
 
-import Serialization.serialize
-import Serialization.deserialize
-import Base.@kwdef
-import Base.show
-import Base.print
+import Base: Forward, @kwdef, show, print, merge, keys
 import Base.Threads.@threads
-import OnlineStats._fit!
-import OnlineStats.value
-import OnlineStats._merge!
+import OnlineStatsBase: _fit!, value, _merge!
 import Random.rand!
-import Base.keys
-import Statistics.mean
-import Statistics.var
-import Base.merge
+import Serialization: serialize, deserialize
+import Statistics: mean, var
 
 
 const use_auto_exec_folder = "use_auto_exec_folder"

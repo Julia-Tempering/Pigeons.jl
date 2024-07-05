@@ -51,7 +51,7 @@ recorder_values(pt::PT, recorder_name::Symbol) =
     recorder_values(pt.reduced_recorders, recorder_name::Symbol)
 recorder_values(reduced_recorders, recorder_name::Symbol) = 
     recorder_values(reduced_recorders[recorder_name])
-recorder_values(recorder::GroupBy) = (value(v) for v in values(value(recorder)))
+recorder_values(recorder::OnlineStatsBase.GroupBy) = (value(v) for v in values(value(recorder)))
 
 """ 
 Average MH swap acceptance probabilities for each pairs 
