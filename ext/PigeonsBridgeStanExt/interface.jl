@@ -6,7 +6,7 @@ The `data` argument can be a path with a file with `.json` suffix or the json st
 See `BridgeStan` for details.
 """
 function Pigeons.StanLogPotential(stan_file, data, extra_information = nothing)
-    model = BridgeStan.StanModel(; stan_file, data, make_args = stan_threads_options())
+    model = BridgeStan.StanModel(stan_file, data; make_args = stan_threads_options())
     result = StanLogPotential(
         model,
         stan_file,
