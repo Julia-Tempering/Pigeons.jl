@@ -62,7 +62,7 @@ function LogDensityProblems.dimension(log_potential::GaussianReference)
     return length(log_potential.mean[:singleton_variable])
 end
 
-LogDensityProblemsAD.ADgradient(::Symbol, log_potential::GaussianReference, buffers::Augmentation) = 
+LogDensityProblemsAD.ADgradient(_, log_potential::GaussianReference, buffers::Augmentation) = 
     BufferedAD(log_potential, buffers)
 
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{GaussianReference}, x)

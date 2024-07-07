@@ -28,9 +28,13 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
         err_buffer 
 )
 
-# implement the LogDensityProblemsAD interface
+# default implementation of the ADgradient interface
 LogDensityProblemsAD.ADgradient(kind, log_potential, buffers::Augmentation) =
     Pigeons.BufferedAD(ADgradient(kind, log_potential), buffers)
+
+# default case does not use the buffer
+LogDensityProblems.logdensity_and_gradient(buffered::BufferedAD, x) = 
+    LogDensityProblems.logdensity_and_gradient(buffered.enclosed, x)
 
 """
 The target and reference may used different autodiff frameworks; 
@@ -62,9 +66,7 @@ $FIELDS
     buffer::Vector{Float64}
 end
 
-# hijack the BufferedAD constructor for InterpolatedLogPotential and instead
-# return an InterpolatedAD
-function BufferedAD(
+function LogDensityProblemsAD.ADgradient(
     kind,
     log_potential::InterpolatedLogPotential{<:InterpolatingPath{<:Any,<:Any,LinearInterpolator}},
     buffers::Augmentation

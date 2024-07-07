@@ -57,7 +57,7 @@ end
 Extract info common to all types of target and perform a step!()
 =#
 function _extract_commons_and_run!(explorer::AAPS, replica, shared, log_potential, state::AbstractVector)
-    log_potential_autodiff = BufferedAD(
+    log_potential_autodiff = ADgradient(
         explorer.default_autodiff_backend, log_potential, replica.recorders.buffers
     )
     aaps!(
