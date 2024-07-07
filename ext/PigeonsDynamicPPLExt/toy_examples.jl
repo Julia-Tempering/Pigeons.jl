@@ -11,8 +11,8 @@ function Pigeons.toy_turing_target(dim::Int, precision = 10.0)
 end
 
 DynamicPPL.@model function toy_turing_unid_model(n_trials, n_successes)
-    p1 ~ Uniform(0, 1)
-    p2 ~ Uniform(0, 1)
+    p1 ~ Uniform()
+    p2 ~ Uniform()
     n_successes ~ Binomial(n_trials, p1*p2)
     return n_successes
 end

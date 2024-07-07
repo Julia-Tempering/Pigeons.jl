@@ -28,20 +28,9 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
         err_buffer 
 )
 
-#=
-Implement the ADgradient interface from LogDensityProblemsAD with buffers
-=#
-
-# transform Symbol call to Val{Symbol} call
-LogDensityProblemsAD.ADgradient(
-    kind::Symbol, log_potential, buffers::Pigeons.Augmentation
-    ) = ADgradient(Val{kind}(), log_potential, buffers)
-
-# default method: ignore buffers and defer to LogDensityProblemsAD
-LogDensityProblemsAD.ADgradient(
-    v::Val, log_potential, ::Augmentation
-    ) = LogDensityProblemsAD.ADgradient(v, log_potential)
-
+# implement the LogDensityProblemsAD interface
+LogDensityProblemsAD.ADgradient(kind, log_potential, buffers::Augmentation) =
+    Pigeons.BufferedAD(ADgradient(kind, log_potential), buffers)
 
 """
 The target and reference may used different autodiff frameworks; 
@@ -73,17 +62,19 @@ $FIELDS
     buffer::Vector{Float64}
 end
 
-# constructor via ADgradient interface
-function LogDensityProblemsAD.ADgradient(
-    v::Val,
+# hijack the BufferedAD constructor for InterpolatedLogPotential and instead
+# return an InterpolatedAD
+function BufferedAD(
+    kind,
     log_potential::InterpolatedLogPotential{<:InterpolatingPath{<:Any,<:Any,LinearInterpolator}},
     buffers::Augmentation
     )
+    ref_ad = LogDensityProblemsAD.ADgradient(kind, log_potential.path.ref, buffers)
     InterpolatedAD(
         log_potential,
-        LogDensityProblemsAD.ADgradient(v, log_potential.path.ref, buffers), 
-        LogDensityProblemsAD.ADgradient(v, log_potential.path.target, buffers), 
-        get_buffer(buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(log_potential.path.ref))
+        ref_ad,
+        LogDensityProblemsAD.ADgradient(kind, log_potential.path.target, buffers), 
+        get_buffer(buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(ref_ad))
     )
 end
 

@@ -13,34 +13,6 @@ else
     using ..LogDensityProblemsAD
 end
 
-LogDensityProblemsAD.ADgradient(v::Val{:Enzyme}, log_potential, buffers::Pigeons.Augmentation) =
-    Pigeons.BufferedAD(
-        ADgradient(v, log_potential), # defaults to reverse mode, which makes more sense for log_potentials
-        Pigeons.get_buffer(buffers, :enzyme_gradient_buffer, LogDensityProblems.dimension(log_potential)),
-        nothing,
-        nothing
-    )
-
-# this is dumb but it is the only way to disambiguate with the above
-# TODO: find a smarter way? Maybe a generated function that iterates backends
-function LogDensityProblemsAD.ADgradient(
-    v::Val{:Enzyme},
-    log_potential::Pigeons.InterpolatedLogPotential{<:Pigeons.InterpolatingPath{<:Any,<:Any,Pigeons.LinearInterpolator}},
-    buffers::Pigeons.Augmentation
-    )
-    Pigeons.InterpolatedAD(
-        log_potential,
-        LogDensityProblemsAD.ADgradient(v, log_potential.path.ref, buffers), 
-        LogDensityProblemsAD.ADgradient(v, log_potential.path.target, buffers), 
-        Pigeons.get_buffer(buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(log_potential.path.ref))
-    )
-end
-
-#=
-logdensity and dimension already implemented in Pigeons (src/BufferedAD.jl)
-only need logdensity_and_gradient
-=#
-
 # adapted from LogDensityProblemsAD to use the Replica's buffer
 # TODO: currently, the concrete versions of ADGradientWrapper are defined only
 # in the extensions of LogDensityProblemsAD. Therefore, it is impossible to 
