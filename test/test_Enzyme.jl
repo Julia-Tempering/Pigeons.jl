@@ -37,5 +37,14 @@ using Enzyme
             n_chains = 4,
             explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
     )
-    @test true
+
+    # check that we actually used the buffered Enzyme implementation
+    replica = first(pt.replicas)
+    int_lp = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
+    int_ad = ADgradient(:Enzyme, int_lp, replica.recorders.buffers)
+    @test int_ad isa Pigeons.InterpolatedAD
+    @test int_ad.ref_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
+    @test int_ad.target_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
+    @test int_ad.ref_ad.buffer == int_ad.target_ad.buffer # ref and target share the same buffer
+    @test int_ad.ref_ad.buffer != zero(int_ad.ref_ad.buffer) # buffers were used in the pigeons() call
 end
