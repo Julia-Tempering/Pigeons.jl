@@ -5,6 +5,7 @@ if isdefined(Base, :get_extension)
     import DynamicPPL
     using Distributions
     using FillArrays: Zeros
+    using LinearAlgebra: I
     using LogDensityProblems
     using LogDensityProblemsAD
     using DocStringExtensions
@@ -14,6 +15,7 @@ else
     import ..DynamicPPL
     using ..Distributions
     using ..FillArrays: Zeros
+    using ..LinearAlgebra: I
     using ..LogDensityProblems
     using ..LogDensityProblemsAD
     using ..DocStringExtensions
