@@ -29,8 +29,8 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
 )
 
 # default implementation of the ADgradient interface
-LogDensityProblemsAD.ADgradient(kind, log_potential, buffers::Augmentation) =
-    Pigeons.BufferedAD(ADgradient(kind, log_potential), buffers)
+LogDensityProblemsAD.ADgradient(kind, log_potential, buffers::Augmentation; kwargs...) =
+    Pigeons.BufferedAD(ADgradient(kind, log_potential; kwargs...), buffers)
 
 # default case does not use the buffer
 LogDensityProblems.logdensity_and_gradient(buffered::BufferedAD, x) = 

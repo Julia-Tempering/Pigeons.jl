@@ -83,6 +83,7 @@ LogDensityProblems.dimension(log_potential::TuringLogPotential) =
     length(DynamicPPL.getall(Pigeons.initialization(log_potential)))
 function LogDensityProblemsAD.ADgradient(kind, log_potential::TuringLogPotential, buffers::Pigeons.Augmentation)
     context = log_potential.only_prior ? DynamicPPL.PriorContext() : DynamicPPL.DefaultContext()
-    fct = DynamicPPL.LogDensityFunction(Pigeons.initialization(log_potential), log_potential.model, context)
-    return ADgradient(kind, fct, buffers)
+    vi = Pigeons.initialization(log_potential)
+    fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, context)
+    return ADgradient(kind, fct, buffers; x = DynamicPPL.getall(vi))
 end

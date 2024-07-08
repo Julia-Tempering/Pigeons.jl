@@ -1,8 +1,5 @@
 DynamicPPL.@model function toy_turing_model(dim::Int, precision)
-    y = Vector{Float64}(undef, dim)
-    for i in 1:dim
-        y[i] ~ Normal(0.0, 1.0 / sqrt(precision))
-    end
+    y ~ MvNormal(dim, inv(sqrt(precision)))
     return y
 end
 
