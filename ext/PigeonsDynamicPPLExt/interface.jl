@@ -6,7 +6,7 @@ Pigeons.TuringLogPotential(model::DynamicPPL.Model, only_prior::Bool) =
         get_dimension(model)
     )
 function get_dimension(model::DynamicPPL.Model) 
-    vi = DynamicPPL.VarInfo(model)
+    vi = DynamicPPL.VarInfo(SplittableRandom(1), model)
     get_dimension(DynamicPPL.link!!(vi,DynamicPPL.SampleFromPrior(), model))
 end
 
