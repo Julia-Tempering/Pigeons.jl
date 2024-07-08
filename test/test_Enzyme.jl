@@ -45,6 +45,6 @@ using Enzyme
     @test int_ad isa Pigeons.InterpolatedAD
     @test int_ad.ref_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
     @test int_ad.target_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
-    @test int_ad.ref_ad.buffer == int_ad.target_ad.buffer # ref and target share the same buffer
+    @test int_ad.ref_ad.buffer === int_ad.target_ad.buffer # ref and target share the same buffer
     @test int_ad.ref_ad.buffer != zero(int_ad.ref_ad.buffer) # buffers were used in the pigeons() call
 end
