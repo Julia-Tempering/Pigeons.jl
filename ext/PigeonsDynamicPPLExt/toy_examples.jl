@@ -1,5 +1,5 @@
 DynamicPPL.@model function toy_turing_model(dim::Int, precision)
-    y ~ MvNormal(dim, inv(sqrt(precision)))
+    y ~ product_distribution([Normal(0., inv(sqrt(precision))) for _ in 1:dim])
     return y
 end
 

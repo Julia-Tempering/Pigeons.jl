@@ -2,6 +2,7 @@ include("supporting/turing_models.jl")
 
 @testset "Turing-gradient" begin
     target = Pigeons.toy_turing_unid_target()
+    @test target.dimension == 2
     truth = -11.9 # based on: stepping_stone(pigeons(target = Pigeons.toy_turing_unid_target(), n_rounds = 17))
     
     @show Threads.nthreads()

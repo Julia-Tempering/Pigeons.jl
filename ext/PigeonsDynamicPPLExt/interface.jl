@@ -1,12 +1,28 @@
-(log_potential::TuringLogPotential)(vi) =
+
+Pigeons.TuringLogPotential(model::DynamicPPL.Model, only_prior::Bool) = 
+    TuringLogPotential(
+        model, 
+        only_prior ? DynamicPPL.PriorContext() : DynamicPPL.DefaultContext(),
+        get_dimension(model)
+    )
+function get_dimension(model::DynamicPPL.Model) 
+    vi = DynamicPPL.VarInfo(model)
+    get_dimension(DynamicPPL.link!!(vi,DynamicPPL.SampleFromPrior(), model))
+end
+
+get_dimension(vi::DynamicPPL.TypedVarInfo) = sum(meta -> sum(length, meta.ranges), vi.metadata)
+
+(log_potential::Pigeons.TuringLogPotential{<:Any,<:DynamicPPL.DefaultContext})(vi) =
     try
-        if log_potential.only_prior
-            DynamicPPL.logprior(log_potential.model, vi)
-        else
-            # Bug fix: avoiding now to break into prior and likelihood
-            #          calls, as it would add the log Jacobian twice.
-            DynamicPPL.logjoint(log_potential.model, vi)
-        end
+        DynamicPPL.logjoint(log_potential.model, vi)
+    catch e
+        (isa(e, DomainError) || isa(e, BoundsError)) && return -Inf
+        rethrow(e)
+    end
+
+(log_potential::Pigeons.TuringLogPotential{<:Any,<:DynamicPPL.PriorContext})(vi) =
+    try
+        DynamicPPL.logprior(log_potential.model, vi)
     catch e
         (isa(e, DomainError) || isa(e, BoundsError)) && return -Inf
         rethrow(e)
@@ -79,11 +95,9 @@ function Pigeons.sample_iid!(log_potential::TuringLogPotential, replica, shared)
 end
 
 # LogDensityProblems(AD) interface
-LogDensityProblems.dimension(log_potential::TuringLogPotential) = 
-    length(DynamicPPL.getall(Pigeons.initialization(log_potential)))
+LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.dimension
 function LogDensityProblemsAD.ADgradient(kind, log_potential::TuringLogPotential, buffers::Pigeons.Augmentation)
-    context = log_potential.only_prior ? DynamicPPL.PriorContext() : DynamicPPL.DefaultContext()
     vi = Pigeons.initialization(log_potential)
-    fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, context)
+    fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, log_potential.context)
     return ADgradient(kind, fct, buffers; x = DynamicPPL.getall(vi))
 end

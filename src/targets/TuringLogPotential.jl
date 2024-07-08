@@ -7,7 +7,8 @@ the current session.
 """
 @auto struct TuringLogPotential
     model
-    only_prior::Bool
+    context
+    dimension
 end
 
 turing_model(log_potential::TuringLogPotential) = log_potential.model
