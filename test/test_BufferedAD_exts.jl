@@ -1,14 +1,30 @@
+function test_BufferedAD_usage(pt)
+    replica = pt.replicas[2]
+    int_lp = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
+    int_ad = ADgradient(pt.shared.explorer.default_autodiff_backend, int_lp, replica.recorders.buffers)
+    @test int_ad isa Pigeons.InterpolatedAD
+    @test int_ad.ref_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
+    @test int_ad.target_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
+    @test int_ad.ref_ad.buffer === int_ad.target_ad.buffer # ref and target share the same buffer
+    @test int_ad.ref_ad.buffer != zero(int_ad.ref_ad.buffer) # buffers were used in the pigeons() call
+end
+
+@testset "ForwardDiff" begin
+    target = Pigeons.toy_turing_unid_target()
+    pt = pigeons(target = target, explorer = AutoMALA(), n_chains=3, n_rounds=1)
+
+    # check that we actually used the buffered implementation
+    test_BufferedAD_usage(pt)
+end
+
 using Enzyme
 
-@testset "autoMALA with Enzyme on custom Julia target" begin
+@testset "Enzyme: autoMALA on custom Julia target" begin
     struct CustomUnidTarget 
         n_trials::Int
         n_successes::Int
     end
     
-    # NB: this is a constrained target but we haven't yet implemented constrained
-    # sampling for autoMALA. Still, the purpose here is to check that the buffered
-    # Enzyme implementation works, and for this the test is sufficient. 
     function (log_potential::CustomUnidTarget)(x) 
         p1, p2 = x
         if !(0 < p1 < 1) || !(0 < p2 < 1)
@@ -39,12 +55,5 @@ using Enzyme
     )
 
     # check that we actually used the buffered Enzyme implementation
-    replica = first(pt.replicas)
-    int_lp = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
-    int_ad = ADgradient(:Enzyme, int_lp, replica.recorders.buffers)
-    @test int_ad isa Pigeons.InterpolatedAD
-    @test int_ad.ref_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
-    @test int_ad.target_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
-    @test int_ad.ref_ad.buffer === int_ad.target_ad.buffer # ref and target share the same buffer
-    @test int_ad.ref_ad.buffer != zero(int_ad.ref_ad.buffer) # buffers were used in the pigeons() call
+    test_BufferedAD_usage(pt)
 end

@@ -99,6 +99,6 @@ LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.
 function LogDensityProblemsAD.ADgradient(kind, log_potential::TuringLogPotential, buffers::Pigeons.Augmentation)
     vi = Pigeons.initialization(log_potential) # vi buffer required to perform the log density calculations for LogDensityFunction
     fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, log_potential.context)
-    x_template = Zeros{typeof(DynamicPPL.getlogp(vi))}(LogDensityProblems.dimension(log_potential)) # non-allocating but still transmits the correct type and dimension to ForwardDiff.GradientConfig
+    x_template = Zeros{typeof(DynamicPPL.getlogp(vi))}(log_potential.dimension) # non-allocating but still transmits the correct type and dimension to ForwardDiff.GradientConfig
     return ADgradient(kind, fct, buffers; x = x_template)
 end

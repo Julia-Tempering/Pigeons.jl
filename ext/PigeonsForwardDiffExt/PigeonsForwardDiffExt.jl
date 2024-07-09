@@ -34,14 +34,14 @@ function LogDensityProblems.logdensity_and_gradient(
     buffer = b.buffer
 
     diff_result = DiffResults.MutableDiffResult(zero(eltype(buffer)), (buffer, ))
-    ℓ_fix = Base.Fix1(logdensity, ℓ)
+    ℓ_fix = Base.Fix1(LogDensityProblems.logdensity, ℓ)
 
     if gradient_config ≡ nothing
         gradient_config = _make_gradient_config(ℓ_fix, x, chunk, tag)
     end
 
     ForwardDiff.gradient!(diff_result, ℓ_fix, x, gradient_config)
-    
+
     return (DiffResults.value(diff_result), DiffResults.gradient(diff_result))
 end
 
