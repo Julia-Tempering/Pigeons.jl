@@ -1,5 +1,8 @@
+using Enzyme
+using ReverseDiff
+
 function test_BufferedAD_usage(pt)
-    replica = pt.replicas[2]
+    replica = last(pt.replicas)
     int_lp = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
     int_ad = ADgradient(pt.shared.explorer.default_autodiff_backend, int_lp, replica.recorders.buffers)
     @test int_ad isa Pigeons.InterpolatedAD
@@ -9,17 +12,7 @@ function test_BufferedAD_usage(pt)
     @test int_ad.ref_ad.buffer != zero(int_ad.ref_ad.buffer) # buffers were used in the pigeons() call
 end
 
-@testset "ForwardDiff" begin
-    target = Pigeons.toy_turing_unid_target()
-    pt = pigeons(target = target, explorer = AutoMALA(), n_chains=3, n_rounds=1)
-
-    # check that we actually used the buffered implementation
-    test_BufferedAD_usage(pt)
-end
-
-using Enzyme
-
-@testset "Enzyme: autoMALA on custom Julia target" begin
+@testset "Correctness of BufferedAD backends versus Enzyme (unbuffered)" begin
     struct CustomUnidTarget 
         n_trials::Int
         n_successes::Int
@@ -33,9 +26,7 @@ using Enzyme
         p = p1 * p2
         logpdf(Binomial(log_potential.n_trials, p), log_potential.n_successes)
     end
-    
-    my_log_potential = CustomUnidTarget(100, 50)
-    
+       
     Pigeons.initialization(::CustomUnidTarget, ::AbstractRNG, ::Int) = [0.5, 0.5]
     
     function Pigeons.sample_iid!(::CustomUnidTarget, replica, shared)
@@ -47,13 +38,28 @@ using Enzyme
     LogDensityProblems.dimension(lp::CustomUnidTarget) = 2
     LogDensityProblems.logdensity(lp::CustomUnidTarget, x) = lp(x)
     
-    pt = pigeons(
-            target = CustomUnidTarget(100, 50), 
-            reference = CustomUnidTarget(0, 0), 
+    target = CustomUnidTarget(100, 50) 
+    reference = CustomUnidTarget(0, 0)
+    pt_enzyme = pigeons(
+            target = target,
+            reference = reference, 
             n_chains = 4,
+            n_rounds = 6,
             explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
     )
+    
+    @testset "$backend" for backend in (:ForwardDiff, :ReverseDiff)
+        pt = pigeons(
+            target = target,
+            reference = reference, 
+            n_chains = 4,
+            n_rounds = 6,
+            explorer = AutoMALA(default_autodiff_backend = backend) 
+        )
+        @test abs(Pigeons.global_barrier(pt) - Pigeons.global_barrier(pt_enzyme)) < 1e-8
+        @test abs(Pigeons.stepping_stone(pt) - Pigeons.stepping_stone(pt_enzyme)) < 1e-8
 
-    # check that we actually used the buffered Enzyme implementation
-    test_BufferedAD_usage(pt)
+        # check that we actually used the buffered Enzyme implementation
+        test_BufferedAD_usage(pt)
+    end
 end

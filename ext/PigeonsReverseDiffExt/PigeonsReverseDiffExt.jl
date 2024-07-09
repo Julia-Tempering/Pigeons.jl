@@ -1,18 +1,18 @@
-module PigeonsForwardDiffExt
+module PigeonsReverseDiffExt
 
 using Pigeons
 if isdefined(Base, :get_extension)
     using DocStringExtensions
-    using ForwardDiff
+    using ReverseDiff
     using LogDensityProblems
     using LogDensityProblemsAD
-    import ForwardDiff: DiffResults
+    import ReverseDiff: DiffResults
 else
     using ..DocStringExtensions
-    using ..ForwardDiff
+    using ..ReverseDiff
     using ..LogDensityProblems
     using ..LogDensityProblemsAD
-    import ..ForwardDiff: DiffResults
+    import ..ReverseDiff: DiffResults
 end
 
 # TODO: currently, the concrete versions of ADGradientWrapper are defined only
@@ -20,30 +20,21 @@ end
 # dispatch on them; see 
 #   https://github.com/tpapp/LogDensityProblemsAD.jl/issues/32
 # This is a HACK to extract that type 
-const ForwardDiffLogDensity = if isdefined(Base, :get_extension)
-    Base.get_extension(LogDensityProblemsAD, :LogDensityProblemsADForwardDiffExt).ForwardDiffLogDensity
+const ReverseDiffLogDensity = if isdefined(Base, :get_extension)
+    Base.get_extension(LogDensityProblemsAD, :LogDensityProblemsADReverseDiffExt).ReverseDiffLogDensity
 else
-    LogDensityProblemsAD.LogDensityProblemsADForwardDiffExt.ForwardDiffLogDensity
+    LogDensityProblemsAD.LogDensityProblemsADReverseDiffExt.ReverseDiffLogDensity
 end
 
 # adapted from LogDensityProblemsAD to use the Replica's buffer
 function LogDensityProblems.logdensity_and_gradient(
-    b::Pigeons.BufferedAD{<:ForwardDiffLogDensity},
+    b::Pigeons.BufferedAD{<:ReverseDiffLogDensity},
     x::AbstractVector
     )
     ℓ = b.enclosed.ℓ
-    chunk = b.enclosed.chunk
-    gradient_config = b.enclosed.gradient_config
     buffer = b.buffer
-
     diff_result = DiffResults.MutableDiffResult(zero(eltype(buffer)), (buffer, ))
-    ℓ_fix = Base.Fix1(LogDensityProblems.logdensity, ℓ)
-
-    if gradient_config ≡ nothing
-        gradient_config = ForwardDiff.GradientConfig(ℓ_fix, x, chunk)
-    end
-
-    ForwardDiff.gradient!(diff_result, ℓ_fix, x, gradient_config)
+    ReverseDiff.gradient!(diff_result, Base.Fix1(LogDensityProblems.logdensity, ℓ), x)
 
     return (DiffResults.value(diff_result), DiffResults.gradient(diff_result))
 end

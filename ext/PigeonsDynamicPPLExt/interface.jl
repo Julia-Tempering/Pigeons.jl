@@ -89,23 +89,27 @@ function Pigeons.sample_iid!(log_potential::TuringLogPotential, replica, shared)
     replica.state = Pigeons.initialization(log_potential, replica.rng, replica.replica_index)
 end
 
-# LogDensityProblems(AD) interface
+# LogDensityProblems interface
 LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.dimension
 
+# ADgradient
 # general case
-function LogDensityProblemsAD.ADgradient(kind, log_potential::TuringLogPotential, buffers::Pigeons.Augmentation)
+function make_vi_and_fct(log_potential::TuringLogPotential)
     vi = Pigeons.initialization(log_potential) # vi buffer required to perform the log density calculations for LogDensityFunction
     fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, log_potential.context)
-    return ADgradient(kind, fct, buffers)
+    return (vi, fct)
 end
+LogDensityProblemsAD.ADgradient(kind, log_potential::TuringLogPotential, buffers::Pigeons.Augmentation) =
+    ADgradient(kind, last(make_vi_and_fct(log_potential)), buffers)
 
-# ForwardDiff
-function LogDensityProblemsAD.ADgradient(kind::Val{:ForwardDiff}, log_potential::TuringLogPotential, buffers::Pigeons.Augmentation)
-    vi = Pigeons.initialization(log_potential) # vi buffer required to perform the log density calculations for LogDensityFunction
-    fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, log_potential.context)
-    
-    # ForwardDiff can pre compute the GradientConfig based on the dimensions and 
-    # element type of the input. We use a FillArray to avoid an allocation 
+# ForwardDiff can create a GradientConfig based on the dimensions and 
+# element type of the input. We use a FillArray to avoid an allocation
+function LogDensityProblemsAD.ADgradient(
+    kind::Val{:ForwardDiff},
+    log_potential::TuringLogPotential,
+    buffers::Pigeons.Augmentation
+    )
+    vi, fct = make_vi_and_fct(log_potential)
     x_template = Zeros{typeof(DynamicPPL.getlogp(vi))}(log_potential.dimension)
     return ADgradient(kind, fct, buffers; x=x_template)
 end

@@ -22,7 +22,6 @@ n_mpis = set_n_mpis_to_one_on_windows(2)
 end
 @testset "DLP: Univariate" begin
     uni_target = DistributionLogPotential(Normal(3,1))
-    Pigeons.initialization(::typeof(uni_target), _, _) = [-3.0]
     pt = pigeons(
         target    = uni_target,
         reference = DistributionLogPotential(Normal(-3,1)),
