@@ -16,3 +16,19 @@ end
     pt = pigeons(target = TuringLogPotential(model_with_vectors()), n_rounds = 2);
     @test length(sample_names(pt)) == 4 + 1 # +1 for :log_density
 end
+
+@testset "Utilities" begin
+    # sadly this seems like the only way to test functions inside extensions
+    # https://discourse.julialang.org/t/running-tests-on-code-defined-in-package-extension/99691
+    if isdefined(Base, :get_extension)
+        PigeonsDynamicPPLExt = Base.get_extension(Pigeons, :PigeonsDynamicPPLExt)
+
+        model = model_with_vectors()
+        vi = DynamicPPL.VarInfo(SplittableRandom(1234), model)
+        dim = PigeonsDynamicPPLExt.get_dimension(vi)
+        @test dim == 4
+        dest = zeros(dim)
+        PigeonsDynamicPPLExt.flatten!(vi, dest)
+        @test DynamicPPL.getall(vi) == dest
+    end
+end

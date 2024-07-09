@@ -68,8 +68,10 @@ function Pigeons.slice_sample!(h::SliceSampler, vi::DynamicPPL.TypedVarInfo, log
     end
     return cached_lp
 end
+
 function Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
-    vector_state = DynamicPPL.getall(vi)
+    vector_state = Pigeons.get_buffer(replica.recorders.buffers, :flattened_vi, get_dimension(vi))
+    flatten!(vi, vector_state) # in-place DynamicPPL.getall
     Pigeons.step!(explorer, replica, shared, vector_state)
     DynamicPPL.setall!(replica.state, vector_state)
 end

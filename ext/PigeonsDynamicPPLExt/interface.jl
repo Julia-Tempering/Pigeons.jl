@@ -5,12 +5,7 @@ Pigeons.TuringLogPotential(model::DynamicPPL.Model, only_prior::Bool) =
         only_prior ? DynamicPPL.PriorContext() : DynamicPPL.DefaultContext(),
         get_dimension(model)
     )
-function get_dimension(model::DynamicPPL.Model) 
-    vi = DynamicPPL.VarInfo(SplittableRandom(1), model)
-    get_dimension(DynamicPPL.link!!(vi,DynamicPPL.SampleFromPrior(), model))
-end
 
-get_dimension(vi::DynamicPPL.TypedVarInfo) = sum(meta -> sum(length, meta.ranges), vi.metadata)
 
 (log_potential::Pigeons.TuringLogPotential{<:Any,<:DynamicPPL.DefaultContext})(vi) =
     try
