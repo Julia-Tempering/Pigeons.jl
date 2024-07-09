@@ -29,7 +29,6 @@ function LogDensityProblems.logdensity_and_gradient(
     )
     ℓ = b.enclosed.ℓ
     chunk = b.enclosed.chunk
-    tag = b.enclosed.tag
     gradient_config = b.enclosed.gradient_config
     buffer = b.buffer
 
@@ -37,7 +36,7 @@ function LogDensityProblems.logdensity_and_gradient(
     ℓ_fix = Base.Fix1(LogDensityProblems.logdensity, ℓ)
 
     if gradient_config ≡ nothing
-        gradient_config = _make_gradient_config(ℓ_fix, x, chunk, tag)
+        gradient_config = ForwardDiff.GradientConfig(ℓ_fix, x, chunk)
     end
 
     ForwardDiff.gradient!(diff_result, ℓ_fix, x, gradient_config)
