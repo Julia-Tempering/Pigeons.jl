@@ -1,3 +1,4 @@
+# use single statement to avoid multiple precompile stages
 using Pigeons,
     ArgMacros,
     BridgeStan,
