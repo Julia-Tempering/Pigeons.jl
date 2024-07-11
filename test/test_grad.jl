@@ -4,8 +4,7 @@ include("supporting/HetPrecisionNormalLogPotential.jl")
     ref = Pigeons.ScaledPrecisionNormalLogPotential(2.0, 2)
     target = HetPrecisionNormalLogPotential([500.0, 1.0]) 
     inter = Pigeons.InterpolatedLogPotential(Pigeons.InterpolatingPath(ref, target), 0.2)
-    rng = SplittableRandom(1)
-    replica = Pigeons.Replica(Pigeons.initialization(target,rng,1), 1, rng, (;buffers = Pigeons.buffers()), 1)
+    replica = Pigeons.Replica(nothing, 1, SplittableRandom(1), (;buffers = Pigeons.buffers()), 1)
 
     ad = ADgradient(:ForwardDiff, inter, replica) 
 

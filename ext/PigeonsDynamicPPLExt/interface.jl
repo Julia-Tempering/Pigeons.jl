@@ -1,4 +1,8 @@
+"""
+$SIGNATURES
 
+Convenience constructor for [`Pigeons.TuringLogPotential`](@ref).
+"""
 Pigeons.TuringLogPotential(model::DynamicPPL.Model, only_prior::Bool) = 
     TuringLogPotential(
         model, 
