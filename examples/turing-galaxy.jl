@@ -9,11 +9,11 @@ using FillArrays: Fill
     c_0 = 2.0
     C_0 = 1.0
 
-    η      ~ Dirichlet(K, α)
-    μ      ~ product_distribution(Fill(Normal(b_0, B_0), K))
-    inv_σ2 ~ product_distribution(Fill(Gamma(c_0, 1/C_0), K))   
-    y      ~ product_distribution(Fill(
-        MixtureModel([Normal(μᵢ, inv(sqrt(λᵢ))) for (μᵢ, λᵢ) in zip(μ, inv_σ2)], η),
+    η  ~ Dirichlet(K, α)
+    μ  ~ product_distribution(Fill(Normal(b_0, B_0), K))
+    σ2 ~ product_distribution(Fill(InverseGamma(c_0, C_0), K))   
+    y  ~ product_distribution(Fill(
+        MixtureModel([Normal(μᵢ, sqrt(λᵢ)) for (μᵢ, λᵢ) in zip(μ, σ2)], η),
         length(y)
     ))
 end
