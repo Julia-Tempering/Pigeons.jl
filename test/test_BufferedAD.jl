@@ -4,7 +4,7 @@ using ReverseDiff
 function test_BufferedAD_usage(pt)
     replica = last(pt.replicas)
     int_lp = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
-    int_ad = ADgradient(pt.shared.explorer.default_autodiff_backend, int_lp, replica.recorders.buffers)
+    int_ad = ADgradient(pt.shared.explorer.default_autodiff_backend, int_lp, replica)
     @test int_ad isa Pigeons.InterpolatedAD
     @test int_ad.ref_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
     @test int_ad.target_ad isa Pigeons.BufferedAD{<:LogDensityProblemsAD.ADGradientWrapper}
@@ -47,7 +47,7 @@ end
             n_rounds = 6,
             explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
     )
-    
+
     @testset "$backend" for backend in (:ForwardDiff, :ReverseDiff)
         pt = pigeons(
             target = target,

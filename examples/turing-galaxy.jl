@@ -1,7 +1,6 @@
 using Distributions
 using DynamicPPL
 using FillArrays: Fill
-using LogExpFunctions: logsumexp
 
 @model function _GalaxyTuring(y, b_0, B_0)
     # hyperparams
@@ -10,29 +9,14 @@ using LogExpFunctions: logsumexp
     c_0 = 2.0
     C_0 = 1.0
 
-    # prior
     η      ~ Dirichlet(K, α)
     μ      ~ product_distribution(Fill(Normal(b_0, B_0), K))
-    inv_σ2 ~ product_distribution(Fill(Gamma(c_0, 1/C_0), K))
-
-    # likelihood = prod_i sum_k (...)
-    # => loglik = sum_i logsumexp_k(log(...))
-    # acc holds outer sum, lps is passed to LSE
-    if DynamicPPL.leafcontext(__context__) !== DynamicPPL.PriorContext()
-        lη  = log.(η)
-        σ   = inv_σ2 .^ (-1//2)
-        lps = similar(η)
-        acc = zero(eltype(y))
-        for yᵢ in y
-            @inbounds for k in 1:K
-                lps[k] = lη[k] + logpdf(Normal(μ[k], σ[k]), yᵢ)
-            end
-            acc += logsumexp(lps)
-        end
-        DynamicPPL.@addlogprob! acc
-    end
-    return y
-end 
+    inv_σ2 ~ product_distribution(Fill(Gamma(c_0, 1/C_0), K))   
+    y      ~ product_distribution(Fill(
+        MixtureModel([Normal(μᵢ, inv(sqrt(λᵢ))) for (μᵢ, λᵢ) in zip(μ, inv_σ2)], η),
+        length(y)
+    ))
+end
 
 observed_range(x) = -(-(extrema(x)...))
 
@@ -54,5 +38,8 @@ function GalaxyTuring()
 end
 
 pt = pigeons(
-    target = TuringLogPotential(GalaxyTuring())
+    target = TuringLogPotential(GalaxyTuring()),
+    explorer = AutoMALA(),
+    n_chains = 12, # Λ ~ 6
+    n_rounds = 6   # low to speed up CI
 )

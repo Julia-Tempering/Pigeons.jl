@@ -29,6 +29,8 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
 )
 
 # default implementation of the ADgradient interface
+LogDensityProblemsAD.ADgradient(kind, log_potential, replica::Replica; kwargs...) =
+    ADgradient(kind, log_potential, replica.recorders.buffers; kwargs...)
 LogDensityProblemsAD.ADgradient(kind, log_potential, buffers::Augmentation; kwargs...) =
     Pigeons.BufferedAD(ADgradient(kind, log_potential; kwargs...), buffers)
 
@@ -69,14 +71,14 @@ end
 function LogDensityProblemsAD.ADgradient(
     kind,
     log_potential::InterpolatedLogPotential{<:InterpolatingPath{<:Any,<:Any,LinearInterpolator}},
-    buffers::Augmentation
+    replica::Replica
     )
-    ref_ad = LogDensityProblemsAD.ADgradient(kind, log_potential.path.ref, buffers)
+    ref_ad = LogDensityProblemsAD.ADgradient(kind, log_potential.path.ref, replica)
     InterpolatedAD(
         log_potential,
         ref_ad,
-        LogDensityProblemsAD.ADgradient(kind, log_potential.path.target, buffers), 
-        get_buffer(buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(ref_ad))
+        LogDensityProblemsAD.ADgradient(kind, log_potential.path.target, replica), 
+        get_buffer(replica.recorders.buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(ref_ad))
     )
 end
 

@@ -76,7 +76,6 @@ function Pigeons.initialization(target::TuringLogPotential, rng::AbstractRNG, _:
     DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
     return result
 end
-Pigeons.initialization(target::TuringLogPotential) = Pigeons.initialization(target, SplittableRandom(1), 1)
 
 # At the moment, AutoMALA assumes a :singleton_variable structure
 # so use the SliceSampler.
@@ -94,22 +93,21 @@ LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.
 
 # ADgradient
 # general case
-function make_vi_and_fct(log_potential::TuringLogPotential)
-    vi = Pigeons.initialization(log_potential) # vi buffer required to perform the log density calculations for LogDensityFunction
-    fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, log_potential.context)
-    return (vi, fct)
-end
-LogDensityProblemsAD.ADgradient(kind, log_potential::TuringLogPotential, buffers::Pigeons.Augmentation) =
-    ADgradient(kind, last(make_vi_and_fct(log_potential)), buffers)
+LogDensityProblemsAD.ADgradient(kind, log_potential::TuringLogPotential, replica::Pigeons.Replica) =
+    ADgradient(
+        kind, 
+        DynamicPPL.LogDensityFunction(replica.state, log_potential.model, log_potential.context), 
+        replica)
 
 # ForwardDiff can create a GradientConfig based on the dimensions and 
 # element type of the input. We use a FillArray to avoid an allocation
 function LogDensityProblemsAD.ADgradient(
     kind::Val{:ForwardDiff},
     log_potential::TuringLogPotential,
-    buffers::Pigeons.Augmentation
+    replica::Pigeons.Replica
     )
-    vi, fct = make_vi_and_fct(log_potential)
+    vi = replica.state
+    fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, log_potential.context)
     x_template = Zeros{typeof(DynamicPPL.getlogp(vi))}(log_potential.dimension)
-    return ADgradient(kind, fct, buffers; x=x_template)
+    return ADgradient(kind, fct, replica; x=x_template)
 end
