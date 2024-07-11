@@ -40,7 +40,7 @@ LogDensityProblems.logdensity(log_potential::DistributionLogPotential, x) = log_
 LogDensityProblems.dimension(log_potential::DistributionLogPotential) = length(log_potential.dist)
 LogDensityProblems.dimension(::DistributionLogPotential{<:UnivariateDistribution}) = 1
 
-# special ADgradient constructor for [Forward|Reverse]Diff
+# special ADgradient constructor for ForwardDiff
 LogDensityProblemsAD.ADgradient(
     kind::Val{:ForwardDiff}, 
     log_potential::DistributionLogPotential, 
