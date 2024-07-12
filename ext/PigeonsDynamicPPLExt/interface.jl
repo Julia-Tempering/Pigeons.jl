@@ -97,7 +97,7 @@ LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.
 
 # ADgradient
 # general case
-LogDensityProblemsAD.ADgradient(kind, log_potential::TuringLogPotential, replica::Pigeons.Replica) =
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential::TuringLogPotential, replica::Pigeons.Replica) =
     ADgradient(
         kind, 
         DynamicPPL.LogDensityFunction(replica.state, log_potential.model, log_potential.context), 

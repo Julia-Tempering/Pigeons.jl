@@ -15,6 +15,7 @@ using Dates
 using Distributions
 using DocStringExtensions
 using Expect
+using FillArrays
 using Graphs
 using Interpolations
 using JSON
