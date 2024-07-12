@@ -1,5 +1,7 @@
 function logdensity_and_gradient(target, x)
-    g = LogDensityProblemsAD.ADgradient(:ForwardDiff, target, Pigeons.buffers()) 
+    rng = SplittableRandom(1234)
+    replica = Pigeons.Replica(Pigeons.initialization(target,rng,1), 1, rng, (;buffers = Pigeons.buffers()), 1)
+    g = LogDensityProblemsAD.ADgradient(:ForwardDiff, target, replica) 
     return LogDensityProblems.logdensity_and_gradient(g, x)
 end
 if !is_windows_in_CI()

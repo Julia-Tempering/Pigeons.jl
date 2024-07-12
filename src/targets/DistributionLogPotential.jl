@@ -13,6 +13,14 @@ end
 # univariate case
 (ref::DistributionLogPotential{<:UnivariateDistribution})(x) = logpdf(ref.dist, first(x))
 
+# initialization
+initialization(target::DistributionLogPotential, rng::AbstractRNG, ::Int) =
+    rand(rng, target.dist)
+
+# initialization: univariate
+initialization(target::DistributionLogPotential{<:UnivariateDistribution}, rng::AbstractRNG, ::Int) =
+    [rand(rng, target.dist)]
+
 # iid sampling for array-type states
 # general case
 sample_iid!(ref::DistributionLogPotential, replica::Replica{<:AbstractArray}, shared) =
@@ -31,3 +39,10 @@ end
 LogDensityProblems.logdensity(log_potential::DistributionLogPotential, x) = log_potential(x)
 LogDensityProblems.dimension(log_potential::DistributionLogPotential) = length(log_potential.dist)
 LogDensityProblems.dimension(::DistributionLogPotential{<:UnivariateDistribution}) = 1
+
+# special ADgradient constructor for ForwardDiff
+LogDensityProblemsAD.ADgradient(
+    kind::Val{:ForwardDiff}, 
+    log_potential::DistributionLogPotential, 
+    buffers::Augmentation) =
+    ADgradient(kind, fct, buffers; x=Zeros{eltype(log_potential.dist)}(length(log_potential.dist)))

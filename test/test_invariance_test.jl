@@ -19,7 +19,9 @@ using HypothesisTests
         function Pigeons.step!(::IdentityExplorer, replica, shared)
         end
 
-        res = Pigeons.invariance_test(target, IdentityExplorer(), rng; condition_on=(:n_successes,))
+        res = @test_logs (:info,"All invariance tests passed :)") begin
+            Pigeons.invariance_test(target, IdentityExplorer(), rng; condition_on=(:n_successes,))
+        end
         @test res.passed
         @test all(==(1), res.pvalues)
     end
@@ -31,7 +33,9 @@ using HypothesisTests
             Pigeons.update_state!(replica.state, :p2, 1, randn(replica.rng))
             return
         end
-        res = Pigeons.invariance_test(target, BadExplorer(), rng;condition_on=(:n_successes,))
+        res = @test_logs (:warn,"Some invariance tests failed; inspect the output.") begin
+            Pigeons.invariance_test(target, BadExplorer(), rng;condition_on=(:n_successes,))
+        end
         @test !res.passed
         @test res.failed_tests == [1,2]
     end

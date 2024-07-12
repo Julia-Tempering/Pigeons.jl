@@ -4,8 +4,9 @@ include("supporting/HetPrecisionNormalLogPotential.jl")
     ref = Pigeons.ScaledPrecisionNormalLogPotential(2.0, 2)
     target = HetPrecisionNormalLogPotential([500.0, 1.0]) 
     inter = Pigeons.InterpolatedLogPotential(Pigeons.InterpolatingPath(ref, target), 0.2)
+    replica = Pigeons.Replica(nothing, 1, SplittableRandom(1), (;buffers = Pigeons.buffers()), 1)
 
-    ad = ADgradient(:ForwardDiff, inter, Pigeons.buffers()) 
+    ad = ADgradient(:ForwardDiff, inter, replica) 
 
     x = [1.1, 2.1]
     _, g1 = LogDensityProblems.logdensity_and_gradient(ad, x)

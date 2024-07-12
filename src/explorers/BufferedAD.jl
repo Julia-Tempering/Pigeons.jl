@@ -28,6 +28,16 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
         err_buffer 
 )
 
+# default implementation of the ADgradient interface
+LogDensityProblemsAD.ADgradient(kind, log_potential, replica::Replica; kwargs...) =
+    ADgradient(kind, log_potential, replica.recorders.buffers; kwargs...)
+LogDensityProblemsAD.ADgradient(kind, log_potential, buffers::Augmentation; kwargs...) =
+    Pigeons.BufferedAD(ADgradient(kind, log_potential; kwargs...), buffers)
+
+# default case does not use the buffer
+LogDensityProblems.logdensity_and_gradient(buffered::BufferedAD, x) = 
+    LogDensityProblems.logdensity_and_gradient(buffered.enclosed, x)
+
 """
 The target and reference may used different autodiff frameworks; 
 provided both are non-allocating, this allows autodiff of 
@@ -58,16 +68,19 @@ $FIELDS
     buffer::Vector{Float64}
 end
 
-LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential, buffers::Augmentation) = 
-    LogDensityProblemsAD.ADgradient(kind, log_potential)
-
-LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::InterpolatedLogPotential{InterpolatingPath{R, T, LinearInterpolator}, B}, buffers::Augmentation)  where {R, T, B} = 
+function LogDensityProblemsAD.ADgradient(
+    kind,
+    log_potential::InterpolatedLogPotential{<:InterpolatingPath{<:Any,<:Any,LinearInterpolator}},
+    replica::Replica
+    )
+    ref_ad = LogDensityProblemsAD.ADgradient(kind, log_potential.path.ref, replica)
     InterpolatedAD(
         log_potential,
-        LogDensityProblemsAD.ADgradient(kind, log_potential.path.ref, buffers), 
-        LogDensityProblemsAD.ADgradient(kind, log_potential.path.target, buffers), 
-        get_buffer(buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(log_potential.path.ref))
+        ref_ad,
+        LogDensityProblemsAD.ADgradient(kind, log_potential.path.target, replica), 
+        get_buffer(replica.recorders.buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(ref_ad))
     )
+end
 
 function LogDensityProblems.logdensity(log_potential::InterpolatedAD, x) 
     l1 = LogDensityProblems.logdensity(log_potential.ref_ad, x)
