@@ -2,7 +2,7 @@ using Distributions
 using DynamicPPL
 using FillArrays: Fill
 
-@model function _GalaxyTuring(y, b_0, B_0)
+@model function _GalaxyTuring(y, b_0, B_0, N = length(y))
     # hyperparams
     K   = 3
     α   = 1.0 # return to 0.01
@@ -12,10 +12,7 @@ using FillArrays: Fill
     η  ~ Dirichlet(K, α)
     μ  ~ product_distribution(Fill(Normal(b_0, B_0), K))
     σ2 ~ product_distribution(Fill(InverseGamma(c_0, C_0), K))   
-    y  ~ product_distribution(Fill(
-        MixtureModel([Normal(μᵢ, sqrt(λᵢ)) for (μᵢ, λᵢ) in zip(μ, σ2)], η),
-        length(y)
-    ))
+    y  ~ product_distribution(Fill(MixtureModel(map(Normal, μ, σ2), η), N))
 end
 
 observed_range(x) = -(-(extrema(x)...))
