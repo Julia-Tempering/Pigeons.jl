@@ -28,10 +28,15 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
         err_buffer 
 )
 
+# translate Symbol to Val
+# TODO: should we move to ADTypes?
+LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential, replica::Replica; kwargs...) = 
+    ADgradient(Val{kind}(), log_potential, replica; kwargs...)
+
 # default implementation of the ADgradient interface
-LogDensityProblemsAD.ADgradient(kind, log_potential, replica::Replica; kwargs...) =
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential, replica::Replica; kwargs...) =
     ADgradient(kind, log_potential, replica.recorders.buffers; kwargs...)
-LogDensityProblemsAD.ADgradient(kind, log_potential, buffers::Augmentation; kwargs...) =
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential, buffers::Augmentation; kwargs...) =
     Pigeons.BufferedAD(ADgradient(kind, log_potential; kwargs...), buffers)
 
 # default case does not use the buffer
@@ -69,7 +74,7 @@ $FIELDS
 end
 
 function LogDensityProblemsAD.ADgradient(
-    kind,
+    kind::Val,
     log_potential::InterpolatedLogPotential{<:InterpolatingPath{<:Any,<:Any,LinearInterpolator}},
     replica::Replica
     )

@@ -41,8 +41,11 @@ LogDensityProblems.dimension(log_potential::DistributionLogPotential) = length(l
 LogDensityProblems.dimension(::DistributionLogPotential{<:UnivariateDistribution}) = 1
 
 # special ADgradient constructor for ForwardDiff
-LogDensityProblemsAD.ADgradient(
+function LogDensityProblemsAD.ADgradient(
     kind::Val{:ForwardDiff}, 
     log_potential::DistributionLogPotential, 
-    buffers::Augmentation) =
-    ADgradient(kind, fct, buffers; x=Zeros{eltype(log_potential.dist)}(length(log_potential.dist)))
+    buffers::Augmentation
+    )
+    x_template = Zeros{eltype(log_potential.dist)}(length(log_potential.dist))
+    ADgradient(kind, log_potential, buffers; x=x_template)
+end

@@ -1,4 +1,5 @@
 using Enzyme
+using FillArrays
 using ReverseDiff
 
 function test_BufferedAD_usage(pt)
@@ -38,28 +39,48 @@ end
     LogDensityProblems.dimension(lp::CustomUnidTarget) = 2
     LogDensityProblems.logdensity(lp::CustomUnidTarget, x) = lp(x)
     
-    target = CustomUnidTarget(100, 50) 
-    reference = CustomUnidTarget(0, 0)
-    pt_enzyme = pigeons(
+    target = CustomUnidTarget(100, 50)
+    custom_ref = CustomUnidTarget(0, 0)
+    dlp_ref = DistributionLogPotential(product_distribution(Fill(Uniform(),2)))
+    @testset "$(typeof(ref))" for ref in (custom_ref, dlp_ref)
+        pt_enzyme = pigeons(
             target = target,
-            reference = reference, 
+            reference = ref, 
             n_chains = 4,
             n_rounds = 6,
             explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
-    )
-
-    @testset "$backend" for backend in (:ForwardDiff, :ReverseDiff)
-        pt = pigeons(
-            target = target,
-            reference = reference, 
-            n_chains = 4,
-            n_rounds = 6,
-            explorer = AutoMALA(default_autodiff_backend = backend) 
         )
-        @test abs(Pigeons.global_barrier(pt) - Pigeons.global_barrier(pt_enzyme)) < 1e-8
-        @test abs(Pigeons.stepping_stone(pt) - Pigeons.stepping_stone(pt_enzyme)) < 1e-8
 
-        # check that we actually used the buffered Enzyme implementation
-        test_BufferedAD_usage(pt)
+        @testset "$backend" for backend in (:ForwardDiff, :ReverseDiff)
+            pt = pigeons(
+                target = target,
+                reference = ref, 
+                n_chains = 4,
+                n_rounds = 6,
+                explorer = AutoMALA(default_autodiff_backend = backend) 
+            )
+            @test abs(Pigeons.global_barrier(pt) - Pigeons.global_barrier(pt_enzyme)) < 1e-8
+            @test abs(Pigeons.stepping_stone(pt) - Pigeons.stepping_stone(pt_enzyme)) < 1e-8
+
+            # check that we actually used the buffered Enzyme implementation
+            test_BufferedAD_usage(pt)
+        end
     end
+end
+
+function check_gradient_config_exists(pt)
+    replica = last(pt.replicas)
+    int_lp = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
+    ad = ADgradient(:ForwardDiff, int_lp.path.ref, replica)
+    ad.enclosed.gradient_config isa ForwardDiff.GradientConfig
+end
+
+@testset "Special ForwardDiff ADgradient constructors" begin
+    pt = pigeons(target = Pigeons.toy_turing_unid_target(), explorer = AutoMALA(), n_rounds=0)
+    @test check_gradient_config_exists(pt)
+    pt = pigeons(
+        target = DistributionLogPotential(MvNormal(Fill(1.0,2),I)),
+        reference = DistributionLogPotential(MvNormal(Fill(-1.0,2),I)),
+        explorer = AutoMALA(), n_rounds=0)
+    @test check_gradient_config_exists(pt)
 end
