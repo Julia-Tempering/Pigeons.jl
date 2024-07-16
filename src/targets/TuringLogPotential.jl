@@ -24,8 +24,8 @@ $FIELDS
     """
     The total number of scalar values observed in a single random sample from `model`.
     It is used by the `LogDensityProblems` and `LogDensityProblemsAD` interfaces
-    when a [`Pigeons.GradientBasedSampler`](@ref) is used as explorer in models with
-    static computational graphs.
+    when a gradient-based sampler is used as explorer in models with static 
+    computational graphs.
     
     !!! warning
         Explorers targeting models with dynamic computational graphs should not
