@@ -6,6 +6,8 @@ log density.
 
 To work with Pigeons `DynamicPPL` or `Turing` needs to be imported into
 the current session.
+
+$FIELDS
 """
 @auto struct TuringLogPotential
     """
