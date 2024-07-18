@@ -26,24 +26,27 @@ else
     LogDensityProblemsAD.LogDensityProblemsADForwardDiffExt.ForwardDiffLogDensity
 end
 
+# special ADgradient constructor for ForwardDiff
+function LogDensityProblemsAD.ADgradient(
+    kind::Val{:ForwardDiff}, 
+    log_potential, 
+    buffers::Pigeons.Augmentation
+    )
+    d = LogDensityProblems.dimension(log_potential)
+    buffer = Pigeons.get_buffer(buffers, :gradient_buffer, d) 
+    enclosed = ADgradient(kind, log_potential; x = buffer)
+    diff_result = DiffResults.MutableDiffResult(zero(eltype(buffer)), (buffer, ))
+    Pigeons.BufferedAD(enclosed, diff_result, nothing, nothing)
+end
+
 # adapted from LogDensityProblemsAD to use the Replica's buffer
 function LogDensityProblems.logdensity_and_gradient(
     b::Pigeons.BufferedAD{<:ForwardDiffLogDensity},
     x::AbstractVector
     )
-    ℓ = b.enclosed.ℓ
-    chunk = b.enclosed.chunk
-    gradient_config = b.enclosed.gradient_config
-    buffer = b.buffer
-
-    diff_result = DiffResults.MutableDiffResult(zero(eltype(buffer)), (buffer, ))
-    ℓ_fix = Base.Fix1(LogDensityProblems.logdensity, ℓ)
-
-    if gradient_config ≡ nothing
-        gradient_config = ForwardDiff.GradientConfig(ℓ_fix, x, chunk)
-    end
-
-    ForwardDiff.gradient!(diff_result, ℓ_fix, x, gradient_config)
+    diff_result = b.buffer
+    ℓ_fix = Base.Fix1(LogDensityProblems.logdensity, b.enclosed.ℓ)
+    ForwardDiff.gradient!(diff_result, ℓ_fix, x, b.enclosed.gradient_config)
 
     return (DiffResults.value(diff_result), DiffResults.gradient(diff_result))
 end

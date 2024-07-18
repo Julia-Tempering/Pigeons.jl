@@ -94,24 +94,8 @@ end
 
 # LogDensityProblems interface
 LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.dimension
-
-# ADgradient
-# general case
 LogDensityProblemsAD.ADgradient(kind::Val, log_potential::TuringLogPotential, replica::Pigeons.Replica) =
     ADgradient(
         kind, 
         DynamicPPL.LogDensityFunction(replica.state, log_potential.model, log_potential.context), 
-        replica)
-
-# ForwardDiff can create a GradientConfig based on the dimensions and 
-# element type of the input. We use a FillArray to avoid an allocation
-function LogDensityProblemsAD.ADgradient(
-    kind::Val{:ForwardDiff},
-    log_potential::TuringLogPotential,
-    replica::Pigeons.Replica
-    )
-    vi = replica.state
-    fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, log_potential.context)
-    x_template = Zeros{typeof(DynamicPPL.getlogp(vi))}(log_potential.dimension)
-    return ADgradient(kind, fct, replica; x=x_template)
-end
+        replica.recorders.buffers)

@@ -280,10 +280,9 @@ function explorer_recorder_builders(explorer::AutoMALA)
     result = [
         explorer_acceptance_pr,
         explorer_n_steps,
-        am_factors,
-        buffers
+        am_factors
     ]
-    add_precond_recorder_if_needed!(result, explorer)
+    gradient_based_sampler_recorders!(result, explorer)
     return result
 end
 

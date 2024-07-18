@@ -54,8 +54,8 @@ Evaluate the log potential at a given point `x` of type `Pigeons.StanState`.
 (log_potential::StanLogPotential)(state::Pigeons.StanState) =
     LogDensityProblems.logdensity(log_potential, state.unconstrained_parameters)
 
-LogDensityProblemsAD.ADgradient(kind::Val, log_potential::StanLogPotential, buffers::Pigeons.Augmentation) =
-    Pigeons.BufferedAD(log_potential, buffers, Ref(0.0), Ref{Cstring}())
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential::StanLogPotential, replica::Pigeons.Replica) =
+    Pigeons.BufferedAD(log_potential, replica.recorders.buffers, Ref(0.0), Ref{Cstring}())
 
 LogDensityProblems.logdensity(log_potential::Pigeons.BufferedAD{StanLogPotential{M, S, D, E}}, x) where {M, S, D, E} =
     stan_log_density!(

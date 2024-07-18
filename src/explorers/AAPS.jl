@@ -201,7 +201,7 @@ function sample_segment!(
 end
 
 function explorer_recorder_builders(explorer::AAPS)
-    result = [explorer_acceptance_pr, explorer_n_steps, buffers]
-    add_precond_recorder_if_needed!(result, explorer)
+    result = [explorer_acceptance_pr, explorer_n_steps]
+    gradient_based_sampler_recorders!(result, explorer)
     return result
 end

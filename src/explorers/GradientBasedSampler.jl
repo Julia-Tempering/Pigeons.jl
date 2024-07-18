@@ -16,8 +16,10 @@ function step!(explorer::GradientBasedSampler, replica, shared, state::AbstractV
 end
 
 
-function add_precond_recorder_if_needed!(recorders, explorer::GradientBasedSampler)
-    if explorer.preconditioner isa AdaptedDiagonalPreconditioner
+function gradient_based_sampler_recorders!(recorders, explorer::GradientBasedSampler)
+    push!(recorders, buffers)
+    push!(recorders, Pigeons.ad_buffers)
+    if hasproperty(explorer, :preconditioner) && explorer.preconditioner isa AdaptedDiagonalPreconditioner
         push!(recorders, _transformed_online) # for mass matrix adaptation
     end
 end
