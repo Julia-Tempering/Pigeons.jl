@@ -26,17 +26,20 @@ function test_BufferedAD_usage(pt)
     # BufferedAD were created and stored
     @test haskey(replica.recorders.ad_buffers.contents, :target)
     @test haskey(replica.recorders.ad_buffers.contents, :reference)
-
+    
     # ADgradient uses the stored BufferedAD 
     int_lp = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
     int_ad = ADgradient(pt.shared.explorer.default_autodiff_backend, int_lp, replica)
     @test int_ad isa Pigeons.InterpolatedAD
     @test int_ad.ref_ad === replica.recorders.ad_buffers.contents[:reference]
     @test int_ad.target_ad === replica.recorders.ad_buffers.contents[:target]
-    @test int_ad.ref_ad.buffer isa DiffResults.MutableDiffResult
-
+    
     # target and ref share the same gradient buffer
-    @test DiffResults.gradient(int_ad.ref_ad.buffer) === DiffResults.gradient(int_ad.target_ad.buffer)
+    if int_ad.ref_ad.buffer isa DiffResults.MutableDiffResult
+        @test DiffResults.gradient(int_ad.ref_ad.buffer) === DiffResults.gradient(int_ad.target_ad.buffer)
+    else
+        @test int_ad.ref_ad.buffer === int_ad.target_ad.buffer
+    end
 end
 
 @testset "Correctness of BufferedAD backends versus Enzyme (unbuffered)" begin
@@ -78,6 +81,7 @@ end
             n_rounds = 6,
             explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
         )
+        test_BufferedAD_usage(pt_enzyme) # does not use in-place gradient but should still store the BufferedAD objects to avoid repeated calls
 
         @testset "$backend" for backend in (:ForwardDiff, :ReverseDiff)
             pt = pigeons(

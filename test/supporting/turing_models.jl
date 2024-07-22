@@ -37,7 +37,7 @@ function flip_model_unidentifiable()
     p_true = 0.5;
     N = 100;
     n_success = rand(Distributions.MersenneTwister(1), Binomial(N, p_true));
-    Pigeons.toy_turing_unid_target(N, n_success)
+    Pigeons.toy_turing_unid_target(N, n_success).model
 end
 
 function flip_model_modified()
