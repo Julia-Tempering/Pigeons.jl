@@ -97,8 +97,12 @@ nothing # hide
 
 Here is an example using [`AutoMALA`](@ref)—a gradient-based sampler—instead of the default 
 [`SliceSampler`](@ref). We'll use the [Enzyme](https://enzyme.mit.edu/julia) backend, a state-of-the-art
-AD system; many others are supported by the [LogDensityProblemsAD.jl](https://github.com/tpapp/LogDensityProblemsAD.jl)
-interface. We only need to add methods to make our custom type `MyLogPotential` conform to the 
+AD system that supports targets written in plain Julia. Enzyme is considerably faster than the default
+[ForwardDiff](https://juliadiff.org/ForwardDiff.jl/), whose main advantage is compatibility 
+with a broader range of targets. Many other AD backends are supported by the
+[LogDensityProblemsAD.jl](https://github.com/tpapp/LogDensityProblemsAD.jl) interface.
+
+To proceed, we only need to add methods to make our custom type `MyLogPotential` conform to the 
 [LogDensityProblems interface](https://github.com/tpapp/LogDensityProblems.jl):
 
 ```@example julia
