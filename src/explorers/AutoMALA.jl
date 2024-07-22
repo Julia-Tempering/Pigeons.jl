@@ -44,6 +44,9 @@ in *Proceedings of Machine Learning Research* 238:4600-4608.
 
     Certain targets may ignore it, e.g. if a manual differential is
     offered or when calling an external program such as Stan.
+
+    For tape-based AD backends like ReverseDiff, compilation can be controlled using
+    [`Pigeons.set_tape_compilation_strategy!`](@ref).
     """
     default_autodiff_backend::Symbol = :ForwardDiff
 

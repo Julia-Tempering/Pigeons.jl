@@ -28,7 +28,7 @@ Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
     K::Int = 5 
 
     """ 
-    See details in AutoMALA. 
+    See details in [`AutoMALA`](@ref).
     """
     default_autodiff_backend::Symbol = :ForwardDiff 
 

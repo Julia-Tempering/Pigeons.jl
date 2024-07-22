@@ -149,6 +149,7 @@ const COMPILE_TAPE = Ref(true)
 $SIGNATURES 
 
 Get the current Pigeons-wide tape compilation strategy for tape-based AD backends.
+Currently this is only used for [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl).
 """
 get_tape_compilation_strategy() = COMPILE_TAPE[]
 
@@ -156,6 +157,7 @@ get_tape_compilation_strategy() = COMPILE_TAPE[]
 $SIGNATURES 
 
 Set the Pigeons-wide tape compilation strategy for tape-based AD backends.
+Currently this is only used for [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl).
 """
 function set_tape_compilation_strategy!(compile::Bool)
     COMPILE_TAPE[] = compile

@@ -89,4 +89,4 @@ LogDensityProblemsAD.ADgradient(kind::Val, log_potential::TuringLogPotential, re
     ADgradient(
         kind, 
         DynamicPPL.LogDensityFunction(replica.state, log_potential.model, log_potential.context), 
-        replica.recorders.buffers)
+        replica)
