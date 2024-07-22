@@ -28,7 +28,14 @@ As for autoMALA, the number of steps per exploration is
     exponent_n_refresh::Float64 = 0.35  
     
     """
-    See details in [`AutoMALA`](@ref).
+    The default backend to use for autodiff.
+    See https://github.com/tpapp/LogDensityProblemsAD.jl#backends
+
+    Certain targets may ignore it, e.g. if a manual differential is
+    offered or when calling an external program such as Stan.
+
+    For tape-based AD backends like ReverseDiff, compilation can be controlled using
+    [`Pigeons.set_tape_compilation_strategy!`](@ref).
     """
     default_autodiff_backend::Symbol = :ForwardDiff
 
