@@ -128,14 +128,11 @@ future.
 
 !!! note
     This implementation is not type stable (the value type of the `Dict` is not 
-    concrete). However, the runtime dispatch incurred should be more than 
+    concrete). However, the runtime dispatch cost incurred should be more than 
     compensated by the ability to avoid reconstructing AD objects at each 
     exploration step.
 """
-function get_buffer(
-    a::Augmentation{<:Dict{Symbol, BufferedAD}},
-    key::Symbol,
-    args...)
+function get_buffer(a::Augmentation{<:Dict{Symbol, BufferedAD}}, key::Symbol, args...)
     dict = a.contents 
     if !haskey(dict, key)
         dict[key] = LogDensityProblemsAD.ADgradient(args...)
@@ -147,7 +144,19 @@ end
 A flag for determining whether tape compilation should be used in some AD systems
 =#
 const COMPILE_TAPE = Ref(true)
+
+"""
+$SIGNATURES 
+
+Get the current Pigeons-wide tape compilation strategy for tape-based AD backends.
+"""
 get_tape_compilation_strategy() = COMPILE_TAPE[]
+
+"""
+$SIGNATURES 
+
+Set the Pigeons-wide tape compilation strategy for tape-based AD backends.
+"""
 function set_tape_compilation_strategy!(compile::Bool)
     COMPILE_TAPE[] = compile
 end

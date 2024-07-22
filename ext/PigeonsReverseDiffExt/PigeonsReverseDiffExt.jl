@@ -35,6 +35,23 @@ function LogDensityProblemsAD.ADgradient(
     d = LogDensityProblems.dimension(log_potential)
     buffer = Pigeons.get_buffer(buffers, :gradient_buffer, d)
     compile_tape = Pigeons.get_tape_compilation_strategy()
+
+    if compile_tape
+        @info """
+
+        Using ReverseDiff with tape compilation, which usually results in huge performance gains.
+        However, if your model does branching on latent variables, you will get inconsistent results. 
+        You can turn this feature off using `Pigeons.set_tape_compilation_strategy!(false)`.            
+        """ maxlog=1
+    else
+        @info """
+
+        Using ReverseDiff without tape compilation. If your model does not branch on latent variables,
+        you may be able to obtain a huge performance gain by enabling tape compilation. You can do this
+        by calling `Pigeons.set_tape_compilation_strategy!(true)`.            
+        """ maxlog=1
+    end
+
     enclosed = ADgradient(kind, log_potential; x = buffer, compile=Val{compile_tape}())
     diff_result = DiffResults.MutableDiffResult(zero(eltype(buffer)), (buffer, ))
     Pigeons.BufferedAD(enclosed, diff_result, nothing, nothing)

@@ -52,15 +52,6 @@ function Pigeons.initialization(
         for example.
 
     """))
-
-    @warn   """
-    
-            We recommend using SliceSampler() for Turing models. If you have a large continuous model
-            consider using the BridgeStan (which has much faster autodiff than Zygote, and Enzyme 
-            crashes on Turing at the time of writing). The Turing interface is still useful for models
-            containing both continuous and discrete variables.
-            """ maxlog=1
-
     return vi
 end
 
