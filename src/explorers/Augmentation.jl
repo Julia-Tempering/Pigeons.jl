@@ -58,14 +58,14 @@ buffers(::Type{T}=Vector{Float64}) where {T} = Augmentation(Dict{Symbol, T}())
 """
 $SIGNATURES 
 
-Return an item in the buffer. Allocating only the first 
-time, after that the buffer is recycled and stored in the 
+Return an array in the buffer. Allocating only the first 
+time; after that, the buffer is recycled and stored in the 
 Replica's recorders.
 """
-function get_buffer(a::Augmentation{Dict{Symbol, T}}, key::Symbol, dim::Int)::T where {T}
+function get_buffer(a::Augmentation{Dict{Symbol, T}}, key::Symbol, dims)::T where {T <: Array}
     dict = a.contents 
     if !haskey(dict, key) 
-        dict[key] = similar(T, dim) 
+        dict[key] = similar(T, dims)
     end
     return dict[key]
 end

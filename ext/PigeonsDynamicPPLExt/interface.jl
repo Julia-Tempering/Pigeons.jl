@@ -52,15 +52,6 @@ function Pigeons.initialization(
         for example.
 
     """))
-
-    @warn   """
-    
-            We recommend using SliceSampler() for Turing models. If you have a large continuous model
-            consider using the BridgeStan (which has much faster autodiff than Zygote, and Enzyme 
-            crashes on Turing at the time of writing). The Turing interface is still useful for models
-            containing both continuous and discrete variables.
-            """ maxlog=1
-
     return vi
 end
 
@@ -94,24 +85,8 @@ end
 
 # LogDensityProblems interface
 LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.dimension
-
-# ADgradient
-# general case
 LogDensityProblemsAD.ADgradient(kind::Val, log_potential::TuringLogPotential, replica::Pigeons.Replica) =
     ADgradient(
         kind, 
         DynamicPPL.LogDensityFunction(replica.state, log_potential.model, log_potential.context), 
         replica)
-
-# ForwardDiff can create a GradientConfig based on the dimensions and 
-# element type of the input. We use a FillArray to avoid an allocation
-function LogDensityProblemsAD.ADgradient(
-    kind::Val{:ForwardDiff},
-    log_potential::TuringLogPotential,
-    replica::Pigeons.Replica
-    )
-    vi = replica.state
-    fct = DynamicPPL.LogDensityFunction(vi, log_potential.model, log_potential.context)
-    x_template = Zeros{typeof(DynamicPPL.getlogp(vi))}(log_potential.dimension)
-    return ADgradient(kind, fct, replica; x=x_template)
-end

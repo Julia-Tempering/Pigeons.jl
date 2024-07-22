@@ -27,12 +27,15 @@ As for autoMALA, the number of steps per exploration is
     """
     exponent_n_refresh::Float64 = 0.35  
     
-    """ 
-    The default backend to use for autodiff. 
+    """
+    The default backend to use for autodiff.
     See https://github.com/tpapp/LogDensityProblemsAD.jl#backends
 
-    Certain targets may ignore it, e.g. if a manual differential is 
+    Certain targets may ignore it, e.g. if a manual differential is
     offered or when calling an external program such as Stan.
+
+    For tape-based AD backends like ReverseDiff, compilation can be controlled using
+    [`Pigeons.set_tape_compilation_strategy!`](@ref).
     """
     default_autodiff_backend::Symbol = :ForwardDiff
 
@@ -97,7 +100,7 @@ function mala!(rng::AbstractRNG, explorer::MALA, target_log_potential, state::Ve
 end
 
 function explorer_recorder_builders(explorer::MALA)
-    result = [explorer_acceptance_pr, explorer_n_steps, buffers]
-    add_precond_recorder_if_needed!(result, explorer)
+    result = [explorer_acceptance_pr, explorer_n_steps]
+    gradient_based_sampler_recorders!(result, explorer)
     return result
 end

@@ -28,7 +28,7 @@ Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
     K::Int = 5 
 
     """ 
-    See details in AutoMALA. 
+    See details in [`AutoMALA`](@ref).
     """
     default_autodiff_backend::Symbol = :ForwardDiff 
 
@@ -201,7 +201,7 @@ function sample_segment!(
 end
 
 function explorer_recorder_builders(explorer::AAPS)
-    result = [explorer_acceptance_pr, explorer_n_steps, buffers]
-    add_precond_recorder_if_needed!(result, explorer)
+    result = [explorer_acceptance_pr, explorer_n_steps]
+    gradient_based_sampler_recorders!(result, explorer)
     return result
 end

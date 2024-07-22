@@ -9,14 +9,6 @@ using DynamicPPL
     return y
 end;
 
-# *Unidentifiable* unconditioned coinflip model with `N` observations.
-@model function coinflip_unidentifiable(y)
-    p1 ~ Uniform(0, 1)
-    p2 ~ Uniform(0, 1)
-    y .~ Bernoulli(p1*p2)
-    return y
-end;
-
 @model function coinflip_modified(y)
     p ~ Uniform(0.3, 0.7)
     # δ ~ Bernoulli(0.5)
@@ -44,8 +36,8 @@ end
 function flip_model_unidentifiable()
     p_true = 0.5;
     N = 100;
-    data = rand(Distributions.MersenneTwister(1), Bernoulli(p_true), N);
-    return coinflip_unidentifiable(data)
+    n_success = rand(Distributions.MersenneTwister(1), Binomial(N, p_true));
+    Pigeons.toy_turing_unid_target(N, n_success).model
 end
 
 function flip_model_modified()
