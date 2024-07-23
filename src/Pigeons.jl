@@ -86,6 +86,7 @@ end
     function __init__()
         @require BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a" include(joinpath(@__DIR__, "../ext/PigeonsBridgeStanExt/PigeonsBridgeStanExt.jl"))
         @require DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8" include(joinpath(@__DIR__, "../ext/PigeonsDynamicPPLExt/PigeonsDynamicPPLExt.jl"))
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(joinpath(@__DIR__, "../ext/PigeonsEnzymeExt/PigeonsEnzymeExt.jl"))
         @require ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210" include(joinpath(@__DIR__, "../ext/PigeonsForwardDiffExt/PigeonsForwardDiffExt.jl"))
         @require HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5" include(joinpath(@__DIR__, "../ext/PigeonsHypothesisTestsExt/PigeonsHypothesisTestsExt.jl"))
         @require MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d" include(joinpath(@__DIR__, "../ext/PigeonsMCMCChainsExt/PigeonsMCMCChainsExt.jl"))

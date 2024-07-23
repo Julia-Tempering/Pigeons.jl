@@ -34,15 +34,18 @@ function test_BufferedAD_usage(pt)
     @test int_ad.ref_ad === replica.recorders.ad_buffers.contents[:reference]
     @test int_ad.target_ad === replica.recorders.ad_buffers.contents[:target]
     
-    # target and ref share the same gradient buffer
+    # check that buffer is used, and that target and ref share the same gradient buffer
+    dy = last(LogDensityProblems.logdensity_and_gradient(int_ad.target_ad, fill(0.5,2)))
     if int_ad.ref_ad.buffer isa DiffResults.MutableDiffResult
         @test DiffResults.gradient(int_ad.ref_ad.buffer) === DiffResults.gradient(int_ad.target_ad.buffer)
+        @test DiffResults.gradient(int_ad.target_ad.buffer) === dy
     else
         @test int_ad.ref_ad.buffer === int_ad.target_ad.buffer
+        @test int_ad.target_ad.buffer === dy
     end
 end
 
-@testset "Correctness of BufferedAD backends versus Enzyme (unbuffered)" begin
+@testset "Correctness of BufferedAD backends" begin
     struct CustomUnidTarget 
         n_trials::Int
         n_successes::Int
@@ -81,7 +84,7 @@ end
             n_rounds = 6,
             explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
         )
-        test_BufferedAD_usage(pt_enzyme) # does not use in-place gradient but should still store the BufferedAD objects to avoid repeated calls
+        test_BufferedAD_usage(pt_enzyme)
 
         @testset "$backend" for backend in (:ForwardDiff, :ReverseDiff)
             pt = pigeons(
