@@ -133,7 +133,7 @@ future.
     exploration step.
 """
 function get_buffer(a::Augmentation{<:Dict{Symbol, BufferedAD}}, key::Symbol, args...)
-    dict = a.contents 
+    dict = a.contents
     if !haskey(dict, key)
         dict[key] = LogDensityProblemsAD.ADgradient(args...)
     end

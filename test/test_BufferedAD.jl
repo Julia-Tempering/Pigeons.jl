@@ -22,18 +22,26 @@ end
 
 function test_BufferedAD_usage(pt)
     replica = last(pt.replicas)
-
+    backend = pt.shared.explorer.default_autodiff_backend
+    
     # BufferedAD were created and stored
     @test haskey(replica.recorders.ad_buffers.contents, :target)
     @test haskey(replica.recorders.ad_buffers.contents, :reference)
     
     # ADgradient uses the stored BufferedAD 
     int_lp = Pigeons.find_log_potential(replica, pt.shared.tempering, pt.shared)
-    int_ad = ADgradient(pt.shared.explorer.default_autodiff_backend, int_lp, replica)
+    int_ad = ADgradient(backend, int_lp, replica)
     @test int_ad isa Pigeons.InterpolatedAD
     @test int_ad.ref_ad === replica.recorders.ad_buffers.contents[:reference]
     @test int_ad.target_ad === replica.recorders.ad_buffers.contents[:target]
     
+    # check that the stored BufferedAD is the correct one
+    # NB: can only check type equality because extra buffers can be different (e.g. for StanLogPotential)
+    ref_ad = ADgradient(backend, int_lp.path.ref, replica)
+    target_ad = ADgradient(backend, int_lp.path.target, replica)
+    @test typeof(int_ad.ref_ad) === typeof(ref_ad)
+    @test typeof(int_ad.target_ad) === typeof(target_ad)
+
     # target and ref share the same gradient buffer
     if int_ad.ref_ad.buffer isa DiffResults.MutableDiffResult
         @test DiffResults.gradient(int_ad.ref_ad.buffer) === DiffResults.gradient(int_ad.target_ad.buffer)
@@ -99,4 +107,20 @@ end
         end
     end
     Pigeons.set_tape_compilation_strategy!(true) # reverse setting
+end
+
+@testset "Variational reference elides the AD augmentation" begin
+    target = Pigeons.toy_stan_unid_target(100)
+    pt = pigeons(
+        target = target,
+        variational = GaussianReference(),
+        n_chains = 5,
+        n_chains_variational = 5,
+        n_rounds = 7
+    )
+    replica = pt.replicas[end];
+    var_ref = pt.shared.tempering.variational_leg.path.ref
+    var_ref_ad = Pigeons.get_buffer(replica.recorders.ad_buffers, :reference, Val(:ForwardDiff), var_ref, replica)
+    @test var_ref_ad === ADgradient(Val(:ForwardDiff), var_ref, replica)
+    @test var_ref_ad != Pigeons.get_buffer(replica.recorders.ad_buffers, :reference, Val(:ForwardDiff), target, replica)
 end
