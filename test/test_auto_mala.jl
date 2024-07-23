@@ -127,9 +127,9 @@ pigeons_precond_automala(target, reference, preconditioner) =
     dim = 2
     mu  = 8.
     mixture_target = DistributionLogPotential(MixtureModel(
-        [MvNormal(fill(-mu,dim), I), MvNormal(fill(mu,dim), I)]
+        [MvNormal(Fill(-mu,dim), I), MvNormal(Fill(mu,dim), I)]
     ))
-    reference = DistributionLogPotential(MvNormal(fill(0., dim), mu*mu*I))
+    reference = DistributionLogPotential(MvNormal(Fill(0., dim), mu*mu*I))
     
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.IdentityPreconditioner())
     max_ac1_id = maximum(Pigeons.energy_ac1s(pt))
