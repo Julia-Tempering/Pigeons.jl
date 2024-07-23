@@ -29,7 +29,7 @@ function LogDensityProblems.logdensity_and_gradient(
     b::Pigeons.BufferedAD{<:EnzymeGradientLogDensity},
     x::AbstractVector
     )
-    ∂ℓ_∂x = fill!(b.buffer, zero(eltype(b.buffer)))
+    ∂ℓ_∂x = fill!(b.buffer, zero(eltype(b.buffer))) # NB: Enzyme gives erroneous answer if buffer is not zeroed first
     _, y = Enzyme.autodiff(
         Enzyme.ReverseWithPrimal, LogDensityProblems.logdensity, Enzyme.Active,
         Enzyme.Const(b.enclosed.ℓ), Enzyme.Duplicated(x, ∂ℓ_∂x)
