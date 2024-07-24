@@ -48,6 +48,4 @@ $SIGNATURES
 Create a JSON string based on the scalar or array variables
 provided.
 """
-
-
-json(; variables...) = JSON.json(Dict(pairs(variables)))
+json(; variables...) = JSON.json(variables)
