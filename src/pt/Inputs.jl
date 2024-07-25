@@ -20,10 +20,14 @@ $FIELDS
     n_chains::Int = 10
 
     """ 
-    The number of chains to use for an additional variational reference leg. 
-    Set to zero to disable (default). 
-    Variational inference can also be performed using a single leg, however 
-    the two-leg version is more stable: see https://arxiv.org/abs/2206.00080
+    The number of chains to use for a variational leg of parallel tempering. 
+    The default value is zero. If the variational argument is not specified, 
+    this argument does nothing. Otherwise, a value of zero corresponds
+    to basic single-leg variational parallel tempering, where the number of 
+    chains is taken from the `n_chains` argument. A positive value yields "stabilized" 
+    two-leg variational parallel tempering. In that case, the number of chains for the 
+    prior-reference leg is taken from `n_chains`, and the number of chains for the variational
+    leg is taken from this argument. See https://arxiv.org/abs/2206.00080
     """
     n_chains_variational::Int = 0
 
