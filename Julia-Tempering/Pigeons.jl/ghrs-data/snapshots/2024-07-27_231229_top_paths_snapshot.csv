@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Julia-Tempering/Pigeons.jl,44,25
+/Julia-Tempering/Pigeons.jl/commits/main,28,2
+/Julia-Tempering/Pigeons.jl/tree/main/src,20,6
+/Julia-Tempering/Pigeons.jl/tree/main/src/explorers,20,3
+/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/eight_schools_noncentered.stan,18,1
+/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/eight_schools_centered.stan,16,1
+/Julia-Tempering/Pigeons.jl/tree/main/examples,15,2
+/Julia-Tempering/Pigeons.jl/blob/main/src/explorers/AutoMALA.jl,14,2
+/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/eight_schools.json,14,1
+/Julia-Tempering/Pigeons.jl/blob/main/src/explorers/SliceSampler.jl,10,2
