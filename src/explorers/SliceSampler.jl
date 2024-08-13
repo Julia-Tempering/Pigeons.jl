@@ -166,6 +166,11 @@ function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, l
         else
             Rbar = new_position
         end
+        if Lbar ≈ Rbar 
+            # see https://github.com/UBC-Stat-ML/blangSDK/blob/b8642c9c2a0adab8a5b6da96f2a7889f1b81b6cc/src/main/java/blang/mcmc/RealSliceSampler.java#L111
+            pointer[] = old_position 
+            return log_potential(state) 
+        end
         n += 1
     end
     # code should never get here, because eventually
