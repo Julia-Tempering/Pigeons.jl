@@ -134,6 +134,7 @@ end
 
 # handle integers separately
 function initialize_slice_endpoints(current::T, width, rng) where {T<:Integer}
+    @assert isinteger(width) "for integer variables, the width should be an integer. Got: $width"
     width = ceil(T, width)
     L = current - rand(rng, 0:width)
     R = L + width
