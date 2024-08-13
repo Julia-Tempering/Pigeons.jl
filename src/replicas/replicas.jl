@@ -98,4 +98,4 @@ function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, ::Not
 end
 
 # default method: defer to user-provided method for their target
-initialization(inp::Inputs, rng::AbstractRNG, replica_index::Int64) = initialization(inp.target, rng, replica_index)
+initialization(inp::Inputs, args...) = initialization(inp.target, args...)
