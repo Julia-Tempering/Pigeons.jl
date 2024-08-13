@@ -25,6 +25,7 @@ As a side-product of parallel tempering, we automatically obtain an approximatio
 It is shown in the [standard output report](@ref output-reports) produced at each round:
 
 ```@example constants
+using DynamicPPL
 using Pigeons
 
 # example target: Binomial likelihood with parameter p = p1 * p2

@@ -29,6 +29,7 @@ so that setting the number of chains to one reduces to a
 standard MCMC algorithm. 
 
 ```@example why
+using DynamicPPL
 using Pigeons
 using MCMCChains
 using StatsPlots

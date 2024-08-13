@@ -28,7 +28,7 @@ Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
     K::Int = 5 
 
     """ 
-    See details in AutoMALA. 
+    See details in [`AutoMALA`](@ref).
     """
     default_autodiff_backend::Symbol = :ForwardDiff 
 
@@ -58,7 +58,7 @@ Extract info common to all types of target and perform a step!()
 =#
 function _extract_commons_and_run!(explorer::AAPS, replica, shared, log_potential, state::AbstractVector)
     log_potential_autodiff = ADgradient(
-        explorer.default_autodiff_backend, log_potential, replica.recorders.buffers
+        explorer.default_autodiff_backend, log_potential, replica
     )
     aaps!(
         replica.rng,
@@ -201,7 +201,7 @@ function sample_segment!(
 end
 
 function explorer_recorder_builders(explorer::AAPS)
-    result = [explorer_acceptance_pr, explorer_n_steps, buffers]
-    add_precond_recorder_if_needed!(result, explorer)
+    result = [explorer_acceptance_pr, explorer_n_steps]
+    gradient_based_sampler_recorders!(result, explorer)
     return result
 end

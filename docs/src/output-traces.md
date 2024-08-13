@@ -12,7 +12,8 @@ a Monte Carlo average of the form ``\sum_i f(X_i) / n``.
 To indicate that the traces should be saved, use
 
 ```@example record-traces
-using Pigeons 
+using DynamicPPL
+using Pigeons
 
 target = Pigeons.toy_turing_unid_target(100, 50)
 

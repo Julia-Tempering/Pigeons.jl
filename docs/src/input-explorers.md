@@ -13,7 +13,7 @@ exploration MCMC kernels.
 ```@setup explorer
 using Pigeons 
 using Random
-using StatsFuns
+using Distributions
 
 struct MyLogPotential 
     n_trials::Int
@@ -26,7 +26,7 @@ function (log_potential::MyLogPotential)(x)
         return -Inf64 
     end
     p = p1 * p2
-    return StatsFuns.binomlogpdf(log_potential.n_trials, p, log_potential.n_successes)
+    return logpdf(Binomial(log_potential.n_trials, p), log_potential.n_successes)
 end
 
 Pigeons.initialization(::MyLogPotential, ::AbstractRNG, ::Int) = [0.5, 0.5]

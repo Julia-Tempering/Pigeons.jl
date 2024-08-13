@@ -98,7 +98,7 @@ function single_chain_pigeons_mvn(logp, explorer)
     )
     vs = get_sample(pt, 1) 
     @show ess_value = compute_ess(vs) 
-    @show n_steps = Pigeons.explorer_n_steps(pt)[1]
+    @show n_steps = first(Pigeons.explorer_n_steps(pt))
     return n_steps, ess_value
 end
 

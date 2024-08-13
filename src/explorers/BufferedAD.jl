@@ -5,12 +5,12 @@ For example, used by stan log potentials.
 Fields: 
 $FIELDS
 """
-struct BufferedAD{T, L, S}
+struct BufferedAD{T, B, L, S}
     """ A struct satisfying the `LogDensityProblems` informal interface. """
     enclosed::T
     
     """ The buffer used for in-place gradient computation. """
-    buffer::Vector{Float64}
+    buffer::B
 
     """ A buffer for logdensity eval. """
     logd_buffer::L 
@@ -19,7 +19,7 @@ struct BufferedAD{T, L, S}
     err_buffer::S
 end
 LogDensityProblems.logdensity(buffered::BufferedAD, x) = LogDensityProblems.logdensity(buffered.enclosed, x)
-LogDensityProblems.dimension(buffered::BufferedAD) = length(buffered.buffer)
+LogDensityProblems.dimension(buffered::BufferedAD) = LogDensityProblems.dimension(buffered.enclosed)
 BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buffer = nothing) = 
     BufferedAD(
         log_potential,
@@ -27,6 +27,21 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
         logd_buffer, 
         err_buffer 
 )
+
+# translate Symbol to Val
+# TODO: should we move to ADTypes?
+LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential, replica::Replica; kwargs...) = 
+    ADgradient(Val{kind}(), log_potential, replica; kwargs...)
+
+# default implementation of the ADgradient interface
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential, replica::Replica; kwargs...) =
+    ADgradient(kind, log_potential, replica.recorders.buffers; kwargs...)
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential, buffers::Augmentation; kwargs...) =
+    Pigeons.BufferedAD(ADgradient(kind, log_potential; kwargs...), buffers)
+
+# default case does not use the buffer
+LogDensityProblems.logdensity_and_gradient(buffered::BufferedAD, x) = 
+    LogDensityProblems.logdensity_and_gradient(buffered.enclosed, x)
 
 """
 The target and reference may used different autodiff frameworks; 
@@ -58,16 +73,19 @@ $FIELDS
     buffer::Vector{Float64}
 end
 
-LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential, buffers::Augmentation) = 
-    LogDensityProblemsAD.ADgradient(kind, log_potential)
-
-LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::InterpolatedLogPotential{InterpolatingPath{R, T, LinearInterpolator}, B}, buffers::Augmentation)  where {R, T, B} = 
-    InterpolatedAD(
-        log_potential,
-        LogDensityProblemsAD.ADgradient(kind, log_potential.path.ref, buffers), 
-        LogDensityProblemsAD.ADgradient(kind, log_potential.path.target, buffers), 
-        get_buffer(buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(log_potential.path.ref))
+function LogDensityProblemsAD.ADgradient(
+    kind::Val,
+    log_potential::InterpolatedLogPotential{<:InterpolatingPath{<:Any,<:Any,LinearInterpolator}},
+    replica::Replica
     )
+    ad_buffers = replica.recorders.ad_buffers
+    ref_ad = get_buffer(ad_buffers, :reference, kind, log_potential.path.ref, replica)
+    target_ad = get_buffer(ad_buffers, :target, kind, log_potential.path.target, replica)
+    InterpolatedAD(
+        log_potential, ref_ad, target_ad,
+        get_buffer(replica.recorders.buffers, :gradient_interpolated_buffer, LogDensityProblems.dimension(ref_ad))
+    )
+end
 
 function LogDensityProblems.logdensity(log_potential::InterpolatedAD, x) 
     l1 = LogDensityProblems.logdensity(log_potential.ref_ad, x)
@@ -92,4 +110,55 @@ function LogDensityProblems.logdensity_and_gradient(log_potential::InterpolatedA
     buffer .= buffer .+ g .* beta
 
     return logdens, buffer
+end
+
+"""
+$SIGNATURES 
+
+An [`Augmentation`](@ref) for [`Pigeons.BufferedAD`](@ref).
+"""
+ad_buffers() = buffers(Pigeons.BufferedAD)
+
+"""
+$SIGNATURES 
+
+Return a [`Pigeons.BufferedAD`](@ref) if it exists in the [`Augmentation`](@ref).
+Otherwise it constructs one and then stores it to avoid reconstructing it in the
+future.
+
+!!! note
+    This implementation is not type stable (the value type of the `Dict` is not 
+    concrete). However, the runtime dispatch cost incurred should be more than 
+    compensated by the ability to avoid reconstructing AD objects at each 
+    exploration step.
+"""
+function get_buffer(a::Augmentation{<:Dict{Symbol, BufferedAD}}, key::Symbol, args...)
+    dict = a.contents
+    if !haskey(dict, key)
+        dict[key] = LogDensityProblemsAD.ADgradient(args...)
+    end
+    return dict[key]
+end
+
+#=
+A flag for determining whether tape compilation should be used in some AD systems
+=#
+const COMPILE_TAPE = Ref(true)
+
+"""
+$SIGNATURES 
+
+Get the current Pigeons-wide tape compilation strategy for tape-based AD backends.
+Currently this is only used for [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl).
+"""
+get_tape_compilation_strategy() = COMPILE_TAPE[]
+
+"""
+$SIGNATURES 
+
+Set the Pigeons-wide tape compilation strategy for tape-based AD backends.
+Currently this is only used for [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl).
+"""
+function set_tape_compilation_strategy!(compile::Bool)
+    COMPILE_TAPE[] = compile
 end

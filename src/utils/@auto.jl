@@ -32,7 +32,7 @@ macro auto(expr)
 end
 
 
-# Parse whole struct definition for the @concrete macro
+# Parse whole struct definition for the @auto macro
 function _concretize(expr)
     expr isa Expr && expr.head == :struct || error("Invalid usage of @auto")
     

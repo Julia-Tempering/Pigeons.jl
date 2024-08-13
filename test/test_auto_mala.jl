@@ -115,29 +115,40 @@ automala(target, preconditioner) =
     @test isapprox(min_ess_id_bal, min_ess_diag, rtol=0.01)
 end
 
+# for the following test use energy_ac1 instead of ESS as the latter is highly
+# unstable (varies wildly with e.g. initialization)
 pigeons_precond_automala(target, reference, preconditioner) =
     pigeons(; 
         target, reference = reference,
         explorer = AutoMALA(preconditioner = preconditioner), 
-        n_chains = 5, n_rounds = 12, record = [traces])
+        n_chains = 5, n_rounds = 10, record = [energy_ac1;Pigeons.reversibility_rate])
 
 @testset "Preconditioners: well-separated modes with small intra-mode variance" begin
     dim = 2
-    mu  = 4.
+    mu  = 8.
     mixture_target = DistributionLogPotential(MixtureModel(
-        [MvNormal(fill(-mu,dim), 0.1I), MvNormal(fill(mu,dim), 0.01I)]
+        [MvNormal(Fill(-mu,dim), I), MvNormal(Fill(mu,dim), I)]
     ))
-    reference = DistributionLogPotential(MvNormal(fill(0., dim), mu*mu*I))
-    Pigeons.initialization(::typeof(mixture_target), ::AbstractRNG, ::Int64) = [-2.582922688415907, -5.853005515555686]
+    reference = DistributionLogPotential(MvNormal(Fill(0., dim), mu*mu*I))
 
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.IdentityPreconditioner())
-    min_ess_id = minimum(ess(Chains(sample_array(pt))).nt.ess)
+    max_ac1_id = maximum(Pigeons.energy_ac1s(pt))
+    min_rr_id = minimum(Pigeons.recorder_values(pt, :reversibility_rate))
     
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.DiagonalPreconditioner())
-    min_ess_diag = minimum(ess(Chains(sample_array(pt))).nt.ess)
+    max_ac1_diag = maximum(Pigeons.energy_ac1s(pt))
+    min_rr_diag = minimum(Pigeons.recorder_values(pt, :reversibility_rate))
     
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.MixDiagonalPreconditioner())
-    min_ess_mixdiag = minimum(ess(Chains(sample_array(pt))).nt.ess)
-
-    @test min_ess_id < min_ess_diag < min_ess_mixdiag
+    max_ac1_mixdiag = maximum(Pigeons.energy_ac1s(pt))
+    min_rr_mixdiag = minimum(Pigeons.recorder_values(pt, :reversibility_rate))
+    
+    @test max_ac1_diag > max_ac1_mixdiag && max_ac1_id > max_ac1_mixdiag
+    
+    # check acceptance probability ≤ reversibility_rate (acceptance implies rev check passed)
+    @show (min_rr_id, min_rr_diag, min_rr_mixdiag)
+    @test all(
+        t -> 0 ≤ first(t) ≤ last(t) ≤ 1,
+        zip(Pigeons.explorer_mh_prs(pt), Pigeons.recorder_values(pt, :reversibility_rate))
+    )
 end

@@ -104,3 +104,17 @@ end
 @testset "SliceSampler" begin
     test_slice_sampler()
 end
+
+
+DynamicPPL.@model function test()
+    p ~ Categorical(0.1*ones(10))
+end
+
+
+@testset "Bad width" begin 
+    test_target = TuringLogPotential(test())
+    inputs = Inputs(target = test_target,
+                explorer = SliceSampler(w = 0.1, p = 20, n_passes = 1, max_iter = 1_024)
+                )
+    @test_throws "AssertionError: for integer variables, the width should be an integer. Got: 0.1" pt = pigeons(inputs)
+end
