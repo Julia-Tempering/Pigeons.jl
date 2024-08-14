@@ -130,7 +130,7 @@ pigeons_precond_automala(target, reference, preconditioner) =
         [MvNormal(Fill(-mu,dim), I), MvNormal(Fill(mu,dim), I)]
     ))
     reference = DistributionLogPotential(MvNormal(Fill(0., dim), mu*mu*I))
-    
+
     pt = pigeons_precond_automala(mixture_target, reference, Pigeons.IdentityPreconditioner())
     max_ac1_id = maximum(Pigeons.energy_ac1s(pt))
     min_rr_id = minimum(Pigeons.recorder_values(pt, :reversibility_rate))

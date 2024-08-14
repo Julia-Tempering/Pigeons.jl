@@ -11,7 +11,7 @@ n_mpis = set_n_mpis_to_one_on_windows(2)
         p = p1 * p2
         return n_successes*log(p) + (n_trials-n_successes)*log1p(-p)
     end
-    Pigeons.initialization(::typeof(unid_log_potential), _, _) = [0.5, 0.5]
+    Pigeons.initialization(::typeof(unid_log_potential), ::AbstractRNG, ::Int64) = [0.5, 0.5]
     ref_dist = product_distribution([Uniform(), Uniform()])
     pt = pigeons(
         target    = unid_log_potential,
