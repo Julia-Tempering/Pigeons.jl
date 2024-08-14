@@ -169,6 +169,7 @@ function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, l
         if Lbar ≈ Rbar 
             # see https://github.com/UBC-Stat-ML/blangSDK/blob/b8642c9c2a0adab8a5b6da96f2a7889f1b81b6cc/src/main/java/blang/mcmc/RealSliceSampler.java#L111
             pointer[] = old_position 
+            @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, n))
             return log_potential(state) 
         end
         n += 1
