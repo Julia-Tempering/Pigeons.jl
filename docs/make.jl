@@ -23,7 +23,7 @@ PlotlyJS.set_default_renderer(PlotlyJS.DOCS)
 
 DocMeta.setdocmeta!(Pigeons, :DocTestSetup, :(using Pigeons); recursive=true)
 
-#InferenceReport.headless() do
+InferenceReport.headless() do
     makedocs(;
         modules=[Pigeons],
         authors="Miguel Biron-Lattes <miguel.biron@stat.ubc.ca>, Alexandre Bouchard-Côté <alexandre.bouchard@gmail.com>, Trevor Campbell <trevor@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Saifuddin Syed <saifuddin.syed@stats.ox.ac.uk>, Paul Tiede <ptiede91@gmail.com>",
@@ -75,7 +75,7 @@ DocMeta.setdocmeta!(Pigeons, :DocTestSetup, :(using Pigeons); recursive=true)
             "Google Summer of Code" => "gsoc.md"
         ],
     )
-#end
+end
 
 rm(joinpath(script_dir, "build", "results"), recursive=true) # delete `results` folder before deploying
 
