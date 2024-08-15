@@ -100,7 +100,7 @@ Here is an example using [`AutoMALA`](@ref)—a gradient-based sampler—instead
 AD system that supports targets written in plain Julia. Enzyme is considerably faster than the default
 [ForwardDiff](https://juliadiff.org/ForwardDiff.jl/), whose main advantage is compatibility 
 with a broader range of targets. Many other AD backends are supported by the
-[LogDensityProblemsAD.jl](https://github.com/tpapp/LogDensityProblemsAD.jl) interface.
+[LogDensityProblemsAD.jl](https://github.com/tpapp/LogDensityProblemsAD.jl) interface (`:Enzyme`, `:ForwardDiff`, `:Zygote`, `:ReverseDiff`, etc).
 
 To proceed, we only need to add methods to make our custom type `MyLogPotential` conform to the 
 [LogDensityProblems interface](https://github.com/tpapp/LogDensityProblems.jl):
@@ -126,6 +126,60 @@ However when the state space is neither the reals nor the integers,
 or for performance reasons, it may be necessary to create custom 
 exploration MCMC kernels.
 This is described on the [custom explorers page](@ref input-explorers).
+
+## Custom gradients 
+
+In some situations it may be helpful to compute gradients explicitly 
+(performance, unsupported primitives, etc). 
+One method to do so is to use autodiff-specific machinery, 
+see for example the [Enzyme documentation](https://enzyme.mit.edu/julia/stable/generated/custom_rule/). 
+In addition, Pigeons also has an AD framework-agnostic method to provide 
+explicit gradients, supporting replica-specific, in-place 
+buffers (this functionality was developed to support efficient interfacing with Stan). 
+Using this is demonstrated below:
+
+```@example custom_ad
+using Pigeons
+using Random
+using LogDensityProblems
+using LogDensityProblemsAD
+
+struct CustomGradientLogPotential
+    precision::Float64
+    dim::Int
+end
+function (log_potential::CustomGradientLogPotential)(x)
+    -0.5 * log_potential.precision * sum(abs2, x)
+end
+
+Pigeons.initialization(lp::CustomGradientLogPotential, ::AbstractRNG, ::Int) = zeros(lp.dim)
+
+LogDensityProblems.dimension(lp::CustomGradientLogPotential) = lp.dim
+LogDensityProblems.logdensity(lp::CustomGradientLogPotential, x) = lp(x)
+
+LogDensityProblemsAD.ADgradient(::Val, log_potential::CustomGradientLogPotential, replica::Pigeons.Replica) =
+     Pigeons.BufferedAD(log_potential, replica.recorders.buffers)
+
+const check_custom_grad_called = Ref(false)
+
+function LogDensityProblems.logdensity_and_gradient(log_potential::Pigeons.BufferedAD{CustomGradientLogPotential}, x)
+    logdens = log_potential.enclosed(x)
+    global check_custom_grad_called[] = true
+    log_potential.buffer .= -log_potential.enclosed.precision .* x
+    return logdens, log_potential.buffer
+end
+
+pigeons(
+    target = CustomGradientLogPotential(2.1, 4), 
+    reference = CustomGradientLogPotential(1.1, 4), 
+    n_chains = 1,
+    n_rounds = 5,
+    explorer = AutoMALA())
+
+@assert check_custom_grad_called[]
+
+nothing # hide
+```
 
 
 ## Manipulating the output
