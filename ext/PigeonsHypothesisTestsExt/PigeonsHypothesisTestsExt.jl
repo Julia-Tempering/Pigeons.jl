@@ -53,15 +53,9 @@ function Pigeons.invariance_test(
 
     # inspect results
     failed_tests = findall(<(corrected_pvalue_threshold), pvalues)
-    passed = if length(failed_tests) > 0
-        @warn "Some invariance tests failed; inspect the output."
-        false
-    else
-        @info "All invariance tests passed :)"
-        true
-    end
+    passed = length(failed_tests) == 0
 
-    return (;passed=passed, pvalues=pvalues, failed_tests=failed_tests)
+    return (; passed, pvalues, failed_tests)
 end
 
 end # End module
