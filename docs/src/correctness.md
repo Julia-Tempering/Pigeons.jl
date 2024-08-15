@@ -62,7 +62,8 @@ process will have its own copy of the global variables.
 ## Correctness checks of MCMC kernels
 
 Pigeons offers a tool, the Exact Invariance Test (EIT), to help validating 
-correctness of MCMC kernels. EIT tests the null hypothesis that the provided explorer is 
+correctness of MCMC kernels. It formulates an hypothesis test where the 
+null hypothesis is that the provided [`explorer`](@ref) kernel is 
 invariant with respect to the target distribution.
 For details, see 
 [Bouchard-Côté, 2022, Section 10.5](https://www.jstatsoft.org/article/view/v103i11) or [this tutorial](https://ubc-stat-ml.github.io/web447/w12_mcmc2/topic08_debug.html). 
