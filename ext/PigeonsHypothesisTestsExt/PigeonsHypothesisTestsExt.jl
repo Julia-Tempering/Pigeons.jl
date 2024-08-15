@@ -20,7 +20,7 @@ converted to `Vector{<:Real}`, using two-sample tests from `HypothesisTests.jl`.
 function Pigeons.invariance_test(
     target, 
     explorer, 
-    rng::SplittableRandom,
+    rng::SplittableRandom = SplittableRandom(1),
     ::Type{two_sample_hypothesis_test} = ApproximateTwoSampleKSTest;
     n_iid_samples::Integer = 10_000,
     marginal_pvalue_threshold::Real = 0.005,

@@ -64,7 +64,9 @@ function Pigeons.step!(explorer::MyIndependenceSampler, replica, shared)
 end
 ```
 
-## Creating combinations of explorers
+
+
+## Combinations of explorers
 
 To alternate between two explorers, use [`Compose`](@ref): for example continuing on 
 our example, we want to alternate between sampling the two parameters of our model:
@@ -77,6 +79,9 @@ pt = pigeons(
     )
 nothing # hide
 ```
+
+Similarly, use [`Mix`](@ref) to create a mixture of explorers. 
+
 
 ## Adaptation
 
