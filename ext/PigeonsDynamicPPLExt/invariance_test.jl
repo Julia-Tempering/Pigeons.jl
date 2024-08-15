@@ -12,6 +12,7 @@ function Pigeons.forward_sample_condition_and_explore(
     model::DynamicPPL.Model,
     explorer,
     rng::SplittableRandom;
+    run_explorer::Bool = true,
     condition_on::NTuple{N,Symbol}
     ) where {N}
     # forward simulation
@@ -35,12 +36,13 @@ function Pigeons.forward_sample_condition_and_explore(
     state = DynamicPPL.TypedVarInfo(cond_vi)
     DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), conditioned_model)
 
-    # record starting values and then take a step with explorer
-    init_values = DynamicPPL.getall(state)
-    final_state = Pigeons.explorer_step(rng, TuringLogPotential(conditioned_model), explorer, state)
+    # maybe take a step with explorer
+    if run_explorer
+        state = Pigeons.explorer_step(rng, TuringLogPotential(conditioned_model), explorer, state)
+    end
 
-    # return initial and final values
-    return (;init_values=init_values, final_values=DynamicPPL.getall(final_state))
+    # return a flattened version of state
+    return DynamicPPL.getall(state)
 end
 
 Pigeons.forward_sample_condition_and_explore(target::TuringLogPotential, args...; kwargs...) =

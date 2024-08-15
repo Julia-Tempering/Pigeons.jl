@@ -21,7 +21,6 @@ using HypothesisTests
 
         res = Pigeons.invariance_test(target, IdentityExplorer(), rng; condition_on=(:n_successes,))
         @test res.passed
-        @test all(==(1), res.pvalues)
     end
 
     @testset "Test a true positive" begin
