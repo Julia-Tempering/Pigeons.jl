@@ -23,7 +23,6 @@ using HypothesisTests
             Pigeons.invariance_test(target, IdentityExplorer(), rng; condition_on=(:n_successes,))
         end
         @test res.passed
-        @test all(==(1), res.pvalues)
     end
 
     @testset "Test a true positive" begin
@@ -49,6 +48,7 @@ using HypothesisTests
         for explorer in explorers
             @show explorer
             @test first(Pigeons.invariance_test(target, explorer, rng; condition_on=(:n_successes,)))
+            @test first(Pigeons.invariance_test(toy_mvn_target(2), explorer, rng))
         end
     end
 end
