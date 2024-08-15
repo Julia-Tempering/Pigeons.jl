@@ -24,8 +24,9 @@ The workhorse under [`invariance_test`](@ref). It starts with a full forward pas
 for the probabilistic model underlying `target`, thats simulates latent variables and
 observations. Then a modified model is created that conditions the original model
 on the observations produced. Finally, the function takes a step using the explorer
-targetting the conditioned model. The function returns both pre- and post-exploration
-states.
+targetting the conditioned model and the final state is returned. The exploration
+can be optionally disabled by passing `run_explorer=false`, in which case the
+initial simulated state is returned.
 """
 function forward_sample_condition_and_explore end
 
@@ -48,4 +49,29 @@ function explorer_step(rng::SplittableRandom, target, explorer, init_state)
     replica   = Pigeons.Replica(init_state, 1, rng, recorders, 1)
     Pigeons.step!(explorer, replica, shared)
     return replica.state
+end
+
+
+#=
+Implementations of forward_sample_condition_and_explore for Pigeons' toy targets
+that allow forward simulation
+=#
+
+"""
+$SIGNATURES 
+
+Implementation for [`ScaledPrecisionNormalPath`](@ref). Since this toy model 
+allows direct iid sampling from the target, conditioning is not necessary.
+"""
+function forward_sample_condition_and_explore(
+    target::ScaledPrecisionNormalPath,
+    explorer,
+    rng::SplittableRandom;
+    run_explorer::Bool = true
+    )
+    state = initialization(target, rng, 1) # forward simulation
+    if run_explorer
+        state = explorer_step(rng, target, explorer, state)
+    end
+    return state
 end
