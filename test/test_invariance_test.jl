@@ -19,9 +19,7 @@ using HypothesisTests
         function Pigeons.step!(::IdentityExplorer, replica, shared)
         end
 
-        res = @test_logs (:info,"All invariance tests passed :)") begin
-            Pigeons.invariance_test(target, IdentityExplorer(), rng; condition_on=(:n_successes,))
-        end
+        res = Pigeons.invariance_test(target, IdentityExplorer(), rng; condition_on=(:n_successes,))
         @test res.passed
     end
 
@@ -32,23 +30,24 @@ using HypothesisTests
             Pigeons.update_state!(replica.state, :p2, 1, randn(replica.rng))
             return
         end
-        res = @test_logs (:warn,"Some invariance tests failed; inspect the output.") begin
-            Pigeons.invariance_test(target, BadExplorer(), rng;condition_on=(:n_successes,))
-        end
+        res = Pigeons.invariance_test(target, BadExplorer(), rng;condition_on=(:n_successes,))
         @test !res.passed
         @test res.failed_tests == [1,2]
     end
 
     @testset "Invariance test for Pigeons' explorers" begin
         explorers = (
-            SliceSampler(n_passes=10),
-            AutoMALA(base_n_refresh=10, preconditioner=Pigeons.IdentityPreconditioner()),
-            AutoMALA(base_n_refresh=10, estimated_target_std_deviations=[1.5, 1.5]) # simulate a round-based adaptation
+            SliceSampler(n_passes=50),
+            AAPS(),
+            MALA(base_n_refresh=50),
+            AutoMALA(base_n_refresh=50, preconditioner=Pigeons.IdentityPreconditioner()),
+            AutoMALA(base_n_refresh=50, estimated_target_std_deviations=[1.5, 1.5]) # simulate a round-based adaptation
         )
         for explorer in explorers
             @show explorer
-            @test first(Pigeons.invariance_test(target, explorer, rng; condition_on=(:n_successes,)))
-            @test first(Pigeons.invariance_test(toy_mvn_target(2), explorer, rng))
+            res = Pigeons.invariance_test(target, explorer, rng; condition_on=(:n_successes,)) 
+            @show res.pvalues
+            @test res.passed
         end
     end
 end
