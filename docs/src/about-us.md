@@ -10,6 +10,7 @@ to become a part of our team feel free to reach out!
 
 ## Team Members (chronological order)
 
+```@raw html
 <div style="display: flex; align-items: center; margin-bottom: 20px;">
     <img src="../img/alex.png" alt="Alexandre Bouchard-Côté" style="width: 100px; height: 100px; border-radius: 50%; margin-right: 20px;">
     <div>
@@ -99,3 +100,4 @@ to become a part of our team feel free to reach out!
         University of British Columbia 
     </div>
 </div>
+```
