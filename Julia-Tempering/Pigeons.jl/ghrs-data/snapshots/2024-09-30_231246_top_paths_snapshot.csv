@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Julia-Tempering/Pigeons.jl,97,38
+/Julia-Tempering/Pigeons.jl/blob/main/ext/PigeonsBridgeStanExt/interface.jl,24,2
+/Julia-Tempering/Pigeons.jl/blob/main/src/targets/StreamTarget.jl,23,1
+/Julia-Tempering/Pigeons.jl/tree/main/test/supporting,23,1
+/Julia-Tempering/Pigeons.jl/tree/main/test,21,3
+/Julia-Tempering/Pigeons.jl/tree/main/src,19,2
+/Julia-Tempering/Pigeons.jl/blob/main/ext/PigeonsBridgeStanExt/state.jl,18,2
+/Julia-Tempering/Pigeons.jl/blob/main/test/supporting/postdb.jl,17,2
+/Julia-Tempering/Pigeons.jl/blob/main/src/targets/StanLogPotential.jl,15,3
+/Julia-Tempering/Pigeons.jl/blob/main/src/targets/target.jl,13,2
