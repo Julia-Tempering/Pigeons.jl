@@ -43,7 +43,7 @@ end
 
 function Serialization.deserialize(s::AbstractSerializer, ::Type{Augmentation{T}}) where {T}
     serialize_field = Serialization.deserialize(s)
-    contents = serialize_field ? Serialization.deserialize(s) : nothing
+    contents = serialize_field ? Serialization.deserialize(s) : T()
     return Augmentation{T}(contents, serialize_field)
 end
 
