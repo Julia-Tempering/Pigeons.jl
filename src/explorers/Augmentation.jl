@@ -8,7 +8,7 @@ avoiding race-conditions between replicas. For an application, see [`buffers`](@
 
 $FIELDS
 """
-struct Augmentation{T}
+struct Augmentation{T} # For serialization purpose T should support zero-arg constructor T()
     """
     The payload. Can be `nothing` for efficiency purposes. 
     """
