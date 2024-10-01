@@ -10,24 +10,13 @@ $FIELDS
 """
 struct Augmentation{T}
     """
-    The payload. Can be `nothing` for efficiency purposes. 
+    The payload. (`nothing` is used for efficiency purposes). 
     """
     contents::Union{T,Nothing}
-    
-    """
-    When it is volatile, i.e. can be 
-    reconstructed on the fly and is only 
-    stored for efficiency purpose, it is 
-    not worth serializing it
-    """
-    serialize::Bool
 end
 
-# by default, do not serialize
-Augmentation(contents) = Augmentation(contents, false)
-
 # reducing Augmentations is meaningless; do minimum effort
-Base.merge(::Augmentation{T}, ::Augmentation{T}) where {T} = Augmentation{T}(nothing, false)
+Base.merge(::Augmentation{T}, ::Augmentation{T}) where {T} = Augmentation{T}(nothing)
 
 # In this case we do not want to lose the augmentation at the end of the round
 function Base.empty!(::Augmentation) end
@@ -35,16 +24,12 @@ function Base.empty!(::Augmentation) end
 function Serialization.serialize(s::AbstractSerializer, instance::Augmentation{T}) where {T}
     Serialization.writetag(s.io, Serialization.OBJECT_TAG)
     Serialization.serialize(s, Augmentation{T})
-    Serialization.serialize(s, instance.serialize)
-    if instance.serialize 
-        Serialization.serialize(s, instance.contents)
-    end
+    Serialization.serialize(s, instance.contents)
 end
 
 function Serialization.deserialize(s::AbstractSerializer, ::Type{Augmentation{T}}) where {T}
-    serialize_field = Serialization.deserialize(s)
-    contents = serialize_field ? Serialization.deserialize(s) : nothing
-    return Augmentation{T}(contents, serialize_field)
+    contents = Serialization.deserialize(s)
+    return Augmentation{T}(contents)
 end
 
 
