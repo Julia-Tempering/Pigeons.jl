@@ -118,7 +118,50 @@ back to your interactive chain via:
 pt = Pigeons.load(mpi_run) # possible thanks to 'pigeons(..., checkpoint = true)' used above
 ```
 
+### Custom submission settings
+Some clusters require submission settings that are not included within `Pigeons`'s defaults.
+Custom submission settings can be specified in these situations.
 
+Specifying custom submission settings requires defining a rosetta of settings with [`add_custom_submission_system()`](@ref), and overloading `resource_string()` for the system. The following is an example of specifying custom settings for a slurm system running OpenMPI with `srun` for submission.
+
+```
+params= (
+    exec = "srun",
+    submit = `sbatch`,
+    del = `scancel`,
+    directive = "#SBATCH",
+    job_name = "--job-name=",
+    output_file = "-o ",
+    error_file = "-e ",
+    submit_dir = "\$SLURM_SUBMIT_DIR",
+    job_status = `squeue --job`,
+    job_status_all = `squeue -u`,
+    ncpu_info = `sinfo`
+)
+
+add_custom_submission_system(params)
+
+function Pigeons.resource_string(m::MPIProcesses, ::Val{:custom}) 
+    return """
+    #SBATCH -t $(m.walltime)
+    #SBATCH --ntasks=$(m.n_mpi_processes)
+    #SBATCH --cpus-per-task=$(m.n_threads)
+    #SBATCH --mem-per-cpu=$(m.memory)
+    """
+end
+```
+and then setting the `submission_system` in `MPI_Settings`
+Some systems may also require additional execution flags. Slurm sytems using `srun` often need their mpi specified with the `--mpi` flag. 
+Extra flags can be added to execution with `mpiexec_args` when constructing an [`MPIProcesses`](@ref).
+ 
+An example cluster may require you to use `pmi2` with OpenMPI. This can be done by adding "mpiexec_args=\`--mpi=pmi2\`" to the arguments of MPIProcess:
+
+```
+Pigeons.MPIProcesses(
+        ...
+        mpiexec_args=`--mpi=pmi2`
+    )
+```
 ## Code dependencies
 
 So far we have used examples where the target, explorers, etc 
