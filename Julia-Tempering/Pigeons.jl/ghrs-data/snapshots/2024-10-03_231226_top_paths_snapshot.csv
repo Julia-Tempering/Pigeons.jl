@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Julia-Tempering/Pigeons.jl,100,40
+/Julia-Tempering/Pigeons.jl/blob/main/src/targets/StreamTarget.jl,22,1
+/Julia-Tempering/Pigeons.jl/tree/main/src,15,5
+/Julia-Tempering/Pigeons.jl/tree/main/docs,12,1
+/Julia-Tempering/Pigeons.jl/blob/main/src/targets/StreamState.jl,10,1
+/Julia-Tempering/Pigeons.jl/issues,8,4
+/Julia-Tempering/Pigeons.jl/pulls,8,4
+/Julia-Tempering/Pigeons.jl/graphs/contributors,8,3
+/Julia-Tempering/Pigeons.jl/blob/main/src/targets/DistributionLogPotential.jl,8,2
+/Julia-Tempering/Pigeons.jl/blob/main/src/targets/target.jl,8,1
