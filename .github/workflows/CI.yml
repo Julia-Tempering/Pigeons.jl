@@ -24,7 +24,7 @@ jobs:
       matrix:
         version:
           - '1.10'
-          - '1'
+          - '1.11'
         os:
           - ubuntu-latest
           - macos-13
@@ -98,7 +98,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1'
+          - '1.11'
         os:
           - macos-13
         mpi:
