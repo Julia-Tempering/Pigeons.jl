@@ -14,7 +14,7 @@ else
 end
 
 # A simpler version of the wrapper defined in LogDensityProblemsAD's extension
-struct EnzymeDiffWrapper{TLP} <: Pigeons.ADWrapper
+struct EnzymeWrapper{TLP} <: Pigeons.ADWrapper
     log_potential::TLP
 end
 
@@ -32,7 +32,7 @@ end
 
 # adapted from LogDensityProblemsAD to use the Replica's buffer
 function LogDensityProblems.logdensity_and_gradient(
-    b::Pigeons.BufferedAD{<:EnzymeDiffWrapper},
+    b::Pigeons.BufferedAD{<:EnzymeWrapper},
     x::AbstractVector
     )
     ∂ℓ_∂x = fill!(b.buffer, zero(eltype(b.buffer))) # NB: Enzyme gives erroneous answer if buffer is not zeroed first
