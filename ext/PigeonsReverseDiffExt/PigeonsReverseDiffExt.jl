@@ -25,12 +25,12 @@ function make_compiled_tape(log_potential, x)
     tape = ReverseDiff.GradientTape(lp_fix, x)
     return ReverseDiff.compile(tape)
 end
-compute_gradient!(rdw::ReverseDiffWrapper{<:Any,<:Nothing}, diff_result, x) =
+compute_gradient!(rdw::ReverseDiffWrapper, diff_result, x) =
     ReverseDiff.gradient!(
         diff_result, 
         Base.Fix1(LogDensityProblems.logdensity, rdw.log_potential), x
     )
-compute_gradient!(rdw::ReverseDiffWrapper{<:Any,<:ReverseDiff.GradientTape}, diff_result, x) =
+compute_gradient!(rdw::ReverseDiffWrapper{<:Any,<:ReverseDiff.CompiledTape}, diff_result, x) =
     ReverseDiff.gradient!(diff_result, rdw.compiled_tape, x)
 
 # special ADgradient constructor for ReverseDiff
