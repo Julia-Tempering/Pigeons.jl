@@ -1,7 +1,7 @@
 [deps]
 AdvancedHMC = "0bf59076-c3b1-5ca4-86bd-e02cd72cde3d"
 ArgMacros = "dbc42088-9de8-42a0-8ec8-2cd114e1ea3e"
-#Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
+Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
 BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a"
 Comrade = "99d987ce-9a1e-4df8-bc0b-1ea019aa547b"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"

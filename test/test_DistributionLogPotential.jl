@@ -1,4 +1,4 @@
-# using Bijectors
+using Bijectors
 using DelimitedFiles
 
 include("supporting/mpi_test_utils.jl")
@@ -30,7 +30,7 @@ end
     @test abs(Pigeons.global_barrier(pt) - 3.15) < 0.1
 end
 
-@static if false#!is_windows_in_CI()
+@static if !is_windows_in_CI()
     @testset "DLP: Stan interface + iid sampling" begin
         # recreate Fig. 6 in Ballnus et al. (2017)
 
