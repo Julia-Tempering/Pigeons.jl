@@ -162,3 +162,10 @@ Currently this is only used for [ReverseDiff](https://github.com/JuliaDiff/Rever
 function set_tape_compilation_strategy!(compile::Bool)
     COMPILE_TAPE[] = compile
 end
+
+# used in the AD extensions
+abstract type ADWrapper end
+LogDensityProblems.logdensity(adw::ADWrapper, x::AbstractVector) = 
+    LogDensityProblems.logdensity(adw.log_potential, x)
+LogDensityProblems.dimension(adw::ADWrapper) = 
+    LogDensityProblems.dimension(adw.log_potential)

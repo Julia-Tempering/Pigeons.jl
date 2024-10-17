@@ -1,7 +1,7 @@
 # use single statement to avoid multiple precompile stages
 using Pigeons,
     ArgMacros,
-    Bijectors,
+    #Bijectors,
     BridgeStan,
     DelimitedFiles,
     Distributions,
