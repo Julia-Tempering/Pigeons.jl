@@ -25,4 +25,12 @@
     for approx in [gcb_1, gcb_2_1, gcb_2_2]
         @test isapprox(approx, truth, atol = 0.1)
     end
+
+    @testset "Issue #290" begin
+        # test: if multiple targets exist, they should live on different legs
+        idx_targets = Pigeons.target_chains(pt_2_legs)
+        indexer = pt_2_legs.shared.tempering.indexer
+        n_distinct_legs = length(Set(last(indexer.i2t[idx]) for idx in idx_targets))
+        @test length(idx_targets) == n_distinct_legs
+    end
 end
