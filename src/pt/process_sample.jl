@@ -40,7 +40,7 @@ end
 
 function target_chains(pt::PT) 
     n = n_chains(pt.inputs)
-    return filter(i -> is_target(pt.shared.tempering.swap_graphs, i), 1:n)
+    return (i for i in 1:n if is_target(pt.shared.tempering.swap_graphs, i))
 end
 
 """
@@ -84,7 +84,7 @@ The `chain` option can be omitted and by default the
 first chain targetting the distribution of interest will be used 
 (in many cases, there will be only one, in variational cases, two).
 """
-get_sample(pt::PT, chain = target_chains(pt)[1]) = SampleArray(pt, chain)
+get_sample(pt::PT, chain = first(target_chains(pt))) = SampleArray(pt, chain)
 
 function Base.show(io::IO, s::SampleArray{T,PT}) where {T,PT}
     println(io, "SampleArray{$T}")
