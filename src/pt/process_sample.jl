@@ -21,11 +21,10 @@ function sample_array(pt::PT)
     dim, size = sample_dim_size(pt, chains)
     n_chains_with_samples = count(!isnothing, chains) # iterators have no `length` method
     result = zeros(size, dim, n_chains_with_samples)
-    for chain_index in eachindex(chains) 
-        t = chains[chain_index] 
+    for (chain_index, t) in enumerate(chains) 
         sample = get_sample(pt, t) 
-        for i in 1:size 
-            vector = sample[i] 
+        for i in 1:size
+            vector = sample[i]
             result[i, :, chain_index] .= vector
         end
     end
