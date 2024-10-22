@@ -15,16 +15,16 @@ pt = pigeons(target = my_turing_target);</code></pre><pre class="documenter-exam
 ──────────────────────────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       3.24    0.00784   1.13e+06      -8.14    0.00178       0.64          1          1
-        4       1.64    0.00355   2.09e+06      -5.04     0.0352      0.818          1          1
-        8       1.17    0.00391   4.08e+06      -4.42      0.708      0.871          1          1
-       16        1.2    0.00779    8.6e+06      -4.03      0.549      0.867          1          1
-       32       1.11      0.015   1.68e+07      -4.77      0.754      0.877          1          1
-       64       1.35       0.03   3.37e+07      -4.79      0.698       0.85          1          1
-      128        1.6     0.0977   6.68e+07      -4.97      0.725      0.823          1          1
-      256       1.51      0.141   1.32e+08      -4.92      0.758      0.832          1          1
-      512       1.46       0.25   2.66e+08         -5      0.806      0.838          1          1
- 1.02e+03       1.49      0.502   5.34e+08      -4.92      0.798      0.834          1          1
+        2       3.24    0.00906   1.13e+06      -8.14    0.00178       0.64          1          1
+        4       1.64    0.00224   2.09e+06      -5.04     0.0352      0.818          1          1
+        8       1.17    0.00405   4.08e+06      -4.42      0.708      0.871          1          1
+       16        1.2    0.00787    8.6e+06      -4.03      0.549      0.867          1          1
+       32       1.11     0.0154   1.68e+07      -4.77      0.754      0.877          1          1
+       64       1.35     0.0307   3.37e+07      -4.79      0.698       0.85          1          1
+      128        1.6      0.103   6.68e+07      -4.97      0.725      0.823          1          1
+      256       1.51      0.144   1.32e+08      -4.92      0.758      0.832          1          1
+      512       1.46      0.259   2.66e+08         -5      0.806      0.838          1          1
+ 1.02e+03       1.49      0.524   5.34e+08      -4.92      0.798      0.834          1          1
 ──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>At the moment, only Turing models with fixed dimensionality are supported. Both real and integer-valued random variables are supported.  For a <a href="../reference/#Pigeons.TuringLogPotential"><code>TuringLogPotential</code></a>, the <a href="../reference/#Pigeons.default_explorer-Tuple{Any}"><code>default_explorer()</code></a> is the <a href="../reference/#Pigeons.SliceSampler"><code>SliceSampler</code></a> and the <a href="../reference/#Pigeons.default_reference-Tuple{Any}"><code>default_reference()</code></a> is the  prior distribution encoded in the Turing model. </p><h2 id="Gradient-based-sampling-with-[AutoMALA](@ref)"><a class="docs-heading-anchor" href="#Gradient-based-sampling-with-[AutoMALA](@ref)">Gradient-based sampling with <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a></a><a id="Gradient-based-sampling-with-[AutoMALA](@ref)-1"></a><a class="docs-heading-anchor-permalink" href="#Gradient-based-sampling-with-[AutoMALA](@ref)" title="Permalink"></a></h2><p>For Turing models with fully continuous state-spaces—as is the case for <code>my_turing_model</code> defined above—<a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a> can be an effective alternative to <a href="../reference/#Pigeons.SliceSampler"><code>SliceSampler</code></a>—especially for high-dimensional problems. Because Turing targets conform to the <a href="https://github.com/tpapp/LogDensityProblemsAD.jl">LogDensityProblemsAD.jl</a>  interface, Automatic Differentiation (AD) backends can be used to obtain the gradients needed by <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a>.</p><p>The default AD backend for <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a> is <a href="https://juliadiff.org/ForwardDiff.jl/">ForwardDiff</a>. However, when the Turing model does not involve branching decisions (<code>if</code>, <code>while</code>, etc...)  depending on latent variables, <a href="https://github.com/JuliaDiff/ReverseDiff.jl">ReverseDiff</a> can provide accelerated performance. Since <code>my_turing_target</code> satisfies this criterion, we can use <a href="../reference/#Pigeons.AutoMALA"><code>AutoMALA</code></a> with the ReverseDiff AD backend via</p><pre><code class="language-julia hljs">using ReverseDiff
 pt = pigeons(
     target = my_turing_target,
@@ -39,16 +39,16 @@ pt = pigeons(
 ──────────────────────────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       1.88       4.38   3.27e+08      -7.83    0.00499      0.791      0.355      0.665
-        4       2.07      0.119   7.38e+06      -4.75      0.344       0.77     0.0842      0.573
-        8       1.79     0.0188   6.37e+06      -6.21      0.433      0.801      0.546      0.601
-       16       1.57     0.0349   1.26e+07      -4.79      0.545      0.826      0.559      0.628
-       32       1.44     0.0723   2.59e+07      -5.09      0.655       0.84      0.577      0.638
-       64       1.38      0.174   5.32e+07      -4.66      0.771      0.847      0.558      0.631
-      128       1.45      0.293   1.05e+08       -4.9      0.774      0.838      0.544      0.631
-      256       1.56      0.607   2.11e+08      -5.02      0.753      0.827      0.572      0.631
-      512       1.54       1.19   4.21e+08      -5.05      0.779      0.829      0.524      0.627
- 1.02e+03       1.54       2.46   8.51e+08      -4.98      0.797      0.829      0.529       0.62
+        2       1.88       4.43   3.27e+08      -7.83    0.00499      0.791      0.355      0.665
+        4       2.07       0.12   7.38e+06      -4.75      0.344       0.77     0.0842      0.573
+        8       1.79     0.0193   6.37e+06      -6.21      0.433      0.801      0.546      0.601
+       16       1.57     0.0357   1.26e+07      -4.79      0.545      0.826      0.559      0.628
+       32       1.44      0.073   2.59e+07      -5.09      0.655       0.84      0.577      0.638
+       64       1.38      0.155   5.32e+07      -4.66      0.771      0.847      0.558      0.631
+      128       1.45      0.323   1.05e+08       -4.9      0.774      0.838      0.544      0.631
+      256       1.56      0.627   2.11e+08      -5.02      0.753      0.827      0.572      0.631
+      512       1.54       1.23   4.21e+08      -5.05      0.779      0.829      0.524      0.627
+ 1.02e+03       1.54       2.51   8.51e+08      -4.98      0.797      0.829      0.529       0.62
 ──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><h2 id="Using-DynamicPPL.@addlogprob!"><a class="docs-heading-anchor" href="#Using-DynamicPPL.@addlogprob!">Using DynamicPPL.@addlogprob!</a><a id="Using-DynamicPPL.@addlogprob!-1"></a><a class="docs-heading-anchor-permalink" href="#Using-DynamicPPL.@addlogprob!" title="Permalink"></a></h2><p>The macro <code>DynamicPPL.@addlogprob!</code> is sometimes used when additional flexibility is needed while incrementing the log probability. To do so with Pigeons.jl, you will need to enclose the call to <code>DynamicPPL.@addlogprob!</code> within an if statement as shown below. Failing to do so will lead to invalid results.</p><pre><code class="language-julia hljs">DynamicPPL.@model function my_turing_model(my_data)
     # code here
     if DynamicPPL.leafcontext(__context__) !== DynamicPPL.PriorContext() 
@@ -112,4 +112,4 @@ end
 pt = pigeons(target = toy_beta_binom_target(), n_rounds = 0)
 @assert Pigeons.variable(pt.replicas[1].state, :p) == [0.5]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr36"><span class="sgr1">┌ Info: </span></span>Neither traces, disk, nor online recorders included.
 <span class="sgr36"><span class="sgr1">│ </span></span>   You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
-<span class="sgr36"><span class="sgr1">└ </span></span>   To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-overview/">« Inputs overview</a><a class="docs-footer-nextpage" href="../input-julia/">Black-box function »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Tuesday 22 October 2024 06:02">Tuesday 22 October 2024</span>. Using Julia version 1.10.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<span class="sgr36"><span class="sgr1">└ </span></span>   To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-overview/">« Inputs overview</a><a class="docs-footer-nextpage" href="../input-julia/">Black-box function »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Tuesday 22 October 2024 13:01">Tuesday 22 October 2024</span>. Using Julia version 1.10.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
