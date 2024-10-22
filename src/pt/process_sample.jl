@@ -19,12 +19,12 @@ and pair plots (via [PairPlots](https://sefffal.github.io/PairPlots.jl/dev/chain
 function sample_array(pt::PT)
     chains = chains_with_samples(pt)
     dim, size = sample_dim_size(pt, chains)
-    result = zeros(size, dim, length(chains)) 
-    for chain_index in eachindex(chains) 
-        t = chains[chain_index] 
+    n_chains_with_samples = count(!isnothing, chains) # iterators have no `length` method
+    result = zeros(size, dim, n_chains_with_samples)
+    for (chain_index, t) in enumerate(chains) 
         sample = get_sample(pt, t) 
-        for i in 1:size 
-            vector = sample[i] 
+        for i in 1:size
+            vector = sample[i]
             result[i, :, chain_index] .= vector
         end
     end
@@ -34,13 +34,13 @@ end
 chains_with_samples(pt) = pt.inputs.extended_traces ? (1:n_chains(pt.inputs)) : target_chains(pt)
 
 function sample_dim_size(pt::PT, chains)
-    sample = get_sample(pt, chains[1]) 
-    return length(sample[1]), length(sample)
+    sample = get_sample(pt, first(chains)) 
+    return length(first(sample)), length(sample)
 end
 
 function target_chains(pt::PT) 
     n = n_chains(pt.inputs)
-    return filter(i -> is_target(pt.shared.tempering.swap_graphs, i), 1:n)
+    return (i for i in 1:n if is_target(pt.shared.tempering.swap_graphs, i))
 end
 
 """
@@ -84,7 +84,7 @@ The `chain` option can be omitted and by default the
 first chain targetting the distribution of interest will be used 
 (in many cases, there will be only one, in variational cases, two).
 """
-get_sample(pt::PT, chain = target_chains(pt)[1]) = SampleArray(pt, chain)
+get_sample(pt::PT, chain = first(target_chains(pt))) = SampleArray(pt, chain)
 
 function Base.show(io::IO, s::SampleArray{T,PT}) where {T,PT}
     println(io, "SampleArray{$T}")

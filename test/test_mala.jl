@@ -8,6 +8,7 @@ which also cover checks of the Hamiltonian dynamics.
             target = toy_mvn_target(2), 
             n_chains = 2, 
             explorer = MALA(),
+            n_chains_variational = 4,
             record = [Pigeons.online], 
             n_rounds = 10);
     for var_name in Pigeons.continuous_variables(pt)
