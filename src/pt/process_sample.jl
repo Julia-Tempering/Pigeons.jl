@@ -34,8 +34,8 @@ end
 chains_with_samples(pt) = pt.inputs.extended_traces ? (1:n_chains(pt.inputs)) : target_chains(pt)
 
 function sample_dim_size(pt::PT, chains)
-    sample = get_sample(pt, chains[1]) 
-    return length(sample[1]), length(sample)
+    sample = get_sample(pt, first(chains)) 
+    return length(first(sample)), length(sample)
 end
 
 function target_chains(pt::PT) 
