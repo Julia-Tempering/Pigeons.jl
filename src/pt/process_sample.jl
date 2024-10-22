@@ -19,7 +19,8 @@ and pair plots (via [PairPlots](https://sefffal.github.io/PairPlots.jl/dev/chain
 function sample_array(pt::PT)
     chains = chains_with_samples(pt)
     dim, size = sample_dim_size(pt, chains)
-    result = zeros(size, dim, length(chains)) 
+    n_chains_with_samples = count(!isnothing, chains) # iterators have no `length` method
+    result = zeros(size, dim, n_chains_with_samples)
     for chain_index in eachindex(chains) 
         t = chains[chain_index] 
         sample = get_sample(pt, t) 
