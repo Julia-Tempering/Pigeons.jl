@@ -29,5 +29,3 @@ end
 
 LogDensityProblems.logdensity(log_potential::HetPrecisionNormalLogPotential, x) = log_potential(x) 
 LogDensityProblems.dimension(log_potential::HetPrecisionNormalLogPotential) = length(log_potential.precisions)
-LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential::HetPrecisionNormalLogPotential, buffers::Pigeons.Augmentation) = 
-    LogDensityProblemsAD.ADgradient(kind, log_potential)

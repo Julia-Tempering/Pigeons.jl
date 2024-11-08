@@ -15,16 +15,23 @@ else
     import ..ReverseDiff: DiffResults
 end
 
-# TODO: currently, the concrete versions of ADGradientWrapper are defined only
-# in the extensions of LogDensityProblemsAD. Therefore, it is impossible to 
-# dispatch on them; see 
-#   https://github.com/tpapp/LogDensityProblemsAD.jl/issues/32
-# This is a HACK to extract that type 
-const ReverseDiffLogDensity = if isdefined(Base, :get_extension)
-    Base.get_extension(LogDensityProblemsAD, :LogDensityProblemsADReverseDiffExt).ReverseDiffLogDensity
-else
-    LogDensityProblemsAD.LogDensityProblemsADReverseDiffExt.ReverseDiffLogDensity
+# A simpler version of the wrapper defined in LogDensityProblemsAD's extension
+struct ReverseDiffWrapper{TLP, TCT} <: Pigeons.ADWrapper
+    log_potential::TLP
+    compiled_tape::TCT
 end
+function make_compiled_tape(log_potential, x)
+    lp_fix = Base.Fix1(LogDensityProblems.logdensity, log_potential)
+    tape = ReverseDiff.GradientTape(lp_fix, x)
+    return ReverseDiff.compile(tape)
+end
+compute_gradient!(rdw::ReverseDiffWrapper, diff_result, x) =
+    ReverseDiff.gradient!(
+        diff_result, 
+        Base.Fix1(LogDensityProblems.logdensity, rdw.log_potential), x
+    )
+compute_gradient!(rdw::ReverseDiffWrapper{<:Any,<:ReverseDiff.CompiledTape}, diff_result, x) =
+    ReverseDiff.gradient!(diff_result, rdw.compiled_tape, x)
 
 # special ADgradient constructor for ReverseDiff
 function LogDensityProblemsAD.ADgradient(
@@ -34,9 +41,8 @@ function LogDensityProblemsAD.ADgradient(
     )
     d = LogDensityProblems.dimension(log_potential)
     buffer = Pigeons.get_buffer(buffers, :gradient_buffer, d)
-    compile_tape = Pigeons.get_tape_compilation_strategy()
-
-    if compile_tape
+    should_compile = Pigeons.get_tape_compilation_strategy()
+    if should_compile
         @info """
 
         Using ReverseDiff with tape compilation, which usually results in huge performance gains.
@@ -51,24 +57,19 @@ function LogDensityProblemsAD.ADgradient(
         by calling `Pigeons.set_tape_compilation_strategy!(true)`.            
         """ maxlog=1
     end
-
-    enclosed = ADgradient(kind, log_potential; x = buffer, compile=Val{compile_tape}())
+    compiled_tape = should_compile ? make_compiled_tape(log_potential, buffer) : nothing
+    enclosed = ReverseDiffWrapper(log_potential, compiled_tape)
     diff_result = DiffResults.MutableDiffResult(zero(eltype(buffer)), (buffer, ))
     Pigeons.BufferedAD(enclosed, diff_result, nothing, nothing)
 end
 
 # adapted from LogDensityProblemsAD to use the Replica's buffer
 function LogDensityProblems.logdensity_and_gradient(
-    b::Pigeons.BufferedAD{<:ReverseDiffLogDensity},
+    b::Pigeons.BufferedAD{<:ReverseDiffWrapper},
     x::AbstractVector
     )
     diff_result = b.buffer
-    compiled_tape = b.enclosed.compiledtape
-    if compiled_tape === nothing
-        ReverseDiff.gradient!(diff_result, Base.Fix1(LogDensityProblems.logdensity, b.enclosed.ℓ), x)
-    else
-        ReverseDiff.gradient!(diff_result, compiled_tape, x)
-    end
+    compute_gradient!(b.enclosed, diff_result, x)
     return (DiffResults.value(diff_result), DiffResults.gradient(diff_result))
 end
 

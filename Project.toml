@@ -1,7 +1,7 @@
 name = "Pigeons"
 uuid = "0eb8d820-af6a-4919-95ae-11206f830c31"
 authors = ["Alexandre Bouchard-Côté <bouchard@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Paul Tiede <ptiede91@gmail.com>, Trevor Campbell, Miguel Biron-Lattes, Saifuddin Syed"]
-version = "0.4.5"
+version = "0.4.7"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -59,7 +59,7 @@ BridgeStan = "2"
 DataFrames = "1"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
-DynamicPPL = "0.23, 0.24, 0.25, 0.26, 0.27, 0.28"
+DynamicPPL = "0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.30"
 Enzyme = "0.12, 0.13"
 Expect = "0.3"
 FillArrays = "1"
