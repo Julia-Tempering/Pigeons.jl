@@ -16,7 +16,10 @@
 
 ## Funding and acknowledgments 
 
-The development and testing of Pigeons.jl is supported by the Natural Sciences and Engineering Research Council of Canada Discovery Grant and Vanier programs, and by the University of British Columbia Advanced Research Computing. The authors would like to thank Roman Baranowski, Jacob Boschee and Alyza Rosario for their help with MPI.
+The development and testing of Pigeons.jl is supported by the [Canadian Statistical Sciences Institute (CANSSI)](https://canssi.ca/), 
+the Natural Sciences and Engineering Research Council of Canada Discovery Grant and Vanier programs, and by the University of British Columbia Advanced Research Computing. The authors would like to thank Roman Baranowski, Jacob Boschee and Alyza Rosario for their help with MPI.
+
+
 
 
 ## How to cite Pigeons 
