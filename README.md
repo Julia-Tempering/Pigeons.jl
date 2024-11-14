@@ -17,9 +17,11 @@
 ## Funding and acknowledgments 
 
 The development and testing of Pigeons.jl is supported by the [Canadian Statistical Sciences Institute (CANSSI)](https://canssi.ca/), 
-the Natural Sciences and Engineering Research Council of Canada Discovery Grant and Vanier programs, and by the University of British Columbia Advanced Research Computing. The authors would like to thank Roman Baranowski, Jacob Boschee and Alyza Rosario for their help with MPI.
+the [Natural Sciences and Engineering Research Council of Canada](https://www.nserc-crsng.gc.ca/index_eng.asp) Discovery Grant and Vanier programs, by the 
+[University of British Columbia Advanced Research Computing](https://arc.ubc.ca/), and compute credits from [Oracle](https://www.oracle.com/ca-en/). 
+The authors would like to thank Roman Baranowski, Jacob Boschee and Alyza Rosario for their help with MPI.
 
-
+<img src="https://github.com/Julia-Tempering/doc-assets/blob/master/funding/canssi.jpg?raw=true" alt="CANSSI logo" height="60">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://github.com/Julia-Tempering/doc-assets/blob/master/funding/nserc.png?raw=true" alt="NSERC logo" height="60">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://github.com/Julia-Tempering/doc-assets/blob/master/funding/arc.jpeg?raw=true" alt="ARC logo" height="60">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://github.com/Julia-Tempering/doc-assets/blob/master/funding/oracle.png?raw=true" alt="Oracle logo" height="60">
 
 
 ## How to cite Pigeons 
