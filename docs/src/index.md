@@ -22,6 +22,9 @@ of the following algorithms:
 These algorithms achieve state-of-the-art performance for approximation 
 of challenging probability distributions.
 
+!!! note
+    We are recruiting graduate students! [Click here for more information.](@ref openings)
+
 
 ## [Installing Pigeons](@id installing-pigeons)
 
