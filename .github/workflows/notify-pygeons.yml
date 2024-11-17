@@ -1,4 +1,4 @@
-name: Trigger Target Workflow
+name: Trigger Pygeons Workflow
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Trigger Workflow in Another Repository
+      - name: Trigger Workflow in Pygeons Repository
         env:
           GITHUB_PAT: ${{ secrets.PYGEONS_PAT }}
         run: |
@@ -33,7 +33,7 @@ jobs:
           )
 
           # Check if the request was successful
-          if [ "$response" -ne 204 ]; then  # GitHub returns 204 for successful repository_dispatch
+          if [ "$response" -ne 204 ]; then 
               echo "Error triggering workflow: $(cat /tmp/response.txt)"
               exit 1
           else
