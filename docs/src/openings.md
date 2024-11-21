@@ -6,7 +6,7 @@ CurrentModule = Pigeons
 
 Interested in spending a **MSc or PhD developing new, impactful inference methodologies**?
 We have several fully funded openings for PhD and MSc students in Statistics, thanks 
-to a [CANSSI Collaborative Research Teams grant](https://canssi.ca/program/collaborative-research-teams/). 
+to a [CANSSI Collaborative Research Teams grant](https://canssi.ca/story/crt-27/). 
 
 
 ## Key benefits for trainees
