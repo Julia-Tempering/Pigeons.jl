@@ -1,4 +1,4 @@
-include("JuliaBUGSPotential.jl")
+include("../src/targets/JuliaBUGSPotential.jl")
 
 # Pumps example in 
 # https://github.com/TuringLang/JuliaBUGS.jl/blob/master/src/BUGSExamples/Volume_1/02_Pumps.jl

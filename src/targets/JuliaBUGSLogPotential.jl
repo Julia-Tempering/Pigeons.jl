@@ -32,7 +32,6 @@ end
 # Revise the code structure that JuliaBUGS uses for calculating/extracting node-related prooperties.
 # https://github.com/TuringLang/JuliaBUGS.jl/blob/master/src/model.jl
 function extract_distributions(model::JuliaBUGS.BUGSModel)
-    sorted_nodes = model.sorted_nodes
     g = model.g
     vi = model.varinfo
     parameters = model.parameters
