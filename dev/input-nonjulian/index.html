@@ -5,7 +5,7 @@ Pigeons.setup_blang(&quot;blangDemos&quot;)</code></pre><pre class="documenter-e
 <span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ Pigeons ~/work/Pigeons.jl/Pigeons.jl/src/targets/BlangTarget.jl:141</span>
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  5  152M    5 9008k    0     0  7594k      0  0:00:20  0:00:01  0:00:19 7595k 31  152M   31 48.7M    0     0  22.2M      0  0:00:06  0:00:02  0:00:04 22.2M 58  152M   58 90.0M    0     0  28.5M      0  0:00:05  0:00:03  0:00:02 28.5M 86  152M   86  132M    0     0  31.8M      0  0:00:04  0:00:04 --:--:-- 31.8M100  152M  100  152M    0     0  32.9M      0  0:00:04  0:00:04 --:--:-- 34.1M
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0  152M    0 1552k    0     0  1773k      0  0:01:28 --:--:--  0:01:28 1773k 27  152M   27 41.6M    0     0  21.9M      0  0:00:06  0:00:01  0:00:05 21.9M 42  152M   42 65.7M    0     0  22.8M      0  0:00:06  0:00:02  0:00:04 22.8M 58  152M   58 89.3M    0     0  23.0M      0  0:00:06  0:00:03  0:00:03 23.0M 75  152M   75  115M    0     0  23.5M      0  0:00:06  0:00:04  0:00:02 23.5M 92  152M   92  141M    0     0  24.1M      0  0:00:06  0:00:05  0:00:01 28.0M100  152M  100  152M    0     0  24.2M      0  0:00:06  0:00:06 --:--:-- 25.2M
 Archive:  blangDemos.zip
    creating: blangDemos/
   inflating: __MACOSX/._blangDemos
@@ -1562,19 +1562,19 @@ pt = pigeons(target = blang_unidentifiable_example(100, 50))</code></pre><pre cl
 Preprocess {
   2 samplers constructed with following prototypes:
     RealScalar sampled via: [RealSliceSampler]
-} [ endingBlock=Preprocess blockTime=452.4ms blockNErrors=0 ]
+} [ endingBlock=Preprocess blockTime=468.9ms blockNErrors=0 ]
 Inference {
   ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2      0.992      0.892   1.44e+07      -4.05      0.621       0.89
-        4       1.42     0.0472   1.06e+07      -4.43      0.192      0.842
-        8       1.44     0.0735   2.17e+07      -5.35      0.581       0.84
-       16        1.7     0.0958   3.79e+07      -4.72      0.577      0.811
-       32       1.51      0.208    6.9e+07       -4.8      0.602      0.833
-       64       1.52       0.32   1.35e+08      -4.95      0.727      0.831
-      128       1.56      0.518   2.73e+08      -4.93      0.713      0.827
-      256       1.52      0.833   5.26e+08      -5.06       0.78      0.831
-      512       1.52       1.38   1.06e+09      -4.97      0.793      0.831
- 1.02e+03       1.54       2.51   2.11e+09      -4.97      0.789      0.829
-────────────────────────────────────────────────────────────────────────────</code></pre><p>As shown above, create a <a href="../reference/#Pigeons.StreamTarget"><code>StreamTarget</code></a> amounts to specifying which command will  be used to create a child process. </p><p>To terminate the child processes associated with a stream target, use:</p><pre><code class="language-julia hljs">Pigeons.kill_child_processes(pt)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-stan/">« Stan model</a><a class="docs-footer-nextpage" href="../input-explorers/">Custom MCMC »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Tuesday 26 November 2024 17:45">Tuesday 26 November 2024</span>. Using Julia version 1.10.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+        2      0.992       4.35   1.51e+07      -4.05      0.621       0.89
+        4       1.42     0.0472   1.08e+07      -4.43      0.192      0.842
+        8       1.44     0.0741   2.34e+07      -5.35      0.581       0.84
+       16        1.7      0.109      4e+07      -4.72      0.577      0.811
+       32       1.51      0.222   7.03e+07       -4.8      0.602      0.833
+       64       1.52      0.347   1.36e+08      -4.95      0.727      0.831
+      128       1.56      0.483   2.72e+08      -4.93      0.713      0.827
+      256       1.52      0.793   5.25e+08      -5.06       0.78      0.831
+      512       1.52        1.5   1.06e+09      -4.97      0.793      0.831
+ 1.02e+03       1.54       2.49    2.1e+09      -4.97      0.789      0.829
+────────────────────────────────────────────────────────────────────────────</code></pre><p>As shown above, create a <a href="../reference/#Pigeons.StreamTarget"><code>StreamTarget</code></a> amounts to specifying which command will  be used to create a child process. </p><p>To terminate the child processes associated with a stream target, use:</p><pre><code class="language-julia hljs">Pigeons.kill_child_processes(pt)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../input-stan/">« Stan model</a><a class="docs-footer-nextpage" href="../input-explorers/">Custom MCMC »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Sunday 1 December 2024 01:13">Sunday 1 December 2024</span>. Using Julia version 1.10.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
