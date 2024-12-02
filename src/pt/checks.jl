@@ -133,8 +133,7 @@ const RecursiveEqualInnerType =
         StanState, SplittableRandom, Replica, Augmentation, AutoMALA, SliceSampler,
         Compose, Mix, Iterators, Schedule, DEO, BlangTarget, NonReversiblePT,
         InterpolatingPath, InterpolatedLogPotential, RoundTripRecorder,
-        OnlineStateRecorder, LocalBarrier, NamedTuple, Vector{<:InterpolatedLogPotential},
-        Vector{<:Replica}, Tuple, Inputs
+        OnlineStateRecorder, LocalBarrier, NamedTuple, Tuple, Inputs
     }
 recursive_equal(a::RecursiveEqualInnerType, b::RecursiveEqualInnerType) =
     _recursive_equal(a,b)
@@ -148,6 +147,14 @@ function _recursive_equal(a::T, b::T, exclude::NTuple{N,Symbol}=()) where {T,N}
     return true
 end
 _recursive_equal(a,b,exclude=nothing) = false # generic case catches difference in types of a and b
+
+# handle arrays of RecursiveEqualInnerType separately
+function recursive_equal(
+    a::AbstractArray{<:RecursiveEqualInnerType}, 
+    b::AbstractArray{<:RecursiveEqualInnerType}
+    )
+    size(a) == size(b) && all(t -> recursive_equal(t...), zip(a,b))
+end
 
 # types for which some fields need to be excluded
 recursive_equal(a::Shared, b::Shared) = _recursive_equal(a, b, (:reports,))

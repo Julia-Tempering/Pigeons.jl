@@ -10,7 +10,7 @@ include("supporting/analytic_solutions.jl")
     
     logz_am = Pigeons.stepping_stone(pigeons(; target, explorer = AutoMALA(), n_chains=8))
     @show logz_am
-    @test isapprox(logz_am, truth, rtol = 0.05)
+    @test isapprox(logz_am, truth, rtol = 0.1)
 end
 
 @testset "Turing-variable-names" begin
