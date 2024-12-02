@@ -52,10 +52,8 @@ include("includes.jl")
 export pigeons, Inputs, PT,
     # for running jobs:
     ChildProcess, MPIProcesses,
-    # references:
-    DistributionLogPotential,
     # targets:
-    TuringLogPotential, StanLogPotential,
+    TuringLogPotential, StanLogPotential, DistributionLogPotential, JuliaBUGSLogPotential,
     # some examples
     toy_mvn_target, toy_stan_target,
     # post-processing helpers
@@ -89,6 +87,7 @@ end
         @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" include(joinpath(@__DIR__, "../ext/PigeonsEnzymeExt/PigeonsEnzymeExt.jl"))
         @require ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210" include(joinpath(@__DIR__, "../ext/PigeonsForwardDiffExt/PigeonsForwardDiffExt.jl"))
         @require HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5" include(joinpath(@__DIR__, "../ext/PigeonsHypothesisTestsExt/PigeonsHypothesisTestsExt.jl"))
+        @require JuliaBUGS = "ba9fb4c0-828e-4473-b6a1-cd2560fee5bf" include(joinpath(@__DIR__, "../ext/PigeonsJuliaBUGSExt/PigeonsJuliaBUGSExt.jl"))
         @require MCMCChains = "c7f686f2-ff18-58e9-bc7b-31028e88f75d" include(joinpath(@__DIR__, "../ext/PigeonsMCMCChainsExt/PigeonsMCMCChainsExt.jl"))
         @require ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267" include(joinpath(@__DIR__, "../ext/PigeonsReverseDiffExt/PigeonsReverseDiffExt.jl"))
     end
