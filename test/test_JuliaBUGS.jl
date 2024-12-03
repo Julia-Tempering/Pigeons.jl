@@ -26,6 +26,18 @@ end
 @testset "sample_iid!" begin
     pt = pigeons(target = unid_target, n_rounds = 0, n_chains = 1)
     ref = Pigeons.default_reference(unid_target)
-    Pigeons.sample_iid!(ref, pt.replicas[1], pt.shared)
-    @test true
+    new_state = Pigeons.sample_iid!(ref, pt.replicas[1], pt.shared)
+    @test pt.replicas[1].state === new_state
+end
+
+@testset "log_potential eval" begin
+    # check log_potential evaluation with constrained version (easier, no Jacobian)
+    unid_target_const = JuliaBUGSLogPotential(JuliaBUGS.settrans(unid_target_model))
+    unid_ref_const = Pigeons.default_reference(unid_target_const)
+    state = (; p = unid_target_model.evaluation_env.p)
+    @test unid_target_const(state) == 
+        logpdf(
+            Binomial(unid_target_model.evaluation_env.n_flips,prod(state.p)),
+            unid_target_model.evaluation_env.n_heads)
+    @test unid_ref_const(state) == 0
 end
