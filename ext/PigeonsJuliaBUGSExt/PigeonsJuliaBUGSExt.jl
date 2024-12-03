@@ -3,7 +3,7 @@ module PigeonsJuliaBUGSExt
 using Pigeons
 if isdefined(Base, :get_extension)
     import JuliaBUGS
-    using AbstractPPL: getsym
+    using AbstractPPL: AbstractPPL
     using Graphs
     using MetaGraphsNext
     using LogDensityProblems
@@ -12,7 +12,7 @@ if isdefined(Base, :get_extension)
     using Random
 else
     import ..JuliaBUGS
-    using ..AbstractPPL: getsym
+    using ..AbstractPPL: AbstractPPL
     using ..Graphs
     using ..MetaGraphsNext
     using ..LogDensityProblems
