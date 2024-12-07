@@ -53,7 +53,7 @@ export pigeons, Inputs, PT,
     # for running jobs:
     ChildProcess, MPIProcesses,
     # targets:
-    TuringLogPotential, StanLogPotential, DistributionLogPotential, JuliaBUGSLogPotential,
+    TuringLogPotential, StanLogPotential, DistributionLogPotential, JuliaBUGSPath,
     # some examples
     toy_mvn_target, toy_stan_target,
     # post-processing helpers

@@ -3,18 +3,12 @@ module PigeonsJuliaBUGSExt
 using Pigeons
 if isdefined(Base, :get_extension)
     import JuliaBUGS
-    using AbstractPPL: AbstractPPL
-    using Graphs
-    using MetaGraphsNext
     using LogDensityProblems
     using DocStringExtensions
-    using SplittableRandoms
+    using SplittableRandoms: SplittableRandom, split
     using Random
 else
     import ..JuliaBUGS
-    using ..AbstractPPL: AbstractPPL
-    using ..Graphs
-    using ..MetaGraphsNext
     using ..LogDensityProblems
     using ..DocStringExtensions
     using ..SplittableRandoms: SplittableRandom, split

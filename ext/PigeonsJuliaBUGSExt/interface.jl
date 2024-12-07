@@ -1,52 +1,68 @@
-#=
-JuliaBUGS state is an "evaluation environment" (NamedTuple), containing only
-the parameters of the model (i.e., with observations and other variables deleted).
-This is so that the state corresponds to the evaluation_env of the prior
-=#
-function Pigeons.initialization(target::JuliaBUGSLogPotential, _::AbstractRNG, _::Int64)
-    ev_env = target.model.evaluation_env
-    model_params_syms = Set(AbstractPPL.getsym(vn) for vn in target.model.parameters)
-    NamedTuple(k => v for (k,v) in zip(keys(ev_env), ev_env) if k in model_params_syms)
+#######################################
+# Path interface
+#######################################
+
+# State initialization: state is a flattened vector of the parameters
+# Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
+# to call these for different Replicas
+Pigeons.initialization(target::JuliaBUGSPath, _::AbstractRNG, _::Int64) =
+    JuliaBUGS.getparams(target.model)
+
+# target is already a Path
+Pigeons.create_path(target::JuliaBUGSPath, ::Inputs) = target
+
+#######################################
+# Log-potential interface
+#######################################
+
+"""
+$SIGNATURES
+
+A log-potential built from a [`JuliaBUGSPath`](@ref) for a specific inverse 
+temperature parameter.
+
+$FIELDS
+"""
+struct JuliaBUGSLogPotential{TMod<:JuliaBUGS.BUGSModel, TF<:AbstractFloat}
+    """
+    A deep-enough copy of the original model that allows evaluation while
+    avoiding race conditions between different Replicas.
+    """
+    private_model::TMod
+    
+    """
+    Tempering parameter.
+    """
+    beta::TF
 end
 
-# iid sampling from the prior is straightforward because state coincides with evaluation_env
-function Pigeons.sample_iid!(ref_lp::JuliaBUGSLogPotential, replica, shared)
-    replica.state = first(JuliaBUGS.evaluate!!(replica.rng, ref_lp.model))
+# make a log-potential by creating a new model with independent graph and 
+# evaluation environment. Both of these could be modified during density
+# evaluations and/or during Gibbs sampling
+function Pigeons.interpolate(path::JuliaBUGSPath, beta)
+    model = path.model
+    private_model = JuliaBUGS.BUGSModel(
+        model, 
+        deepcopy(model.g),
+        model.parameters, model.flattened_graph_node_data.sorted_nodes,
+        deepcopy(model.evaluation_env)
+    )
+    JuliaBUGSLogPotential(private_model, beta)
 end
 
 # log_potential evaluation
-# note: `initialize!` merges, so it works even when eval_env has more fields than
-# log_potential.model.evaluation_env (which happens when log_potential is the target)
-function (log_potential::JuliaBUGSLogPotential)(eval_env)
-    model = JuliaBUGS.initialize!(log_potential.model, eval_env)
-    return last(JuliaBUGS.evaluate!!(model))
+(log_potential::JuliaBUGSLogPotential)(flattened_values) =
+    last(last(JuliaBUGS._tempered_evaluate!!(
+        log_potential.private_model, 
+        flattened_values;
+        temperature=log_potential.beta
+    )))
+
+# iid sampling
+# Note: JuliaBUGS.getparams always allocates a new vector so there is no point
+# of copying the result into the Replica's state; just replace it.
+function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shared)
+    new_env = first(JuliaBUGS.evaluate!!(replica.rng, log_potential.private_model)) # sample a new evaluation environment
+    JuliaBUGS.initialize!(log_potential.private_model, new_env)                     # set the private_model's environment to the newly created one
+    replica.state = JuliaBUGS.getparams(log_potential.private_model)                # finally, flatten the eval environment in the model and set that as the replica state
 end
-
-# Set the default reference to a JuliaBUGS model for the prior 
-Pigeons.default_reference(target::JuliaBUGSLogPotential) = 
-    JuliaBUGSLogPotential(make_prior_model(target.model))
-
-# Obtain the JuliaBUGS model for the prior by pruning the underlying DAG
-function make_prior_model(target_model::JuliaBUGS.BUGSModel)
-    # copy the target model graph, then drop any nodes that are not parameters
-    prior_graph = deepcopy(target_model.g)
-    model_params_syms = Set(AbstractPPL.getsym(vn) for vn in target_model.parameters)
-    for (vn, (code, _)) in prior_graph.vertex_properties
-        if AbstractPPL.getsym(vn) ∉ model_params_syms
-            rem_vertex!(prior_graph, code)
-        end
-    end
-    
-    # make the corresponding evaluation environment
-    eval_env = target_model.evaluation_env
-    prior_eval_env = NamedTuple(
-        k => copy(v) for (k,v) in zip(keys(eval_env),eval_env) if k in model_params_syms)
-    
-    # create prior model and check consistency
-    prior_model = JuliaBUGS.BUGSModel(
-        prior_graph, prior_eval_env; is_transformed = target_model.transformed)
-    @assert Set(prior_model.parameters) == Set(target_model.parameters)
-    
-    return prior_model
-end
-
