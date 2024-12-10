@@ -1,5 +1,7 @@
 using JuliaBUGS
 
+include("supporting/analytic_solutions.jl")
+
 # good ol' toy unidentifiable model for testing purposes
 unid_model_def = @bugs begin
     for i in 1:2
@@ -9,6 +11,7 @@ unid_model_def = @bugs begin
     n_heads ~ dbin(p_prod, n_flips)
 end
 unid_target_model = compile(unid_model_def, (; n_heads=50000, n_flips=100000))
+unid_target = JuliaBUGSPath(unid_target_model)
 unid_target_constrained = JuliaBUGSPath(JuliaBUGS.settrans(unid_target_model))
 struct IdentityExplorer end
 function Pigeons.step!(::IdentityExplorer, replica, shared) end
@@ -27,9 +30,29 @@ function Pigeons.step!(::IdentityExplorer, replica, shared) end
 
     # check log_potential evaluation with constrained version (easier, no Jacobian)
     @test all(v for (k,v) in pt.reduced_recorders.traces if first(k)==2) do v
-        logpdf(
+        last(v) == logpdf(
             Binomial(unid_target_model.evaluation_env.n_flips, v[1]*v[2]),
             unid_target_model.evaluation_env.n_heads
-        ) == last(v)
+        )
+    end
+end
+
+@testset "SliceSampler on constrained and unconstrained versions" begin
+    for target in (unid_target, unid_target_constrained)
+        @show target.model
+        pt = pigeons(;
+            target,
+            explorer = SliceSampler(), 
+            n_chains=7, 
+            n_rounds=7
+        )
+        @test isapprox(
+            Pigeons.stepping_stone(pt), 
+            unid_target_exact_logZ(
+                unid_target_model.evaluation_env.n_flips,
+                unid_target_model.evaluation_env.n_heads
+            ),
+            rtol=0.1
+        )
     end
 end
