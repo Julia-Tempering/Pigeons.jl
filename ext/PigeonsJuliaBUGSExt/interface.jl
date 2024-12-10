@@ -51,18 +51,24 @@ function Pigeons.interpolate(path::JuliaBUGSPath, beta)
 end
 
 # log_potential evaluation
-(log_potential::JuliaBUGSLogPotential)(flattened_values) =
-    last(last(JuliaBUGS._tempered_evaluate!!(
+function (log_potential::JuliaBUGSLogPotential)(flattened_values)
+    return try last(last(JuliaBUGS._tempered_evaluate!!(
         log_potential.private_model, 
         flattened_values;
-        temperature=log_potential.beta
-    )))
+        temperature=log_potential.beta)))
+    catch e
+        return -Inf64
+    end
+end
 
 # iid sampling
 # Note: JuliaBUGS.getparams always allocates a new vector so there is no point
 # of copying the result into the Replica's state; just replace it.
 function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shared)
-    new_env = first(JuliaBUGS.evaluate!!(replica.rng, log_potential.private_model)) # sample a new evaluation environment
-    JuliaBUGS.initialize!(log_potential.private_model, new_env)                     # set the private_model's environment to the newly created one
-    replica.state = JuliaBUGS.getparams(log_potential.private_model)                # finally, flatten the eval environment in the model and set that as the replica state
+    values, logp = JuliaBUGS.evaluate!!(replica.rng, log_potential.private_model);
+    JuliaBUGS.initialize!(log_potential.private_model, values);
+    #new_env = first(JuliaBUGS.evaluate!!(replica.rng, log_potential.private_model)) # sample a new evaluation environment
+    #JuliaBUGS.initialize!(log_potential.private_model, new_env)                     # set the private_model's environment to the newly created one
+    #replica.state = JuliaBUGS.getparams(log_potential.private_model)                # finally, flatten the eval environment in the model and set that as the replica state
+    replica.state = JuliaBUGS.getparams(log_potential.private_model)
 end
