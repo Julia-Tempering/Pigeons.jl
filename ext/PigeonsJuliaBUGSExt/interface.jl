@@ -2,11 +2,19 @@
 # Path interface
 #######################################
 
-# State initialization: state is a flattened vector of the parameters
+# Initialization and iid sampling
+# state is a flattened vector of the parameters
 # Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
-# to call these for different Replicas
-Pigeons.initialization(target::JuliaBUGSPath, _::AbstractRNG, _::Int64) =
-    JuliaBUGS.getparams(target.model)
+# to call _sample_iid during initialization (**sequentially**, as done as of time
+# of writing) for different Replicas (i.e., they won't share the same state).
+function _sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
+    new_env = first(JuliaBUGS.evaluate!!(rng, model)) # sample a new evaluation environment
+    JuliaBUGS.initialize!(model, new_env)             # set the private_model's environment to the newly created one
+    return JuliaBUGS.getparams(model)                 # finally, flatten the unobserved parameters in the model's eval environment and return
+end
+ 
+Pigeons.initialization(target::JuliaBUGSPath, rng::AbstractRNG, _::Int64) =
+    _sample_iid(target.model, rng)
 
 # target is already a Path
 Pigeons.create_path(target::JuliaBUGSPath, ::Inputs) = target
@@ -64,10 +72,6 @@ end
     end
 
 # iid sampling
-# Note: JuliaBUGS.getparams always allocates a new vector so there is no point
-# of copying the result into the Replica's state; just replace it.
 function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shared)
-    new_env = first(JuliaBUGS.evaluate!!(replica.rng, log_potential.private_model)) # sample a new evaluation environment
-    JuliaBUGS.initialize!(log_potential.private_model, new_env)                     # set the private_model's environment to the newly created one
-    replica.state = JuliaBUGS.getparams(log_potential.private_model)                # finally, flatten the eval environment in the model and set that as the replica state
+    replica.state = _sample_iid(log_potential.private_model, replica.rng)
 end
