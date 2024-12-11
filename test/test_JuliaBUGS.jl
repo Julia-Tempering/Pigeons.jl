@@ -55,7 +55,7 @@ end
 end
 
 @testset "Invariance test" begin
-    res = Pigeons.invariance_test(target, SliceSampler(), rng; condition_on=(:n_heads,)) 
+    res = Pigeons.invariance_test(unid_target, SliceSampler(), rng; condition_on=(:n_heads,)) 
     @show res.pvalues
     @test res.passed
 end
