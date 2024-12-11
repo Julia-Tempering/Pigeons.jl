@@ -3,16 +3,21 @@
 #######################################
 
 # Initialization and iid sampling
-# state is a flattened vector of the parameters
+function evaluate_and_initialize(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
+    new_env = first(JuliaBUGS.evaluate!!(rng, model)) # sample a new evaluation environment
+    return JuliaBUGS.initialize!(model, new_env)      # set the private_model's environment to the newly created one
+end
+
+# used for both initializing and iid sampling
+# Note: state is a flattened vector of the parameters
+# Also, the vector is **concretely typed**. This means that if the evaluation
+# environment contains floats and integers, the latter will be cast to float.
+_sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) = 
+    JuliaBUGS.getparams(evaluate_and_initialize(model, rng)) # flatten the unobserved parameters in the model's eval environment and return
+
 # Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
 # to call _sample_iid during initialization (**sequentially**, as done as of time
 # of writing) for different Replicas (i.e., they won't share the same state).
-function _sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
-    new_env = first(JuliaBUGS.evaluate!!(rng, model)) # sample a new evaluation environment
-    JuliaBUGS.initialize!(model, new_env)             # set the private_model's environment to the newly created one
-    return JuliaBUGS.getparams(model)                 # finally, flatten the unobserved parameters in the model's eval environment and return
-end
- 
 Pigeons.initialization(target::JuliaBUGSPath, rng::AbstractRNG, _::Int64) =
     _sample_iid(target.model, rng)
 

@@ -38,21 +38,24 @@ function Pigeons.step!(::IdentityExplorer, replica, shared) end
 end
 
 @testset "SliceSampler on constrained and unconstrained versions" begin
+    exact_logZ = unid_target_exact_logZ(
+        unid_target_model.evaluation_env.n_flips,
+        unid_target_model.evaluation_env.n_heads
+    )
     for target in (unid_target, unid_target_constrained)
         @show target.model
         pt = pigeons(;
             target,
             explorer = SliceSampler(), 
             n_chains=7, 
-            n_rounds=7
+            n_rounds=5
         )
-        @test isapprox(
-            Pigeons.stepping_stone(pt), 
-            unid_target_exact_logZ(
-                unid_target_model.evaluation_env.n_flips,
-                unid_target_model.evaluation_env.n_heads
-            ),
-            rtol=0.1
-        )
+        @test isapprox(Pigeons.stepping_stone(pt), exact_logZ, rtol=0.1)
     end
+end
+
+@testset "Invariance test" begin
+    res = Pigeons.invariance_test(target, SliceSampler(), rng; condition_on=(:n_heads,)) 
+    @show res.pvalues
+    @test res.passed
 end

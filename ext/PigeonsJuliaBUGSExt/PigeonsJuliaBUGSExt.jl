@@ -16,6 +16,6 @@ else
 end
 
 include(joinpath(@__DIR__, "interface.jl"))
-
+include(joinpath(@__DIR__, "invariance_test.jl"))
 
 end
