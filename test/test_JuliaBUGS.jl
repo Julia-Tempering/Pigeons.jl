@@ -55,7 +55,8 @@ end
 end
 
 @testset "Invariance test" begin
-    res = Pigeons.invariance_test(unid_target, SliceSampler(), rng; condition_on=(:n_heads,)) 
+    uncond_target = JuliaBUGSPath(compile(unid_model_def, (;n_flips=100000)))
+    res = Pigeons.invariance_test(uncond_target, SliceSampler(); condition_on=(:n_heads,)) 
     @show res.pvalues
     @test res.passed
 end
