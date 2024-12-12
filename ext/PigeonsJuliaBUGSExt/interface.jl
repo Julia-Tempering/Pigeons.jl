@@ -2,22 +2,22 @@
 # Path interface
 #######################################
 
-# Initialization and iid sampling
-function evaluate_and_initialize(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
-    new_env = first(JuliaBUGS.evaluate!!(rng, model)) # sample a new evaluation environment
-    return JuliaBUGS.initialize!(model, new_env)      # set the private_model's environment to the newly created one
+get_symbol(::JuliaBUGS.VarName{sym}) where sym = sym
+
+function Pigeons.JuliaBUGSPath(model::JuliaBUGS.BUGSModel)
+    Pigeons.JuliaBUGSPath(
+        model,
+        Set(get_symbol(vn) for vn in model.parameters)
+    )
 end
 
 # used for both initializing and iid sampling
-# Note: state is a flattened vector of the parameters
-# Also, the vector is **concretely typed**. This means that if the evaluation
-# environment contains floats and integers, the latter will be cast to float.
+# sample a new evaluation environment (without resampling observed data)
+# Note: JuliaBUGS.evaluate!! deepcopies model.evaluation_env, so the
+# new environment is completely independent of model.evaluation_env
 _sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) = 
-    JuliaBUGS.getparams(evaluate_and_initialize(model, rng)) # flatten the unobserved parameters in the model's eval environment and return
+    first(JuliaBUGS.evaluate!!(rng, model; sample_all=false))
 
-# Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
-# to call _sample_iid during initialization (**sequentially**, as done as of time
-# of writing) for different Replicas (i.e., they won't share the same state).
 Pigeons.initialization(target::JuliaBUGSPath, rng::AbstractRNG, _::Int64) =
     _sample_iid(target.model, rng)
 
@@ -36,7 +36,7 @@ temperature parameter.
 
 $FIELDS
 """
-struct JuliaBUGSLogPotential{TMod<:JuliaBUGS.BUGSModel, TF<:AbstractFloat}
+mutable struct JuliaBUGSLogPotential{TMod<:JuliaBUGS.BUGSModel, TF<:AbstractFloat, TPars<:Set}
     """
     A deep-enough copy of the original model that allows evaluation while
     avoiding race conditions between different Replicas.
@@ -47,6 +47,11 @@ struct JuliaBUGSLogPotential{TMod<:JuliaBUGS.BUGSModel, TF<:AbstractFloat}
     Tempering parameter.
     """
     beta::TF
+
+    """
+    See [`JuliaBUGSPath`](@ref).
+    """
+    parameter_names::TPars
 end
 
 # make a log-potential by creating a new model with independent graph and 
@@ -60,12 +65,20 @@ function Pigeons.interpolate(path::JuliaBUGSPath, beta)
         model.parameters, model.flattened_graph_node_data.sorted_nodes,
         deepcopy(model.evaluation_env)
     )
-    JuliaBUGSLogPotential(private_model, beta)
+    JuliaBUGSLogPotential(private_model, beta, path.parameter_names)
 end
 
 # log_potential evaluation
-(log_potential::JuliaBUGSLogPotential)(flattened_values) =
-    try 
+(log_potential::JuliaBUGSLogPotential)(new_env) =
+    try
+        # update model evaluation_env with the one passed
+        log_potential.private_model = JuliaBUGS.initialize!(log_potential.private_model, new_env)
+        
+        # FIXME (temporary hack): ideally we would just call
+        #     `_tempered_evaluate!!(log_potential.private_model; temperature=log_potential.beta)
+        # but the method does not exist yet, and so we must flatten first
+        # see https://github.com/TuringLang/JuliaBUGS.jl/issues/260
+        flattened_values = JuliaBUGS.getparams(log_potential.private_model)
         last(last(JuliaBUGS._tempered_evaluate!!(
             log_potential.private_model, 
             flattened_values;
@@ -80,3 +93,10 @@ end
 function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shared)
     replica.state = _sample_iid(log_potential.private_model, replica.rng)
 end
+
+# custom sample extraction, needed because
+#   1) evaluation_env contains both observations and parameters (only want the latter)
+#   2) there is no copy method for NamedTuples
+Pigeons.extract_sample(state::NamedTuple, log_potential::JuliaBUGSLogPotential) =
+    NamedTuple(k => copy(v) for (k,v) in zip(keys(state), state) if k in log_potential.parameter_names)
+
