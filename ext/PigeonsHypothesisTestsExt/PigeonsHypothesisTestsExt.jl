@@ -34,9 +34,9 @@ function Pigeons.invariance_test(
     # iterate iid samples
     for n in eachindex(initial_values)
         initial_values[n] = Pigeons.forward_sample_condition_and_explore(
-            target, explorer, rng; run_explorer=false, simulator_kwargs...)
+            target, rng; simulator_kwargs...)
         final_values[n] = Pigeons.forward_sample_condition_and_explore(
-            target, explorer, rng; simulator_kwargs...)
+            target, rng; explorer, simulator_kwargs...)
     end
 
     # transform vector of vectors to matrices so that iterating dimensions == iterating columns => faster
