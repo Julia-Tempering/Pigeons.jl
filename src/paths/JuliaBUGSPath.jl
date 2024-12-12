@@ -11,9 +11,4 @@ $FIELDS
     A `JuliaBUGS.BUGSModel`.
     """
     model
-
-    """
-    Set of names of unobserved parameters in the model.
-    """
-    parameter_names
 end

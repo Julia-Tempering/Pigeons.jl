@@ -10,9 +10,8 @@ function Pigeons.forward_sample_condition_and_explore(
     explorer = nothing,
     condition_on = ()
     )
-    # sample and then store results in model evaluation_env
-    new_env = _sample_iid(target.model, rng)
-    model = JuliaBUGS.initialize!(model, new_env)
+    # forward simulation (new values stored in model.evaluation_env)
+    model = evaluate_and_initialize(model, rng)
 
     # maybe condition the model using the sampled observations
     conditioned_model = if length(condition_on) > 0
