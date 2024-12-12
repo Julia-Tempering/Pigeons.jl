@@ -1,6 +1,7 @@
 using JuliaBUGS
 
 include("supporting/analytic_solutions.jl")
+include("../examples/JuliaBUGS.jl")
 
 # good ol' toy unidentifiable model for testing purposes
 unid_model_def = @bugs begin
@@ -59,4 +60,9 @@ end
     res = Pigeons.invariance_test(uncond_target, SliceSampler(); condition_on=(:n_heads,)) 
     @show res.pvalues
     @test res.passed
+end
+
+@testset "Model with mixed state types" begin
+    pt = pigeons(;target = incomplete_count_data(), n_chains = 5, n_rounds = 5)
+    @test true
 end
