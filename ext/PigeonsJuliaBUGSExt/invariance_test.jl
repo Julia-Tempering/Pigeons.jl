@@ -22,7 +22,7 @@ function Pigeons.forward_sample_condition_and_explore(
     end
 
     # maybe take a step with explorer
-    state = JuliaBUGS.getparams(conditioned_model)
+    state = getparams(conditioned_model)
     return if !isnothing(explorer)
         Pigeons.explorer_step(rng, JuliaBUGSPath(conditioned_model), explorer, state)
     else

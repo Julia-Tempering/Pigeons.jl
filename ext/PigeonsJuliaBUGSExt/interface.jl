@@ -13,7 +13,7 @@ end
 # Also, the vector is **concretely typed**. This means that if the evaluation
 # environment contains floats and integers, the latter will be cast to float.
 _sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) = 
-    JuliaBUGS.getparams(evaluate_and_initialize(model, rng)) # flatten the unobserved parameters in the model's eval environment and return
+    getparams(evaluate_and_initialize(model, rng)) # flatten the unobserved parameters in the model's eval environment and return
 
 # Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
 # to call _sample_iid during initialization (**sequentially**, as done as of time
