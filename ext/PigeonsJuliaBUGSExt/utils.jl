@@ -1,6 +1,7 @@
 #=
 Tweak of JuliaBUGS.getparams to allow for flattened vectors of mixed type
 =#
+type_join_eval_env(env) = typejoin(Set(eltype(v) for v in env)...)
 function getparams(model::JuliaBUGS.BUGSModel)
     param_length = if model.transformed
         model.transformed_param_length
@@ -8,7 +9,11 @@ function getparams(model::JuliaBUGS.BUGSModel)
         model.untransformed_param_length
     end
 
-    param_vals = Vector{Real}(undef, param_length) # NB: use mixed type vector for correct dispatch in SliceSampler
+    # search for an umbrella type for all parameters in the model to avoid
+    # promotion of e.g. ints to floats. For models with a unique parameter
+    # type T, it holds that TMix=T. 
+    TMix = type_join_eval_env(model.evaluation_env)
+    param_vals = Vector{TMix}(undef, param_length)
     pos = 1
     for v in model.parameters
         if !model.transformed
