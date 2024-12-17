@@ -41,3 +41,23 @@ function getparams(model::JuliaBUGS.BUGSModel)
     end
     return param_vals
 end
+
+function make_private_model_copy(model::JuliaBUGS.BUGSModel)
+    g = deepcopy(model.g)
+    parameters = model.parameters
+    sorted_nodes = model.flattened_graph_node_data.sorted_nodes
+    return JuliaBUGS.BUGSModel(
+        model.transformed,
+        sum(model.untransformed_var_lengths[v] for v in parameters),
+        sum(model.transformed_var_lengths[v] for v in parameters),
+        model.untransformed_var_lengths,
+        model.transformed_var_lengths,
+        deepcopy(model.evaluation_env),
+        parameters,
+        JuliaBUGS.FlattenedGraphNodeData(g, sorted_nodes),
+        g,
+        nothing,
+        model.model_def,
+        model.data
+    )
+end

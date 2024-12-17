@@ -1,6 +1,7 @@
 using JuliaBUGS
 
 include("supporting/analytic_solutions.jl")
+include("supporting/mpi_test_utils.jl")
 include("../examples/JuliaBUGS.jl")
 
 # good ol' toy unidentifiable model for testing purposes
@@ -62,7 +63,22 @@ end
     @test res.passed
 end
 
-@testset "Model with mixed state types" begin
-    pt = pigeons(;target = incomplete_count_data(), n_chains = 5, n_rounds = 5)
+@testset "Model with mixed state types using MPI" begin
+    target=incomplete_count_data()
+    r = pigeons(;
+        target,
+        n_rounds = 5,
+        n_chains = 4,
+        checkpoint = true,
+        # checked_round = 4, # NB: doesn't work yet, need a fine-tuned equality check for JuliaBUGS.BUGSModel
+        multithreaded = true,
+        on = ChildProcess(
+            n_local_mpi_processes = set_n_mpis_to_one_on_windows(2),
+            n_threads = 2,
+            mpiexec_args = extra_mpi_args(),
+            dependencies = [JuliaBUGS]
+        )
+    )
+    pt = Pigeons.load(r)
     @test true
 end

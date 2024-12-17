@@ -54,12 +54,7 @@ end
 # evaluations and/or during Gibbs sampling
 function Pigeons.interpolate(path::JuliaBUGSPath, beta)
     model = path.model
-    private_model = JuliaBUGS.BUGSModel(
-        model, 
-        deepcopy(model.g),
-        model.parameters, model.flattened_graph_node_data.sorted_nodes,
-        deepcopy(model.evaluation_env)
-    )
+    private_model = make_private_model_copy(model)
     JuliaBUGSLogPotential(private_model, beta)
 end
 
