@@ -65,12 +65,11 @@ allows direct iid sampling from the target, conditioning is not necessary.
 """
 function forward_sample_condition_and_explore(
     target::ScaledPrecisionNormalPath,
-    explorer,
     rng::SplittableRandom;
-    run_explorer::Bool = true
+    explorer = nothing
     )
     state = initialization(target, rng, 1) # forward simulation
-    if run_explorer
+    if !isnothing(explorer)
         state = explorer_step(rng, target, explorer, state)
     end
     return state
