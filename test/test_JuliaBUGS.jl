@@ -64,7 +64,7 @@ end
 end
 
 @testset "Model with mixed state types using MPI" begin
-    target=incomplete_count_data()
+    target=incomplete_count_data(4)
     r = pigeons(;
         target,
         n_rounds = 5,
@@ -80,5 +80,14 @@ end
         )
     )
     pt = Pigeons.load(r)
+    @test true
+end
+
+@testset "Model with incomplete count data" begin
+    target=incomplete_count_data(0.01)
+    pt = pigeons(target = target,
+        n_rounds = 4,
+        n_chains = 4
+    )
     @test true
 end
