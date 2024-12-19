@@ -79,3 +79,6 @@ end
 function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shared)
     replica.state = _sample_iid(log_potential.private_model, replica.rng)
 end
+
+Pigeons.sample_names(::Vector, log_potential::JuliaBUGSLogPotential) = 
+    [(Symbol(string(vn)) for vn in log_potential.private_model.parameters)...,:log_density]
