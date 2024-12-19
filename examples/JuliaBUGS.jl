@@ -1,4 +1,4 @@
-function incomplete_count_data_model(tau::Float64)
+function incomplete_count_data_model(tau::Real)
     model_def = @bugs("model{
         for (i in 1:n) {
         r[i] ~ dbern(pr[i])
