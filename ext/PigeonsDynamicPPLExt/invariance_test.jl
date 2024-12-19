@@ -10,9 +10,8 @@ initial and final states.
 """
 function Pigeons.forward_sample_condition_and_explore(
     model::DynamicPPL.Model,
-    explorer,
     rng::SplittableRandom;
-    run_explorer::Bool = true,
+    explorer = nothing,
     condition_on::NTuple{N,Symbol}
     ) where {N}
     # forward simulation
@@ -37,7 +36,7 @@ function Pigeons.forward_sample_condition_and_explore(
     DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), conditioned_model)
 
     # maybe take a step with explorer
-    if run_explorer
+    if !isnothing(explorer)
         state = Pigeons.explorer_step(rng, TuringLogPotential(conditioned_model), explorer, state)
     end
 
