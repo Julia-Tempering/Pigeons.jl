@@ -1,4 +1,4 @@
-function incomplete_count_data_model(tau::Real)
+function incomplete_count_data_model(;tau::Real=4)
     model_def = @bugs("model{
         for (i in 1:n) {
         r[i] ~ dbern(pr[i])
@@ -21,4 +21,4 @@ function incomplete_count_data_model(tau::Real)
     )
     return compile(model_def, data)
 end
-incomplete_count_data(tau::Float64) = JuliaBUGSPath(incomplete_count_data_model(tau))
+incomplete_count_data(;kwargs...) = JuliaBUGSPath(incomplete_count_data_model(;kwargs...))

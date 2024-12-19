@@ -61,11 +61,15 @@ end
 # log_potential evaluation
 (log_potential::JuliaBUGSLogPotential)(flattened_values) =
     try 
-        last(last(JuliaBUGS._tempered_evaluate!!(
-            log_potential.private_model, 
-            flattened_values;
-            temperature=log_potential.beta
-        )))
+        log_prior, _, tempered_log_joint = last(
+            JuliaBUGS._tempered_evaluate!!(
+                log_potential.private_model, 
+                flattened_values;
+                temperature=log_potential.beta
+            )
+        )
+        # avoid potential 0*Inf (= NaN) 
+        return iszero(log_potential.beta) ? log_prior : tempered_log_joint
     catch e
         (isa(e, DomainError) || isa(e, BoundsError)) && return -Inf
         rethrow(e)

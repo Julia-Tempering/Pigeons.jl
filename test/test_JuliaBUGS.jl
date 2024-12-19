@@ -64,7 +64,7 @@ end
 end
 
 @testset "Model with mixed state types using MPI" begin
-    target=incomplete_count_data(4)
+    target=incomplete_count_data()
     r = pigeons(;
         target,
         n_rounds = 5,
@@ -83,11 +83,8 @@ end
     @test true
 end
 
-@testset "Model with incomplete count data" begin
-    target=incomplete_count_data(0.01)
-    pt = pigeons(target = target,
-        n_rounds = 4,
-        n_chains = 4
-    )
+@testset "Check no NaN log potentials" begin # https://github.com/Julia-Tempering/Pigeons.jl/pull/303#issuecomment-2547306248
+    target=incomplete_count_data(tau=0.01)
+    pt = pigeons(target = target, n_rounds = 4, n_chains = 4)
     @test true
 end
