@@ -63,14 +63,14 @@ end
     @test res.passed
 end
 
-@testset "Model with mixed state types using MPI" begin
+@testset "Parallelism invariance using MPI" begin
     target=incomplete_count_data()
     r = pigeons(;
-        target,
+        target=unid_target,
         n_rounds = 5,
         n_chains = 4,
         checkpoint = true,
-        # checked_round = 4, # NB: doesn't work yet, need a fine-tuned equality check for JuliaBUGS.BUGSModel
+        checked_round = 4,
         multithreaded = true,
         on = ChildProcess(
             n_local_mpi_processes = set_n_mpis_to_one_on_windows(2),

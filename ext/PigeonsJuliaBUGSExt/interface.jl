@@ -80,5 +80,18 @@ function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shar
     replica.state = _sample_iid(log_potential.private_model, replica.rng)
 end
 
+# parameter names
 Pigeons.sample_names(::Vector, log_potential::JuliaBUGSLogPotential) = 
     [(Symbol(string(vn)) for vn in log_potential.private_model.parameters)...,:log_density]
+
+# Parallelism invariance
+Pigeons.recursive_equal(a::Union{JuliaBUGSPath,JuliaBUGSLogPotential}, b) =
+    Pigeons._recursive_equal(a,b)
+function Pigeons.recursive_equal(a::T, b) where T <: JuliaBUGS.BUGSModel
+    included = (:transformed, :model_def, :data)
+    excluded = Tuple(setdiff(fieldnames(T), included))
+    Pigeons._recursive_equal(a,b,excluded)
+end
+# just check the betas match, the model is already checked within path
+Pigeons.recursive_equal(a::AbstractVector{<:JuliaBUGSLogPotential}, b) =    
+    all(lp1.beta == lp2.beta for (lp1,lp2) in zip(a,b))
