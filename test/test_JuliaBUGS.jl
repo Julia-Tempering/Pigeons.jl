@@ -85,6 +85,7 @@ end
 
 @testset "Check no NaN log potentials" begin # https://github.com/Julia-Tempering/Pigeons.jl/pull/303#issuecomment-2547306248
     target=incomplete_count_data(tau=0.01)
-    pt = pigeons(target = target, n_rounds = 4, n_chains = 4)
-    @test true
+    pt = pigeons(target = target, n_rounds = 4, n_chains = 4, record=[traces])
+    chns = Chains(pt)
+    @test first(names(chns)) != Symbol("param_1") # check we're not using the default array-state name builder
 end
