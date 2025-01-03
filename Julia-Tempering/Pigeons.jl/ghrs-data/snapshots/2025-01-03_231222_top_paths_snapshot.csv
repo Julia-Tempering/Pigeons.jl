@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/Julia-Tempering/Pigeons.jl,22,17
+/Julia-Tempering/Pigeons.jl/tree/main/src,3,3
+/Julia-Tempering/Pigeons.jl/blob/main/src/explorers/SliceSampler.jl,3,1
+/Julia-Tempering/Pigeons.jl/tree/main/examples,2,2
+/julia-tempering/pigeons.jl,2,1
+/Julia-Tempering/Pigeons.jl/blob/main/examples/ising.jl,2,1
+/Julia-Tempering/Pigeons.jl/blob/1a779752b95a1b395a62fc71170840990175a91a/src/tempering/adaptation.jl,1,1
+/Julia-Tempering/Pigeons.jl/blob/main/docs/src/index.md,1,1
+/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/funnel.stan,1,1
+/Julia-Tempering/Pigeons.jl/blob/main/examples/stan/mRNA.stan,1,1
