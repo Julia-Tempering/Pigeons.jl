@@ -15,3 +15,10 @@ end
         compare_pts(p1, p3)
     end
 end
+
+@testset "Checkpoints-with-AD" begin
+    pigeons(target = toy_mvn_target(2), n_rounds = 2, checkpoint = true, explorer = AutoMALA())
+    pt = PT("results/latest")
+    pt = increment_n_rounds!(pt, 2)
+    pigeons(pt)
+end

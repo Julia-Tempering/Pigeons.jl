@@ -39,16 +39,18 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-      - uses: julia-actions/setup-julia@latest
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
       - uses: julia-actions/cache@v2
-      - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-runtest@latest
-      - uses: julia-actions/julia-processcoverage@latest
-      - uses: codecov/codecov-action@v4
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v5
         with:
-          files: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false  # or true if you want CI to fail when Codecov fails
+          file: lcov.info
 
 
   # test OpenMPI by requesting it with MPIPreferences
@@ -71,7 +73,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v2
       with:
         version: ${{ matrix.version }}
     - uses: julia-actions/cache@v2
@@ -85,7 +87,7 @@ jobs:
         MPIPreferences.use_jll_binary("OpenMPI_jll")
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
   
 
   # # CI is getting too slow! 
@@ -98,7 +100,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1'
+          - '1.10'
         os:
           - macos-13
         mpi:
@@ -119,7 +121,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - uses: julia-actions/setup-julia@latest
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
 
@@ -137,7 +139,7 @@ jobs:
           run(`sed -i.bu 's/unknown/MPICH/' test/LocalPreferences.toml`) # fix wrong abi detection for mpich
           rm("test/Manifest.toml")
       
-      - uses: julia-actions/julia-runtest@latest
+      - uses: julia-actions/julia-runtest@v1
 
 
   docs:
@@ -151,11 +153,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-      - uses: julia-actions/setup-julia@latest
+      - uses: julia-actions/setup-julia@v2
         with:
-          version: '1.9'
-      - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-docdeploy@latest
+          version: '1.10'
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
