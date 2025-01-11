@@ -32,10 +32,10 @@ jobs:
         # handle this https://github.com/Julia-Tempering/Pigeons.jl/pull/309#issuecomment-2585036057
         include:
           - version: '1.9'
-          - os: ubuntu-22.04
+            os: ubuntu-22.04
         exclude:
           - version: '1.9'
-          - os: ubuntu-latest
+            os: ubuntu-latest
 
     steps:
       - name: Enable long paths on windows
