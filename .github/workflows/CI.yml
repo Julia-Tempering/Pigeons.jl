@@ -29,6 +29,13 @@ jobs:
           - ubuntu-latest
           - macos-13
           - windows-latest
+        # handle this https://github.com/Julia-Tempering/Pigeons.jl/pull/309#issuecomment-2585036057
+        exclude:
+          - version: '1.9'
+          - os: ubuntu-latest
+        include:
+          - version: '1.9'
+          - os: ubuntu-22.04
     steps:
       - name: Enable long paths on windows
         if: ${{ startsWith(matrix.os, 'windows') }}
@@ -61,7 +68,7 @@ jobs:
     strategy:
       matrix:
         version:
-          - '1.9'
+          - '1.10'
         os:
           - ubuntu-latest
 
