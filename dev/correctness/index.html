@@ -6,30 +6,124 @@ pigeons(target = toy_mvn_target(100), checked_round = 3, checkpoint = true)</cod
 ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2        7.5      3e-05   1.08e+04       -122   2.66e-15      0.167
-        4       5.59   3.74e-05   1.21e+04       -119    2.6e-07      0.378
-        8       6.04   6.04e-05    1.6e+04       -115    0.00129      0.329
+        2        7.5   2.66e-05   1.08e+04       -122   2.66e-15      0.167
+        4       5.59   3.66e-05   1.21e+04       -119    2.6e-07      0.378
+        8       6.04   5.92e-05    1.6e+04       -115    0.00129      0.329
 <span class="sgr36"><span class="sgr1">┌ Info: </span></span>Neither traces, disk, nor online recorders included.
 <span class="sgr36"><span class="sgr1">│ </span></span>   You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
 <span class="sgr36"><span class="sgr1">└ </span></span>   To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+<span class="sgr33"><span class="sgr1">┌ Warning: </span></span>Circular dependency detected. Precompilation will be skipped for:
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPLChainRulesCoreExt [1ee84b97-14c3-5fc7-ac52-67ea3f2b0f6c]
+<span class="sgr33"><span class="sgr1">│ </span></span>  AlgebraOfGraphics [cbdf2221-f076-402e-a563-3d30da359d67]
+<span class="sgr33"><span class="sgr1">│ </span></span>  HypothesisTests [09f84164-cd44-5f33-b23f-e6b0d136a0d5]
+<span class="sgr33"><span class="sgr1">│ </span></span>  Transducers [28d57a85-8fef-5791-bfe6-a80928e7c999]
+<span class="sgr33"><span class="sgr1">│ </span></span>  StructArraysExt [7174a82b-1e85-55a8-8a3d-2691d660c3ac]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangStaticArraysExt [a9f1882a-14fa-573e-a12d-824431257a23]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPLEnzymeCoreExt [ec6bf1ec-b238-5b40-ba27-3b61c186ad9e]
+<span class="sgr33"><span class="sgr1">│ </span></span>  MCMCChains [c7f686f2-ff18-58e9-bc7b-31028e88f75d]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangDataFramesExt [d787bcad-b5c5-56bb-adaa-6bfddb178a59]
+<span class="sgr33"><span class="sgr1">│ </span></span>  Bijectors [76274a88-744f-5084-9051-94815aaf08c4]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsHypothesisTestsExt [24a95669-f422-5e78-9b01-3468ce8d3133]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsReverseDiffExt [906c0499-15fe-5464-a560-06baedbed43a]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangChainRulesCoreExt [47e8a63d-7df8-5da4-81a4-8f5796ea640c]
+<span class="sgr33"><span class="sgr1">│ </span></span>  InferenceReport [e5554034-be14-491c-aa1c-9e5f4a9f7142]
+<span class="sgr33"><span class="sgr1">│ </span></span>  Pigeons [0eb8d820-af6a-4919-95ae-11206f830c31]
+<span class="sgr33"><span class="sgr1">│ </span></span>  TransducersOnlineStatsBaseExt [6f45943c-d98e-5e8a-8912-adbe5bfabdb6]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPLForwardDiffExt [0b5d6d3b-c1f8-5c5d-8e7c-daa9bd3215ff]
+<span class="sgr33"><span class="sgr1">│ </span></span>  MCMCChainsExt [1966acae-0931-51a3-8ddb-1dfc9ceb04a4]
+<span class="sgr33"><span class="sgr1">│ </span></span>  TransducersDataFramesExt [cefb4096-3352-5e5f-8501-71f024082a88]
+<span class="sgr33"><span class="sgr1">│ </span></span>  TransducersAdaptExt [9144d9d9-84fa-5f34-a63a-3acddca89462]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsForwardDiffExt [c307e446-76ca-5895-84ac-f2b84d8f68d6]
+<span class="sgr33"><span class="sgr1">│ </span></span>  LinearAlgebraExt [ef8e1453-9c17-56fe-886b-405471570bc8]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsEnzymeExt [556c1295-3d89-547a-9412-76dee7d1b49a]
+<span class="sgr33"><span class="sgr1">│ </span></span>  TestExt [62af87b3-b810-57d2-b7eb-8929911df373]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BijectorsForwardDiffExt [3a7fc820-e393-5860-a13a-c57035ee8759]
+<span class="sgr33"><span class="sgr1">│ </span></span>  IntervalSetsExt [71b72403-3d0d-5ec7-be98-551cc85f009b]
+<span class="sgr33"><span class="sgr1">│ </span></span>  RootsChainRulesCoreExt [ed86971b-cb3e-5b82-8694-788a75975987]
+<span class="sgr33"><span class="sgr1">│ </span></span>  UnitfulExt [8d0556db-720e-519a-baed-0b9ed79749be]
+<span class="sgr33"><span class="sgr1">│ </span></span>  StaticArraysExt [6207fee4-2535-5e24-a3ba-6518da1c7d2a]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsDynamicPPLExt [7323e0ca-696f-56ba-8316-a3d09e028a8b]
+<span class="sgr33"><span class="sgr1">│ </span></span>  AbstractMCMC [80f14c24-f653-4e6a-9b94-39d6b0f70001]
+<span class="sgr33"><span class="sgr1">│ </span></span>  Roots [f2b01f46-fcfa-551c-844a-d8ac1e96c665]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsBridgeStanExt [195e9a2f-5b4d-54f1-ad6a-2ca17c630aa6]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBang [198e06fe-97b7-11e9-32a5-e1d131e6ad66]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangStructArraysExt [d139770a-8b79-56c4-91f8-7273c836fd96]
+<span class="sgr33"><span class="sgr1">│ </span></span>  AbstractPPL [7a57a42e-76ec-4ea3-a279-07e840d6d9cf]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPLMCMCChainsExt [cd9d4d22-f107-59f7-bf27-359e0cf03e1c]
+<span class="sgr33"><span class="sgr1">│ </span></span>  MicroCollections [128add7d-3638-4c79-886c-908ea0c25c34]
+<span class="sgr33"><span class="sgr1">│ </span></span>  RootsForwardDiffExt [a63bd285-541a-50a0-818b-605bb84ce7b2]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsMCMCChainsExt [5d864f8f-3a01-520b-a48c-feaef3d1a66d]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DatesExt [0361c7f5-3687-5641-8bd2-a1de0c64d1ed]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPL [366bfd00-2699-11ea-058f-f148b4cae6d8]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangTablesExt [476361b5-ac10-5c09-8bec-30d098a22a5b]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BijectorsReverseDiffExt [5fca5ed7-047a-56aa-af64-40441511acb4]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BijectorsEnzymeCoreExt [cbef7db5-1432-57ab-bbd3-bd08fad8c4a1]
+<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ Pkg.API /opt/hostedtoolcache/julia/1.10.7/x64/share/julia/stdlib/v1.10/Pkg/src/API.jl:1279</span>
+<span class="sgr33"><span class="sgr1">┌ Warning: </span></span>Circular dependency detected. Precompilation will be skipped for:
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPLChainRulesCoreExt [1ee84b97-14c3-5fc7-ac52-67ea3f2b0f6c]
+<span class="sgr33"><span class="sgr1">│ </span></span>  AlgebraOfGraphics [cbdf2221-f076-402e-a563-3d30da359d67]
+<span class="sgr33"><span class="sgr1">│ </span></span>  HypothesisTests [09f84164-cd44-5f33-b23f-e6b0d136a0d5]
+<span class="sgr33"><span class="sgr1">│ </span></span>  Transducers [28d57a85-8fef-5791-bfe6-a80928e7c999]
+<span class="sgr33"><span class="sgr1">│ </span></span>  StructArraysExt [7174a82b-1e85-55a8-8a3d-2691d660c3ac]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangStaticArraysExt [a9f1882a-14fa-573e-a12d-824431257a23]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPLEnzymeCoreExt [ec6bf1ec-b238-5b40-ba27-3b61c186ad9e]
+<span class="sgr33"><span class="sgr1">│ </span></span>  MCMCChains [c7f686f2-ff18-58e9-bc7b-31028e88f75d]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangDataFramesExt [d787bcad-b5c5-56bb-adaa-6bfddb178a59]
+<span class="sgr33"><span class="sgr1">│ </span></span>  Bijectors [76274a88-744f-5084-9051-94815aaf08c4]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsHypothesisTestsExt [24a95669-f422-5e78-9b01-3468ce8d3133]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsReverseDiffExt [906c0499-15fe-5464-a560-06baedbed43a]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangChainRulesCoreExt [47e8a63d-7df8-5da4-81a4-8f5796ea640c]
+<span class="sgr33"><span class="sgr1">│ </span></span>  InferenceReport [e5554034-be14-491c-aa1c-9e5f4a9f7142]
+<span class="sgr33"><span class="sgr1">│ </span></span>  Pigeons [0eb8d820-af6a-4919-95ae-11206f830c31]
+<span class="sgr33"><span class="sgr1">│ </span></span>  TransducersOnlineStatsBaseExt [6f45943c-d98e-5e8a-8912-adbe5bfabdb6]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPLForwardDiffExt [0b5d6d3b-c1f8-5c5d-8e7c-daa9bd3215ff]
+<span class="sgr33"><span class="sgr1">│ </span></span>  MCMCChainsExt [1966acae-0931-51a3-8ddb-1dfc9ceb04a4]
+<span class="sgr33"><span class="sgr1">│ </span></span>  TransducersDataFramesExt [cefb4096-3352-5e5f-8501-71f024082a88]
+<span class="sgr33"><span class="sgr1">│ </span></span>  TransducersAdaptExt [9144d9d9-84fa-5f34-a63a-3acddca89462]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsForwardDiffExt [c307e446-76ca-5895-84ac-f2b84d8f68d6]
+<span class="sgr33"><span class="sgr1">│ </span></span>  LinearAlgebraExt [ef8e1453-9c17-56fe-886b-405471570bc8]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsEnzymeExt [556c1295-3d89-547a-9412-76dee7d1b49a]
+<span class="sgr33"><span class="sgr1">│ </span></span>  TestExt [62af87b3-b810-57d2-b7eb-8929911df373]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BijectorsForwardDiffExt [3a7fc820-e393-5860-a13a-c57035ee8759]
+<span class="sgr33"><span class="sgr1">│ </span></span>  IntervalSetsExt [71b72403-3d0d-5ec7-be98-551cc85f009b]
+<span class="sgr33"><span class="sgr1">│ </span></span>  RootsChainRulesCoreExt [ed86971b-cb3e-5b82-8694-788a75975987]
+<span class="sgr33"><span class="sgr1">│ </span></span>  UnitfulExt [8d0556db-720e-519a-baed-0b9ed79749be]
+<span class="sgr33"><span class="sgr1">│ </span></span>  StaticArraysExt [6207fee4-2535-5e24-a3ba-6518da1c7d2a]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsDynamicPPLExt [7323e0ca-696f-56ba-8316-a3d09e028a8b]
+<span class="sgr33"><span class="sgr1">│ </span></span>  AbstractMCMC [80f14c24-f653-4e6a-9b94-39d6b0f70001]
+<span class="sgr33"><span class="sgr1">│ </span></span>  Roots [f2b01f46-fcfa-551c-844a-d8ac1e96c665]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsBridgeStanExt [195e9a2f-5b4d-54f1-ad6a-2ca17c630aa6]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBang [198e06fe-97b7-11e9-32a5-e1d131e6ad66]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangStructArraysExt [d139770a-8b79-56c4-91f8-7273c836fd96]
+<span class="sgr33"><span class="sgr1">│ </span></span>  AbstractPPL [7a57a42e-76ec-4ea3-a279-07e840d6d9cf]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPLMCMCChainsExt [cd9d4d22-f107-59f7-bf27-359e0cf03e1c]
+<span class="sgr33"><span class="sgr1">│ </span></span>  MicroCollections [128add7d-3638-4c79-886c-908ea0c25c34]
+<span class="sgr33"><span class="sgr1">│ </span></span>  RootsForwardDiffExt [a63bd285-541a-50a0-818b-605bb84ce7b2]
+<span class="sgr33"><span class="sgr1">│ </span></span>  PigeonsMCMCChainsExt [5d864f8f-3a01-520b-a48c-feaef3d1a66d]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DatesExt [0361c7f5-3687-5641-8bd2-a1de0c64d1ed]
+<span class="sgr33"><span class="sgr1">│ </span></span>  DynamicPPL [366bfd00-2699-11ea-058f-f148b4cae6d8]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BangBangTablesExt [476361b5-ac10-5c09-8bec-30d098a22a5b]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BijectorsReverseDiffExt [5fca5ed7-047a-56aa-af64-40441511acb4]
+<span class="sgr33"><span class="sgr1">│ </span></span>  BijectorsEnzymeCoreExt [cbef7db5-1432-57ab-bbd3-bd08fad8c4a1]
+<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ Pkg.API /opt/hostedtoolcache/julia/1.10.7/x64/share/julia/stdlib/v1.10/Pkg/src/API.jl:1279</span>
 <span class="sgr36"><span class="sgr1">┌ Info: </span></span>Neither traces, disk, nor online recorders included.
 <span class="sgr36"><span class="sgr1">│ </span></span>   You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
 <span class="sgr36"><span class="sgr1">└ </span></span>   To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
 ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2        7.5   6.47e-05   1.08e+04       -122   2.66e-15      0.167
-        4       5.59   8.05e-05   1.21e+04       -119    2.6e-07      0.378
-        8       6.04   0.000102    1.6e+04       -115    0.00129      0.329
+        2        7.5   6.57e-05   1.08e+04       -122   2.66e-15      0.167
+        4       5.59   9.64e-05   1.21e+04       -119    2.6e-07      0.378
+        8       6.04   0.000103    1.6e+04       -115    0.00129      0.329
 ────────────────────────────────────────────────────────────────────────────
-       16       7.27   0.000129   2.16e+04       -118     0.0134      0.193
-       32       6.97   0.000197    2.8e+04       -114      0.107      0.225
-       64       7.03   0.000371   3.88e+04       -117     0.0531      0.219
-      128       7.23    0.00072   5.79e+04       -114     0.0944      0.196
-      256       7.05    0.00141   6.31e+04       -115       0.13      0.217
-      512       7.14    0.00274   6.66e+04       -115      0.171      0.207
- 1.02e+03       7.19    0.00536   7.32e+04       -115      0.172      0.201
-────────────────────────────────────────────────────────────────────────────</code></pre><p>The above line does the following: the PT algorithm will pause at the end of round 3, spawn  a separate process with only one thread in it, run 3 rounds of PT with the same  <a href="../reference/#Pigeons.Inputs"><code>Inputs</code></a> object in it, and verify that the checkpoints of the single-threaded run  is identical to   the one that ran in the main process. If not, an error will be raised with some  information on where the discrepancy comes from.  Try to pick the checked round to be small enough that it does not dominate the running time  (since it runs in single-threaded, single-process mode), but big enough to achieve  the same code coverage as the full algorithm. Setting it to zero (or omitting the argument),  disables this functionality.</p><p>Did the code above actually use many threads? This depends on the value of <code>Threads.nthreads()</code>. Julia currently does not allow you to change this value at  runtime, so for convenience we provide the following way to run the job in a  child process with a set number of Julia threads:</p><pre><code class="language-julia hljs">pt_result = pigeons(target = toy_mvn_target(100), multithreaded = true, checked_round = 3, checkpoint = true, on = ChildProcess(n_threads = 4))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Result{PT}(&quot;/home/runner/work/Pigeons.jl/Pigeons.jl/docs/build/results/all/2025-01-04-22-31-19-fHY18uTD&quot;)</code></pre><p>Notice that we also add the flag <code>multithreaded = true</code>, to instruct Pigeons to use  the multiple threads available to parallelize exploration across chains (in other use cases,  parallelization might get used internally e.g. to parallelize likelihood evaluation).</p><p>Here the check passed successfully as expected. But what  if you had a third-party target distribution that is not multi-threaded friendly?  For example some code sometimes write in global variables or  other non-thread safe constructs. In such situation, you can still use your thread-naive  target over MPI <em>processes</em>.  For example, if the thread-unsafety comes from the use of global variables, then each  process will have its own copy of the global variables. </p><div class="admonition is-info"><header class="admonition-header">Failed equality check</header><div class="admonition-body"><p>If you are using a custom struct that is either mutable or containing  mutables, it is possible that the check will fail even if your implementation is sound. This is caused by <code>==</code> dispatching <code>===</code> on your type, which is too strict for the purpose of comparing two deserialized checkpoints. See <a href="../reference/#Pigeons.recursive_equal-Tuple{Any, Any}"><code>recursive_equal</code></a> for instructions on how to prevent this behavior.</p></div></div><h2 id="Correctness-checks-of-MCMC-kernels"><a class="docs-heading-anchor" href="#Correctness-checks-of-MCMC-kernels">Correctness checks of MCMC kernels</a><a id="Correctness-checks-of-MCMC-kernels-1"></a><a class="docs-heading-anchor-permalink" href="#Correctness-checks-of-MCMC-kernels" title="Permalink"></a></h2><p>Pigeons offers a tool, the Exact Invariance Test (EIT), to help validating  correctness of MCMC kernels. It formulates an hypothesis test where the  null hypothesis is that the provided <a href="../interfaces/#explorer"><code>explorer</code></a> kernel is  invariant with respect to the target distribution. For details, see  <a href="https://www.jstatsoft.org/article/view/v103i11">Bouchard-Côté, 2022, Section 10.5</a> or <a href="https://ubc-stat-ml.github.io/web447/w12_mcmc2/topic08_debug.html">this tutorial</a>. </p><p>Using EIT is as simple as defining a Bayesian model with a proper prior  using the Turing syntax, and then calling <a href="../reference/#Pigeons.invariance_test"><code>invariance_test()</code></a>: </p><pre><code class="language-julia hljs">using Pigeons
+       16       7.27    0.00013   2.16e+04       -118     0.0134      0.193
+       32       6.97   0.000211    2.8e+04       -114      0.107      0.225
+       64       7.03   0.000372   3.88e+04       -117     0.0531      0.219
+      128       7.23   0.000985   5.79e+04       -114     0.0944      0.196
+      256       7.05    0.00184   6.31e+04       -115       0.13      0.217
+      512       7.14    0.00354   6.66e+04       -115      0.171      0.207
+ 1.02e+03       7.19    0.00605   7.32e+04       -115      0.172      0.201
+────────────────────────────────────────────────────────────────────────────</code></pre><p>The above line does the following: the PT algorithm will pause at the end of round 3, spawn  a separate process with only one thread in it, run 3 rounds of PT with the same  <a href="../reference/#Pigeons.Inputs"><code>Inputs</code></a> object in it, and verify that the checkpoints of the single-threaded run  is identical to   the one that ran in the main process. If not, an error will be raised with some  information on where the discrepancy comes from.  Try to pick the checked round to be small enough that it does not dominate the running time  (since it runs in single-threaded, single-process mode), but big enough to achieve  the same code coverage as the full algorithm. Setting it to zero (or omitting the argument),  disables this functionality.</p><p>Did the code above actually use many threads? This depends on the value of <code>Threads.nthreads()</code>. Julia currently does not allow you to change this value at  runtime, so for convenience we provide the following way to run the job in a  child process with a set number of Julia threads:</p><pre><code class="language-julia hljs">pt_result = pigeons(target = toy_mvn_target(100), multithreaded = true, checked_round = 3, checkpoint = true, on = ChildProcess(n_threads = 4))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Result{PT}(&quot;/home/runner/work/Pigeons.jl/Pigeons.jl/docs/build/results/all/2025-01-11-21-47-16-Jrji6pyN&quot;)</code></pre><p>Notice that we also add the flag <code>multithreaded = true</code>, to instruct Pigeons to use  the multiple threads available to parallelize exploration across chains (in other use cases,  parallelization might get used internally e.g. to parallelize likelihood evaluation).</p><p>Here the check passed successfully as expected. But what  if you had a third-party target distribution that is not multi-threaded friendly?  For example some code sometimes write in global variables or  other non-thread safe constructs. In such situation, you can still use your thread-naive  target over MPI <em>processes</em>.  For example, if the thread-unsafety comes from the use of global variables, then each  process will have its own copy of the global variables. </p><div class="admonition is-info"><header class="admonition-header">Failed equality check</header><div class="admonition-body"><p>If you are using a custom struct that is either mutable or containing  mutables, it is possible that the check will fail even if your implementation is sound. This is caused by <code>==</code> dispatching <code>===</code> on your type, which is too strict for the purpose of comparing two deserialized checkpoints. See <a href="../reference/#Pigeons.recursive_equal-Tuple{Any, Any}"><code>recursive_equal</code></a> for instructions on how to prevent this behavior.</p></div></div><h2 id="Correctness-checks-of-MCMC-kernels"><a class="docs-heading-anchor" href="#Correctness-checks-of-MCMC-kernels">Correctness checks of MCMC kernels</a><a id="Correctness-checks-of-MCMC-kernels-1"></a><a class="docs-heading-anchor-permalink" href="#Correctness-checks-of-MCMC-kernels" title="Permalink"></a></h2><p>Pigeons offers a tool, the Exact Invariance Test (EIT), to help validating  correctness of MCMC kernels. It formulates an hypothesis test where the  null hypothesis is that the provided <a href="../interfaces/#explorer"><code>explorer</code></a> kernel is  invariant with respect to the target distribution. For details, see  <a href="https://www.jstatsoft.org/article/view/v103i11">Bouchard-Côté, 2022, Section 10.5</a> or <a href="https://ubc-stat-ml.github.io/web447/w12_mcmc2/topic08_debug.html">this tutorial</a>. </p><p>Using EIT is as simple as defining a Bayesian model with a proper prior  using the Turing syntax, and then calling <a href="../reference/#Pigeons.invariance_test"><code>invariance_test()</code></a>: </p><pre><code class="language-julia hljs">using Pigeons
 using Distributions
 using DynamicPPL
 using HypothesisTests
@@ -50,4 +144,4 @@ test_result = Pigeons.invariance_test(
                 explorer;
                 condition_on=(:n_successes,))
 
-@assert test_result.passed</code></pre><p>EIT checks for invariance but not irreducibility.  Being able to check invariance irrespective of irreducibility is beneficial: for example if a Gibbs sampler has two moves, one can then test each in isolation  each of the two moves. Moreover,   in case of failure, we can determine which of the two moves would be problematic. </p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../checkpoints/">« Checkpoints</a><a class="docs-footer-nextpage" href="../pt/">More on PT »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Saturday 4 January 2025 22:41">Saturday 4 January 2025</span>. Using Julia version 1.10.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+@assert test_result.passed</code></pre><p>EIT checks for invariance but not irreducibility.  Being able to check invariance irrespective of irreducibility is beneficial: for example if a Gibbs sampler has two moves, one can then test each in isolation  each of the two moves. Moreover,   in case of failure, we can determine which of the two moves would be problematic. </p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../checkpoints/">« Checkpoints</a><a class="docs-footer-nextpage" href="../pt/">More on PT »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Saturday 11 January 2025 21:58">Saturday 11 January 2025</span>. Using Julia version 1.10.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
