@@ -1,13 +1,16 @@
 """
-A state augmentation used by explorers. 
+$SIGNATURES 
 
-Internally, hijacks the recorders machinery to 
-store it in a Replica. 
+A state augmentation used by explorers. Internally, it hijacks the recorders 
+machinery to store (usually volatile) data in a Replica. This helps with writing
+allocation-light code by pre-allocating objects inside the Augmentation, while
+avoiding race-conditions between replicas. For an application, see [`buffers`](@ref).
+
+$FIELDS
 """
-mutable struct Augmentation{T}
+struct Augmentation{T} # For serialization purpose T should support zero-arg constructor T()
     """
-    The payload, initially nothing until 
-    [`get_buffer()`](@ref) is called.
+    The payload. Can be `nothing` for efficiency purposes. 
     """
     contents::Union{T,Nothing}
     
@@ -15,35 +18,19 @@ mutable struct Augmentation{T}
     When it is volatile, i.e. can be 
     reconstructed on the fly and is only 
     stored for efficiency purpose, it is 
-    not worth serialialinzing it
+    not worth serializing it
     """
     serialize::Bool
 end
 
-buffers() = Augmentation(Dict{Symbol, Vector{Float64}}(), false)
+# by default, do not serialize
+Augmentation(contents) = Augmentation(contents, false)
 
-"""
-$SIGNATURES 
-
-Return a Vector of length dim. Allocating only the first 
-time, after that the buffer is recycled and stored in the 
-Replica's recorders. 
-"""
-function get_buffer(augmentation, key::Symbol, dim::Int)::Vector{Float64}
-    dict = augmentation.contents 
-    if !haskey(dict, key) 
-        dict[key] = zeros(dim) 
-    end
-    return dict[key]
-end
-
-Augmentation{T}() where {T} = Augmentation{T}(nothing, false)
-
-Base.merge(a1::Augmentation{T}, a2::Augmentation{T}) where {T} = 
-    Augmentation{T}(nothing, false) 
+# reducing Augmentations is meaningless; do minimum effort
+Base.merge(::Augmentation{T}, ::Augmentation{T}) where {T} = Augmentation{T}(nothing, false)
 
 # In this case we do not want to lose the augmentation at the end of the round
-Base.empty!(a::Augmentation) = nothing
+function Base.empty!(::Augmentation) end
 
 function Serialization.serialize(s::AbstractSerializer, instance::Augmentation{T}) where {T}
     Serialization.writetag(s.io, Serialization.OBJECT_TAG)
@@ -54,9 +41,31 @@ function Serialization.serialize(s::AbstractSerializer, instance::Augmentation{T
     end
 end
 
-function Serialization.deserialize(s::AbstractSerializer, type::Type{Augmentation{T}}) where {T}
+function Serialization.deserialize(s::AbstractSerializer, ::Type{Augmentation{T}}) where {T}
     serialize_field = Serialization.deserialize(s)
-    contents = serialize_field ? Serialization.deserialize(s) : nothing
+    contents = serialize_field ? Serialization.deserialize(s) : T()
     return Augmentation{T}(contents, serialize_field)
 end
 
+
+"""
+$SIGNATURES 
+
+A buffering system used internally by explorers in Pigeons.
+"""
+buffers(::Type{T}=Vector{Float64}) where {T} = Augmentation(Dict{Symbol, T}())
+
+"""
+$SIGNATURES 
+
+Return an array in the buffer. Allocating only the first 
+time; after that, the buffer is recycled and stored in the 
+Replica's recorders.
+"""
+function get_buffer(a::Augmentation{Dict{Symbol, T}}, key::Symbol, dims)::T where {T <: Array}
+    dict = a.contents 
+    if !haskey(dict, key) 
+        dict[key] = similar(T, dims)
+    end
+    return dict[key]
+end

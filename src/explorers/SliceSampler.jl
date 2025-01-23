@@ -134,6 +134,7 @@ end
 
 # handle integers separately
 function initialize_slice_endpoints(current::T, width, rng) where {T<:Integer}
+    @assert isinteger(width) "for integer variables, the width should be an integer. Got: $width"
     width = ceil(T, width)
     L = current - rand(rng, 0:width)
     R = L + width
@@ -164,6 +165,12 @@ function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, l
             Lbar = new_position
         else
             Rbar = new_position
+        end
+        if Lbar ≈ Rbar 
+            # see https://github.com/UBC-Stat-ML/blangSDK/blob/b8642c9c2a0adab8a5b6da96f2a7889f1b81b6cc/src/main/java/blang/mcmc/RealSliceSampler.java#L111
+            pointer[] = old_position 
+            @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, n))
+            return log_potential(state) 
         end
         n += 1
     end

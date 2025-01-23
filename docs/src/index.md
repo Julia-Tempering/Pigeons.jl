@@ -16,11 +16,14 @@ of the following algorithms:
 
 - Non-Reversible Parallel Tempering (NRPT), 
     [Syed et al., 2021](https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12464).
-- Variational parallel tempering (Variational PT), [Surjanovic et al., 2022](https://arxiv.org/abs/2206.00080). 
-- autoMALA, [Biron-Lattes et al., 2023](https://arxiv.org/abs/2310.16782).
+- Variational parallel tempering (Variational PT), [Surjanovic et al., 2022](https://proceedings.neurips.cc/paper_files/paper/2022/hash/03cd3cf3f74d4f9ce5958de269960884-Abstract-Conference.html). 
+- autoMALA, [Biron-Lattes et al., 2024](https://proceedings.mlr.press/v238/biron-lattes24a.html).
 
 These algorithms achieve state-of-the-art performance for approximation 
 of challenging probability distributions.
+
+!!! note
+    We are recruiting graduate students! [Click here for more information.](@ref openings)
 
 
 ## [Installing Pigeons](@id installing-pigeons)
@@ -87,7 +90,8 @@ nothing # hide
 
 ## Scope 
 
-We describe here the class of problems that can be approached using Pigeons.
+We describe here the class of problems that can be approached using Pigeons. 
+In summary: [computational Lebesgue integration](https://ubc-stat-ml.github.io/lebesgue/).
 
 Let ``\pi(x)`` denote a probability density called the **target**. 
 In many problems, e.g. in Bayesian statistics, the density $\pi$ is typically 

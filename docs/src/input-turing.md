@@ -9,7 +9,7 @@ a [Turing.jl](https://github.com/TuringLang/Turing.jl) model first load `Turing`
 or `DynamicPPL` and use [`TuringLogPotential`](@ref):
 
 ```@example turing
-using DynamicPPL, Pigeons, Distributions, DistributionsAD
+using DynamicPPL, Pigeons, Distributions
 
 DynamicPPL.@model function my_turing_model(n_trials, n_successes)
     p1 ~ Uniform(0, 1)
@@ -18,7 +18,8 @@ DynamicPPL.@model function my_turing_model(n_trials, n_successes)
     return n_successes
 end
 
-pt = pigeons(target = TuringLogPotential(my_turing_model(100, 50)));
+my_turing_target = TuringLogPotential(my_turing_model(100, 50))
+pt = pigeons(target = my_turing_target);
 nothing # hide
 ```
 
@@ -26,6 +27,30 @@ At the moment, only Turing models with fixed dimensionality are supported.
 Both real and integer-valued random variables are supported. 
 For a [`TuringLogPotential`](@ref), the [`default_explorer()`](@ref) is the [`SliceSampler`](@ref) and the [`default_reference()`](@ref) is the 
 prior distribution encoded in the Turing model. 
+
+## Gradient-based sampling with [`AutoMALA`](@ref)
+
+For Turing models with fully continuous state-spaces—as is the case for
+`my_turing_model` defined above—[`AutoMALA`](@ref) can be an effective alternative to
+[`SliceSampler`](@ref)—especially for high-dimensional problems. Because Turing targets
+conform to the [LogDensityProblemsAD.jl](https://github.com/tpapp/LogDensityProblemsAD.jl) 
+interface, Automatic Differentiation (AD) backends can be used to obtain the gradients
+needed by [`AutoMALA`](@ref).
+
+The default AD backend for [`AutoMALA`](@ref) is [ForwardDiff](https://juliadiff.org/ForwardDiff.jl/).
+However, when the Turing model does not involve branching decisions (`if`, `while`, etc...) 
+depending on latent variables, [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl)
+can provide accelerated performance. Since `my_turing_target` satisfies this criterion, we
+can use [`AutoMALA`](@ref) with the ReverseDiff AD backend via
+
+```@example turing
+using ReverseDiff
+pt = pigeons(
+    target = my_turing_target,
+    explorer = AutoMALA(default_autodiff_backend = :ReverseDiff)
+);
+nothing # hide
+```
 
 ## Using DynamicPPL.@addlogprob!
 
@@ -56,9 +81,7 @@ using MCMCChains
 using StatsPlots
 plotlyjs()
 
-pt = pigeons(
-        target = TuringLogPotential(my_turing_model(100, 50)), 
-        record = [traces])
+pt = pigeons(target = my_turing_target, record = [traces])
 samples = Chains(pt)
 my_plot = StatsPlots.plot(samples)
 StatsPlots.savefig(my_plot, "turing_posterior_densities_and_traces.html"); 
@@ -76,7 +99,7 @@ It is sometimes useful to provide a custom initialization, for example to start 
 This can be done as follows:
 
 ```@example custom_init
-using DynamicPPL, Pigeons, Distributions, DistributionsAD, Random
+using DynamicPPL, Pigeons, Distributions, Random
 
 DynamicPPL.@model function toy_beta_binom_model(n_trials, n_successes)
     p ~ Uniform(0, 1)

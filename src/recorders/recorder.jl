@@ -43,35 +43,37 @@ function record!(traces::Dict{Pair{Int, Int}, T}, datum) where {T}
 end
 
 """ 
+$SIGNATURES
+
+Returns a generator for the values of a recorder of type `OnlineStatsBase.GroupBy`.
+"""
+recorder_values(pt::PT, recorder_name::Symbol) = 
+    recorder_values(pt.reduced_recorders, recorder_name::Symbol)
+recorder_values(reduced_recorders, recorder_name::Symbol) = 
+    recorder_values(reduced_recorders[recorder_name])
+recorder_values(recorder::OnlineStatsBase.GroupBy) = (value(v) for v in values(value(recorder)))
+
+""" 
 Average MH swap acceptance probabilities for each pairs 
 of interacting chains. 
 """
 @provides recorder swap_acceptance_pr() = GroupBy(Tuple{Int, Int}, Mean())
 
-function swap_prs(pt)
-    collection = value(pt.reduced_recorders.swap_acceptance_pr)
-    return value.(values(collection))
-end
+swap_prs(pt) = recorder_values(pt, :swap_acceptance_pr)
 
 """ 
 Average MH swap acceptance probabilities for explorers.  
 """
 @provides recorder explorer_acceptance_pr() = GroupBy(Int, Mean())
 
-function explorer_mh_prs(pt)
-    collection = value(pt.reduced_recorders.explorer_acceptance_pr)
-    return value.(values(collection))
-end
+explorer_mh_prs(pt) = recorder_values(pt, :explorer_acceptance_pr)
 
 """ 
 Number of steps used by explorers.
 """
 @provides recorder explorer_n_steps() = GroupBy(Int, Sum())
 
-function explorer_n_steps(pt)
-    collection = value(pt.reduced_recorders.explorer_n_steps)
-    return value.(values(collection))
-end
+explorer_n_steps(pt) = recorder_values(pt, :explorer_n_steps)
 
 """ 
 Full index process stored in memory. 

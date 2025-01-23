@@ -11,6 +11,7 @@ as well as memory efficient
 methods using either [the disk](@ref output-off-memory) or 
 [constant-memory statistics](@ref output-online). 
 
+- [Automated reports](@ref output-inferencereport)
 - [Interpreting pigeons' standard output](@ref output-reports)
 - [Working with traces](@ref output-traces)
 - [Creating plots.](@ref output-plotting)

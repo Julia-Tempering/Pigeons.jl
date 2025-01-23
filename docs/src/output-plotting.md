@@ -15,16 +15,17 @@ See below for examples of posterior densities and trace plots.
 
 ## Posterior densities and trace plots
 
-Make sure to have the third party `MCMCChains` and `StatsPlots`
-packages installed via 
+Make sure to have the third party `DynamicPPL`, `MCMCChains`, and `StatsPlots`
+packages installed via
 
 ```
-using Pkg; Pkg.add("MCMCChains", "StatsPlots")
+using Pkg; Pkg.add("DynamicPPL", "MCMCChains", "StatsPlots")
 ```
 
 Then use the following:
 
 ```@example traces
+using DynamicPPL
 using Pigeons
 using MCMCChains
 using StatsPlots
@@ -90,14 +91,15 @@ nothing # hide
     The code snippet in this section only works with Julia 1.9. 
     See https://sefffal.github.io/PairPlots.jl/dev/chains/ for a workaround.
 
-Make sure to have the third party packages `MCMCChains`, `CairoMakie` and `PairPlots`
+Make sure to have the third party packages `DynamicPPL`, `MCMCChains`, `CairoMakie`, and `PairPlots`
 installed via 
 
 ```
-using Pkg; Pkg.add("MCMCChains", "CairoMakie", "PairPlots")
+using Pkg; Pkg.add("DynamicPPL", "MCMCChains", "CairoMakie", "PairPlots")
 ```
 
 ```
+using DynamicPPL
 using Pigeons
 using MCMCChains
 using CairoMakie

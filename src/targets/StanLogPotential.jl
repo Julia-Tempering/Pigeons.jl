@@ -48,10 +48,4 @@ $SIGNATURES
 Create a JSON string based on the scalar or array variables
 provided.
 """
-json(; variables...) =
-    "{" *
-    join(
-        map(
-            pair -> "\"$(pair[1])\" : $(pair[2])",
-            collect(variables)), ",") *
-    "}"
+json(; variables...) = JSON.json(variables)

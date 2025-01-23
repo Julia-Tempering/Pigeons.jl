@@ -74,7 +74,7 @@ end
     ref = GaussianReference(make_dict(means), make_dict(sds), 1) 
 
     x = rand(rng, 2) 
-    manual_grad_calculator = LogDensityProblemsAD.ADgradient(:xyz, ref, Pigeons.buffers())
+    manual_grad_calculator = Pigeons.BufferedAD(ref, Pigeons.buffers())
     _, manual_grad = LogDensityProblems.logdensity_and_gradient(manual_grad_calculator, x)
 
     fct(x) = Pigeons.gaussian_logdensity(x, means, sds)

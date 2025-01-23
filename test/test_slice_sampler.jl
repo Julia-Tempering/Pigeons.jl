@@ -104,3 +104,32 @@ end
 @testset "SliceSampler" begin
     test_slice_sampler()
 end
+
+
+DynamicPPL.@model function test()
+    p ~ Categorical(0.1*ones(10))
+end
+
+
+@testset "Bad width" begin 
+    test_target = TuringLogPotential(test())
+    inputs = Inputs(target = test_target,
+                explorer = SliceSampler(w = 0.1, p = 20, n_passes = 1, max_iter = 1_024)
+                )
+    @test_throws "AssertionError: for integer variables, the width should be an integer. Got: 0.1" pt = pigeons(inputs)
+end
+
+# This covers the Lbar ≈ Rbar check in slice_shrink!
+struct Dirac end 
+function (::Dirac)(x) # Dirac in first coordinate, Gaussian in the second
+    return x[1] == 1.1 ? -x[2]^2/2.0 : -Inf64  
+end
+Pigeons.initialization(::Dirac, ::AbstractRNG, ::Int) = [1.1, 0.0] 
+
+@testset "Dirac" begin 
+    pt = pigeons(target = Dirac(), reference = Dirac(), n_chains = 1, record = [online], n_rounds = 15)
+    @test mean(pt)[1] == 1.1 
+    @test ≈(mean(pt)[2], 0.0, atol = 0.01) 
+    @test var(pt)[1] == 0.0 
+    @test ≈(var(pt)[2], 1.0, atol = 0.01)
+end

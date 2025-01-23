@@ -1,20 +1,29 @@
-# DynamicPPL ----------
-Pigeons.continuous_variables(state::DynamicPPL.TypedVarInfo) = Pigeons.variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)
-Pigeons.discrete_variables(state::DynamicPPL.TypedVarInfo) = Pigeons.variables(state::DynamicPPL.TypedVarInfo, Integer)
-Pigeons.variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = state.metadata[name].vals
-function Pigeons.update_state!(state::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value)
-    state.metadata[name].vals[index] = value
+# grouping of variables
+variables(vi::DynamicPPL.TypedVarInfo{<:NamedTuple{names}}, ::Type{T}) where {names,T} =
+    [name for (name, meta) in zip(names, vi.metadata) if eltype(meta.vals) <: T]
+Pigeons.continuous_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, AbstractFloat)
+Pigeons.discrete_variables(state::DynamicPPL.TypedVarInfo) = variables(state::DynamicPPL.TypedVarInfo, Integer)
+function Pigeons.recorded_continuous_variables(vi::DynamicPPL.TypedVarInfo)
+    cvars = Pigeons.continuous_variables(vi)
+
+    # allows us to handle samplers with adaptive preconditioners, which *may* be
+    # used in fully cont models (no way of knowing here if they are actually used though)
+    is_fully_continuous(vi) && push!(cvars, :singleton_variable)
+
+    return cvars
 end
-function Pigeons.variables(state::DynamicPPL.TypedVarInfo, type::DataType)
-    all_names = fieldnames(typeof(state.metadata))
-    var_names = []
-    for name in all_names
-        if typeof(state.metadata[name].vals[1]) <: type
-            var_names = vcat(var_names, name)
-        end
+
+# note: this returns unconstrained parameters when the varinfo is linked 
+# (default in pigeons as of Jul-24), and constrained otherwise
+Pigeons.variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = 
+    if name === :singleton_variable
+        DynamicPPL.getall(state)
+    else
+        state.metadata[name].vals
     end
-    return var_names
-end
+
+Pigeons.update_state!(vi::DynamicPPL.TypedVarInfo, name::Symbol, index::Int, value) =
+    vi.metadata[name].vals[index] = value
 
 # From Turing.jl/src/utilities/helper.jl
 ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
@@ -59,10 +68,12 @@ function Pigeons.slice_sample!(h::SliceSampler, vi::DynamicPPL.TypedVarInfo, log
     end
     return cached_lp
 end
-function Pigeons.step!(explorer::Pigeons.HamiltonianSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
-    state = DynamicPPL.getall(vi)
-    Pigeons.step!(explorer, replica, shared, state)
-    DynamicPPL.setall!(replica.state, state)
+
+function Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
+    vector_state = Pigeons.get_buffer(replica.recorders.buffers, :flattened_vi, get_dimension(vi))
+    flatten!(vi, vector_state) # in-place DynamicPPL.getall
+    Pigeons.step!(explorer, replica, shared, vector_state)
+    DynamicPPL.setall!(replica.state, vector_state)
 end
 
 #=

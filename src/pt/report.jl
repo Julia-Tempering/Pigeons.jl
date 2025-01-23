@@ -21,6 +21,8 @@ all_reports() = [
         "  mean|ρ| "   => pt -> mean(abs.(energy_ac1s(pt, true))),
         "  min(αₑ) "   => pt -> minimum(explorer_mh_prs(pt)), 
         " mean(αₑ) "   => pt -> mean(explorer_mh_prs(pt)),
+        " min(RR)  "   => pt -> minimum(Pigeons.recorder_values(pt, :reversibility_rate)), 
+        " mean(RR) "   => pt -> mean(Pigeons.recorder_values(pt, :reversibility_rate)),
     ]
 
 """
