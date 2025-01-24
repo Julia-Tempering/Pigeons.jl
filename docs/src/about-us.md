@@ -10,6 +10,9 @@ to become a part of our team feel free to reach out!
 
 ## Team Members (chronological order)
 
+!!! note
+    We are recruiting graduate students! [Click here for more information.](@ref openings)
+
 ```@raw html
 <div style="display: flex; align-items: center; margin-bottom: 20px;">
     <img src="https://raw.githubusercontent.com/Julia-Tempering/Pigeons.jl/27ee86b8e0827ba9e7eead6374960ba8673e1006/docs/img/alex.png" alt="Alexandre Bouchard-Côté" style="width: 100px; height: 100px; border-radius: 50%; margin-right: 20px;">
