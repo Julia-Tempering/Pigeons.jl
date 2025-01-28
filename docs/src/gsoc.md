@@ -3,51 +3,31 @@ CurrentModule = Pigeons
 ```
 # [Pigeons Projects - Google Summer of Code](@id gsoc)
 
-## Python and R Interface for Pigeons
 
-Pigeons allows users to scale their Bayesian computation on up to thousands of 
-machines. At the moment, the only available API is through the Julia programming 
-language. To reach a wider audience, we would like to extend this to Python and R.
+## Solving Optimization Problems with Pigeons 
+
+Annealing-based methods have shown promising performance both within the context 
+of sampling (e.g., parallel tempering MCMC) and optimization (e.g., simulated annealing). 
+Currently, Pigeons only supports annealing methods for sampling and the recent theory 
+developed for non-reversible parallel tempering methods applies to these sampling algorithms.
+The goal of this project would be to develop and implement new algorithms 
+for solving optimization problems within the Pigeons framework.
 Work on this project would include: 
 
-- Development of a new Pigeons interface in Python and/or R.
+- Extending the Pigeons interface to allow users to solve general optimization problems.
 
-- Testing of the new interface to ensure identical output to Julia.  
+- Performing simulations to understand the advantages and limitations of annealing-based methods 
+for optimization. Conducting a literature review to collect examples of optimization 
+problems where annealing-based methods would be useful.
 
-- Engaging with researchers interested in using a Python/R interface and implementing additional suggested features. 
+- Understanding the theoretical underpinnings of annealing for optimization and using 
+past insights to develop and implement new algorithms within the Pigeons package. 
 
-**Recommended Skills:** Familiarity with Python and/or R. A basic knowledge of 
-statistical concepts and a desire to learn the basics of Julia and Bayesian inference.
+**Recommended Skills:** Familiarity with Julia and/or Python. 
+A basic knowledge of optimization algorithms and a moderate level of mathematical maturity. 
 
-**Expected Results:** An interface for Pigeons in either Python or R (or both). 
-
-**Mentors:** [Alexandre Bouchard-Côté](https://github.com/alexandrebouchard), 
-[Trevor Campbell](https://github.com/trevorcampbell/), and 
-[Nikola Surjanovic](https://github.com/nikola-sur).
-
-**Expected Project Size:** 175 hours or 350 hours. 
-
-**Difficulty:** Medium.
-
-
-## Automated Parameter Tuning
-
-The core algorithm behind Pigeons, parallel tempering, has recently had [major developments](https://arxiv.org/abs/1905.02939). 
-Some questions remain regarding the selection of tuning parameters in parallel tempering. 
-While these have been partially theoretically resolved, it remains to automate 
-the selection procedure in software such as Pigeons.
-Work on this project would include:
-
-- Development of an automated parameter selection procedure (e.g., the number of chains in parallel tempering). 
-
-- Simulations to compare theoretical results and empirical performance.
-
-- Further work on the parallelization of Pigeons (e.g., automated selection of number of machines and instances of parallel tempering).
-
-**Recommended Skills:** Familiarity with Julia and distributed/parallel computing. 
-A basic knowledge of statistical concepts. A desire to learn about the parallel tempering algorithm.
-
-**Expected Results:** An automated tuning parameter selection procedure and a simplified user interface. 
+**Expected Results:** A new interface in Pigeons to allow users to solve general optimization problems, 
+as well as an implementation of new annealing-based optimization algorithms. 
 
 **Mentors:** [Alexandre Bouchard-Côté](https://github.com/alexandrebouchard), 
 [Trevor Campbell](https://github.com/trevorcampbell/), and 
@@ -56,6 +36,37 @@ A basic knowledge of statistical concepts. A desire to learn about the parallel 
 **Expected Project Size:** 175 hours or 350 hours. 
 
 **Difficulty:** Medium to Hard, depending on the chosen tasks.
+
+
+
+## Library of Difficult Sampling Problems 
+
+The fields of Bayesian statistical inference and statistical physics abound with 
+difficult sampling problems. In the field of machine learning, it is common to compare 
+methods across several standard data sets. 
+In contrast, such collections of standard data sets and models do not exist or 
+are limited in scope in the field of statistics.
+(For example, the current, most commonly used library of difficult sampling problems, 
+[posteriordb](https://github.com/stan-dev/posteriordb), does not emphasize 
+difficult distributions such as non-log-concave targets.) Work on this project would include:
+
+- Searching for difficult sampling problems in the literature and implementing some examples in Julia.
+
+- Numerical experiments to compare the performance of Pigeons with other state-of-the-art sampling algorithms.
+
+**Recommended Skills:** Familiarity with Julia, Markdown, and some basics of website development. 
+A basic knowledge of statistical concepts. A desire to learn about the parallel tempering algorithm.
+
+**Expected Results:** A collection of difficult sampling problems and implementations in Julia. 
+
+**Mentors:** [Alexandre Bouchard-Côté](https://github.com/alexandrebouchard), 
+[Trevor Campbell](https://github.com/trevorcampbell/), and 
+[Nikola Surjanovic](https://github.com/nikola-sur).
+
+**Expected Project Size:** 175 hours or 350 hours. 
+
+**Difficulty:** Easy to Medium, depending on the chosen tasks.
+
 
 
 ## Automated Families for Variational Inference and MCMC 
@@ -88,25 +99,24 @@ and an automated variational family selection procedure.
 **Difficulty:** Medium to Hard, depending on the chosen tasks.
 
 
-## Library of Difficult Sampling Problems 
 
-The fields of Bayesian statistical inference and statistical physics abound with 
-difficult sampling problems. In the field of machine learning, it is common to compare 
-methods across several standard data sets. 
-In contrast, such collections of standard data sets and models do not exist or 
-are limited in scope in the field of statistics.
-(For example, the current, most commonly used library of difficult sampling problems, 
-[posteriordb](https://github.com/stan-dev/posteriordb), does not emphasize 
-difficult distributions such as non-log-concave targets.) Work on this project would include:
+## Python and R Interface for Pigeons
 
-- Searching for difficult sampling problems in the literature and implementing some examples in Julia.
+Pigeons allows users to scale their Bayesian computation on up to thousands of 
+machines. At the moment, the only available API is through the Julia programming 
+language. To reach a wider audience, we would like to extend this to Python and R.
+Work on this project would include: 
 
-- Numerical experiments to compare the performance of Pigeons with other state-of-the-art sampling algorithms.
+- Development of a new Pigeons interface in Python and/or R.
 
-**Recommended Skills:** Familiarity with Julia, Markdown, and some basics of website development. 
-A basic knowledge of statistical concepts. A desire to learn about the parallel tempering algorithm.
+- Testing of the new interface to ensure identical output to Julia.  
 
-**Expected Results:** A collection of difficult sampling problems and implementations in Julia. 
+- Engaging with researchers interested in using a Python/R interface and implementing additional suggested features. 
+
+**Recommended Skills:** Familiarity with Python and/or R. A basic knowledge of 
+statistical concepts and a desire to learn the basics of Julia and Bayesian inference.
+
+**Expected Results:** An interface for Pigeons in either Python or R (or both). 
 
 **Mentors:** [Alexandre Bouchard-Côté](https://github.com/alexandrebouchard), 
 [Trevor Campbell](https://github.com/trevorcampbell/), and 
@@ -114,7 +124,7 @@ A basic knowledge of statistical concepts. A desire to learn about the parallel 
 
 **Expected Project Size:** 175 hours or 350 hours. 
 
-**Difficulty:** Easy to Medium, depending on the chosen tasks.
+**Difficulty:** Medium.
 
 
 
