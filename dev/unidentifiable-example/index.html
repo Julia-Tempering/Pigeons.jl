@@ -72,9 +72,9 @@ StatsPlots.savefig(my_plot, &quot;with_pt_posterior_densities_and_traces.html&qu
        32          0       4.29      -11.8      0.222      0.524          1          1
        64          3       3.17      -11.5      0.529      0.648          1          1
       128          8       3.56      -11.5      0.523      0.605          1          1
-      256         12       3.38      -11.6      0.526      0.625          1          1
-      512         37       3.48        -12      0.527      0.614          1          1
- 1.02e+03         77       3.55      -11.8      0.571      0.605          1          1
+      256         10       3.53      -11.3        0.5      0.608          1          1
+      512         33        3.4      -11.7      0.565      0.623          1          1
+ 1.02e+03         71       3.52      -11.7      0.588      0.609          1          1
 ───────────────────────────────────────────────────────────────────────────────────────</code></pre><iframe src="../with_pt_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe><p>There is a marked difference.  Thanks to round trips through the reference distribution,  where we can sample iid, we are able to jump at different  parts of the state space. </p><p>This is also confirmed by the PT ESS estimates:</p><pre><code class="language-julia hljs">samples</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chains MCMC chain (1024×3×1 Array{Float64, 3}):
 
 Iterations        = 1:1:1024
@@ -87,14 +87,14 @@ Summary Statistics
  <span class="sgr1"> parameters </span> <span class="sgr1">    mean </span> <span class="sgr1">     std </span> <span class="sgr1">    mcse </span> <span class="sgr1"> ess_bulk </span> <span class="sgr1"> ess_tail </span> <span class="sgr1">    rhat </span> <span class="sgr1"> e</span> ⋯
  <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  </span> ⋯
 
-          p1    0.7002    0.1380    0.0125   122.5666   159.2296    1.0070     ⋯
-          p2    0.7419    0.1430    0.0127   122.1132   170.5302    1.0108     ⋯
+          p1    0.7200    0.1324    0.0128   110.9701    93.0055    1.0231     ⋯
+          p2    0.7191    0.1362    0.0133   110.0738    93.3528    1.0101     ⋯
 <span class="sgr36">                                                                1 column omitted</span>
 
 Quantiles
  <span class="sgr1"> parameters </span> <span class="sgr1">    2.5% </span> <span class="sgr1">   25.0% </span> <span class="sgr1">   50.0% </span> <span class="sgr1">   75.0% </span> <span class="sgr1">   97.5% </span>
  <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span>
 
-          p1    0.5130    0.5702    0.6919    0.8044    0.9703
-          p2    0.5160    0.6214    0.7222    0.8771    0.9751
-</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Basic usage (local)</a><a class="docs-footer-nextpage" href="../parallel/">Parallelization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Friday 7 February 2025 05:18">Friday 7 February 2025</span>. Using Julia version 1.10.8.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+          p1    0.5112    0.6110    0.7163    0.8321    0.9554
+          p2    0.5232    0.6011    0.6981    0.8183    0.9778
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Basic usage (local)</a><a class="docs-footer-nextpage" href="../parallel/">Parallelization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Friday 7 February 2025 18:51">Friday 7 February 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
