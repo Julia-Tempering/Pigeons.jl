@@ -103,4 +103,14 @@ to become a part of our team feel free to reach out!
         University of British Columbia 
     </div>
 </div>
+
+<div style="display: flex; align-items: center; margin-bottom: 20px;">
+    <img src="https://github.com/Julia-Tempering/doc-assets/blob/master/team/seren.jpg?raw=true"
+    alt="Seren Lee" style="width: 100px; height: 100px; border-radius: 50%; margin-right: 20px;">
+    <div>
+        <b>Seren Lee</b>
+        </br>
+        University of British Columbia 
+    </div>
+</div>
 ```

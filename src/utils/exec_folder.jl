@@ -15,7 +15,10 @@ function next_exec_folder()
 end
 
 function _ensure_symlinked(exec)
-    rm("results/latest", force = true)
+    try
+        rm("results/latest", force = true)
+    catch e # Needed because of Issue # 311 
+    end
     safelink(exec, "results/latest")
 end
 
