@@ -16,12 +16,9 @@ Work on this project would include:
 
 - Extending the Pigeons interface to allow users to solve general optimization problems.
 
-- Performing simulations to understand the advantages and limitations of annealing-based methods 
-for optimization. Conducting a literature review to collect examples of optimization 
-problems where annealing-based methods would be useful.
+- Performing simulations to understand the advantages and limitations of annealing-based methods for optimization. Conducting a literature review to collect examples of optimization problems where annealing-based methods would be useful.
 
-- Understanding the theoretical underpinnings of annealing for optimization and using 
-past insights to develop and implement new algorithms within the Pigeons package. 
+- Understanding the theoretical underpinnings of annealing for optimization and using past insights to develop and implement new algorithms within the Pigeons package. 
 
 **Recommended Skills:** Familiarity with Julia and/or Python. 
 A basic knowledge of optimization algorithms and a moderate level of mathematical maturity. 
