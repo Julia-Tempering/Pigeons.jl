@@ -30,22 +30,6 @@ struct IsoNormal <: LogDensity
 end
 LogDensityProblems.logdensity(p::IsoNormal, θ) = -sum(abs2, θ) / 2  # standard multivariate normal
 
-struct Funnel <: LogDensity 
-    dim::Int
-end
-function LogDensityProblems.logdensity(p::Funnel, z) 
-    # z = (y, x[1], .., x[dim-1])
-    @assert length(z) == p.dim
-    sum = 0.0
-    y = z[1] 
-    sum += logpdf(Normal(0.0, 3.0), y)
-    sigma_for_others = exp(y/2.0)
-    for i in 2:p.dim
-        sum += logpdf(Normal(0.0, sigma_for_others), z[i])
-    end
-    return sum
-end
-
 # Based off AdvancedHMC README:
 function nuts(logp)
     D = logp.dim

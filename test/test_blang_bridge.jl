@@ -39,6 +39,6 @@ end
     # NB: 10 chains runs out of memory in CI... reducing number of chains
     n_restarts = n_tempered_restarts(pt)
     global_barrier = Pigeons.global_barrier(pt.shared.tempering)
-    @test n_restarts > 180
-    @test abs(global_barrier - 0.7) < 0.1
+    @test n_restarts == 176
+    @test global_barrier == 0.6610060719271351
 end

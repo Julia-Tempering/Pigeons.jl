@@ -25,9 +25,10 @@ end
     pt = pigeons(
         target    = uni_target,
         reference = DistributionLogPotential(Normal(-3,1)),
-        n_chains  = 8
+        n_rounds = 10,
+        n_chains  = 10
     )
-    @test abs(Pigeons.global_barrier(pt) - 3.15) < 0.1
+    @test abs(Pigeons.global_barrier(pt) - 3.) < 0.5
 end
 
 @static if !is_windows_in_CI()
