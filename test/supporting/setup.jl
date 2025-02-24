@@ -23,6 +23,7 @@ using Pigeons,
     Serialization,
     SplittableRandoms,
     Statistics,
+    StatsFuns,
     Test
 
 is_windows_in_CI() = Sys.iswindows() && (get(ENV, "CI", "false") == "true")
