@@ -3,7 +3,7 @@ include("supporting/funnel.jl")
 
 if !is_windows_in_CI()
 
-    @testset "Slicer agreement Stan and Julia" begin 
+    @testset "Agreement Stan and Julia" begin 
         some_ref = NealFunnel(2, 1.0)
         targets = [NealFunnel(2, 2.0), Pigeons.stan_funnel(2, 2.0)] 
         for explorer in [SliceSampler(), AutoMALA()]
