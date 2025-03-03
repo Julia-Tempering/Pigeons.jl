@@ -87,7 +87,7 @@ end
 function _create_locals(my_global_indices, inputs::Inputs, shared::Shared, ::Nothing)
     master_rng = SplittableRandom(inputs.seed)
     split_rngs = split_slice(my_global_indices, master_rng)
-    states = [initialization(inputs, split_rngs[i], my_global_indices[i]) for i in eachindex(split_rngs)]
+    states = [initialization(inputs, split(split_rngs[i]), my_global_indices[i]) for i in eachindex(split_rngs)]
     recorders = [create_recorders(inputs, shared) for i in eachindex(split_rngs)]
     return Replica.(
                 states, 
