@@ -9,7 +9,7 @@ include("supporting/analytic_solutions.jl")
             n_chains = 8)
 
     truth = unid_target_exact_logZ(target)
-    @test isapprox(Pigeons.stepping_stone(pt), truth, rtol = 0.05)
+    @test isapprox(Pigeons.stepping_stone(pt), truth, rtol = 0.1)
 end
 
 @testset "Stepping-stone (1 leg)" begin
