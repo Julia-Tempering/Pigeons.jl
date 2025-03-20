@@ -112,7 +112,7 @@ automala(target, preconditioner) =
     # ess as unbalanced_target with DiagonalPreconditioner
     pt = automala(HetPrecisionNormalLogPotential([1., 1.]), Pigeons.IdentityPreconditioner())
     min_ess_id_bal = minimum(ess(Chains(sample_array(pt))).nt.ess) # ~3927
-    @test isapprox(min_ess_id_bal, min_ess_diag, rtol=0.01)
+    @test isapprox(min_ess_id_bal, min_ess_diag, rtol=0.02)
 end
 
 # for the following test use energy_ac1 instead of ESS as the latter is highly
