@@ -145,6 +145,7 @@ using Pigeons
 using Random
 using LogDensityProblems
 using LogDensityProblemsAD
+using ADTypes
 
 struct CustomGradientLogPotential
     precision::Float64
