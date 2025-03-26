@@ -2,7 +2,8 @@ module PigeonsDynamicPPLExt
 
 using Pigeons
 if isdefined(Base, :get_extension)
-    import DynamicPPL
+    using ADTypes
+    using DynamicPPL
     using Distributions
     using FillArrays: Zeros
     using LinearAlgebra: I
@@ -12,7 +13,8 @@ if isdefined(Base, :get_extension)
     using SplittableRandoms
     using Random
 else
-    import ..DynamicPPL
+    using ..ADTypes
+    using ..DynamicPPL
     using ..Distributions
     using ..FillArrays: Zeros
     using ..LinearAlgebra: I

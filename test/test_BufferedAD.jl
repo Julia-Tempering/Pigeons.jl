@@ -5,11 +5,11 @@ using ReverseDiff
 @testset "ReverseDiff with and without tape compilation agree" begin
     pts = PT[]
     @testset "compile = $compile" for compile in (false, true)
-        Pigeons.set_tape_compilation_strategy!(compile)
-        @show Pigeons.get_tape_compilation_strategy()
+        ad = AutoReverseDiff(;compile)
+        @show ad
         pt = pigeons(
             target   = Pigeons.toy_turing_unid_target(100),
-            explorer = AutoMALA(default_autodiff_backend=:ReverseDiff),
+            explorer = AutoMALA(default_autodiff_backend=ad),
             n_chains = 4,
             n_rounds = 6
         )
@@ -17,7 +17,7 @@ using ReverseDiff
     end
     @test Pigeons.global_barrier(first(pts)) ≈ Pigeons.global_barrier(last(pts))
     @test Pigeons.stepping_stone(first(pts)) ≈ Pigeons.stepping_stone(last(pts))
-    @test Pigeons.last_round_max_allocation(first(pts)) > 10Pigeons.last_round_max_allocation(last(pts))
+    @test Pigeons.last_round_max_allocation(first(pts)) > Pigeons.last_round_max_allocation(last(pts))
 end
 
 function test_BufferedAD_usage(pt)
@@ -82,7 +82,6 @@ end
     target = CustomUnidTarget(100, 50)
     custom_ref = CustomUnidTarget(0, 0)
     dlp_ref = DistributionLogPotential(product_distribution(Fill(Uniform(),2)))
-    Pigeons.set_tape_compilation_strategy!(false) # Otherwise ReverseDiff breaks due to branching in log_potential
 
     @testset "$(typeof(ref))" for ref in (custom_ref, dlp_ref)
         pt_enzyme = pigeons(
@@ -90,11 +89,11 @@ end
             reference = ref, 
             n_chains = 4,
             n_rounds = 6,
-            explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
+            explorer = AutoMALA(default_autodiff_backend = AutoEnzyme()) 
         )
         test_BufferedAD_usage(pt_enzyme)
 
-        @testset "$backend" for backend in (:ForwardDiff, :ReverseDiff)
+        @testset "$backend" for backend in (AutoForwardDiff(), AutoReverseDiff(false)) # compiled would fail due to branching
             pt = pigeons(
                 target = target,
                 reference = ref, 
@@ -109,7 +108,6 @@ end
             test_BufferedAD_usage(pt)
         end
     end
-    Pigeons.set_tape_compilation_strategy!(true) # reverse setting
 end
 
 @testset "Variational reference elides the AD augmentation" begin

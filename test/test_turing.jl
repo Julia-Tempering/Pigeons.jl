@@ -32,5 +32,5 @@ end
     @test dim == 4
     dest = zeros(dim)
     PigeonsDynamicPPLExt.flatten!(vi, dest)
-    @test DynamicPPL.getall(vi) == dest
+    @test DynamicPPL.getindex_internal(vi, Colon()) == dest
 end

@@ -2,11 +2,13 @@ module PigeonsEnzymeExt
 
 using Pigeons
 if isdefined(Base, :get_extension)
+    using ADTypes
     using DocStringExtensions
     using Enzyme
     using LogDensityProblems
     using LogDensityProblemsAD
 else
+    using ..ADTypes
     using ..DocStringExtensions
     using ..Enzyme
     using ..LogDensityProblems
@@ -20,8 +22,8 @@ end
 
 # special ADgradient constructor for Enzyme
 function LogDensityProblemsAD.ADgradient(
-    kind::Val{:Enzyme}, 
-    log_potential, 
+    kind::ADTypes.AutoEnzyme,
+    log_potential,
     buffers::Pigeons.Augmentation
     )
     d = LogDensityProblems.dimension(log_potential)

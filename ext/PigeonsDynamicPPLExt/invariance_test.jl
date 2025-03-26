@@ -33,7 +33,7 @@ function Pigeons.forward_sample_condition_and_explore(
 
     # make a (concretely-)typed version of cond_vi, then transform it to unconstrained space 
     state = DynamicPPL.TypedVarInfo(cond_vi)
-    DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), conditioned_model)
+    state = DynamicPPL.link(state, conditioned_model)
 
     # maybe take a step with explorer
     if !isnothing(explorer)
@@ -41,7 +41,7 @@ function Pigeons.forward_sample_condition_and_explore(
     end
 
     # return a flattened version of state
-    return DynamicPPL.getall(state)
+    return DynamicPPL.getindex_internal(state, Colon())
 end
 
 Pigeons.forward_sample_condition_and_explore(target::TuringLogPotential, args...; kwargs...) =

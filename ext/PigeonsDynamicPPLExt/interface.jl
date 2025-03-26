@@ -67,9 +67,8 @@ Pigeons.initialization(
     """)
 
 function Pigeons.initialization(target::TuringLogPotential, rng::AbstractRNG, _::Int64)
-    result = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext())
-    DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
-    return result
+    vi = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext())
+    return DynamicPPL.link(vi, target.model)
 end
 
 # At the moment, AutoMALA assumes a :singleton_variable structure
@@ -85,8 +84,21 @@ end
 
 # LogDensityProblems interface
 LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.dimension
-LogDensityProblemsAD.ADgradient(kind::Val, log_potential::TuringLogPotential, replica::Pigeons.Replica) =
-    ADgradient(
-        kind, 
-        DynamicPPL.LogDensityFunction(replica.state, log_potential.model, log_potential.context), 
-        replica)
+
+# need to "redirect" from LogDensityProblemsAD to the convention adopted by DPPL
+# note this is not using buffers; the default logdensity_and_gradient method 
+# (~L43 in BufferedAD.jl) is invoked.
+function LogDensityProblemsAD.ADgradient(
+    kind::ADTypes.AbstractADType, 
+    log_potential::TuringLogPotential, 
+    replica::Pigeons.Replica
+    )
+    return Pigeons.BufferedAD(
+        DynamicPPL.LogDensityFunction(
+            log_potential.model, replica.state; adtype=kind
+        ),
+        nothing,
+        nothing,
+        nothing
+    )
+end

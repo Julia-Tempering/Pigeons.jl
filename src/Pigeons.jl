@@ -10,6 +10,7 @@ import MPI: Comm, Allreduce, Comm_rank,
             Allgather, Comm_split, isend, recv,
             bcast, tag_ub
 
+using ADTypes
 using DataFrames
 using Dates
 using Distributions
