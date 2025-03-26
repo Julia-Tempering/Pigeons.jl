@@ -100,12 +100,14 @@ Here is an example using [`AutoMALA`](@ref)—a gradient-based sampler—instead
 AD system that supports targets written in plain Julia. Enzyme is considerably faster than the default
 [ForwardDiff](https://juliadiff.org/ForwardDiff.jl/), whose main advantage is compatibility 
 with a broader range of targets. Many other AD backends are supported by the
-[LogDensityProblemsAD.jl](https://github.com/tpapp/LogDensityProblemsAD.jl) interface (`:Enzyme`, `:ForwardDiff`, `:Zygote`, `:ReverseDiff`, etc).
+[LogDensityProblemsAD.jl](https://github.com/tpapp/LogDensityProblemsAD.jl) interface 
+(Enzyme, ForwardDiff, Zygote, ReverseDiff, etc).
 
 To proceed, we only need to add methods to make our custom type `MyLogPotential` conform to the 
 [LogDensityProblems interface](https://github.com/tpapp/LogDensityProblems.jl):
 
 ```@example julia
+using ADTypes
 using Enzyme
 using LogDensityProblems
 
@@ -115,7 +117,7 @@ LogDensityProblems.logdensity(lp::MyLogPotential, x) = lp(x)
 pt = pigeons(
         target = MyLogPotential(100, 50), 
         reference = MyLogPotential(0, 0), 
-        explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
+        explorer = AutoMALA(default_autodiff_backend = AutoEnzyme())
     )
 nothing # hide
 ```
@@ -157,8 +159,11 @@ Pigeons.initialization(lp::CustomGradientLogPotential, ::AbstractRNG, ::Int) = z
 LogDensityProblems.dimension(lp::CustomGradientLogPotential) = lp.dim
 LogDensityProblems.logdensity(lp::CustomGradientLogPotential, x) = lp(x)
 
-LogDensityProblemsAD.ADgradient(::Val, log_potential::CustomGradientLogPotential, replica::Pigeons.Replica) =
-     Pigeons.BufferedAD(log_potential, replica.recorders.buffers)
+LogDensityProblemsAD.ADgradient(
+    ::AbstractADType, 
+    log_potential::CustomGradientLogPotential, 
+    replica::Pigeons.Replica
+    ) = Pigeons.BufferedAD(log_potential, replica.recorders.buffers)
 
 const check_custom_grad_called = Ref(false)
 
@@ -195,7 +200,7 @@ plotlyjs()
 pt = pigeons(
         target = MyLogPotential(100, 50), 
         reference = MyLogPotential(0, 0), 
-        explorer = AutoMALA(default_autodiff_backend = :Enzyme),
+        explorer = AutoMALA(default_autodiff_backend = AutoEnzyme()),
         record = [traces])
 samples = Chains(pt)
 my_plot = StatsPlots.plot(samples)
