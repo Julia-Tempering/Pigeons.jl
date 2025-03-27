@@ -1,6 +1,6 @@
 function get_dimension(model::DynamicPPL.Model) 
     vi = DynamicPPL.VarInfo(SplittableRandom(1), model)
-    get_dimension(DynamicPPL.link!!(vi,DynamicPPL.SampleFromPrior(), model))
+    get_dimension(DynamicPPL.link(vi, model))
 end
 
 get_dimension(vi::DynamicPPL.TypedVarInfo) = sum(meta -> sum(length, meta.ranges), vi.metadata)

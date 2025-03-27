@@ -1,7 +1,8 @@
 using HypothesisTests
 
 @testset "Explorer invariance test for TuringLogPotentials" begin
-    # cannot use the one in Pigeons because conditioning does not work when the observation is an argument
+    # cannot use the one in Pigeons because conditioning does not work when the 
+    # observation is an argument
     DynamicPPL.@model function product_of_probs(n_trials)
         p1 ~ Uniform()
         p2 ~ Uniform()
@@ -49,5 +50,17 @@ using HypothesisTests
             @show res.pvalues
             @test res.passed
         end
+    end
+
+    @testset "Check the no-conditioning case" begin
+        DynamicPPL.@model function iid_mod()
+            x ~ Beta()
+            y ~ Gamma()
+        end
+        res = Pigeons.invariance_test(
+            TuringLogPotential(iid_mod()), SliceSampler(), rng
+        )
+        @show res.pvalues
+        @test res.passed
     end
 end

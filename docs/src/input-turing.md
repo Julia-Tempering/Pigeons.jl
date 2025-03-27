@@ -38,16 +38,30 @@ interface, Automatic Differentiation (AD) backends can be used to obtain the gra
 needed by [`AutoMALA`](@ref).
 
 The default AD backend for [`AutoMALA`](@ref) is [ForwardDiff](https://juliadiff.org/ForwardDiff.jl/).
-However, when the Turing model does not involve branching decisions (`if`, `while`, etc...) 
-depending on latent variables, [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl)
-can provide accelerated performance. Since `my_turing_target` satisfies this criterion, we
-can use [`AutoMALA`](@ref) with the ReverseDiff AD backend via
+However, Turing supports other backends that may exhibit improved performance. 
+One such is [Mooncake](https://compintell.github.io/Mooncake.jl/stable/), which 
+we can use in Pigeons via
 
 ```@example turing
-using ReverseDiff
+using ADTypes, Mooncake
 pt = pigeons(
     target = my_turing_target,
-    explorer = AutoMALA(default_autodiff_backend = :ReverseDiff)
+    explorer = AutoMALA(default_autodiff_backend = AutoMooncake(nothing))
+);
+nothing # hide
+```
+
+Alternatively, in the special case when the Turing model does not involve branching 
+decisions (`if`, `while`, etc...) depending on latent variables, 
+[ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl)
+with compiled tape may provide accelerated performance. Since `my_turing_target` satisfies
+this criterion, we can use [`AutoMALA`](@ref) with the ReverseDiff AD backend via
+
+```@example turing
+using ADTypes, ReverseDiff
+pt = pigeons(
+    target = my_turing_target,
+    explorer = AutoMALA(default_autodiff_backend = AutoReverseDiff(compile=true))
 );
 nothing # hide
 ```
@@ -115,7 +129,7 @@ const ToyBetaBinomType = typeof(toy_beta_binom_target())
 
 function Pigeons.initialization(target::ToyBetaBinomType, rng::AbstractRNG, ::Int64) 
     result = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext())
-    DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
+    result = DynamicPPL.link(result, target.model)
 
     # custom init goes here: for example here setting the variable p to 0.5
     Pigeons.update_state!(result, :p, 1, 0.5)

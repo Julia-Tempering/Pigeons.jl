@@ -28,15 +28,14 @@ BufferedAD(log_potential, buffers::Augmentation, logd_buffer = nothing, err_buff
         err_buffer 
 )
 
-# translate Symbol to Val
-# TODO: should we move to ADTypes?
-LogDensityProblemsAD.ADgradient(kind::Symbol, log_potential, replica::Replica; kwargs...) = 
-    ADgradient(Val{kind}(), log_potential, replica; kwargs...)
+# translate Symbols+Vals to ADType
+LogDensityProblemsAD.ADgradient(kind, log_potential, replica::Replica; kwargs...) = 
+    ADgradient(ADTypes.Auto(kind), log_potential, replica; kwargs...)
 
 # default implementation of the ADgradient interface
-LogDensityProblemsAD.ADgradient(kind::Val, log_potential, replica::Replica; kwargs...) =
+LogDensityProblemsAD.ADgradient(kind::ADTypes.AbstractADType, log_potential, replica::Replica; kwargs...) =
     ADgradient(kind, log_potential, replica.recorders.buffers; kwargs...)
-LogDensityProblemsAD.ADgradient(kind::Val, log_potential, buffers::Augmentation; kwargs...) =
+LogDensityProblemsAD.ADgradient(kind::ADTypes.AbstractADType, log_potential, buffers::Augmentation; kwargs...) =
     Pigeons.BufferedAD(ADgradient(kind, log_potential; kwargs...), buffers)
 
 # default case does not use the buffer
@@ -74,7 +73,7 @@ $FIELDS
 end
 
 function LogDensityProblemsAD.ADgradient(
-    kind::Val,
+    kind::ADTypes.AbstractADType,
     log_potential::InterpolatedLogPotential{<:InterpolatingPath{<:Any,<:Any,LinearInterpolator}},
     replica::Replica
     )
@@ -138,29 +137,6 @@ function get_buffer(a::Augmentation{<:Dict{Symbol, BufferedAD}}, key::Symbol, ar
         dict[key] = LogDensityProblemsAD.ADgradient(args...)
     end
     return dict[key]
-end
-
-#=
-A flag for determining whether tape compilation should be used in some AD systems
-=#
-const COMPILE_TAPE = Ref(true)
-
-"""
-$SIGNATURES 
-
-Get the current Pigeons-wide tape compilation strategy for tape-based AD backends.
-Currently this is only used for [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl).
-"""
-get_tape_compilation_strategy() = COMPILE_TAPE[]
-
-"""
-$SIGNATURES 
-
-Set the Pigeons-wide tape compilation strategy for tape-based AD backends.
-Currently this is only used for [ReverseDiff](https://github.com/JuliaDiff/ReverseDiff.jl).
-"""
-function set_tape_compilation_strategy!(compile::Bool)
-    COMPILE_TAPE[] = compile
 end
 
 # used in the AD extensions

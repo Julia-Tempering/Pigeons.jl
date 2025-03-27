@@ -2,12 +2,14 @@ module PigeonsReverseDiffExt
 
 using Pigeons
 if isdefined(Base, :get_extension)
+    using ADTypes
     using DocStringExtensions
     using ReverseDiff
     using LogDensityProblems
     using LogDensityProblemsAD
     import ReverseDiff: DiffResults
 else
+    using ..ADTypes
     using ..DocStringExtensions
     using ..ReverseDiff
     using ..LogDensityProblems
@@ -35,26 +37,25 @@ compute_gradient!(rdw::ReverseDiffWrapper{<:Any,<:ReverseDiff.CompiledTape}, dif
 
 # special ADgradient constructor for ReverseDiff
 function LogDensityProblemsAD.ADgradient(
-    kind::Val{:ReverseDiff}, 
+    kind::ADTypes.AutoReverseDiff, 
     log_potential,
     buffers::Pigeons.Augmentation
     )
     d = LogDensityProblems.dimension(log_potential)
     buffer = Pigeons.get_buffer(buffers, :gradient_buffer, d)
-    should_compile = Pigeons.get_tape_compilation_strategy()
+    should_compile = kind isa ADTypes.AutoReverseDiff{true}
     if should_compile
         @info """
 
         Using ReverseDiff with tape compilation, which usually results in huge performance gains.
-        However, if your model does branching on latent variables, you will get inconsistent results. 
-        You can turn this feature off using `Pigeons.set_tape_compilation_strategy!(false)`.            
+        However, if your model does branching on latent variables, you will get inconsistent results.
         """ maxlog=1
     else
         @info """
 
         Using ReverseDiff without tape compilation. If your model does not branch on latent variables,
         you may be able to obtain a huge performance gain by enabling tape compilation. You can do this
-        by calling `Pigeons.set_tape_compilation_strategy!(true)`.            
+        by passing `default_autodiff_backend=AutoReverseDiff(compile=true)` to your gradient-based explorer.            
         """ maxlog=1
     end
     compiled_tape = should_compile ? make_compiled_tape(log_potential, buffer) : nothing

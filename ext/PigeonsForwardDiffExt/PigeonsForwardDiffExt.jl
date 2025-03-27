@@ -2,12 +2,14 @@ module PigeonsForwardDiffExt
 
 using Pigeons
 if isdefined(Base, :get_extension)
+    using ADTypes
     using DocStringExtensions
     using ForwardDiff
     using LogDensityProblems
     using LogDensityProblemsAD
     import ForwardDiff: DiffResults
 else
+    using ..ADTypes
     using ..DocStringExtensions
     using ..ForwardDiff
     using ..LogDensityProblems
@@ -23,7 +25,7 @@ end
 
 # special ADgradient constructor for ForwardDiff
 function LogDensityProblemsAD.ADgradient(
-    kind::Val{:ForwardDiff}, 
+    kind::ADTypes.AutoForwardDiff, 
     log_potential, 
     buffers::Pigeons.Augmentation
     )

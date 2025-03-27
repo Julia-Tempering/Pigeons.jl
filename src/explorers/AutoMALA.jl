@@ -26,7 +26,7 @@ Reference: Biron-Lattes, M., Surjanovic, N., Syed, S., Campbell, T., & Bouchard-
 *Proceedings of The 27th International Conference on Artificial Intelligence and Statistics*, 
 in *Proceedings of Machine Learning Research* 238:4600-4608.
 """
-@kwdef struct AutoMALA{T,TPrec <: Preconditioner}
+@kwdef struct AutoMALA{T,TPrec <: Preconditioner, TAD}
     """
     The base number of steps (equivalently, momentum refreshments) between swaps.
     This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`.
@@ -44,11 +44,8 @@ in *Proceedings of Machine Learning Research* 238:4600-4608.
 
     Certain targets may ignore it, e.g. if a manual differential is
     offered or when calling an external program such as Stan.
-
-    For tape-based AD backends like ReverseDiff, compilation can be controlled using
-    [`Pigeons.set_tape_compilation_strategy!`](@ref).
     """
-    default_autodiff_backend::Symbol = :ForwardDiff
+    default_autodiff_backend::TAD = AutoForwardDiff()
 
     """
     Starting point for the automatic step size algorithm.
