@@ -54,7 +54,7 @@ function Pigeons.forward_sample_condition_and_explore(
     end
 
     # return a flattened version of state
-    return DynamicPPL.getindex_internal(state, Colon())
+    return state[:]
 end
 
 Pigeons.forward_sample_condition_and_explore(target::TuringLogPotential, args...; kwargs...) =

@@ -17,7 +17,7 @@ end
 # (default in pigeons as of Jul-24), and constrained otherwise
 Pigeons.variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = 
     if name === :singleton_variable
-        DynamicPPL.getindex_internal(state, Colon())
+        state[:]
     else
         state.metadata[name].vals
     end
@@ -31,7 +31,7 @@ ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
 
 function Pigeons.extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
     invlink_vi = DynamicPPL.invlink(state, Pigeons.turing_model(log_potential))
-    result = DynamicPPL.getindex_internal(invlink_vi, Colon())
+    result = invlink_vi[:]
     push!(result, log_potential(state))
     return result
 end
@@ -82,7 +82,7 @@ Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo) 
     # as of Nov 2023, DynamicPPL does not supply == for TypedVarInfo
     length(a.metadata) == length(b.metadata) &&
         sample_names(a,1) == sample_names(b,1) && # second argument is not used
-        DynamicPPL.getindex_internal(a, Colon()) == DynamicPPL.getindex_internal(b, Colon())
+        a[:] == b[:]
     
 
 Pigeons.recursive_equal(

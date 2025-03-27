@@ -95,7 +95,7 @@ end
     custom_ref = CustomUnidTarget(0, 0)
     dlp_ref = DistributionLogPotential(product_distribution(Fill(Uniform(),2)))
 
-    backends = (AutoForwardDiff(), AutoReverseDiff(false), AutoEnzyme())
+    backends = (AutoForwardDiff(), AutoReverseDiff(), AutoEnzyme())
     @testset "$(typeof(ref))" for ref in (custom_ref, dlp_ref)
         pts = PT[]
         @testset "$backend" for backend in backends 
@@ -106,7 +106,7 @@ end
                 n_rounds = 6,
                 explorer = AutoMALA(default_autodiff_backend = backend) 
             )
-            # check that we actually used the buffered Enzyme implementation
+            # check that we actually used the buffered implementation
             test_BufferedAD_usage(pt)
             push!(pts, pt)
         end
