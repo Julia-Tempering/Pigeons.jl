@@ -3,8 +3,9 @@ module PigeonsDynamicPPLExt
 using Pigeons
 if isdefined(Base, :get_extension)
     using ADTypes
-    using DynamicPPL
+    import DifferentiationInterface as DI
     using Distributions
+    using DynamicPPL
     using FillArrays: Zeros
     using LinearAlgebra: I
     using LogDensityProblems
@@ -14,14 +15,15 @@ if isdefined(Base, :get_extension)
     using Random
 else
     using ..ADTypes
-    using ..DynamicPPL
+    import ..DifferentiationInterface as DI
     using ..Distributions
+    using ..DynamicPPL
     using ..FillArrays: Zeros
     using ..LinearAlgebra: I
     using ..LogDensityProblems
     using ..LogDensityProblemsAD
     using ..DocStringExtensions
-    using ..SplittableRandoms: SplittableRandom, split
+    using ..SplittableRandoms
     using ..Random
 end
 
