@@ -5,6 +5,14 @@ on:
       - opened
       - reopened
       - synchronize
+    paths:
+      - 'Project.toml'
+      - 'src/**'
+      - 'ext/**'
+    branches:
+      - 'main'
+
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
