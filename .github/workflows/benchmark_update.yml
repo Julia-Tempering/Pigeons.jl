@@ -1,6 +1,10 @@
 name: Update stored benchmarking result
 on:
   push:
+    paths:
+      - 'Project.toml'
+      - 'src/**'
+      - 'ext/**'
     branches:
       - main  
 
