@@ -12,9 +12,12 @@ UBC Sockeye cluster.
 """
 setup_mpi_sockeye(my_user_allocation_code) =
     setup_mpi(
-        submission_system = :pbs,
-        environment_modules = ["git", "gcc", "intel-mkl", "openmpi"],
-        add_to_submission = ["#PBS -A $my_user_allocation_code"], 
+        submission_system = :slurm,
+        environment_modules = ["gcc", "openmpi", "git"],
+        add_to_submission = [
+            "#SBATCH -A $my_user_allocation_code"
+            "#SBATCH --nodes=1-10000"  # required by cluster
+        ], 
         library_name = "/arc/software/spack-2023/opt/spack/linux-centos7-skylake_avx512/gcc-9.4.0/openmpi-4.1.1-d7o6cdvp67ngi5c5wdcw2qyjyseq3l3o/lib/libmpi"
     )
 

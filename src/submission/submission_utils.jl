@@ -35,20 +35,9 @@ function queue_status()
 end
 
 function queue_ncpus_free()
-    mpi_settings = load_mpi_settings()
-    @assert mpi_settings.submission_system == :pbs "Feature only supported on PBS at the moment"
     r = rosetta()
-    n = 0
-    for line in readlines(`$(r.ncpu_info)`)
-        for item in eachsplit(line, "|")
-            m = match(r"ncpus[(]f[/]t[)][=]([0-9]+)[/].*", item)
-            if m !== nothing
-                suffix = m.captures[1]
-                n += parse(Int, suffix)
-            end
-        end
-    end
-    return n
+    run(`$(r.ncpu_info)`)
+    return nothing
 end
 
 """ 
@@ -59,7 +48,7 @@ Instruct the scheduler to cancel or kill a job.
 function kill_job(result::Result) 
     r = rosetta()
     exec_folder = result.exec_folder 
-    submission_code = readline("$exec_folder/info/submission_output.txt")
+    submission_code = queue_code(result)
     run(`$(r.del) $submission_code`)
     return nothing
 end
