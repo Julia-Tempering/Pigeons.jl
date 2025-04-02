@@ -21,6 +21,7 @@ Simply include the [`online()`](@ref) recorder to get
 access to constant memory computation of the mean and variance.  
 
 ```@example online
+using DynamicPPL
 using Pigeons
 
 # example target: Binomial likelihood with parameter p = p1 * p2

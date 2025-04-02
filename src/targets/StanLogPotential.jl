@@ -39,7 +39,7 @@ function stan_funnel end
 function stan_bernoulli end
 function stan_eight_schools end
 function stan_banana end
-function stan_mRNA_post_prior_pair end
+
 
 
 """
@@ -48,12 +48,4 @@ $SIGNATURES
 Create a JSON string based on the scalar or array variables
 provided.
 """
-json(; variables...) =
-    "{" *
-    join(
-        map(
-            pair -> "\"$(pair[1])\" : $(parse_json_item(pair[2]))",
-            collect(variables)), ",") *
-    "}"
-
-parse_json_item(item) = item == [] ? "[]" : "$item"
+json(; variables...) = JSON.json(variables)

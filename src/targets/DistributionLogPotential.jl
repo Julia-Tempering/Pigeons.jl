@@ -13,14 +13,25 @@ end
 # univariate case
 (ref::DistributionLogPotential{<:UnivariateDistribution})(x) = logpdf(ref.dist, first(x))
 
-# iid sampling
+# initialization
+initialization(target::DistributionLogPotential, rng::AbstractRNG, ::Int) =
+    rand(rng, target.dist)
+
+# initialization: univariate
+initialization(target::DistributionLogPotential{<:UnivariateDistribution}, rng::AbstractRNG, ::Int) =
+    [rand(rng, target.dist)]
+
+# iid sampling for array-type states
 # general case
-function sample_iid!(ref::DistributionLogPotential, replica, shared)
+sample_iid!(ref::DistributionLogPotential, replica::Replica{<:AbstractArray}, shared) =
     rand!(replica.rng, ref.dist, replica.state)
-end
 
 # univariate case
-function sample_iid!(ref::DistributionLogPotential{D}, replica, shared) where {D<:UnivariateDistribution}
+function sample_iid!(
+    ref::DistributionLogPotential{D}, 
+    replica::Replica{<:AbstractArray},
+    shared
+    ) where {D<:UnivariateDistribution}
     replica.state[begin] = rand(replica.rng, ref.dist)
 end
 

@@ -20,6 +20,11 @@ condition the problem.
 In normal circumstance, there should not be a need for tuning,
 however the following optional keyword parameters are available:
 $FIELDS
+
+Reference: Biron-Lattes, M., Surjanovic, N., Syed, S., Campbell, T., & Bouchard-Côté, A.. (2024). 
+[autoMALA: Locally adaptive Metropolis-adjusted Langevin algorithm](https://proceedings.mlr.press/v238/biron-lattes24a.html). 
+*Proceedings of The 27th International Conference on Artificial Intelligence and Statistics*, 
+in *Proceedings of Machine Learning Research* 238:4600-4608.
 """
 @kwdef struct AutoMALA{T,TPrec <: Preconditioner}
     """
@@ -39,6 +44,9 @@ $FIELDS
 
     Certain targets may ignore it, e.g. if a manual differential is
     offered or when calling an external program such as Stan.
+
+    For tape-based AD backends like ReverseDiff, compilation can be controlled using
+    [`Pigeons.set_tape_compilation_strategy!`](@ref).
     """
     default_autodiff_backend::Symbol = :ForwardDiff
 
@@ -78,7 +86,7 @@ Extract info common to all types of target and perform a step!()
 =#
 function _extract_commons_and_run!(explorer::AutoMALA, replica, shared, log_potential, state::AbstractVector)
 
-    log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica.recorders.buffers)
+    log_potential_autodiff = ADgradient(explorer.default_autodiff_backend, log_potential, replica)
     is_first_scan_of_round = shared.iterators.scan == 1
 
     auto_mala!(
@@ -155,8 +163,10 @@ function auto_mala!(
                     state, momentum,
                     recorders, chain,
                     explorer.step_size, lower_bound, upper_bound)
+            reversibility_passed = reversed_exponent == proposed_exponent
+            @record_if_requested!(recorders, :reversibility_rate, (chain, reversibility_passed))
             probability =
-                if reversed_exponent == proposed_exponent
+                if reversibility_passed
                     final_joint_log = log_joint(target_log_potential, state, momentum)
                     min(1.0, exp(final_joint_log - init_joint_log))
                 else
@@ -273,9 +283,15 @@ function explorer_recorder_builders(explorer::AutoMALA)
     result = [
         explorer_acceptance_pr,
         explorer_n_steps,
-        am_factors,
-        buffers
+        am_factors
     ]
-    add_precond_recorder_if_needed!(result, explorer)
+    gradient_based_sampler_recorders!(result, explorer)
     return result
 end
+
+"""
+$SIGNATURES
+
+Records the success rate for the [`AutoMALA`](@ref) reversibility check. 
+"""
+@provides recorder reversibility_rate() = GroupBy(Int, Mean())

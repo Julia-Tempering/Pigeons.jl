@@ -14,7 +14,7 @@ Fields:
 
 $FIELDS
 """
-@kwdef struct MPI <: Submission
+@kwdef struct MPIProcesses <: Submission
     """
     The number of threads per MPI process, 1 by default.
     """
@@ -51,7 +51,7 @@ end
 """
 $SIGNATURES
 """
-function pigeons(pt_arguments, mpi_submission::MPI)
+function pigeons(pt_arguments, mpi_submission::MPIProcesses)
     if !is_mpi_setup()
         error("call setup_mpi(..) first")
     end
@@ -77,13 +77,13 @@ function pigeons(pt_arguments, mpi_submission::MPI)
 end
 
 # todo: abstract out to other submission systems
-function mpi_submission_cmd(exec_folder, mpi_submission::MPI, julia_cmd) 
+function mpi_submission_cmd(exec_folder, mpi_submission::MPIProcesses, julia_cmd) 
     r = rosetta()
     submission_script = mpi_submission_script(exec_folder, mpi_submission, julia_cmd)
     return `$(r.submit) $submission_script`
 end
 
-function mpi_submission_script(exec_folder, mpi_submission::MPI, julia_cmd)
+function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_cmd)
     # TODO: generalize to other submission systems
     # TODO: move some more things over from mpi-run
     info_folder = "$exec_folder/info"
@@ -134,15 +134,15 @@ const _rosetta = (;
 
 supported_submission_systems() = filter(x -> x != :queue_concept && x != :custom, keys(_rosetta))
 
-resource_string(m::MPI, symbol) = resource_string(m, Val(symbol))
+resource_string(m::MPIProcesses, symbol) = resource_string(m, Val(symbol))
 
-resource_string(m::MPI, ::Val{:pbs}) =
+resource_string(m::MPIProcesses, ::Val{:pbs}) =
                                     #                             +-- each chunks should request as many cpus as threads,
                                     # +-- number of "chunks"...   |                   +-- NB: if mpiprocs were set to more than 1 this would give a number of mpi processes equal to select*mpiprocs
                                     # v                           v                   v               
     "#PBS -l walltime=$(m.walltime),select=$(m.n_mpi_processes):ncpus=$(m.n_threads):mpiprocs=1:mem=$(m.memory)"
 
-resource_string(m::MPI, ::Val{:slurm}) =
+resource_string(m::MPIProcesses, ::Val{:slurm}) =
     """
     #SBATCH -t $(m.walltime)
     #SBATCH --ntasks=$(m.n_mpi_processes)
@@ -150,7 +150,7 @@ resource_string(m::MPI, ::Val{:slurm}) =
     #SBATCH --mem-per-cpu=$(m.memory) 
     """
 
-function resource_string(m::MPI, ::Val{:lsf})
+function resource_string(m::MPIProcesses, ::Val{:lsf})
     @assert m.n_threads == 1 "TODO: find how to specify number of threads per node with LSF"
     """
     #BSUB -W $(m.walltime)

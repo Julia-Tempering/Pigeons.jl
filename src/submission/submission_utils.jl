@@ -103,7 +103,7 @@ function find_rank_file(folder, machine::Int)
     return nothing
 end
 
-# construct launch cmd and script for MPI and ChildProcess
+# construct launch cmd and script for MPIProcesses and ChildProcess
 
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_mpi::Bool)
     script_path  = launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
@@ -189,7 +189,7 @@ function launch_code(
             Pigeons.deserialize_immutables!(raw"$path_to_serialized_immutables")
             deserialize(raw"$path_to_serialized_pt_arguments")
         catch e
-            println("Hint: probably missing dependencies, use the dependencies argument in MPI() or ChildProcess()")
+            println("Hint: probably missing dependencies, use the dependencies argument in MPIProcesses() or ChildProcess()")
             rethrow(e)
         end
 

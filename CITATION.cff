@@ -1,0 +1,20 @@
+cff-version: 1.0.0
+message: "If you use this software, please cite it as below."
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Surjanovic"
+    given-names: "Nikola"
+  - family-names: "Biron-Lattes"
+    given-names: "Miguel"
+  - family-names: "Tiede"
+    given-names: "Paul"
+  - family-names: "Syed"
+    given-names: "Saifuddin"
+  - family-names: "Campbell"
+    given-names: "Trevor"
+  - family-names: "Bouchard-Côté"
+    given-names: "Alexandre"
+  journal: "arXiv:2308.09769"
+  title: "Pigeons.jl: Distributed sampling from intractable distributions"
+  year: 2023

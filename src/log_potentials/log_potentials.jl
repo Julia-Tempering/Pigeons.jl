@@ -40,5 +40,12 @@ Assumes the input `log_potentials` is a vector where each element is a [`log_pot
 This default implementation is sufficient in most cases, but in less standard scenarios,
 e.g. where the state space is infinite dimensional, this can be overridden. 
 """
-log_unnormalized_ratio(log_potentials::AbstractVector, numerator::Int, denominator::Int, state) = 
-    log_potentials[numerator](state) - log_potentials[denominator](state)
+function log_unnormalized_ratio(log_potentials::AbstractVector, numerator::Int, denominator::Int, state)
+    lp_num = log_potentials[numerator](state)
+    lp_den = log_potentials[denominator](state)
+    ans = lp_num-lp_den
+    if isnan(ans)
+        error("Got NaN log-unnormalized ratio; Dumping information:\n\tlp_num=$lp_num\n\tlp_den=$lp_den\n\tState=$state")
+    end
+    return ans
+end

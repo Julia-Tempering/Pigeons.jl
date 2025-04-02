@@ -16,7 +16,7 @@ $FIELDS
     n_passes::Int = 3
 
     """ Maximum number of interations inside shrink_slice! before erroring out """
-    max_iter::Int = 4_096
+    max_iter::Int = 1_024 # == log2(prevfloat(Inf))
 end
 
 explorer_recorder_builders(::SliceSampler) = [explorer_acceptance_pr, explorer_n_steps]
@@ -24,74 +24,81 @@ explorer_recorder_builders(::SliceSampler) = [explorer_acceptance_pr, explorer_n
 function step!(explorer::SliceSampler, replica, shared)
     log_potential = find_log_potential(replica, shared.tempering, shared)
     cached_lp = -Inf
-    for i in 1:explorer.n_passes
+    for _ in 1:explorer.n_passes
         cached_lp = slice_sample!(explorer, replica.state, log_potential, cached_lp, replica)
     end
 end
 
-function cached_log_potential(log_potential, state, cached_lp)
+cached_log_potential(log_potential, state, cached_lp) =
     return if cached_lp == -Inf
         result = log_potential(state)
         if result == -Inf
             error("SliceSampler supports contrained target, but the sampler should be initialized in the support: $state")
         end
-        return result
+        result
     else
         cached_lp
     end
-end
 
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, replica)
-    cached_lp = cached_log_potential(log_potential, state, cached_lp)
+    cached_lp = cached_log_potential(log_potential, replica.state, cached_lp) # note: we pass `replica.state` instead of `state` in case the latter is the vector version of a non-vector state (e.g. stan and dppl models)
+    
     # iterate over coordinates
-    for c in 1:length(state)
+    for c in eachindex(state)
         pointer = Ref(state, c)
-        cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
+        cached_lp = slice_sample_coord!(h, replica, pointer, log_potential, cached_lp, typeof(pointer[])) # note: when state is mixed, pointer is RefArray{generic common type} for all coordinates, so can't use it to dispatch 
+
+        # check we still have a healthy state
+        if !isfinite(cached_lp)
+            error("""Got an invalid log density after updating state at index $c:
+            - log density = $cached_lp
+            - state[$c]   = $(pointer[])
+            Dumping full replica state:
+            $(replica.state)
+            """)
+        end
     end
     return cached_lp
 end
 
-
-
-function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp)
-    rng = replica.rng
-    if pointer[] isa Bool
-        cached_lp = Bernoulli_sample_coord!(replica, pointer, log_potential, cached_lp) # don't slice sample for {0,1} variables
-    else
-        z = cached_lp - rand(rng, Exponential(1.0)) # log(vertical draw)
-        L, R, lp_L, lp_R = slice_double(h, replica, z, pointer, log_potential)
-        cached_lp = slice_shrink!(h, replica, z, L, R, lp_L, lp_R, pointer, log_potential)
-    end
-    return cached_lp
-end
-
-function Bernoulli_sample_coord!(replica, pointer, log_potential, cached_lp)
+# handle Bools separately: sample from the full conditional (requires 1 density eval)
+function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp, ::Type{Bool})
     state = replica.state
     rng = replica.rng
-    if pointer[] == Bool(0)
-        lp0 = cached_lp
-        pointer[] = Bool(1)
-        lp1 = log_potential(state)
-    else
+    if pointer[]                    # currently true => already have lp1
         lp1 = cached_lp
-        pointer[] = Bool(0)
+        pointer[] = false
         lp0 = log_potential(state)
+    else                            # currently false => already have lp0
+        lp0 = cached_lp
+        pointer[] = true
+        lp1 = log_potential(state)
     end
-
-    if rand(rng) < exp(lp0-lp1)/(1.0 + exp(lp0-lp1))
-        pointer[] = Bool(0)
+    prob_ratio = exp(lp1-lp0)
+    prob_zero = inv(1 + prob_ratio) # r = p1/p0 => p1 = p0r and p0 + p1=1 => p0(1+r) = 1 => p0=1/(1+r)
+    if rand(rng) < prob_zero
+        pointer[] = false
         return lp0
     else
-        pointer[] = Bool(1)
+        pointer[] = true
         return lp1
     end
+end
+
+# generic case: use slicing
+function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp, ::Type)
+    rng = replica.rng
+    z = cached_lp - randexp(rng) # log(vertical draw)
+    L, R, lp_L, lp_R = slice_double(h, replica, z, pointer, log_potential)
+    cached_lp = slice_shrink!(h, replica, z, L, R, lp_L, lp_R, pointer, log_potential)
+    return cached_lp
 end
 
 function slice_double(h::SliceSampler, replica, z, pointer, log_potential)
     rng = replica.rng
     state = replica.state
     old_position = pointer[] # store old position while avoiding memory allocation
-    L, R = initialize_slice_endpoints(h.w, pointer, rng, typeof(pointer[])) # dispatch on either float or int
+    L, R = initialize_slice_endpoints(pointer[], h.w, rng)
     K = h.p
 
     pointer[] = L
@@ -110,7 +117,7 @@ function slice_double(h::SliceSampler, replica, z, pointer, log_potential)
             pointer[] = R
             potent_R = log_potential(state)
         end
-        K = K - 1
+        K -= 1
     end
     @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, h.p - K))
 
@@ -118,21 +125,23 @@ function slice_double(h::SliceSampler, replica, z, pointer, log_potential)
     return (L, R, potent_L, potent_R)
 end
 
-function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: AbstractFloat
-    L = pointer[] - width * rand(rng)
+# generic case
+function initialize_slice_endpoints(current, width, rng)
+    L = current - width * rand(rng)
     R = L + width
     return (L, R)
 end
 
-function initialize_slice_endpoints(width, pointer, rng, ::Type{T}) where T <: Integer
-    width = convert(T, ceil(width))
-    L = pointer[] - rand(rng, 0:width)
+# handle integers separately
+function initialize_slice_endpoints(current::T, width, rng) where {T<:Integer}
+    @assert isinteger(width) "for integer variables, the width should be an integer. Got: $width"
+    width = ceil(T, width)
+    L = current - rand(rng, 0:width)
     R = L + width
     return (L, R)
 end
 
 function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, log_potential)
-    @assert isfinite(z)
     rng = replica.rng
     state = replica.state
     old_position = pointer[]
@@ -142,7 +151,7 @@ function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, l
     n = 1
 
     while n <= h.max_iter
-        new_position = draw_new_position(Lbar, Rbar, rng, typeof(pointer[]))
+        new_position = draw_new_position(Lbar, Rbar, rng)
         pointer[] = new_position
         new_lp = log_potential(state)
         consider = z < new_lp
@@ -157,6 +166,12 @@ function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, l
         else
             Rbar = new_position
         end
+        if Lbar ≈ Rbar 
+            # see https://github.com/UBC-Stat-ML/blangSDK/blob/b8642c9c2a0adab8a5b6da96f2a7889f1b81b6cc/src/main/java/blang/mcmc/RealSliceSampler.java#L111
+            pointer[] = old_position 
+            @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, n))
+            return log_potential(state) 
+        end
         n += 1
     end
     # code should never get here, because eventually
@@ -170,8 +185,8 @@ function slice_shrink!(h::SliceSampler, replica, z, L, R, lp_L, lp_R, pointer, l
     return 0.0
 end
 
-draw_new_position(L, R, rng, ::Type{T}) where T <: AbstractFloat = L + rand(rng) * (R-L)
-draw_new_position(L, R, rng, ::Type{T}) where T <: Integer = rand(rng, L:R)
+draw_new_position(L, R, rng) = L + rand(rng) * (R-L)
+draw_new_position(L::Integer, R::Integer, rng) = rand(rng, L:R)
 
 
 function slice_accept(h::SliceSampler, replica, new_position, z, L, R, lp_L, lp_R, pointer, log_potential)

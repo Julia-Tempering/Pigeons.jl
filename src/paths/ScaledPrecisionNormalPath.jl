@@ -24,8 +24,8 @@ end
 LogDensityProblems.logdensity(log_potential::ScaledPrecisionNormalLogPotential, x) = log_potential(x)
 LogDensityProblems.dimension(log_potential::ScaledPrecisionNormalLogPotential) = log_potential.dim
 
-LogDensityProblemsAD.ADgradient(::Symbol, log_potential::ScaledPrecisionNormalLogPotential, buffers::Augmentation) =
-    BufferedAD(log_potential, buffers)
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential::ScaledPrecisionNormalLogPotential, replica::Replica) =
+    BufferedAD(log_potential, replica.recorders.buffers)
 
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{ScaledPrecisionNormalLogPotential}, x)
     logdens = log_potential.enclosed(x)
@@ -54,7 +54,7 @@ Known cumulative barrier used for testing,
 from [Predescu et al., 2003](https://aip.scitation.org/doi/10.1063/1.1644093).
 """
 function analytic_cumulativebarrier(path::ScaledPrecisionNormalPath)
-    b = beta(path.dim / 2.0, path.dim / 2.0)
+    b = beta(path.dim / 2.0, path.dim / 2.0) # NB: this is the beta function in SpecialFunctions.jl 
     function cumulativebarrier(beta)
         sigma0 = 1.0 / sqrt(path.precision0)
         sigmab = 1.0 / sqrt(precision(path, beta))

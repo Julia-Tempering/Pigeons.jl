@@ -18,7 +18,7 @@ We first create a custom type, `MyLogPotential` to control dispatch on the inter
 ```@example julia
 using Pigeons 
 using Random
-using StatsFuns
+using Distributions
 
 struct MyLogPotential 
     n_trials::Int
@@ -38,7 +38,7 @@ function (log_potential::MyLogPotential)(x)
         return -Inf64 
     end
     p = p1 * p2
-    return StatsFuns.binomlogpdf(log_potential.n_trials, p, log_potential.n_successes)
+    return logpdf(Binomial(log_potential.n_trials, p), log_potential.n_successes)
 end
 
 # e.g.:
@@ -95,12 +95,18 @@ nothing # hide
 
 ## Changing the explorer 
 
-Here is an example using [`AutoMALA`](@ref) instead of the default 
-[`SliceSampler`](@ref). We only need to add methods to make 
-our custom type `MyLogPotential` conform the 
+Here is an example using [`AutoMALA`](@ref)—a gradient-based sampler—instead of the default 
+[`SliceSampler`](@ref). We'll use the [Enzyme](https://enzyme.mit.edu/julia) backend, a state-of-the-art
+AD system that supports targets written in plain Julia. Enzyme is considerably faster than the default
+[ForwardDiff](https://juliadiff.org/ForwardDiff.jl/), whose main advantage is compatibility 
+with a broader range of targets. Many other AD backends are supported by the
+[LogDensityProblemsAD.jl](https://github.com/tpapp/LogDensityProblemsAD.jl) interface (`:Enzyme`, `:ForwardDiff`, `:Zygote`, `:ReverseDiff`, etc).
+
+To proceed, we only need to add methods to make our custom type `MyLogPotential` conform to the 
 [LogDensityProblems interface](https://github.com/tpapp/LogDensityProblems.jl):
 
 ```@example julia
+using Enzyme
 using LogDensityProblems
 
 LogDensityProblems.dimension(lp::MyLogPotential) = 2
@@ -109,7 +115,7 @@ LogDensityProblems.logdensity(lp::MyLogPotential, x) = lp(x)
 pt = pigeons(
         target = MyLogPotential(100, 50), 
         reference = MyLogPotential(0, 0), 
-        explorer = AutoMALA(default_autodiff_backend = :ForwardDiff) 
+        explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
     )
 nothing # hide
 ```
@@ -120,6 +126,60 @@ However when the state space is neither the reals nor the integers,
 or for performance reasons, it may be necessary to create custom 
 exploration MCMC kernels.
 This is described on the [custom explorers page](@ref input-explorers).
+
+## Custom gradients 
+
+In some situations it may be helpful to compute gradients explicitly 
+(performance, unsupported primitives, etc). 
+One method to do so is to use autodiff-specific machinery, 
+see for example the [Enzyme documentation](https://enzyme.mit.edu/julia/stable/generated/custom_rule/). 
+In addition, Pigeons also has an AD framework-agnostic method to provide 
+explicit gradients, supporting replica-specific, in-place 
+buffers (this functionality was developed to support efficient interfacing with Stan). 
+Using this is demonstrated below:
+
+```@example custom_ad
+using Pigeons
+using Random
+using LogDensityProblems
+using LogDensityProblemsAD
+
+struct CustomGradientLogPotential
+    precision::Float64
+    dim::Int
+end
+function (log_potential::CustomGradientLogPotential)(x)
+    -0.5 * log_potential.precision * sum(abs2, x)
+end
+
+Pigeons.initialization(lp::CustomGradientLogPotential, ::AbstractRNG, ::Int) = zeros(lp.dim)
+
+LogDensityProblems.dimension(lp::CustomGradientLogPotential) = lp.dim
+LogDensityProblems.logdensity(lp::CustomGradientLogPotential, x) = lp(x)
+
+LogDensityProblemsAD.ADgradient(::Val, log_potential::CustomGradientLogPotential, replica::Pigeons.Replica) =
+     Pigeons.BufferedAD(log_potential, replica.recorders.buffers)
+
+const check_custom_grad_called = Ref(false)
+
+function LogDensityProblems.logdensity_and_gradient(log_potential::Pigeons.BufferedAD{CustomGradientLogPotential}, x)
+    logdens = log_potential.enclosed(x)
+    global check_custom_grad_called[] = true
+    log_potential.buffer .= -log_potential.enclosed.precision .* x
+    return logdens, log_potential.buffer
+end
+
+pigeons(
+    target = CustomGradientLogPotential(2.1, 4), 
+    reference = CustomGradientLogPotential(1.1, 4), 
+    n_chains = 1,
+    n_rounds = 5,
+    explorer = AutoMALA())
+
+@assert check_custom_grad_called[]
+
+nothing # hide
+```
 
 
 ## Manipulating the output
@@ -135,7 +195,7 @@ plotlyjs()
 pt = pigeons(
         target = MyLogPotential(100, 50), 
         reference = MyLogPotential(0, 0), 
-        explorer = AutoMALA(default_autodiff_backend = :ForwardDiff),
+        explorer = AutoMALA(default_autodiff_backend = :Enzyme),
         record = [traces])
 samples = Chains(pt)
 my_plot = StatsPlots.plot(samples)

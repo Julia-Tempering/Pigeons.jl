@@ -5,8 +5,14 @@
 From the root of the Pigeons repo:
 
 ```
-julia
-include("docs/make.jl")
+$ julia
+julia> include("docs/make.jl")
+```
+
+To view the generated website, use LiveServer (but don't add it to the Project file)
+```julia
+using LiveServer
+serve(dir="docs/build")
 ```
 
 If the documentation build hangs (https://github.com/Julia-Tempering/Pigeons.jl/issues/60)

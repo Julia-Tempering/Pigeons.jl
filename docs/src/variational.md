@@ -17,6 +17,7 @@ Enable variational PT by supplier the `variational` option
 to `pigeons(...)`:
 
 ```@example variational
+using DynamicPPL
 using Pigeons
 
 pigeons(

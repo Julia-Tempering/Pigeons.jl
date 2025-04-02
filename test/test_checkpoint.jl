@@ -11,7 +11,14 @@ end
         compare_pts(p1, p2)
 
         r = pigeons(;target, checkpoint = true, on = ChildProcess(n_local_mpi_processes = 2, dependencies=[DynamicPPL,]))
-        p3 = load(r)
+        p3 = Pigeons.load(r)
         compare_pts(p1, p3)
     end
+end
+
+@testset "Checkpoints-with-AD" begin
+    pigeons(target = toy_mvn_target(2), n_rounds = 2, checkpoint = true, explorer = AutoMALA())
+    pt = PT("results/latest")
+    pt = increment_n_rounds!(pt, 2)
+    pigeons(pt)
 end

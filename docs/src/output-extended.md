@@ -19,16 +19,17 @@ various common scenarios below.
 
 ## Posterior densities and trace plots for all chains
 
-Make sure to have the third party `MCMCChains` and `StatsPlots`
+Make sure to have the third party `DynamicPPL`, `MCMCChains`, and `StatsPlots`
 packages installed via 
 
 ```
-using Pkg; Pkg.add("MCMCChains", "StatsPlots")
+using Pkg; Pkg.add("DynamicPPL", "MCMCChains", "StatsPlots")
 ```
 
 Then use the following:
 
-```@example 
+```@example
+using DynamicPPL
 using Pigeons
 using MCMCChains
 using StatsPlots

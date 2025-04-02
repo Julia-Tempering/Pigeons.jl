@@ -20,7 +20,7 @@ end
 variational_recorder_builders(::GaussianReference) = [_transformed_online]
 
 function update_reference!(reduced_recorders, variational::GaussianReference, state)
-    if discrete_variables(state) != [] error("Updating a Gaussian reference with discrete variables.") end
+    isempty(discrete_variables(state)) || error("Updating a Gaussian reference with discrete variables.")
     for var_name in continuous_variables(state)
         variational.mean[var_name] = get_transformed_statistic(reduced_recorders, var_name, Mean)
         variational.standard_deviation[var_name] = sqrt.(get_transformed_statistic(reduced_recorders, var_name, Variance))
@@ -62,8 +62,8 @@ function LogDensityProblems.dimension(log_potential::GaussianReference)
     return length(log_potential.mean[:singleton_variable])
 end
 
-LogDensityProblemsAD.ADgradient(::Symbol, log_potential::GaussianReference, buffers::Augmentation) = 
-    BufferedAD(log_potential, buffers)
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential::GaussianReference, replica::Replica) = 
+    BufferedAD(log_potential, replica.recorders.buffers)
 
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{GaussianReference}, x)
     variational = log_potential.enclosed

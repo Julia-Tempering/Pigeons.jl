@@ -14,9 +14,19 @@
 [For more information, see the documentation.](https://pigeons.run/dev/)
 
 
+
 ## Funding and acknowledgments 
 
-The development and testing of Pigeons.jl is supported by the Natural Sciences and Engineering Research Council of Canada Discovery Grant and Vanier programs, and by the University of British Columbia Advanced Research Computing. The authors would like to thank Roman Baranowski, Jacob Boschee and Alyza Rosario for their help with MPI.
+The development and testing of Pigeons.jl is supported by the Canadian Statistical Sciences Institute (CANSSI), 
+the Natural Sciences and Engineering Research Council of Canada Discovery Grant and Vanier programs, by the 
+University of British Columbia Advanced Research Computing, and compute credits from Oracle. 
+The authors would like to thank Roman Baranowski, Jacob Boschee and Alyza Rosario for their help with MPI.
+
+> [!NOTE]  
+> We are recruiting graduate students! [Click here for more information.](https://pigeons.run/dev/openings/)
+
+
+<img src="https://github.com/Julia-Tempering/doc-assets/blob/master/funding/canssi.jpg?raw=true" alt="CANSSI logo" height="60">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://github.com/Julia-Tempering/doc-assets/blob/master/funding/nserc.png?raw=true" alt="NSERC logo" height="60">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://github.com/Julia-Tempering/doc-assets/blob/master/funding/arc.jpeg?raw=true" alt="ARC logo" height="60">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://github.com/Julia-Tempering/doc-assets/blob/master/funding/oracle.png?raw=true" alt="Oracle logo" height="60">
 
 
 ## How to cite Pigeons 
@@ -34,6 +44,5 @@ Our team works hard to maintain and improve the Pigeons package. Please consider
 }
 ```
 
-**APA**
-
+**APA** </br>
 Surjanovic, N., Biron-Lattes, M., Tiede, P., Syed, S., Campbell, T., & Bouchard-Côté, A. (2023). Pigeons.jl: Distributed sampling from intractable distributions. *arXiv:2308.09769.*

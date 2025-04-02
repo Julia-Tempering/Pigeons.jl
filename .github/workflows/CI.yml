@@ -17,41 +17,40 @@ jobs:
   
   # test using MPICH as MPI backend (default in MPI.jl)
   test-MPICH-jll:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         version:
-          - '1.8'
-          - '1.9'
+          - '1.10'
+          - '1.11'
         os:
           - ubuntu-latest
-          - macos-latest
+          - macos-13
           - windows-latest
-        arch:
-          - x64
     steps:
       - name: Enable long paths on windows
         if: ${{ startsWith(matrix.os, 'windows') }}
         run: |
           REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '11'
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v5
         with:
-          files: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false  # or true if you want CI to fail when Codecov fails
+          file: lcov.info
 
 
   # test OpenMPI by requesting it with MPIPreferences
@@ -62,11 +61,9 @@ jobs:
     strategy:
       matrix:
         version:
-          - '1.8'
+          - '1.11'
         os:
           - ubuntu-latest
-        arch:
-          - x64
 
       fail-fast: false
     env:
@@ -75,12 +72,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
-    - uses: julia-actions/setup-julia@latest
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+    - uses: julia-actions/setup-julia@v2
       with:
         version: ${{ matrix.version }}
-        arch: ${{ matrix.arch }}
-    - uses: julia-actions/cache@v1
+    - uses: julia-actions/cache@v2
 
     - name: use OpenMPI_jll
       shell: julia --color=yes --project=test {0}
@@ -91,7 +90,7 @@ jobs:
         MPIPreferences.use_jll_binary("OpenMPI_jll")
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
   
 
   # # CI is getting too slow! 
@@ -104,9 +103,9 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.8'
+          - '1.11'
         os:
-          - macos-latest
+          - macos-13
         mpi:
           - mpich
           - openmpi
@@ -117,21 +116,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install MPI via homebrew
-        run: brew install $MPI
-        env:
-          MPI: ${{ matrix.mpi }}
+        run: |
+          brew install "${{ matrix.mpi }}"
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '11'
 
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
-          arch: x64
 
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
 
       - name: use system MPI
         shell: julia --color=yes --project=test {0}
@@ -139,7 +136,9 @@ jobs:
           using Pkg
           Pkg.instantiate()
           using MPIPreferences
-          MPIPreferences.use_system_binary()
+          mpi_prefix = readchomp(`brew --prefix ${{ matrix.mpi }}`)
+          libdir = joinpath(mpi_prefix, "lib")
+          MPIPreferences.use_system_binary(; extra_paths=[libdir])
           run(`sed -i.bu 's/unknown/MPICH/' test/LocalPreferences.toml`) # fix wrong abi detection for mpich
           rm("test/Manifest.toml")
       
@@ -153,14 +152,14 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '11'
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
-          version: '1.8'
-      - uses: julia-actions/julia-buildpkg@v1
+          version: '1.11'
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

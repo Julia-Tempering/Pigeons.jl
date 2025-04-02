@@ -58,3 +58,47 @@ process will have its own copy of the global variables.
     This is caused by `==` dispatching `===` on your type, which is too strict
     for the purpose of comparing two deserialized checkpoints. See
     [`recursive_equal`](@ref) for instructions on how to prevent this behavior.
+
+## Correctness checks of MCMC kernels
+
+Pigeons offers a tool, the Exact Invariance Test (EIT), to help validating 
+correctness of MCMC kernels. It formulates an hypothesis test where the 
+null hypothesis is that the provided [`explorer`](@ref) kernel is 
+invariant with respect to the target distribution.
+For details, see 
+[Bouchard-Côté, 2022, Section 10.5](https://www.jstatsoft.org/article/view/v103i11) or [this tutorial](https://ubc-stat-ml.github.io/web447/w12_mcmc2/topic08_debug.html). 
+
+Using EIT is as simple as defining a Bayesian model with a proper prior 
+using the Turing syntax, and then calling [`invariance_test()`](@ref): 
+
+```@example irreducibility
+using Pigeons
+using Distributions
+using DynamicPPL 
+using HypothesisTests 
+
+# note: observation should not be an argument of the Turing model
+DynamicPPL.@model function some_generative_model(n_trials)
+    p1 ~ Uniform()
+    p2 ~ Uniform()
+    n_successes ~ Binomial(n_trials, p1*p2)
+    return n_successes
+end
+
+model = some_generative_model(100)
+target = TuringLogPotential(model)
+explorer = SliceSampler()
+test_result = Pigeons.invariance_test(
+                target, 
+                explorer;
+                condition_on=(:n_successes,))
+
+@assert test_result.passed
+nothing # hide
+```
+
+EIT checks for invariance but not irreducibility. 
+Being able to check invariance irrespective of irreducibility is beneficial:
+for example if a Gibbs sampler has two moves, one can then test each in isolation 
+each of the two moves. Moreover,  
+in case of failure, we can determine which of the two moves would be problematic. 

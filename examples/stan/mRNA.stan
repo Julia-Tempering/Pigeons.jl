@@ -19,6 +19,9 @@ functions {
     // so
     //     mu(t) = km0(t-t0)
     real get_mu(real tmt0, real km0, real beta, real delta){
+        if (tmt0 <= 0.0){
+            return 0.0; // must force mu=0 when t<t0 (reaction has not started yet): https://github.com/ICB-DCM/PESTO/blob/3949f150108a051ec0e627c467644290061fc494/examples/mRNA_transfection/logLikelihoodT.m#L69
+        }
         real dmb = delta-beta;
         return km0 * ( abs(dmb) < machine_precision() ? tmt0 : exp_a_minus_exp_b(-beta*tmt0, -delta*tmt0)/dmb );
     }

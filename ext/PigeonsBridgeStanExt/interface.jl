@@ -6,7 +6,7 @@ The `data` argument can be a path with a file with `.json` suffix or the json st
 See `BridgeStan` for details.
 """
 function Pigeons.StanLogPotential(stan_file, data, extra_information = nothing)
-    model = BridgeStan.StanModel(; stan_file, data, make_args = stan_threads_options())
+    model = BridgeStan.StanModel(stan_file, data; make_args = stan_threads_options())
     result = StanLogPotential(
         model,
         stan_file,
@@ -18,15 +18,8 @@ function Pigeons.StanLogPotential(stan_file, data, extra_information = nothing)
     return result
 end
 
-
-
-
-
 Base.show(io::IO, slp::StanLogPotential) =
     print(io, "StanLogPotential($(name(slp.model)))")
-
-
-
 
 function stan_threads_options()
     if Threads.nthreads() > 1
@@ -61,8 +54,8 @@ Evaluate the log potential at a given point `x` of type `Pigeons.StanState`.
 (log_potential::StanLogPotential)(state::Pigeons.StanState) =
     LogDensityProblems.logdensity(log_potential, state.unconstrained_parameters)
 
-LogDensityProblemsAD.ADgradient(::Symbol, log_potential::StanLogPotential, buffers::Pigeons.Augmentation) =
-    Pigeons.BufferedAD(log_potential, buffers, Ref(0.0), Ref{Cstring}())
+LogDensityProblemsAD.ADgradient(kind::Val, log_potential::StanLogPotential, replica::Pigeons.Replica) =
+    Pigeons.BufferedAD(log_potential, replica.recorders.buffers, Ref(0.0), Ref{Cstring}())
 
 LogDensityProblems.logdensity(log_potential::Pigeons.BufferedAD{StanLogPotential{M, S, D, E}}, x) where {M, S, D, E} =
     stan_log_density!(
@@ -90,10 +83,36 @@ end
 
 Pigeons.default_reference(target::StanLogPotential) = target
 
-# Allocation-free version of the BridgeStan functions.
-# Also add custom error handling code.
-# The rest of this file is a modification of BridgeStan's source
 
+#=
+DistributionLogPotential interface
+=#
+
+"""
+Evaluate a `DistributionLogPotential` on a `StanState`.
+
+!!! warning
+
+    The distribution enclosed by the log potential must be defined on the 
+    **unconstrained space**.
+"""
+(ref::Pigeons.DistributionLogPotential)(state::Pigeons.StanState) = 
+    ref(state.unconstrained_parameters)
+
+function Pigeons.sample_iid!(
+    ref::Pigeons.DistributionLogPotential, 
+    replica::Pigeons.Replica{<:Pigeons.StanState}, 
+    shared
+    )
+    rand!(replica.rng, ref.dist, replica.state.unconstrained_parameters)
+end
+
+
+#=
+Allocation-free version of the BridgeStan functions.
+Also add custom error handling code.
+The rest of this file is a modification of BridgeStan's source
+=#
 function stan_log_density!(sm::BridgeStan.StanModel, q::Vector{Float64}, lp = Ref(0.0), err = Ref{Cstring}(); propto = true, jacobian = true)
     rc = ccall(
         Libc.Libdl.dlsym(sm.lib, "bs_log_density"),

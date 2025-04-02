@@ -18,4 +18,4 @@ create_swap_graph(deo::VariationalDEO, shared) =
     iseven(shared.iterators.scan) ? even(deo.n_chains_fixed, deo.n_chains_var) : odd(deo.n_chains_fixed, deo.n_chains_var)
 
 is_reference(deo::VariationalDEO, chain::Int) = (chain == 1) || (chain == n_chains(deo))
-is_target(deo::VariationalDEO, chain::Int) = (chain == deo.n_chains_fixed) || (chain == deo.n_chains_fixed + 1)
+is_target(deo::VariationalDEO, chain::Int) = (chain == deo.n_chains_var) || (chain == deo.n_chains_var + 1)

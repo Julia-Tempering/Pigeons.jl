@@ -19,14 +19,14 @@ end
     pt = pigeons(; target = toy_mvn_target(1), checkpoint = true, on = ChildProcess(n_local_mpi_processes = 2))
     exec = increment_n_rounds!(pt.exec_folder, 2)
     r = pigeons(exec, ChildProcess(n_local_mpi_processes = 2))
-    Pigeons.check_against_serial(load(r))
+    Pigeons.check_against_serial(Pigeons.load(r))
 end
 
 @testset "Extend number of rounds with PT object, on ChildProcess" begin
     pt = pigeons(; target = toy_mvn_target(1), checkpoint = true)
     pt = increment_n_rounds!(pt, 2)
     r = pigeons(pt.exec_folder, ChildProcess(n_local_mpi_processes = 2))
-    Pigeons.check_against_serial(load(r))
+    Pigeons.check_against_serial(Pigeons.load(r))
 end
 
 @testset "Complex example of increasing number of rounds many times" begin
@@ -59,5 +59,5 @@ end
     result = pigeons(new_exec_folder, ChildProcess(n_local_mpi_processes = 2))
 
     # make sure it is equivalent to doing it in one shot
-    Pigeons.check_against_serial(load(result))
+    Pigeons.check_against_serial(Pigeons.load(result))
 end

@@ -99,22 +99,3 @@ end
 
 # default method: defer to user-provided method for their target
 initialization(inp::Inputs, args...) = initialization(inp.target, args...)
-
-# generic method for distribution-type references: sample iid for all replicas
-function initialization(
-    inp::Inputs{T, V, E, R},
-    rng::AbstractRNG,
-    ::Int
-    ) where {T, V, E, R <: DistributionLogPotential}
-    rand(rng, inp.reference.dist)
-end
-
-# for univariate references we need to wrap in vector 
-function initialization(
-    inp::Inputs{T, V, E, R},
-    rng::AbstractRNG,
-    ::Int
-    ) where {T, V, E, R <: DistributionLogPotential{<:UnivariateDistribution}}
-    [rand(rng, inp.reference.dist)]
-end
-

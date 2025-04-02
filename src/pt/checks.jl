@@ -6,7 +6,7 @@ function preflight_checks(inputs::Inputs)
               """
     end
     if mpi_active() && !inputs.checkpoint
-        @warn "To be able to call load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
+        @warn "To be able to call Pigeons.load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
     end
     if Threads.nthreads() > 1 && !inputs.multithreaded
         @warn "More than one threads are available, but explore!() loop is not parallelized as inputs.multithreaded == false"
@@ -56,7 +56,7 @@ function check_against_serial(pt)
     # run a serial copy
     dependencies =
         if isfile("$(pt.exec_folder)/.dependencies.jls")
-            # this process was itself spawn using ChildProcess/MPI
+            # this process was itself spawn using ChildProcess/MPIProcesses
             # so use the same dependencies as this process
             deserialize("$(pt.exec_folder)/.dependencies.jls")
         else
@@ -133,8 +133,7 @@ const RecursiveEqualInnerType =
         StanState, SplittableRandom, Replica, Augmentation, AutoMALA, SliceSampler,
         Compose, Mix, Iterators, Schedule, DEO, BlangTarget, NonReversiblePT,
         InterpolatingPath, InterpolatedLogPotential, RoundTripRecorder,
-        OnlineStateRecorder, LocalBarrier, NamedTuple, Vector{<:InterpolatedLogPotential},
-        Vector{<:Replica}, Tuple, Inputs
+        OnlineStateRecorder, LocalBarrier, NamedTuple, Tuple, Inputs
     }
 recursive_equal(a::RecursiveEqualInnerType, b::RecursiveEqualInnerType) =
     _recursive_equal(a,b)
@@ -148,6 +147,14 @@ function _recursive_equal(a::T, b::T, exclude::NTuple{N,Symbol}=()) where {T,N}
     return true
 end
 _recursive_equal(a,b,exclude=nothing) = false # generic case catches difference in types of a and b
+
+# handle arrays of RecursiveEqualInnerType separately
+function recursive_equal(
+    a::AbstractArray{<:RecursiveEqualInnerType}, 
+    b::AbstractArray{<:RecursiveEqualInnerType}
+    )
+    size(a) == size(b) && all(t -> recursive_equal(t...), zip(a,b))
+end
 
 # types for which some fields need to be excluded
 recursive_equal(a::Shared, b::Shared) = _recursive_equal(a, b, (:reports,))
