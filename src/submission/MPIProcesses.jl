@@ -96,7 +96,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     exec_str = (
                 r.exec == "srun" ?
                 string("srun -n \$SLURM_NTASKS $(join(mpi_submission.mpiexec_args.exec, " "))") :
-                string("mpiexec $(join(mpi_submission.mpiexec_args.exec, " ")) --merge-stderr-to-stdout --output-filename $(exec_folder)")
+                string("mpiexec $(cmd_to_string(mpi_submission.mpiexec_args)) --merge-stderr-to-stdout --output-filename $exec_folder")
     )
 
     code = """
@@ -115,24 +115,28 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     #    MethodError(f=Core.Compiler.widenconst, args=(Symbol("#342"),), world=0x0000000000001342)
     export JULIA_PKG_PRECOMPILE_AUTO=0
 
+
     $(exec_str) $julia_cmd_str
+
     """
     script_path = "$exec_folder/.submission_script.sh"
     write(script_path, code)
     return script_path
 end
 
+cmd_to_string(cmd::Cmd) = "$cmd"[2:(end-1)]
 
 # Internal: "rosetta stone" of submission commands
 const _rosetta = (;
     queue_concept = [:exec,   :submit,   :del,     :directive, :job_name,    :output_file,   :error_file,    :submit_dir,            :job_status,    :job_status_all,    :ncpu_info],
 
     # tested:
-    pbs           = ["mpiexec",`qsub`,    `qdel`,   "#PBS",     "-N ",        "-o ",          "-e ",          "\$PBS_O_WORKDIR",      `qstat -x`,     `qstat -u`,         `pbsnodes -aSj -F dsv`],
-    slurm         = ["mpiexec",`sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue --job`, `squeue -u`,        `sinfo`],
+
+    pbs           = ["mpiexec", `qsub`,    `qdel`,   "#PBS",     "-N ",        "-o ",          "-e ",          "\$PBS_O_WORKDIR",      `qstat -x`,     `qstat -u`,         `pbsnodes`],
+    slurm         = ["mpiexec", `sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue --job`, `squeue -u`,        `sinfo -o%C`],
     
     # not yet tested:
-    lsf           = ["mpiexec",`bsub`,    `bkill`,  "#BSUB",    "-J ",        "-o ",          "-e ",          "\$LSB_SUBCWD",         `bjobs`,        `bjobs -u`,         `bhosts`],
+    lsf           = ["mpiexec", `bsub`,    `bkill`,  "#BSUB",    "-J ",        "-o ",          "-e ",          "\$LSB_SUBCWD",         `bjobs`,        `bjobs -u`,         `bhosts`],
 
     custom = [] # can be used by downstream libraries/users to create custom submission commands in conjuction with dispatch on Pigeons.resource_string()
 )
