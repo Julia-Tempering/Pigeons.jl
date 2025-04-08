@@ -49,7 +49,7 @@ end
 
 
 """
-$SIGNATURES 
+$TYPEDSIGNATURES 
 
 Run Parallel Tempering in a new process. 
 See [`ChildProcess`](@ref).
