@@ -11,7 +11,7 @@ Pigeons.initialization(lp::CustomGradientLogPotential, ::AbstractRNG, ::Int) = z
 LogDensityProblems.dimension(lp::CustomGradientLogPotential) = lp.dim
 LogDensityProblems.logdensity(lp::CustomGradientLogPotential, x) = lp(x)
 
-LogDensityProblemsAD.ADgradient(::Val, log_potential::CustomGradientLogPotential, replica::Pigeons.Replica) =
+LogDensityProblemsAD.ADgradient(::ADTypes.AbstractADType, log_potential::CustomGradientLogPotential, replica::Pigeons.Replica) =
     Pigeons.BufferedAD(log_potential, replica.recorders.buffers)
 
 const check_custom_grad_called = Ref(false)

@@ -67,9 +67,8 @@ Pigeons.initialization(
     """)
 
 function Pigeons.initialization(target::TuringLogPotential, rng::AbstractRNG, _::Int64)
-    result = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext())
-    DynamicPPL.link!!(result, DynamicPPL.SampleFromPrior(), target.model)
-    return result
+    vi = DynamicPPL.VarInfo(rng, target.model, DynamicPPL.SampleFromPrior(), DynamicPPL.PriorContext())
+    return DynamicPPL.link(vi, target.model)
 end
 
 # At the moment, AutoMALA assumes a :singleton_variable structure
@@ -85,8 +84,53 @@ end
 
 # LogDensityProblems interface
 LogDensityProblems.dimension(log_potential::TuringLogPotential) = log_potential.dimension
-LogDensityProblemsAD.ADgradient(kind::Val, log_potential::TuringLogPotential, replica::Pigeons.Replica) =
-    ADgradient(
-        kind, 
-        DynamicPPL.LogDensityFunction(replica.state, log_potential.model, log_potential.context), 
-        replica)
+
+function LogDensityProblemsAD.ADgradient(
+    kind::ADTypes.AbstractADType, 
+    log_potential::TuringLogPotential, 
+    replica::Pigeons.Replica
+    )
+    ldf = DynamicPPL.LogDensityFunction(
+        log_potential.model, replica.state; adtype=kind
+    )
+    d = LogDensityProblems.dimension(log_potential)
+    buffer = Pigeons.get_buffer(replica.recorders.buffers, :gradient_buffer, d)
+    return Pigeons.BufferedAD(ldf, buffer, nothing, nothing)
+end
+
+# adapted from DPPL to use buffer 
+# https://github.com/TuringLang/DynamicPPL.jl/blob/fb5413f482b962d97b6e4728d560297cd713c295/src/logdensityfunction.jl#L202
+function LogDensityProblems.logdensity_and_gradient(
+    b::Pigeons.BufferedAD{<:DynamicPPL.LogDensityFunction},
+    x::AbstractVector
+    )
+    f = b.enclosed
+    buffer = b.buffer
+
+    f.prep === nothing &&
+        error("Gradient preparation not available; this should not happen")
+    x = map(identity, x)  # Concretise type
+    # Make branching statically inferrable, i.e. type-stable (even if the two
+    # branches happen to return different types)
+    return if DynamicPPL.use_closure(f.adtype)
+        DI.value_and_gradient!(
+            x -> DynamicPPL.logdensity_at(x, f.model, f.varinfo, f.context),
+            buffer,
+            f.prep, 
+            f.adtype, 
+            x
+        )
+    else
+        DI.value_and_gradient!(
+            DynamicPPL.logdensity_at,
+            buffer,
+            f.prep,
+            f.adtype,
+            x,
+            DI.Constant(f.model),
+            DI.Constant(f.varinfo),
+            DI.Constant(f.context),
+        )
+    end
+end
+

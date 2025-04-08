@@ -2,8 +2,10 @@ module PigeonsDynamicPPLExt
 
 using Pigeons
 if isdefined(Base, :get_extension)
-    import DynamicPPL
+    using ADTypes
+    import DifferentiationInterface as DI
     using Distributions
+    using DynamicPPL
     using FillArrays: Zeros
     using LinearAlgebra: I
     using LogDensityProblems
@@ -12,14 +14,16 @@ if isdefined(Base, :get_extension)
     using SplittableRandoms
     using Random
 else
-    import ..DynamicPPL
+    using ..ADTypes
+    import ..DifferentiationInterface as DI
     using ..Distributions
+    using ..DynamicPPL
     using ..FillArrays: Zeros
     using ..LinearAlgebra: I
     using ..LogDensityProblems
     using ..LogDensityProblemsAD
     using ..DocStringExtensions
-    using ..SplittableRandoms: SplittableRandom, split
+    using ..SplittableRandoms
     using ..Random
 end
 
