@@ -83,12 +83,11 @@ function watch(result::Result; machine = 1, last = 40, interactive = false)
         cmd = `$cmd -f`
     end
 
-    println("Hint: showing only last $last lines; use 'last' argument to change")
+    println("Hint: showing only last $last lines; use 'last = 100' or more to change")
     println("Watching: $stdout_file")
     run(`$cmd $stdout_file`) 
     return nothing 
 end
-
 
 
 # internal
