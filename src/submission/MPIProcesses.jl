@@ -86,7 +86,7 @@ end
 
 function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_cmd)
     info_folder = "$exec_folder/info"
-    julia_cmd_str = join(julia_cmd, " ")
+    julia_cmd_str = cmd_to_string(julia_cmd)
     mpi_settings = load_mpi_settings()
     add_to_submission = join(mpi_settings.add_to_submission, "\n")
     r = rosetta()
@@ -100,11 +100,9 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     $(r.directive) $(r.output_file)$info_folder/stdout.txt
     $(r.directive) $(r.error_file)$info_folder/stderr.txt
     $add_to_submission
+    
     cd $(r.submit_dir)
     $(modules_string(mpi_settings))
-
-    # don't want many processes wasting time pre-compiling, 
-    export JULIA_PKG_PRECOMPILE_AUTO=0
 
     $exec_str $julia_cmd_str
 
