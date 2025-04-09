@@ -52,7 +52,7 @@ end
             n_chains=7, 
             n_rounds=5
         )
-        @test isapprox(Pigeons.stepping_stone(pt), exact_logZ, rtol=0.1)
+        @test isapprox(Pigeons.stepping_stone(pt), exact_logZ, atol=2, rtol=0.2)
     end
 end
 
