@@ -96,11 +96,10 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     code = """
     #!/bin/bash
     $resource_str
-
-    $add_to_submission
     $(r.directive) $(r.job_name)$(basename(exec_folder))
     $(r.directive) $(r.output_file)$info_folder/stdout.txt
     $(r.directive) $(r.error_file)$info_folder/stderr.txt
+    $add_to_submission
     cd $(r.submit_dir)
     $(modules_string(mpi_settings))
 
