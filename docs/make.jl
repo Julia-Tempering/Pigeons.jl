@@ -74,6 +74,7 @@ InferenceReport.headless() do
             "Reference" => "reference.md",
             "Openings" => "openings.md",
             "About Us" => "about-us.md",
+            "For developers" => "developers.md"
             "Google Summer of Code" => "gsoc.md"
         ],
     )

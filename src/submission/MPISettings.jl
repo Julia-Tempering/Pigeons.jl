@@ -24,7 +24,7 @@ $FIELDS
     add_to_submission::Vector{String} = []
 
     """
-    "Envirnonment modules" to load (not to be confused 
+    "Environment modules" to load (not to be confused 
     with Julia modules). 
     Run `module avail` in the HPC login node to see 
     what is available on your HPC. 
@@ -37,11 +37,18 @@ $FIELDS
     In most case, leave empty as MPIPreferences.use_system_binary() will 
     autodetect, but if it does not, the path to libmpi.so can be specified 
     this way, e.g. this is needed on compute Canada clusters (as they are not setting that 
-    environment variable correctly) where it needs to be set to
+    environment variable correctly) where it needs to be set to paths of the form
     "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Compiler/intel2020/openmpi/4.0.3/lib/libmpi"
     (notice the .so is not included).
     """
     library_name::Union{String, Nothing} = nothing
+
+    """
+    The mpiexec command or equivalent. For example, in other systems, 
+    it needs to be set to "srun -n \$SLURM_NTASKS", potentially with 
+    the argument "--mpi=pmi2" in some cases. 
+    """
+    mpiexec::Cmd = `mpiexec --merge-stderr-to-stdout`
 end
 
 mpi_settings_folder() = "$(homedir())/.pigeons"

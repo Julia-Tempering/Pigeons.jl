@@ -119,6 +119,7 @@ pt = Pigeons.load(mpi_run) # possible thanks to 'pigeons(..., checkpoint = true)
 ```
 
 ### Custom submission settings
+
 Some clusters require submission settings that are not included within `Pigeons`'s defaults.
 Custom submission settings can be specified in these situations.
 

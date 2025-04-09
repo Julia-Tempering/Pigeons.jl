@@ -43,9 +43,11 @@ $FIELDS
     dependencies::Vector = []
 
     """
-    Extra arguments passed to mpiexec.
+    MPI exec command.
     """
     mpiexec_args::Cmd = ``
+
+
 end
 
 """
@@ -66,7 +68,7 @@ function pigeons(pt_arguments, mpi_submission::MPIProcesses)
         true # set mpi_active_ref flag to true
     )
     
-    # generate qsub script
+    # generate submission script
     # do job submission & record the submission id
     cmd = mpi_submission_cmd(exec_folder, mpi_submission, julia_cmd)
     submission_output = read(cmd, String)
@@ -76,7 +78,6 @@ function pigeons(pt_arguments, mpi_submission::MPIProcesses)
     return Result{PT}(exec_folder)
 end
 
-# todo: abstract out to other submission systems
 function mpi_submission_cmd(exec_folder, mpi_submission::MPIProcesses, julia_cmd) 
     r = rosetta()
     submission_script = mpi_submission_script(exec_folder, mpi_submission, julia_cmd)
@@ -84,21 +85,14 @@ function mpi_submission_cmd(exec_folder, mpi_submission::MPIProcesses, julia_cmd
 end
 
 function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_cmd)
-    # TODO: generalize to other submission systems
-    # TODO: move some more things over from mpi-run
     info_folder = "$exec_folder/info"
     julia_cmd_str = join(julia_cmd, " ")
     mpi_settings = load_mpi_settings()
     add_to_submission = join(mpi_settings.add_to_submission, "\n")
     r = rosetta()
     resource_str = resource_string(mpi_submission, mpi_settings.submission_system)
-
-    exec_str = (
-                r.exec == "srun" ?
-                string("srun -n \$SLURM_NTASKS $(join(mpi_submission.mpiexec_args.exec, " "))") :
-                string("mpiexec $(cmd_to_string(mpi_submission.mpiexec_args)) --merge-stderr-to-stdout --output-filename $exec_folder")
-    )
-
+    exec_str = "$(cmd_to_string(mpi_settings.mpiexec)) $(cmd_to_string(mpi_submission.mpiexec_args))"
+    
     code = """
     #!/bin/bash
     $resource_str
@@ -111,12 +105,9 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     $(modules_string(mpi_settings))
 
     # don't want many processes wasting time pre-compiling, 
-    # could also be a cause for an obscure bug encountered (non-reproducible):
-    #    MethodError(f=Core.Compiler.widenconst, args=(Symbol("#342"),), world=0x0000000000001342)
     export JULIA_PKG_PRECOMPILE_AUTO=0
 
-
-    $(exec_str) $julia_cmd_str
+    $exec_str $julia_cmd_str
 
     """
     script_path = "$exec_folder/.submission_script.sh"
@@ -126,67 +117,106 @@ end
 
 cmd_to_string(cmd::Cmd) = "$cmd"[2:(end-1)]
 
-# Internal: "rosetta stone" of submission commands
-const _rosetta = (;
-    queue_concept = [:exec,   :submit,   :del,     :directive, :job_name,    :output_file,   :error_file,    :submit_dir,            :job_status,    :job_status_all,    :ncpu_info],
+"""
+Specify the syntax of job submission systems such as SLURM.
 
-    # tested:
+Fields:
 
-    pbs           = ["mpiexec", `qsub`,    `qdel`,   "#PBS",     "-N ",        "-o ",          "-e ",          "\$PBS_O_WORKDIR",      `qstat -x`,     `qstat -u`,         `pbsnodes`],
-    slurm         = ["mpiexec", `sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue --job`, `squeue -u`,        `sinfo -o%C`],
-    
-    # not yet tested:
-    lsf           = ["mpiexec", `bsub`,    `bkill`,  "#BSUB",    "-J ",        "-o ",          "-e ",          "\$LSB_SUBCWD",         `bjobs`,        `bjobs -u`,         `bhosts`],
+$FIELDS
+"""
+@kwdef struct SubmissionSyntax
 
-    custom = [] # can be used by downstream libraries/users to create custom submission commands in conjuction with dispatch on Pigeons.resource_string()
-)
+    """
+    The command to submit the job.
+    """
+    submit::Cmd
 
- """
-    $TYPEDSIGNATURES
+    """
+    The command to delete the job.
+    """
+    del::Cmd
 
-Add a custom submission system to the rosetta stone.  
-This function expects a NamedTuple with the following fields:
-    - `exec` (String): the command to execute the job
-    - `submit` (Cmd): the command to submit the job
-    - `del` (Cmd): the command to delete the job
-    - `directive` (String): the directive to specify the job
-    - `job_name` (String): the flag to specify the job name
-    - `output_file` (String): the flag to specify the output file
-    - `error_file` (String): the flag to specify the error file
-    - `submit_dir` (String): the flag to specify the submit directory
-    - `job_status` (Cmd): the command to check the job status
-    - `job_status_all` (Cmd): the command to check the job status for all users
-    - `ncpu_info` (Cmd): the command to check the number of cpus available
- """
-function add_custom_submission_system(θ::NamedTuple)
-    (;exec, submit, del, directive, job_name, output_file, error_file, submit_dir, job_status, job_status_all, ncpu_info) = θ
+    """
+    The directive to specify the job.
+    """
+    directive::String
 
-    #Empty custom submission system params
-    while length(Pigeons._rosetta.custom) > 0
-        popfirst!(Pigeons._rosetta.custom)
-    end
+    """
+    The flag to specify the job name.
+    """
+    job_name::String
 
-    append!(
-        Pigeons._rosetta.custom,
-        [   
-            exec,
-            submit,
-            del,
-            directive,
-            job_name,
-            output_file,
-            error_file,
-            submit_dir,
-            job_status,
-            job_status_all,
-            ncpu_info
-        ]
-    ) 
-    @warn("Custom submission system added to the rosetta stone. You will also need to define a resource_string function for this submission system.")
-    return nothing
+    """
+    The flag to specify the output file.
+    """
+    output_file::String
+
+    """
+    The flag to specify the error file.
+    """
+    error_file::String
+
+    """
+    The flag to specify the submit directory.
+    """
+    submit_dir::String
+
+    """
+    The command to check the job status.
+    """
+    job_status::Cmd
+
+    """
+    The command to check the job status for all users.
+    """
+    job_stats_all::Cmd
+
+    """
+    The command to check the number of CPUs available.
+    """
+    ncpu_info::Cmd
 end
 
-supported_submission_systems() = filter(x -> x != :queue_concept && x != :custom, keys(_rosetta))
+const _rosetta = Dict{Symbol, SubmissionSyntax}(
+    :pbs => SubmissionSyntax(
+        submit       = `qsub`,
+        del          = `qdel`,
+        directive    = "#PBS",
+        job_name     = "-N ",
+        output_file  = "-o ",
+        error_file   = "-e ",
+        submit_dir   = "\$PBS_O_WORKDIR",
+        job_status   = `qstat -x`,
+        job_stats_all= `qstat -u`,
+        ncpu_info    = `pbsnodes`
+    ),
+    :slurm => SubmissionSyntax(
+        submit       = `sbatch`,
+        del          = `scancel`,
+        directive    = "#SBATCH",
+        job_name     = "--job-name=",
+        output_file  = "-o ",
+        error_file   = "-e ",
+        submit_dir   = "\$SLURM_SUBMIT_DIR",
+        job_status   = `squeue --job`,
+        job_stats_all= `squeue -u`,
+        ncpu_info    = `sinfo -o%C`
+    ),
+    :lsf => SubmissionSyntax(
+        submit        = `bsub`,
+        del           = `bkill`,
+        directive     = "#BSUB",
+        job_name      = "-J ",
+        output_file   = "-o ",
+        error_file    = "-e ",
+        submit_dir    = "\$LSB_SUBCWD",
+        job_status    = `bjobs`,
+        job_stats_all = `bjobs -u`,
+        ncpu_info     = `bhosts`
+    )
+)
+
+supported_submission_systems() = keys(_rosetta)
 
 resource_string(m::MPIProcesses, symbol) = resource_string(m, Val(symbol))
 
@@ -215,15 +245,5 @@ end
 
 function rosetta() 
     mpi_settings = load_mpi_settings()
-    tuple_keys = Symbol[] 
-    tuple_values = Any[] 
-    concepts = _rosetta.queue_concept
-    selected = _rosetta[mpi_settings.submission_system] 
-    len = length(selected)
-    @assert len == length(concepts)
-    for i in 1:len
-        push!(tuple_keys, concepts[i])
-        push!(tuple_values, selected[i])
-    end
-    return (; zip(tuple_keys, tuple_values)...)
+    return _rosetta[mpi_settings.submission_system] 
 end
