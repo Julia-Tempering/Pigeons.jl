@@ -13,13 +13,9 @@ $FIELDS
     """
     Add lines to the submission scripts. 
 
-    E.g. used in UBC Sockeye for custom allocation code via 
+    E.g. in Compute Canada if you are member of several accounts (see https://docs.alliancecan.ca/wiki/Running_jobs):
 
-    `add_to_submission = ["#PBS -A my_user_allocation_code"]`
-
-    or in Compute Canada (optional if member of only one account, see https://docs.alliancecan.ca/wiki/Running_jobs):
-
-    `add_to_submission = ["#SBATCH --account=my_user_name"]``
+    `add_to_submission = ["#SBATCH --account=my_user_name"]`
     """
     add_to_submission::Vector{String} = []
 
@@ -28,8 +24,6 @@ $FIELDS
     with Julia modules). 
     Run `module avail` in the HPC login node to see 
     what is available on your HPC. 
-    For example: `["git", "gcc", "intel-mkl", "openmpi"]` on Sockeye, 
-    and `["intel", "openmpi", "julia"]` on Compute Canada
     """
     environment_modules::Vector{String} = []
 
@@ -45,10 +39,13 @@ $FIELDS
 
     """
     The mpiexec command or equivalent. For example, in other systems, 
-    it needs to be set to "srun -n \$SLURM_NTASKS", potentially with 
+    it needs to be set to 'srun -n "\$SLURM_NTASKS"', potentially with 
     the argument "--mpi=pmi2" in some cases. 
+
+    Note: for the utility [`watch()`](@ref) to work correctly, the 
+    output-filename should be "\$MPI_OUTPUT_PATH/mpi_out". 
     """
-    mpiexec::Cmd = `mpiexec --merge-stderr-to-stdout`
+    mpiexec::String = """mpiexec --output-filename "\$MPI_OUTPUT_PATH/mpi_out" --merge-stderr-to-stdout""" # needs to be String instead of Cmd to be able to access bash variables
 end
 
 mpi_settings_folder() = "$(homedir())/.pigeons"

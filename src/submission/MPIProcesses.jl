@@ -43,7 +43,8 @@ $FIELDS
     dependencies::Vector = []
 
     """
-    MPI exec command.
+    MPI exec command arguments 
+    (can also be provided globally in [`MPISettings`](@ref)).
     """
     mpiexec_args::Cmd = ``
 
@@ -91,7 +92,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     add_to_submission = join(mpi_settings.add_to_submission, "\n")
     r = rosetta()
     resource_str = resource_string(mpi_submission, mpi_settings.submission_system)
-    exec_str = "$(cmd_to_string(mpi_settings.mpiexec)) $(cmd_to_string(mpi_submission.mpiexec_args))"
+    exec_str = "$(mpi_settings.mpiexec)  $(cmd_to_string(mpi_submission.mpiexec_args))"
     
     code = """
     #!/bin/bash
@@ -103,6 +104,7 @@ function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_
     
     cd $(r.submit_dir)
     $(modules_string(mpi_settings))
+    MPI_OUTPUT_PATH="$exec_folder"
 
     $exec_str $julia_cmd_str
 

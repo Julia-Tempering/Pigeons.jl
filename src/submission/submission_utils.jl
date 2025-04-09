@@ -62,9 +62,9 @@ and error streams (merged) for the given `machine`.
 Note: when using control-c on interactive = true, 
         julia tends to crash as of version 1.8. 
 """
-function watch(result::Result; machine = 1, last = 40, interactive = false)
+function watch(result::Result; machine = 1, last = 40, interactive = false, output_filename = "mpi_out")
     @assert machine > 0 "using 0-index convention"
-    output_folder = "$(result.exec_folder)/1" # 1 is not a bug, i.e. not hardcoded machine 1
+    output_folder = "$(result.exec_folder)/$output_filename/1" # 1 is not a bug, i.e. not hardcoded machine 1
 
     if !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
         println("Job not yet started, try again later.")
