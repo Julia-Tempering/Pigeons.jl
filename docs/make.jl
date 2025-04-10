@@ -73,9 +73,8 @@ InferenceReport.headless() do
             "Interfaces" => Pigeons.informal_doc(@__DIR__, Pigeons),
             "Reference" => "reference.md",
             "Openings" => "openings.md",
-            "About Us" => "about-us.md",
             "For developers" => "developers.md"
-            "Google Summer of Code" => "gsoc.md"
+            "About Us" => "about-us.md"
         ],
     )
 end
