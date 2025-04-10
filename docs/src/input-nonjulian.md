@@ -43,7 +43,9 @@ We first setup Blang as follows (assuming Java 11 is accessible in the `PATH` va
 ```@example blang
 using Pigeons
 
-Pigeons.setup_blang("blangDemos") 
+redirect_stdout(devnull) do
+    Pigeons.setup_blang("blangDemos") 
+end
 ```
 
 Next, we run a  
