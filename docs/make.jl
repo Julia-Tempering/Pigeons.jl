@@ -72,8 +72,8 @@ InferenceReport.headless() do
             "More on distributed PT" => "distributed.md",
             "Interfaces" => Pigeons.informal_doc(@__DIR__, Pigeons),
             "Reference" => "reference.md",
+            "For developers" => "developers.md",
             "Openings" => "openings.md",
-            "For developers" => "developers.md"
             "About Us" => "about-us.md"
         ],
     )
