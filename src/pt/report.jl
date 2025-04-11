@@ -1,7 +1,7 @@
 """ 
 $SIGNATURES
 
-The iterim diagnostics computed and printed to 
+The interim diagnostics computed and printed to 
 standard out at the end of every iteration 
 (this can be disabled using `show_report = false`).
 """
