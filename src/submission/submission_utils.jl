@@ -110,8 +110,9 @@ function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_
     # forcing instantiate the project to make sure dependencies exist
     # also, precompile to avoid issues with coordinating access to compile cache
     run(`$jl_cmd -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
-    return `$jl_cmd --threads=$n_threads --compiled-modules=existing $script_path`
+    return `$jl_cmd --threads=$n_threads --compiled-modules=$(launch_cmd_compiled_module_flag()) $script_path`
 end
+launch_cmd_compiled_module_flag() = VERSION >= v"1.11" ? "existing" : "no"
 
 function project_dir()
     project_file = Base.active_project() 
