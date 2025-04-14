@@ -136,7 +136,7 @@ $FIELDS
     del::Cmd
 
     """
-    The directive to specify the job.
+    The directive to add as a prefix to resource allocation requests.
     """
     directive::String
 
@@ -217,6 +217,9 @@ const _rosetta = Dict{Symbol, SubmissionSyntax}(
 
 supported_submission_systems() = keys(_rosetta)
 
+"""
+$TYPEDSIGNATURES
+"""
 resource_string(m::MPIProcesses, symbol) = resource_string(m, Val(symbol))
 
 resource_string(m::MPIProcesses, ::Val{:pbs}) =

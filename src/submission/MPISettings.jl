@@ -30,10 +30,15 @@ $FIELDS
     """
     In most case, leave empty as MPIPreferences.use_system_binary() will 
     autodetect, but if it does not, the path to libmpi.so can be specified 
-    this way, e.g. this is needed on compute Canada clusters (as they are not setting that 
+    manually, e.g. this is needed on compute Canada clusters (as they are not setting that 
     environment variable correctly) where it needs to be set to paths of the form
     "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Compiler/intel2020/openmpi/4.0.3/lib/libmpi"
-    (notice the .so is not included).
+    (notice the .so is not included). 
+
+    One heuristic to find this .so file is to modify the 
+    path returned by `which mpiexec`. 
+    See [`find_libmpi_from_mpiexec`](@ref) for an automated way to 
+    perform this heuristic. 
     """
     library_name::Union{String, Nothing} = nothing
 
@@ -131,4 +136,20 @@ function _use_system_binary(; args...)
             showerror(stderr, e)
         end
     end
+end
+
+"""
+A heuristic to try to locate `libmpi.so` by locating 
+`mpiexec` and modifying the path appropriately. 
+"""
+function find_libmpi_from_mpiexec()
+    mpiexec_path = Sys.which("mpiexec")
+    if mpiexec_path === nothing
+        error("mpiexec not found in PATH")
+    end
+    result = replace(mpiexec_path, "bin/mpiexec" => "lib/libmpi")
+    if !isfile(result * ".so")
+        error("libmpi not found at: $result")
+    end
+    return result
 end
