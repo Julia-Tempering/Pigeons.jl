@@ -130,6 +130,7 @@ function project_dir()
         because of the improved control they offer, we recommend using Pigeons 
         within a dedicated environment (see https://pkgdocs.julialang.org/v1/environments/). 
         """
+    end
     return proj_dir
 end
 
