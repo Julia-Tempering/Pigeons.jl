@@ -121,19 +121,33 @@ function project_dir()
     # yield some default global environment
     @assert !isnothing(project_file) 
     proj_dir = dirname(project_file)
-    is_default_env(proj_dir) && @warn """
+    if is_default_env() 
+        @warn """
         Your active project is probably using a default environment. Since Pigeons
         forces precompilation of your project's packages before a distributed run,
         it is possible that some of them might fail on headless servers (see e.g.
         https://github.com/JuliaGraphics/Gtk.jl/issues/346). For this reason and
         because of the improved control they offer, we recommend using Pigeons 
         within a dedicated environment (see https://pkgdocs.julialang.org/v1/environments/). 
-    """
+        """
     return proj_dir
 end
 
 # flag if user is working with one of the default named environments
-is_default_env(proj_dir) = startswith(proj_dir, first(DEPOT_PATH))
+function is_default_env()
+    current = abspath(Base.active_project())
+    for depot in DEPOT_PATH
+        envs_dir = joinpath(depot, "environments")
+        isdir(envs_dir) || continue
+        for entry in readdir(envs_dir)
+            project_file = abspath(joinpath(envs_dir, entry, "Project.toml"))
+            if current == project_file
+                return true
+            end
+        end
+    end
+    return false
+end
 
 function launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
     # try to catch errors as early as possible
