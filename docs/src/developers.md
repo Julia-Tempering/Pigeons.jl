@@ -1,3 +1,7 @@
+```@meta
+CurrentModule = Pigeons
+```
+
 # Creating a release from a PR
 
 1. Create a new branch locally.

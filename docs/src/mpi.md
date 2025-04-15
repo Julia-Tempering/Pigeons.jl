@@ -183,7 +183,7 @@ target so that it is performed in the child processes instead of the calling pro
     in working order.
 
 
-## Details on setting up Pigeons with multi-node MPI
+## Details on setting up Pigeons with multi-node MPI #details-on-setting-up-mpi
 
 We provide more details here to get Pigeons to work on HPC clusters with MPI, 
 specifically to 
@@ -240,7 +240,8 @@ pre-compilation extremely slow. If you see this issue, two possible options:
 ### Setting up a Julia project
 
 It should be in a volume with read/write access from all nodes.
-For testing purpose, it can simply be an empty directory.  
+For testing purpose, it can simply be an empty directory. 
+`cd` into it and start julia.
 
 Activate the project and install Pigeons in it by using:
 
@@ -278,7 +279,7 @@ This needs to be done only once per project.
 #### Presets
 
 Look first at the list of clusters that have "presets" available, by 
-typing Pigeons.setup_mpi_ and then tab. These are the most straightforward to use.
+typing `Pigeons.setup_mpi_` and then tab. These presets are the most straightforward to use.
 If there is a preset available for your system, just run that command and you 
 are done! 
 
@@ -309,10 +310,10 @@ what this looks like in different existing systems.
 When you submit MPI jobs, you can see the generated script 
 in `results/latest/.submission_script.sh`. 
 
-Here is an example of what happens of what a generated script 
+Here is an example of what a generated script 
 looks like if we add 
 `add_to_submission = ["source ~/bin/zip_depot/bin/load_depot"]` 
-if we use [the zip_depot utility](https://github.com/UBC-Stat-ML/zip_depot): 
+as needed for using [the zip_depot utility](https://github.com/UBC-Stat-ML/zip_depot): 
 
 ```
 #!/bin/bash
@@ -324,7 +325,7 @@ if we use [the zip_depot utility](https://github.com/UBC-Stat-ML/zip_depot):
 #SBATCH --job-name=2025-04-09-18-04-55-fltVoqC0
 #SBATCH -o /home/bouchar3/Pigeons.jl/results/all/2025-04-09-18-04-55-fltVoqC0/info/stdout.txt
 #SBATCH -e /home/bouchar3/Pigeons.jl/results/all/2025-04-09-18-04-55-fltVoqC0/info/stderr.txt
-source ~/bin/zip_depot/bin/load_depot
+source ~/bin/zip_depot/bin/load_depot # <-- this is where 'add_to_submission' entries are added
 
 cd $SLURM_SUBMIT_DIR
 module load julia/1.11.3
@@ -335,7 +336,7 @@ mpiexec --output-filename "$MPI_OUTPUT_PATH/mpi_out" --merge-stderr-to-stdout   
 
 ##### Environment modules 
 
-The modules you are currently using for the setup will need 
+The HPC modules you are currently using for the setup will need 
 to be added to the generated script, so Pigeons needs to know about them. Add them to the `environment_modules` argument of 
 `setup_mpi()`. 
 
@@ -343,7 +344,7 @@ to be added to the generated script, so Pigeons needs to know about them. Add th
 
 In most cases, the MPI system library is found automatically, so try 
 first leaving `library_name` to its default value of `nothing`. 
-If not, see the documentation in [`MPISettings](@ref) under 
+If not, see the documentation in [`MPISettings`](@ref) under 
 `library_name`. 
 
 ##### Customizing the mpiexec command
@@ -366,8 +367,8 @@ Pigeons.setup_mpi(
 Minor note: in order to be able to use the convenience function 
 [`watch()`](@ref), used to show standard output of MPI jobs, you need 
 to ensure MPI will create output files at the right location. 
-For mpiexec, this is achieved with the following default arguments 
-(no need to specify these if mpiexec is being used): see the source 
+For mpiexec, this is achieved with the default arguments of `mpiexec`: 
+see the source 
 code of [`MPISettings`](@ref). 
 
 If you need to change argument for a single job, 
@@ -407,7 +408,7 @@ in `results/all/latest` (or `results/all/[time]/`):
 
 #### Creating a PR with your cluster's setup
 
-Once you have a determined what options to pass in to 
+Once you have determined what options to pass in to 
 [`setup_mpi`](@ref), please consider creating a Pull Request 
 adding one function in the file 
 [presets.jl](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/src/submission/presets.jl). Thank you!
