@@ -16,7 +16,7 @@ backward trajectories. The trajectories are divided into segments, with
 segments being separated by apogees (local maxima) in the energy landscape 
 of -log pi(x). The tuning parameter `K` defines the number of segments to explore. 
 """
-Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
+Base.@kwdef struct AAPS{T,TPrec <: Preconditioner, TAD}
     """ 
     The leapfrog step size.
     """
@@ -30,7 +30,7 @@ Base.@kwdef struct AAPS{T,TPrec <: Preconditioner}
     """ 
     See details in [`AutoMALA`](@ref).
     """
-    default_autodiff_backend::Symbol = :ForwardDiff 
+    default_autodiff_backend::TAD = AutoForwardDiff() 
 
     """ 
     A strategy for building a preconditioner.

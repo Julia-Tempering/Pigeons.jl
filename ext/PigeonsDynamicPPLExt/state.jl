@@ -17,7 +17,7 @@ end
 # (default in pigeons as of Jul-24), and constrained otherwise
 Pigeons.variable(state::DynamicPPL.TypedVarInfo, name::Symbol) = 
     if name === :singleton_variable
-        DynamicPPL.getall(state)
+        state[:]
     else
         state.metadata[name].vals
     end
@@ -30,9 +30,8 @@ ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
 
 
 function Pigeons.extract_sample(state::DynamicPPL.TypedVarInfo, log_potential)
-    DynamicPPL.invlink!!(state, Pigeons.turing_model(log_potential))
-    result = DynamicPPL.getall(state)
-    DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), Pigeons.turing_model(log_potential))
+    invlink_vi = DynamicPPL.invlink(state, Pigeons.turing_model(log_potential))
+    result = invlink_vi[:]
     push!(result, log_potential(state))
     return result
 end
@@ -71,9 +70,9 @@ end
 
 function Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, vi::DynamicPPL.TypedVarInfo)
     vector_state = Pigeons.get_buffer(replica.recorders.buffers, :flattened_vi, get_dimension(vi))
-    flatten!(vi, vector_state) # in-place DynamicPPL.getall
+    flatten!(vi, vector_state)
     Pigeons.step!(explorer, replica, shared, vector_state)
-    DynamicPPL.setall!(replica.state, vector_state)
+    replica.state = DynamicPPL.unflatten(vi, vector_state)
 end
 
 #=
@@ -83,7 +82,7 @@ Pigeons.recursive_equal(a::DynamicPPL.TypedVarInfo, b::DynamicPPL.TypedVarInfo) 
     # as of Nov 2023, DynamicPPL does not supply == for TypedVarInfo
     length(a.metadata) == length(b.metadata) &&
         sample_names(a,1) == sample_names(b,1) && # second argument is not used
-        DynamicPPL.getall(a) == DynamicPPL.getall(b)
+        a[:] == b[:]
     
 
 Pigeons.recursive_equal(
