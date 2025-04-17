@@ -2,6 +2,7 @@ module PigeonsBridgeStanExt
 
 using Pigeons
 if isdefined(Base, :get_extension)
+    using ADTypes
     using BridgeStan
     using LogDensityProblems
     using Serialization
@@ -10,6 +11,7 @@ if isdefined(Base, :get_extension)
     using SplittableRandoms
     using Random
 else
+    using ..ADTypes
     using ..BridgeStan
     using ..LogDensityProblems
     using ..Serialization

@@ -15,7 +15,7 @@ For such functionality, use autoMALA.
 As for autoMALA, the number of steps per exploration is
 `base_n_refresh * ceil(Int, dim^exponent_n_refresh)`. 
 """
-@kwdef struct MALA{TPrec <: Preconditioner, T}
+@kwdef struct MALA{TPrec <: Preconditioner, T, TAD}
     """
     The base number of steps (equivalently, momentum refreshments) between swaps.
     This base number gets multiplied by `ceil(Int, dim^(exponent_n_refresh))`. 
@@ -33,11 +33,8 @@ As for autoMALA, the number of steps per exploration is
 
     Certain targets may ignore it, e.g. if a manual differential is
     offered or when calling an external program such as Stan.
-
-    For tape-based AD backends like ReverseDiff, compilation can be controlled using
-    [`Pigeons.set_tape_compilation_strategy!`](@ref).
     """
-    default_autodiff_backend::Symbol = :ForwardDiff
+    default_autodiff_backend::TAD = AutoForwardDiff()
 
     """
     Step size to use when approximating the Langevin dynamics.

@@ -1,23 +1,12 @@
 using Enzyme
 using FillArrays
+using Mooncake
 using ReverseDiff
 
-@testset "ReverseDiff with and without tape compilation agree" begin
-    pts = PT[]
-    @testset "compile = $compile" for compile in (false, true)
-        Pigeons.set_tape_compilation_strategy!(compile)
-        @show Pigeons.get_tape_compilation_strategy()
-        pt = pigeons(
-            target   = Pigeons.toy_turing_unid_target(100),
-            explorer = AutoMALA(default_autodiff_backend=:ReverseDiff),
-            n_chains = 4,
-            n_rounds = 6
-        )
-        push!(pts, pt)
-    end
-    @test Pigeons.global_barrier(first(pts)) ≈ Pigeons.global_barrier(last(pts))
-    @test Pigeons.stepping_stone(first(pts)) ≈ Pigeons.stepping_stone(last(pts))
-    @test Pigeons.last_round_max_allocation(first(pts)) > 10Pigeons.last_round_max_allocation(last(pts))
+function allapprox(f, xs; kwargs...)
+    ys = map(f, xs)
+    m = mean(ys)
+    all(y -> isapprox(y, m; kwargs...), ys)
 end
 
 function test_BufferedAD_usage(pt)
@@ -53,7 +42,30 @@ function test_BufferedAD_usage(pt)
     end
 end
 
-@testset "Correctness of BufferedAD backends" begin
+@testset "DynamicPPL targets" begin
+    target = Pigeons.toy_turing_unid_target(100)
+    dppl_backends = (
+        AutoForwardDiff(),
+        AutoReverseDiff(compile=false),
+        AutoReverseDiff(compile=true),
+        AutoMooncake(nothing)
+    )
+    pts = PT[]
+    @testset "$(backend)" for backend in dppl_backends
+        pt = pigeons(
+            target   = target,
+            explorer = AutoMALA(default_autodiff_backend=backend),
+            n_chains = 4,
+            n_rounds = 6
+        )
+        test_BufferedAD_usage(pt)
+        push!(pts, pt)
+    end
+    @test allapprox(Pigeons.global_barrier, pts)
+    @test allapprox(Pigeons.stepping_stone, pts)
+end
+
+@testset "Julia target with branching" begin
     struct CustomUnidTarget 
         n_trials::Int
         n_successes::Int
@@ -82,19 +94,11 @@ end
     target = CustomUnidTarget(100, 50)
     custom_ref = CustomUnidTarget(0, 0)
     dlp_ref = DistributionLogPotential(product_distribution(Fill(Uniform(),2)))
-    Pigeons.set_tape_compilation_strategy!(false) # Otherwise ReverseDiff breaks due to branching in log_potential
 
+    backends = (AutoForwardDiff(), AutoReverseDiff(), AutoEnzyme())
     @testset "$(typeof(ref))" for ref in (custom_ref, dlp_ref)
-        pt_enzyme = pigeons(
-            target = target,
-            reference = ref, 
-            n_chains = 4,
-            n_rounds = 6,
-            explorer = AutoMALA(default_autodiff_backend = :Enzyme) 
-        )
-        test_BufferedAD_usage(pt_enzyme)
-
-        @testset "$backend" for backend in (:ForwardDiff, :ReverseDiff)
+        pts = PT[]
+        @testset "$backend" for backend in backends 
             pt = pigeons(
                 target = target,
                 reference = ref, 
@@ -102,14 +106,13 @@ end
                 n_rounds = 6,
                 explorer = AutoMALA(default_autodiff_backend = backend) 
             )
-            @test abs(Pigeons.global_barrier(pt) - Pigeons.global_barrier(pt_enzyme)) < 1e-8
-            @test abs(Pigeons.stepping_stone(pt) - Pigeons.stepping_stone(pt_enzyme)) < 1e-8
-
-            # check that we actually used the buffered Enzyme implementation
+            # check that we actually used the buffered implementation
             test_BufferedAD_usage(pt)
+            push!(pts, pt)
         end
+        @test allapprox(Pigeons.global_barrier, pts)
+        @test allapprox(Pigeons.stepping_stone, pts)
     end
-    Pigeons.set_tape_compilation_strategy!(true) # reverse setting
 end
 
 @testset "Variational reference elides the AD augmentation" begin
