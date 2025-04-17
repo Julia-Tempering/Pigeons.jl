@@ -72,13 +72,17 @@ InferenceReport.headless() do
             "More on distributed PT" => "distributed.md",
             "Interfaces" => Pigeons.informal_doc(@__DIR__, Pigeons),
             "Reference" => "reference.md",
+            "For developers" => "developers.md",
             "Openings" => "openings.md",
             "About Us" => "about-us.md"
         ],
     )
 end
 
-rm(joinpath(script_dir, "build", "results"), recursive=true) # delete `results` folder before deploying
+try
+    rm(joinpath(script_dir, "build", "results"), recursive=true) # delete `results` folder before deploying
+catch 
+end
 
 deploydocs(;
     repo="github.com/Julia-Tempering/Pigeons.jl",

@@ -35,20 +35,9 @@ function queue_status()
 end
 
 function queue_ncpus_free()
-    mpi_settings = load_mpi_settings()
-    @assert mpi_settings.submission_system == :pbs "Feature only supported on PBS at the moment"
     r = rosetta()
-    n = 0
-    for line in readlines(`$(r.ncpu_info)`)
-        for item in eachsplit(line, "|")
-            m = match(r"ncpus[(]f[/]t[)][=]([0-9]+)[/].*", item)
-            if m !== nothing
-                suffix = m.captures[1]
-                n += parse(Int, suffix)
-            end
-        end
-    end
-    return n
+    run(`$(r.ncpu_info)`)
+    return nothing
 end
 
 """ 
@@ -59,7 +48,7 @@ Instruct the scheduler to cancel or kill a job.
 function kill_job(result::Result) 
     r = rosetta()
     exec_folder = result.exec_folder 
-    submission_code = readline("$exec_folder/info/submission_output.txt")
+    submission_code = queue_code(result)
     run(`$(r.del) $submission_code`)
     return nothing
 end
@@ -73,9 +62,9 @@ and error streams (merged) for the given `machine`.
 Note: when using control-c on interactive = true, 
         julia tends to crash as of version 1.8. 
 """
-function watch(result::Result; machine = 1, last = 40, interactive = false)
+function watch(result::Result; machine = 1, last = 40, interactive = false, output_filename = "mpi_out")
     @assert machine > 0 "using 0-index convention"
-    output_folder = "$(result.exec_folder)/1" # 1 is not a bug, i.e. not hardcoded machine 1
+    output_folder = "$(result.exec_folder)/$output_filename/1" # 1 is not a bug, i.e. not hardcoded machine 1
 
     if !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
         println("Job not yet started, try again later.")
@@ -94,12 +83,11 @@ function watch(result::Result; machine = 1, last = 40, interactive = false)
         cmd = `$cmd -f`
     end
 
-    println("Hint: showing only last $last lines; use 'last' argument to change")
+    println("Hint: showing only last $last lines; use 'last = 100' or more to change")
     println("Watching: $stdout_file")
     run(`$cmd $stdout_file`) 
     return nothing 
 end
-
 
 
 # internal
@@ -122,8 +110,9 @@ function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_
     # forcing instantiate the project to make sure dependencies exist
     # also, precompile to avoid issues with coordinating access to compile cache
     run(`$jl_cmd -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
-    return `$jl_cmd --threads=$n_threads $script_path`
+    return `$jl_cmd --threads=$n_threads --compiled-modules=$(launch_cmd_compiled_module_flag()) $script_path`
 end
+launch_cmd_compiled_module_flag() = VERSION >= v"1.11" ? "existing" : "no"
 
 function project_dir()
     project_file = Base.active_project() 
@@ -132,19 +121,34 @@ function project_dir()
     # yield some default global environment
     @assert !isnothing(project_file) 
     proj_dir = dirname(project_file)
-    is_default_env(proj_dir) && @warn """
+    if is_default_env() 
+        @warn """
         Your active project is probably using a default environment. Since Pigeons
         forces precompilation of your project's packages before a distributed run,
         it is possible that some of them might fail on headless servers (see e.g.
         https://github.com/JuliaGraphics/Gtk.jl/issues/346). For this reason and
         because of the improved control they offer, we recommend using Pigeons 
         within a dedicated environment (see https://pkgdocs.julialang.org/v1/environments/). 
-    """
+        """
+    end
     return proj_dir
 end
 
 # flag if user is working with one of the default named environments
-is_default_env(proj_dir) = startswith(proj_dir, first(DEPOT_PATH))
+function is_default_env()
+    current = abspath(Base.active_project())
+    for depot in DEPOT_PATH
+        envs_dir = joinpath(depot, "environments")
+        isdir(envs_dir) || continue
+        for entry in readdir(envs_dir)
+            project_file = abspath(joinpath(envs_dir, entry, "Project.toml"))
+            if current == project_file
+                return true
+            end
+        end
+    end
+    return false
+end
 
 function launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
     # try to catch errors as early as possible

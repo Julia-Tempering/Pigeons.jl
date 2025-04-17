@@ -34,8 +34,6 @@ Pigeons.stan_banana(dim = 9, scale=1.0) =
     )
 
 
-observed_range_squared(x) = (maximum(x) - minimum(x))^2
-
 # the centered one is the "harder" one, see https://mc-stan.org/users/documentation/case-studies/divergences_and_bias.html
 function Pigeons.stan_eight_schools(centered = true)
     stan_path = stan_example_path("eight_schools_" *

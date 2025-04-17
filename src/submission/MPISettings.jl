@@ -13,35 +13,44 @@ $FIELDS
     """
     Add lines to the submission scripts. 
 
-    E.g. used in UBC Sockeye for custom allocation code via 
+    E.g. in Compute Canada if you are member of several accounts (see https://docs.alliancecan.ca/wiki/Running_jobs):
 
-    `add_to_submission = ["#PBS -A my_user_allocation_code"]`
-
-    or in Compute Canada (optional if member of only one account, see https://docs.alliancecan.ca/wiki/Running_jobs):
-
-    `add_to_submission = ["#SBATCH --account=my_user_name"]``
+    `add_to_submission = ["#SBATCH --account=my_user_name"]`
     """
     add_to_submission::Vector{String} = []
 
     """
-    "Envirnonment modules" to load (not to be confused 
+    "Environment modules" to load (not to be confused 
     with Julia modules). 
     Run `module avail` in the HPC login node to see 
     what is available on your HPC. 
-    For example: `["git", "gcc", "intel-mkl", "openmpi"]` on Sockeye, 
-    and `["intel", "openmpi", "julia"]` on Compute Canada
     """
     environment_modules::Vector{String} = []
 
     """
     In most case, leave empty as MPIPreferences.use_system_binary() will 
     autodetect, but if it does not, the path to libmpi.so can be specified 
-    this way, e.g. this is needed on compute Canada clusters (as they are not setting that 
-    environment variable correctly) where it needs to be set to
+    manually, e.g. this is needed on compute Canada clusters (as they are not setting that 
+    environment variable correctly) where it needs to be set to paths of the form
     "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Compiler/intel2020/openmpi/4.0.3/lib/libmpi"
-    (notice the .so is not included).
+    (notice the .so is not included). 
+
+    One heuristic to find this .so file is to modify the 
+    path returned by `which mpiexec`. 
+    See [`find_libmpi_from_mpiexec`](@ref) for an automated way to 
+    perform this heuristic. 
     """
     library_name::Union{String, Nothing} = nothing
+
+    """
+    The mpiexec command or equivalent. For example, in other systems, 
+    it needs to be set to 'srun -n "\$SLURM_NTASKS"', potentially with 
+    the argument "--mpi=pmi2" in some cases. 
+
+    Note: for the utility [`watch()`](@ref) to work correctly, the 
+    output-filename should be "\$MPI_OUTPUT_PATH/mpi_out". 
+    """
+    mpiexec::String = """mpiexec --output-filename "\$MPI_OUTPUT_PATH/mpi_out" --merge-stderr-to-stdout""" # needs to be String instead of Cmd to be able to access bash variables
 end
 
 mpi_settings_folder() = "$(homedir())/.pigeons"
@@ -56,15 +65,13 @@ function load_mpi_settings()
 end
 
 """
-$SIGNATURES
+$TYPEDSIGNATURES
 
 Look first at the list of clusters that have "presets" available, 
 by typing `Pigeons.setup_mpi_` and then tab. These are the most 
 straightforward to use. 
 
-If presets are not available, use `setup_mpi()`. To see the 
-documentation of the arguments of `setup_mpi()`, see 
-[`MPISettings`](@ref)
+Use `setup_mpi()` if presets are not available. See [`MPISettings`](@ref) for information on the arguments of `setup_mpi()`, 
 (i.e. `args...` are passed to the constructor of [`MPISettings`](@ref)). 
 
 Pull requests to `Pigeons/src/submission/presets.jl` are welcome 
@@ -83,9 +90,9 @@ modules_string(settings::MPISettings) =
         )
 
 """
-$SIGNATURES
+$TYPEDSIGNATURES
 
-Run this function once before running MPI jobs. 
+Execute this function once before running MPI jobs. 
 This should be done on the head node of a compute cluster.
 The setting are permanently saved. 
 See [`MPISettings`](@ref).
@@ -129,4 +136,20 @@ function _use_system_binary(; args...)
             showerror(stderr, e)
         end
     end
+end
+
+"""
+A heuristic to try to locate `libmpi.so` by locating 
+`mpiexec` and modifying the path appropriately. 
+"""
+function find_libmpi_from_mpiexec()
+    mpiexec_path = Sys.which("mpiexec")
+    if mpiexec_path === nothing
+        error("mpiexec not found in PATH")
+    end
+    result = replace(mpiexec_path, "bin/mpiexec" => "lib/libmpi")
+    if !isfile(result * ".so")
+        error("libmpi not found at: $result")
+    end
+    return result
 end
