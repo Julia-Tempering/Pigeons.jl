@@ -28,14 +28,14 @@ $FIELDS
     environment_modules::Vector{String} = []
 
     """
-    In most case, leave empty as MPIPreferences.use_system_binary() will 
-    autodetect, but if it does not, the path to libmpi.so can be specified 
+    In most case, leave empty as `MPIPreferences.use_system_binary()` will 
+    autodetect, but if it does not, the path to `libmpi.so` can be specified 
     manually, e.g. this is needed on compute Canada clusters (as they are not setting that 
     environment variable correctly) where it needs to be set to paths of the form
     "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Compiler/intel2020/openmpi/4.0.3/lib/libmpi"
-    (notice the .so is not included). 
+    (notice the `.so` is not included). 
 
-    One heuristic to find this .so file is to modify the 
+    One heuristic to find this `.so` file is to modify the 
     path returned by `which mpiexec`. 
     See [`find_libmpi_from_mpiexec`](@ref) for an automated way to 
     perform this heuristic. 
@@ -44,11 +44,14 @@ $FIELDS
 
     """
     The mpiexec command or equivalent. For example, in other systems, 
-    it needs to be set to 'srun -n "\$SLURM_NTASKS"', potentially with 
-    the argument "--mpi=pmi2" in some cases. 
+    it needs to be set to `srun -n "\$SLURM_NTASKS"`, potentially with 
+    the argument `--mpi=pmi2` in some cases. 
 
     Note: for the utility [`watch()`](@ref) to work correctly, the 
-    output-filename should be "\$MPI_OUTPUT_PATH/mpi_out". 
+    output-filename should be `\$MPI_OUTPUT_PATH/mpi_out`. 
+
+    Note: the strings `\$MPI_OUTPUT_PATH` and `\$SLURM_NTASKS` should have 
+    the dollar sign escaped, see the source code for an example. 
     """
     mpiexec::String = """mpiexec --output-filename "\$MPI_OUTPUT_PATH/mpi_out" --merge-stderr-to-stdout""" # needs to be String instead of Cmd to be able to access bash variables
 end

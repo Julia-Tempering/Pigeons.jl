@@ -76,7 +76,7 @@ and an experimental implementation of [LSF](https://www.ibm.com/docs/en/spectrum
 Create an issue if you would like another submission system included. 
 
 The main three steps to run MPI over several machines are given below. 
-For more information, please read [the detailed instructions](#details-on-setting-up-mpi).
+For more information, please read [the detailed instructions](#Details-on-setting-up-Pigeons-with-multi-node-MPI).
 
 1. In the cluster login node, follow the [local installation instructions](@ref installing-pigeons). 
 2. Start Julia in the login node, and perform a one-time setup. Read the documentation at [`setup_mpi()`](@ref) for more information. 
@@ -183,7 +183,7 @@ target so that it is performed in the child processes instead of the calling pro
     in working order.
 
 
-## Details on setting up Pigeons with multi-node MPI #details-on-setting-up-mpi
+## Details on setting up Pigeons with multi-node MPI
 
 We provide more details here to get Pigeons to work on HPC clusters with MPI, 
 specifically to 
