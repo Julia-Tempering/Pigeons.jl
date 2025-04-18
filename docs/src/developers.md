@@ -1,3 +1,7 @@
+```@meta
+CurrentModule = Pigeons
+```
+
 # Creating a release from a PR
 
 1. Create a new branch locally.
@@ -22,3 +26,19 @@ See `test/README.md`.
 # Generating documentation
 
 See `docs/README.md`.
+
+
+# Adding a submission system (beyond SLURM, PBS, etc, or variant thereof)
+
+Add an entry in the "rosetta stone" of submission systems (see [`SubmissionSyntax`](@ref)):
+
+```@example rosetta
+using Pigeons
+
+Pigeons._rosetta
+```
+
+Then, specify how resource strings are constructed by 
+creating a new dispatch of [`resource_string()`](@ref). 
+
+Once you have tested it, please submit a Pull Request!

@@ -12,36 +12,49 @@ function Pigeons.forward_sample_condition_and_explore(
     model::DynamicPPL.Model,
     rng::SplittableRandom;
     explorer = nothing,
-    condition_on::NTuple{N,Symbol}
-    ) where {N}
+    condition_on::Union{Nothing,NTuple{<:Any,Symbol}} = nothing
+    )
     # forward simulation
     vi = last(DynamicPPL.evaluate!!(model, rng))
 
-    # make a generator of Pairs for each variable in `condition_on` and its sampled value
-    obs_pairs = ((vn=DynamicPPL.VarName{sym}(); vn => vi[vn]) for sym in condition_on)
+    if isnothing(condition_on)
+        cond_vi = vi
+        conditioned_model = model
+    else
+        # make a generator of Pairs for each variable in `condition_on` and 
+        # its sampled value
+        obs_pairs = Iterators.map(condition_on) do sym 
+            vn = DynamicPPL.VarName{sym}()
+            vn => vi[vn]
+        end
 
-    # condition the model using the sampled observations, and evaluate it
-    conditioned_model = DynamicPPL.condition(model, obs_pairs...)
-    cond_vi = last(DynamicPPL.evaluate!!(conditioned_model, rng))
-    vns_cond = DynamicPPL._getvns(cond_vi, DynamicPPL.SampleFromPrior())
+        # condition the model using the sampled observations, and evaluate it
+        conditioned_model = DynamicPPL.condition(model, obs_pairs...)
+        cond_vi = last(DynamicPPL.evaluate!!(conditioned_model, rng))
+        vns_cond = keys(cond_vi)
 
-    # set the values of cond_vi to the ones that generated the observations
-    foreach(vns_cond) do vn
-        setindex!(cond_vi,vi[vn],vn) # note: vi[vn] is always in constrained space, even if vi is link!!'d
+        # set the values of cond_vi to the ones that generated the observations
+        foreach(vns_cond) do vn
+            # note: vi[vn] is always in constrained space, even if vi is linked
+            setindex!(cond_vi,vi[vn],vn)
+        end
+        DynamicPPL.logjoint(conditioned_model, cond_vi) # recompute logjoint with new values
     end
-    DynamicPPL.logjoint(conditioned_model, cond_vi) # recompute logjoint with new values
 
-    # make a (concretely-)typed version of cond_vi, then transform it to unconstrained space 
-    state = DynamicPPL.TypedVarInfo(cond_vi)
-    DynamicPPL.link!!(state, DynamicPPL.SampleFromPrior(), conditioned_model)
+    # make a (concretely-)typed version of cond_vi, then transform it to 
+    # unconstrained space 
+    state = DynamicPPL.TypedVarInfo(cond_vi) # no-op when cond_vi is typed
+    state = DynamicPPL.link(state, conditioned_model)
 
     # maybe take a step with explorer
     if !isnothing(explorer)
-        state = Pigeons.explorer_step(rng, TuringLogPotential(conditioned_model), explorer, state)
+        state = Pigeons.explorer_step(
+            rng, TuringLogPotential(conditioned_model), explorer, state
+        )
     end
 
     # return a flattened version of state
-    return DynamicPPL.getall(state)
+    return state[:]
 end
 
 Pigeons.forward_sample_condition_and_explore(target::TuringLogPotential, args...; kwargs...) =

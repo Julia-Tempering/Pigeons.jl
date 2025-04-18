@@ -8,7 +8,7 @@ In most contexts both 1 and 2 are needed for an ergonomic UI.
 
 """ 
 Flag to run on MPI.
-Before using, you have to call once [`setup_mpi`](@ref).
+Settings can be changed by calling [`setup_mpi`](@ref) before running.
 
 Fields: 
 
@@ -43,13 +43,16 @@ $FIELDS
     dependencies::Vector = []
 
     """
-    Extra arguments passed to mpiexec.
+    MPI exec command arguments 
+    (can also be provided globally in [`MPISettings`](@ref)).
     """
     mpiexec_args::Cmd = ``
+
+
 end
 
 """
-$SIGNATURES
+$TYPEDSIGNATURES
 """
 function pigeons(pt_arguments, mpi_submission::MPIProcesses)
     if !is_mpi_setup()
@@ -66,7 +69,7 @@ function pigeons(pt_arguments, mpi_submission::MPIProcesses)
         true # set mpi_active_ref flag to true
     )
     
-    # generate qsub script
+    # generate submission script
     # do job submission & record the submission id
     cmd = mpi_submission_cmd(exec_folder, mpi_submission, julia_cmd)
     submission_output = read(cmd, String)
@@ -76,7 +79,6 @@ function pigeons(pt_arguments, mpi_submission::MPIProcesses)
     return Result{PT}(exec_folder)
 end
 
-# todo: abstract out to other submission systems
 function mpi_submission_cmd(exec_folder, mpi_submission::MPIProcesses, julia_cmd) 
     r = rosetta()
     submission_script = mpi_submission_script(exec_folder, mpi_submission, julia_cmd)
@@ -84,55 +86,140 @@ function mpi_submission_cmd(exec_folder, mpi_submission::MPIProcesses, julia_cmd
 end
 
 function mpi_submission_script(exec_folder, mpi_submission::MPIProcesses, julia_cmd)
-    # TODO: generalize to other submission systems
-    # TODO: move some more things over from mpi-run
     info_folder = "$exec_folder/info"
-    julia_cmd_str = join(julia_cmd, " ")
+    julia_cmd_str = cmd_to_string(julia_cmd)
     mpi_settings = load_mpi_settings()
     add_to_submission = join(mpi_settings.add_to_submission, "\n")
     r = rosetta()
     resource_str = resource_string(mpi_submission, mpi_settings.submission_system)
-
+    exec_str = "$(mpi_settings.mpiexec)  $(cmd_to_string(mpi_submission.mpiexec_args))"
+    
     code = """
     #!/bin/bash
     $resource_str
-
-    $add_to_submission
     $(r.directive) $(r.job_name)$(basename(exec_folder))
     $(r.directive) $(r.output_file)$info_folder/stdout.txt
     $(r.directive) $(r.error_file)$info_folder/stderr.txt
+    $add_to_submission
+    
     cd $(r.submit_dir)
     $(modules_string(mpi_settings))
+    MPI_OUTPUT_PATH="$exec_folder"
 
-    # don't want many processes wasting time pre-compiling, 
-    # could also be a cause for an obscure bug encountered (non-reproducible):
-    #    MethodError(f=Core.Compiler.widenconst, args=(Symbol("#342"),), world=0x0000000000001342)
-    export JULIA_PKG_PRECOMPILE_AUTO=0
+    $exec_str $julia_cmd_str
 
-    mpiexec $(mpi_submission.mpiexec_args) --merge-stderr-to-stdout --output-filename $exec_folder $julia_cmd_str
     """
     script_path = "$exec_folder/.submission_script.sh"
     write(script_path, code)
     return script_path
 end
 
+cmd_to_string(cmd::Cmd) = "$cmd"[2:(end-1)]
 
-# Internal: "rosetta stone" of submission commands
-const _rosetta = (;
-    queue_concept = [:submit,   :del,     :directive, :job_name,    :output_file,   :error_file,    :submit_dir,            :job_status,    :job_status_all,    :ncpu_info],
+"""
+Specify the syntax of job submission systems such as SLURM.
 
-    # tested:
-    pbs           = [`qsub`,    `qdel`,   "#PBS",     "-N ",        "-o ",          "-e ",          "\$PBS_O_WORKDIR",      `qstat -x`,     `qstat -u`,         `pbsnodes -aSj -F dsv`],
-    slurm         = [`sbatch`,  `scancel`,"#SBATCH",  "--job-name=","-o ",          "-e ",          "\$SLURM_SUBMIT_DIR",   `squeue --job`, `squeue -u`,        `sinfo`],
-    
-    # not yet tested:
-    lsf           = [`bsub`,    `bkill`,  "#BSUB",    "-J ",        "-o ",          "-e ",          "\$LSB_SUBCWD",         `bjobs`,        `bjobs -u`,         `bhosts`],
+Fields:
 
-    custom = [] # can be used by downstream libraries/users to create custom submission commands in conjuction with dispatch on Pigeons.resource_string()
+$FIELDS
+"""
+@kwdef struct SubmissionSyntax
+
+    """
+    The command to submit the job.
+    """
+    submit::Cmd
+
+    """
+    The command to delete the job.
+    """
+    del::Cmd
+
+    """
+    The directive to add as a prefix to resource allocation requests.
+    """
+    directive::String
+
+    """
+    The flag to specify the job name.
+    """
+    job_name::String
+
+    """
+    The flag to specify the output file.
+    """
+    output_file::String
+
+    """
+    The flag to specify the error file.
+    """
+    error_file::String
+
+    """
+    The flag to specify the submit directory.
+    """
+    submit_dir::String
+
+    """
+    The command to check the job status.
+    """
+    job_status::Cmd
+
+    """
+    The command to check the job status for all users.
+    """
+    job_stats_all::Cmd
+
+    """
+    The command to check the number of CPUs available.
+    """
+    ncpu_info::Cmd
+end
+
+const _rosetta = Dict{Symbol, SubmissionSyntax}(
+    :pbs => SubmissionSyntax(
+        submit       = `qsub`,
+        del          = `qdel`,
+        directive    = "#PBS",
+        job_name     = "-N ",
+        output_file  = "-o ",
+        error_file   = "-e ",
+        submit_dir   = "\$PBS_O_WORKDIR",
+        job_status   = `qstat -x`,
+        job_stats_all= `qstat -u`,
+        ncpu_info    = `pbsnodes`
+    ),
+    :slurm => SubmissionSyntax(
+        submit       = `sbatch`,
+        del          = `scancel`,
+        directive    = "#SBATCH",
+        job_name     = "--job-name=",
+        output_file  = "-o ",
+        error_file   = "-e ",
+        submit_dir   = "\$SLURM_SUBMIT_DIR",
+        job_status   = `squeue --job`,
+        job_stats_all= `squeue -u`,
+        ncpu_info    = `sinfo -o%C`
+    ),
+    :lsf => SubmissionSyntax(
+        submit        = `bsub`,
+        del           = `bkill`,
+        directive     = "#BSUB",
+        job_name      = "-J ",
+        output_file   = "-o ",
+        error_file    = "-e ",
+        submit_dir    = "\$LSB_SUBCWD",
+        job_status    = `bjobs`,
+        job_stats_all = `bjobs -u`,
+        ncpu_info     = `bhosts`
+    )
 )
 
-supported_submission_systems() = filter(x -> x != :queue_concept && x != :custom, keys(_rosetta))
+supported_submission_systems() = keys(_rosetta)
 
+"""
+$TYPEDSIGNATURES
+"""
 resource_string(m::MPIProcesses, symbol) = resource_string(m, Val(symbol))
 
 resource_string(m::MPIProcesses, ::Val{:pbs}) =
@@ -160,15 +247,5 @@ end
 
 function rosetta() 
     mpi_settings = load_mpi_settings()
-    tuple_keys = Symbol[] 
-    tuple_values = Any[] 
-    concepts = _rosetta.queue_concept
-    selected = _rosetta[mpi_settings.submission_system] 
-    len = length(selected)
-    @assert len == length(concepts)
-    for i in 1:len
-        push!(tuple_keys, concepts[i])
-        push!(tuple_values, selected[i])
-    end
-    return (; zip(tuple_keys, tuple_values)...)
+    return _rosetta[mpi_settings.submission_system] 
 end

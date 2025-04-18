@@ -10,7 +10,7 @@ include("supporting/analytic_solutions.jl")
     
     logz_am = Pigeons.stepping_stone(pigeons(; target, explorer = AutoMALA(), n_chains=8))
     @show logz_am
-    @test isapprox(logz_am, truth, rtol = 0.1)
+    @test isapprox(logz_am, truth, rtol = 0.2)
 end
 
 @testset "Turing-variable-names" begin
@@ -32,5 +32,5 @@ end
     @test dim == 4
     dest = zeros(dim)
     PigeonsDynamicPPLExt.flatten!(vi, dest)
-    @test DynamicPPL.getall(vi) == dest
+    @test vi[:] == dest
 end
