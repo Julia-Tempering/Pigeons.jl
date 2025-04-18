@@ -240,30 +240,30 @@ pre-compilation extremely slow. If you see this issue, two possible options:
 
 ### Load MPI modules
 
-During the MPI setup process (next step), the MPI library will need 
-to be loaded in order for Pigeons to find it (more precisely, Pigeons will 
-call MPIPreferences.jl). 
+During the Pigeons MPI setup process ([step below](#Setting-up-Pigeons-MPI)), the MPI library will need 
+to be loaded in order for Pigeons to find how to bind to it (more precisely, Pigeons will 
+call MPIPreferences.jl for the binding). 
 
-To see if you need to do this, try `which mpiexec`: if it finds mpiexec, 
+To see if you need to load extra HPC modules to make MPI available, try `which mpiexec`: if 
+that command finds mpiexec, 
 you are probably good to go and can go to next step, otherwise, read 
 the cluster documentation or talk to the cluster administrator.
 
-This is system-dependent, so it might be done by default, or may 
-require loading certain modules, e.g., on certain systems this may look like:
+The HPC modules that need to be loaded are system-dependent, e.g., on certain systems this may look like:
 
 ```
 module load gcc
 module load openmpi
 ```
 
-Keep note of the list of modules needed, you will need it later in the process.
+Keep note of the list of HPC modules needed, if any, you will need that information later in the process.
 
 
 ### Setting up a Julia project
 
-It should be in a volume with read/write access from all nodes.
-For testing purpose, it can simply be an empty directory. 
-`cd` into it and start julia.
+Your Julia project should be in a volume with read/write access from all nodes.
+For testing purpose, your Julia project can start as an empty directory, then 
+`cd` into that empty directory and start julia.
 
 Activate the project and install Pigeons in it by using:
 
@@ -275,7 +275,7 @@ add Pigeons
 
 ### Setting up Pigeons MPI
 
-We now need to tell Pigeons how to bind to the HPC's MPI. 
+We now need to tell Pigeons how to bind to the HPC's MPI library. 
 This needs to be done only once per project. 
 
 #### Presets
@@ -306,16 +306,15 @@ the queue submission scripts.
 
 Optionally, you can use also `add_to_submission` to add 
 extra information in the queue submission script. 
+See [presets.jl](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/src/submission/presets.jl) for examples of 
+what these extra pieces of information look like in different clusters (to specify allocation codes, etc). 
 
-See also [presets.jl](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/src/submission/presets.jl) for examples of 
-what this looks like in different existing systems. 
 When you submit MPI jobs, you can see the generated script 
 in `results/latest/.submission_script.sh`. 
-
 Here is an example of what a generated script 
 looks like if we add 
-`add_to_submission = ["source ~/bin/zip_depot/bin/load_depot"]` 
-as needed for using [the zip_depot utility](https://github.com/UBC-Stat-ML/zip_depot): 
+`add_to_submission = ["source ~/bin/zip_depot/bin/load_depot"]`, 
+as needed if you are using [the zip_depot utility](https://github.com/UBC-Stat-ML/zip_depot): 
 
 ```
 #!/bin/bash
@@ -338,23 +337,39 @@ mpiexec --output-filename "$MPI_OUTPUT_PATH/mpi_out" --merge-stderr-to-stdout   
 
 ##### Environment modules 
 
-The HPC modules you are currently using for the setup will need 
-to be added to the generated script, so Pigeons needs to know about them. Add them to the `environment_modules` argument of 
+The HPC modules you are currently using for the setup phase will need 
+to be added to the generated submission script, so Pigeons needs to know about them. Add them to the `environment_modules` argument of 
 `setup_mpi()`. 
+
+For example, if earlier you used
+
+```
+module load gcc
+module load openmpi
+```
+
+then you do this:  `setup_mpi(..., environment_modules = ["gcc", "openmpi"], ...)`.
+
 
 ##### Library name
 
 In most cases, the MPI system library is found automatically, so try 
 first leaving `library_name` to its default value of `nothing`. 
 If not, see the documentation in [`MPISettings`](@ref) under 
-`library_name`. 
+`library_name` for tricks to find it. Alternatively, you can also get information on 
+what paths are modified when you load an HPC module using:
+
+```
+module show openmpi
+```
 
 ##### Customizing the mpiexec command
 
 In many HPC clusters, the command `mpiexec` is used to submit jobs to MPI. 
-This is the default value in Pigeons' generated submission scripts. 
+If that is the case for your cluster, skip this step since  
+this is the default value in Pigeons' generated submission scripts. 
 In other clusters, a different command is used. 
-We describe here how to perform this customization. 
+We describe here how to perform this customization if it is necessary. 
 
 The main mechanism is the argument `mpiexec` specified when calling [`setup_mpi()`](@ref), 
 for example, on some cluster you may need:
@@ -371,10 +386,10 @@ Minor note: in order to be able to use the convenience function
 to ensure MPI will create output files at the right location. 
 For mpiexec, this is achieved with the default arguments of `mpiexec`: 
 see the source 
-code of [`MPISettings`](@ref). 
+code of [`MPISettings`](@ref) for more information. 
 
-If you need to change argument for a single job, 
-additional arguments to `mpiexec` (or alternatives such as `srun`) 
+If you need to change `mpiexec`'s arguments (or the equivalent customized command) for a single job, 
+additional arguments 
 can be provided in the argument `mpiexec_args` in [`MPIProcesses`](@ref). 
 
 
@@ -405,12 +420,12 @@ in `results/all/latest` (or `results/all/[time]/`):
 - `.launch_script.jl`: the script started on each node,
 - `info/submission_output.txt`: the output of submitting the job to the queue,
 - `info/stderr.txt` and `info/stdout.txt`: the slurm/pbs output,
-- `mpi_out`: the mpiexec output, organized by node (internally, Pigeons suppresses most output on all nodes except the one at rank 0).  
+- `mpi_out`: the mpiexec output, organized by node (note that internally, Pigeons suppresses most output on all nodes except the one at rank 0).  
 
 
 #### Creating a PR with your cluster's setup
 
 Once you have determined what options to pass in to 
-[`setup_mpi`](@ref), please consider creating a Pull Request 
+[`setup_mpi`](@ref), please consider creating a Pull Request (PR) 
 adding one function in the file 
 [presets.jl](https://github.com/Julia-Tempering/Pigeons.jl/blob/main/src/submission/presets.jl). Thank you!
