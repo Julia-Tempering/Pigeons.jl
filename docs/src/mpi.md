@@ -234,21 +234,9 @@ pre-compilation extremely slow. If you see this issue, two possible options:
 - If your HPC architecture has a *burst buffer*, this will be a good place to 
     locate the Julia depot. You may need to request allocation, but it is well worth 
     doing so as it creates a huge performance boost on Pkg and precompile operations.
-- If not, a workaround is described [in this page](https://github.com/UBC-Stat-ML/zip_depot).
+- If no burst buffer is available, and you are experiencing very slow Pkg operations, 
+    a workaround is described [in this page](https://github.com/UBC-Stat-ML/zip_depot).
 
-
-### Setting up a Julia project
-
-It should be in a volume with read/write access from all nodes.
-For testing purpose, it can simply be an empty directory. 
-`cd` into it and start julia.
-
-Activate the project and install Pigeons in it by using:
-
-```
-] activate . 
-add Pigeons
-```
 
 ### Load MPI modules
 
@@ -269,6 +257,20 @@ module load openmpi
 ```
 
 Keep note of the list of modules needed, you will need it later in the process.
+
+
+### Setting up a Julia project
+
+It should be in a volume with read/write access from all nodes.
+For testing purpose, it can simply be an empty directory. 
+`cd` into it and start julia.
+
+Activate the project and install Pigeons in it by using:
+
+```
+] activate . 
+add Pigeons
+```
 
 
 ### Setting up Pigeons MPI
