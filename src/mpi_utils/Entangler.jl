@@ -43,7 +43,7 @@ mutable struct Entangler
     """
     The current micro-iteration. Do not rely on it to 
     count logical steps as it is reset to zero after 
-    `transmit_counter_bound` micor-iterations to avoid 
+    `transmit_counter_bound` micro-iterations to avoid 
     underflows to negative 
     tags which cause MPI to crash. 
     """
