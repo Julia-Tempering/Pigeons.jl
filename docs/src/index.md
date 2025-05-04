@@ -102,7 +102,7 @@ known only up to a normalization constant,
 where ``\gamma`` can be evaluated pointwise, but ``Z`` is unknown.
 Pigeons takes as input the function ``\gamma``.
 
-!!! terminology "log_potential"
+!!! terminology `log_potential`
 
     Since we work in log-scale, we use the terminology 
     `log_potential` as a shorthand for the 
