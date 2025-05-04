@@ -2,6 +2,7 @@ using DynamicPPL
 using BridgeStan
 using Pigeons
 using Documenter
+using Documenter.Remotes: GitHub
 using DocStringExtensions
 using Plots
 using InferenceReport
@@ -17,7 +18,7 @@ InferenceReport.headless() do
     makedocs(;
         modules=[Pigeons],
         authors="Miguel Biron-Lattes <miguel.biron@stat.ubc.ca>, Alexandre Bouchard-Côté <alexandre.bouchard@gmail.com>, Trevor Campbell <trevor@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Saifuddin Syed <saifuddin.syed@stats.ox.ac.uk>, Paul Tiede <ptiede91@gmail.com>",
-        repo="https://github.com/Julia-Tempering/Pigeons.jl/blob/{commit}{path}#{line}",
+        repo=GitHub("Julia-Tempering/Pigeons.jl"),
         sitename="Pigeons.jl",
         # strict=true, # deprecated in v1.0.0. now it is the default. see https://github.com/JuliaDocs/Documenter.jl/blob/77f0bdd7c742fc7d7ed91c6b0ab6582f14e33e81/CHANGELOG.md?plain=1#L51
         format=Documenter.HTML(;
