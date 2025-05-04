@@ -11,6 +11,8 @@ julia> import Pkg; Pkg.instantiate()
 julia> include("docs/make.jl")
 ```
 
+### To preview the generated documentation
+
 To view the generated website, use LiveServer (but don't add it to the Project file)
 
 You can do this in one of two ways: adding it globally to your user environment
@@ -41,7 +43,7 @@ You can do this in one of two ways: adding it globally to your user environment
   ```
 
 If the documentation build hangs (https://github.com/Julia-Tempering/Pigeons.jl/issues/60)
-a workaround is the following: 
+a workaround is the following:
 
 1. start a REPL in VSCode
 2. run the documentation from there
