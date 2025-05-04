@@ -31,7 +31,7 @@ of challenging probability distributions.
 1. If you have not done so, install [Julia](https://julialang.org/downloads/). Julia 1.8 and higher are supported. 
 2. Install `Pigeons` using
 
-```
+```julia
 using Pkg; Pkg.add("Pigeons")
 ```
 
@@ -140,7 +140,7 @@ citing our work by referring to [our Pigeons paper](https://arxiv.org/abs/2308.0
 
 **BibTeX code for citing Pigeons**
 
-```
+```bibtex
 @article{surjanovic2023pigeons,
   title={Pigeons.jl: {D}istributed sampling from intractable distributions},
   author={Surjanovic, Nikola and Biron-Lattes, Miguel and Tiede, Paul and Syed, Saifuddin and Campbell, Trevor and Bouchard-C{\^o}t{\'e}, Alexandre},
