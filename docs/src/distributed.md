@@ -102,7 +102,7 @@ advantageous for checking correctness of distributed randomized algorithms.
 
 Consider the following toy example:
 
-```
+```julia
 using Random
 import Base.Threads.@threads
 

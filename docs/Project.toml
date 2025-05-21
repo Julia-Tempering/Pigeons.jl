@@ -22,3 +22,9 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 SplittableRandoms = "8efc31e9-3fb0-4277-b18c-5a3d5d07abad"
 StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
+
+[compat]
+Documenter = "1"
+
+[sources]
+Pigeons = {path = ".."}
