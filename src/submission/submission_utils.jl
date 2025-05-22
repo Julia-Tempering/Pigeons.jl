@@ -56,51 +56,33 @@ end
 """ 
 $SIGNATURES 
 
-Print the queue status as well as the standard out 
-and error streams (merged) for the given `machine`. 
-
-Note: when using control-c on interactive = true, 
-        julia tends to crash as of version 1.8. 
+Print the standard out 
+and error streams for an MPI job. 
 """
-function watch(result::Result; machine = 1, last = 40, interactive = false, output_filename = "mpi_out")
-    @assert machine > 0 "using 0-index convention"
-    output_folder = "$(result.exec_folder)/$output_filename/1" # 1 is not a bug, i.e. not hardcoded machine 1
+function watch(result::Result)
+    directory = "$(result.exec_folder)/info" # 1 is not a bug, i.e. not hardcoded machine 1
 
-    if !isdir(output_folder) || find_rank_file(output_folder, machine) === nothing
+    if !isfile("$directory/stdout.txt") && !isfile("$directory/stderr.txt")
         println("Job not yet started, try again later.")
         println("Hint: see also queue_status(result)")
         return nothing
     end
 
-    output_file_name = find_rank_file(output_folder, machine)
-    stdout_file = "$output_folder/$output_file_name/stdout"
-
-    cmd = `tail`
-    if last !== nothing 
-        cmd = `$cmd -n $last`
+    for file_name in ["stdout.txt", "stderr.txt"]
+        if isfile("$directory/$file_name") 
+            println("$file_name:")
+            for line in eachline("$directory/$file_name")
+                println(line)
+            end
+        end
     end
-    if interactive
-        cmd = `$cmd -f`
-    end
-
-    println("Hint: showing only last $last lines; use 'last = 100' or more to change")
-    println("Watching: $stdout_file")
-    run(`$cmd $stdout_file`) 
+    
     return nothing 
 end
 
 
 # internal
 
-function find_rank_file(folder, machine::Int)
-    machine = machine - 1 # translate to MPI's 0-index ranks
-    for file in readdir(folder)
-        if match(Regex(".*rank.0*$machine"), file) !== nothing
-            return file
-        end
-    end
-    return nothing
-end
 
 # construct launch cmd and script for MPIProcesses and ChildProcess
 
