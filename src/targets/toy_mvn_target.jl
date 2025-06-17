@@ -7,8 +7,11 @@ such that i.i.d. sampling is possible at all chains (via [`ToyExplorer`](@ref)).
 """
 @provides target toy_mvn_target(dim::Int) = ScaledPrecisionNormalPath(dim)
 
-initialization(target::ScaledPrecisionNormalPath, rng::AbstractRNG, _::Int64) =
-    randn(rng, target.dim) / sqrt(target.precision1)
+initialization(target::ScaledPrecisionNormalLogPotential, _::AbstractRNG, _::Int64) =
+    zeros(target.dim)
+
+initialization(target::ScaledPrecisionNormalPath, _::AbstractRNG, _::Int64) =
+    zeros(target.dim)
 
 default_explorer(::ScaledPrecisionNormalPath) = ToyExplorer()
 
