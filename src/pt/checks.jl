@@ -5,6 +5,10 @@ function preflight_checks(inputs::Inputs)
                  To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
               """
     end
+    if !isnothing(inputs.variational) && inputs.target isa MultiStepsInterpolatingPath 
+        # would need to fit variational to closest knot instead of target
+        throw(ArgumentError("Variational inference not currently supported with MultiStepsInterpolatingPath"))
+    end
     if mpi_active() && !inputs.checkpoint
         @warn "To be able to call Pigeons.load() to retrieve samples in-memory, use pigeons(target = ..., checkpoint = true)"
     end

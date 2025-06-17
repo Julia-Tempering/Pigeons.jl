@@ -28,6 +28,7 @@ end
     @test abs(stepping_stone(pt) - stepping_stone(pt_ref)) < 0.001
 
     @test_throws "Conflicting options" pigeons(; target = multistep_target, reference = Pigeons.interpolate(target, 0.1))
-end
 
+    @test_throws "Variational inference not currently supported" pigeons(; target = multistep_target, variational = variational = GaussianReference())
+end
 
