@@ -36,3 +36,17 @@ setup_mpi_sockeye(my_user_allocation_code) =
         library_name = "/arc/project/st-alexbou-1/software/openmpi/lib/libmpi", # Note: this will get moved to a dedicated module (WIP)
         mpiexec = """/arc/project/st-alexbou-1/software/openmpi/bin/mpiexec --output-filename "\$MPI_OUTPUT_PATH/mpi_out" --merge-stderr-to-stdout"""
     )
+
+
+
+""" 
+$SIGNATURES
+
+Harvard Canon clusters. 
+"""
+setup_mpi_harvard_canon() = 
+    setup_mpi(
+        submission_system = :slurm,
+        environment_modules = ["intel", "intelmpi"],
+        mpiexec = """srun -n "\$SLURM_NTASKS\" --mpi=pmi2"""
+    )
