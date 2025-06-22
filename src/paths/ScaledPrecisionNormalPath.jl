@@ -73,6 +73,7 @@ analytic_lognormalization(path::ScaledPrecisionNormalPath) =
 """
 $SIGNATURES
 
-In this case, the target is already a [`path`](@ref), so return it.
+[`ScaledPrecisionNormalPath`](@ref) is already a [`path`](@ref), so return it.
 """
-create_path(target::ScaledPrecisionNormalPath, inputs::Inputs) = target
+create_path(target::ScaledPrecisionNormalPath, inputs::Inputs) = target_is_already_a_path(target, inputs)
+
