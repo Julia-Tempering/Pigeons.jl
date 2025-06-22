@@ -46,4 +46,14 @@ if !is_windows_in_CI()
         end
     end
 
+    @testset "Stan custom sampler" begin 
+        stan_file = dirname(dirname(pathof(Pigeons))) * "/examples/stan/unid.stan"
+        stan_data = Pigeons.json(; n_trials = 1, n_successes = 1)
+        dummy_extra_info = 123
+        target = StanLogPotential(stan_file, stan_data, dummy_extra_info)
+        result = pigeons(; target, n_chains = 1, checkpoint = true, n_rounds = 1, on = ChildProcess(dependencies = [BridgeStan]))
+        pt = Pigeons.load(result)
+        @assert pt.inputs.target.extra_information == dummy_extra_info
+    end
+
 end

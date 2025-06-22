@@ -37,12 +37,14 @@ function Serialization.serialize(s::AbstractSerializer, instance::StanLogPotenti
     # do not serialize model as it is transient (ccall stuff)
     Serialization.serialize(s, instance.stan_file)
     Serialization.serialize(s, instance.data)
+    Serialization.serialize(s, instance.extra_information)
 end
 
 function Serialization.deserialize(s::AbstractSerializer, type::Type{StanLogPotential{M, S, D, E}}) where {M, S, D, E}
     stan_file = Serialization.deserialize(s)
     immutable = Serialization.deserialize(s)
-    return StanLogPotential(stan_file, immutable.data)
+    extra = Serialization.deserialize(s)
+    return StanLogPotential(stan_file, immutable.data, extra)
 end
 
 
