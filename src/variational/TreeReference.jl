@@ -2,38 +2,36 @@
 A Gaussian tree variational reference
 """
 
-#TODO
-@kwdef mutable struct TreeReference
-    edges
-    num_nodes
-    first_tuning_round
-end
 
-#TODO
-@kwdef mutable struct node
-    data
-    mean
-    variance
+@kwdef mutable struct TreeReference
+    edges::Vector{Tuple{Symbol, Symbol, Float32}} = Vector{Tuple{Symbol, Symbol, Float32}}()
+    num_nodes::Int = 0
+    first_tuning_round::Int = 6
+
+    function TreeReference(edges, num_nodes, first_tuning_round)
+        @assert length(edges)==num_nodes-1 || length(edges)==(num_nodes*(num_nodes-1))/2
+        @assert first_tuning_round ≥ 1
+        new(edges, num_nodes, first_tuning_round)
+    end
 end
 
 
 dim(variational::TreeReference) = variational.num_nodes
-#TODO
 function activate_variational(variational::TreeReference, iterators::Iterators)
+    iterators.round ≥ variational.first_tuning_round ? true : false
 end
-#TODO
-variational_recorder_builders(::TreeReference) = [_transformed_online]
 
+variational_recorder_builders(::TreeReference) = [_transformed_online]
 
 
 #TODO
 function update_reference!(reduced_recorders, variational::TreeReference, state)
 end
 #TODO
-function compute_mutual_info()
+function tree_decomposition()
 end
 #TODO
-function tree_decomposition()
+function compute_mutual_info()
 end
 #TODO
 function prims_spanning_tree()
