@@ -5,15 +5,15 @@ A Gaussian tree variational reference
 
 @kwdef mutable struct TreeReference
     edges::Vector{Tuple{Symbol, Symbol, Any}} = Vector{Tuple{Symbol, Symbol, Any}}()
-    num_nodes::Int = 0
-    node_means::Dict{Symbol, Any} = Dict{Symbol, Any}()
-    node_variances::Dict{Symbol, Any} = Dict{Symbol, Any}()
+    means::Dict{Symbol, Any} = Dict{Symbol, Any}()
+    standard_deviations::Dict{Symbol, Any} = Dict{Symbol, Any}()
     first_tuning_round::Int = 6 
+    num_nodes::Int = 0
 
-    function TreeReference(edges, num_nodes, first_tuning_round)
+    function TreeReference(edges, means, standard_deviations, first_tuning_round, num_nodes)
         @assert length(edges)==num_nodes-1 || length(edges)==(num_nodes*(num_nodes-1))/2
         @assert first_tuning_round ≥ 1
-        new(edges, num_nodes, first_tuning_round)
+        new(edges, means, standard_deviations, first_tuning_round, num_nodes)
     end
 end
 
@@ -44,6 +44,9 @@ end
 
 #TODO
 function sample_iid!(variational::TreeReference, replica, shared)
+    for var_name in continuous_variables(replica.state)
+        for i in eachindex(variational.mean[var_name])
+            val = randn(replica.rng) * variational_standard
 end
 
 
@@ -52,9 +55,9 @@ function (variational::TreeReference)(state)
 
     marginal_var_name = continuous_variables(state)[1]
     marginal_state = variable(state, marginal_var_name)
-    marginal_mean = variational.node_means[marginal_var_name]
-    marginal_variance = variational.node_variances[marginal_var_name]
-    log_pdf += logpdf(Normal(marginal_mean, sqrt(marginal_variance)), marginal_state)
+    marginal_mean = variational.means[marginal_var_name]
+    marginal_standard_deviation = variational.standard_deviations[marginal_var_name]
+    log_pdf += logpdf(Normal(marginal_mean, marginal_standard_deviation), marginal_state)
 
      for edges in variational.edges
         parent_var_name = edges[1]
@@ -70,15 +73,15 @@ end
 
 
 function tree_logdensity(variational::TreeReference, child_var_name, parent_var_name, state_at_child, state_at_parent)
-    child_mean = variational.node_means[child_var_name]
-    parent_mean = variational.node_means[parent_var_name]
-    child_variance = variational.node_variances[child_var_name]
-    parent_variance = variational.node_variances[child_var_name]
+    child_mean = variational.means[child_var_name]
+    parent_mean = variational.means[parent_var_name]
+    child_standard_deviation = variational.standard_deviations[child_var_name]
+    parent_standard_deviation = variational.standard_deviations[child_var_name]
 
     rho = get_rho(parent_var_name, child_var_name)
 
-    new_mu = child_mean + rho * (sqrt(child_variance) / sqrt(parent_variance)) * (state_at_parent - parent_mean)
-    new_sigma = sqrt((1-rho^2) * child_variance)
+    new_mu = child_mean + rho * (child_standard_deviation / parent_standard_deviation) * (state_at_parent - parent_mean)
+    new_sigma = sqrt((1-rho^2) * (child_standard_deviation)^2)
 
     logdensity = logpdf(Normal(new_mu, new_sigma), state_at_child)
 
