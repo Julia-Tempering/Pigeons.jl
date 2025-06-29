@@ -4,9 +4,11 @@ A Gaussian tree variational reference
 
 
 @kwdef mutable struct TreeReference
-    edges::Vector{Tuple{Symbol, Symbol, Float32}} = Vector{Tuple{Symbol, Symbol, Float32}}()
+    edges::Vector{Tuple{Symbol, Symbol, Any}} = Vector{Tuple{Symbol, Symbol, Any}}()
     num_nodes::Int = 0
-    first_tuning_round::Int = 6
+    node_means::Dict{Symbol, Any} = Dict{Symbol, Any}()
+    node_variances::Dict{Symbol, Any} = Dict{Symbol, Any}()
+    first_tuning_round::Int = 6 
 
     function TreeReference(edges, num_nodes, first_tuning_round)
         @assert length(edges)==num_nodes-1 || length(edges)==(num_nodes*(num_nodes-1))/2
@@ -33,6 +35,7 @@ end
 #TODO
 function compute_mutual_info()
 end
+
 #TODO
 function prims_spanning_tree()
 end
@@ -42,26 +45,60 @@ end
 #TODO
 function sample_iid!(variational::TreeReference, replica, shared)
 end
-#TODO
+
+
 function (variational::TreeReference)(state)
+    log_pdf = 0.0
+
+    marginal_var_name = continuous_variables(state)[1]
+    marginal_state = variable(state, marginal_var_name)
+    marginal_mean = variational.node_means[marginal_var_name]
+    marginal_variance = variational.node_variances[marginal_var_name]
+    log_pdf += logpdf(Normal(marginal_mean, sqrt(marginal_variance)), marginal_state)
+
+     for edges in variational.edges
+        parent_var_name = edges[1]
+        child_var_name = edges[2]
+
+        state_at_parent = variable(state, parent_var_name)
+        state_at_child = variable(state, child_var_name)
+
+        log_pdf += tree_logdensity(variational, child_var_name, parent_var_name, state_at_child, state_at_parent)
+    end
+    return log_pdf
 end
+
+
+function tree_logdensity(variational::TreeReference, child_var_name, parent_var_name, state_at_child, state_at_parent)
+    child_mean = variational.node_means[child_var_name]
+    parent_mean = variational.node_means[parent_var_name]
+    child_variance = variational.node_variances[child_var_name]
+    parent_variance = variational.node_variances[child_var_name]
+
+    rho = get_rho(parent_var_name, child_var_name)
+
+    new_mu = child_mean + rho * (sqrt(child_variance) / sqrt(parent_variance)) * (state_at_parent - parent_mean)
+    new_sigma = sqrt((1-rho^2) * child_variance)
+
+    logdensity = logpdf(Normal(new_mu, new_sigma), state_at_child)
+
+    return logdensity
+end
+
 #TODO
-function tree_logdensity()
+function get_rho(var_name1, var_name2)
 end
 
 
 
 # LogDensityProblemsAD implementation (currently only for special case of a singleton variable)
 #TODO
-LogDensityProblems.logdensity(log_potential::TreeReference, x) =
-    tree_logdensity()
-
+LogDensityProblems.logdensity(log_potential::TreeReference, x)
 #TODO
 function LogDensityProblems.dimension(log_potential::TreeReference)
 end
 #TODO
-LogDensityProblemsAD.ADgradient(kind::ADTypes.AbstractADType. log_potential::TreeReference, replica::Replica) =
-    BufferedAD(log_potential, replica.recorders.buffers)
+LogDensityProblemsAD.ADgradient(kind::ADTypes.AbstractADType. log_potential::TreeReference, replica::Replica)
 #TODO
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{TreeReference}, x)
 end
