@@ -125,7 +125,7 @@ function (variational::TreeReference)(state)
     marginal_standard_deviation = variational.standard_deviation[marginal_var_name]
     log_pdf += logpdf(Normal(marginal_mean, marginal_standard_deviation), marginal_state)
 
-     for edge in variational.edge_set
+    for edge in variational.edge_set
         parent_var_name = which_variable[edge[1]]
         child_var_name = which_variable[edge[2]]
 
@@ -155,18 +155,27 @@ end
 
 #TODO
 function get_rho(var_name1, var_name2)
+    return 0
 end
 
 
 
 # LogDensityProblemsAD implementation (currently only for special case of a singleton variable)
 #TODO
-LogDensityProblems.logdensity(log_potential::TreeReference, x)
-#TODO
+LogDensityProblems.logdensity(log_potential::TreeReference, x) = 0
+
 function LogDensityProblems.dimension(log_potential::TreeReference)
+    @assert length(log_potential.mean) == 1 && haskey(log_potential.mean, :singleton_variable) "Differentiation of TreeReference assuming a single flat vector called :singleton_variable at the moment. Found: $(keys(log_potential.mean))"
 end
-#TODO
-LogDensityProblemsAD.ADgradient(kind::ADTypes.AbstractADType. log_potential::TreeReference, replica::Replica)
-#TODO
+
+LogDensityProblemsAD.ADgradient(kind::ADTypes.AbstractADType. log_potential::TreeReference, replica::Replica) =
+    BufferedAD(log_potential, replica.recorders.buffers)
+
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{TreeReference}, x)
+    variational = log_potential.enclosed
+    buffer = log_potential.buffer
+    mean = variational.mean[:singleton_variable]
+    standard_deviation = variational.standard_deviation[:singleton_variable]
+    @. buffer = - 1.0/(standard_deviation^2) * (x - mean)
+    return LogDensityProblems.logdensity(variational, x), buffer
 end
