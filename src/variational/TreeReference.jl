@@ -11,11 +11,12 @@ using DataStructures
     mean::Dict{Tuple{Symbol, Vector{Any}}} = Dict{Symbol, Vector{Any}}()
     standard_deviation::Dict{Symbol, Vector{Any}} = Dict{Symbol, Vector{Any}}()
     which_variable::Vector{Symbol}
+    which_index::Vector{Int}
     first_tuning_round::Int = 6
 
-    function TreeReference(edge_set, mean, standard_deviation, which_variable, first_tuning_round)
+    function TreeReference(edge_set, mean, standard_deviation, which_variable, which_index, first_tuning_round)
         @assert first_tuning_round ≥ 1
-        new(edge_set, mean, standard_deviation, which_variable, first_tuning_round)
+        new(edge_set, mean, standard_deviation, which_variable, which_index, first_tuning_round)
     end
 end
 
@@ -28,7 +29,6 @@ end
 variational_recorder_builders(::TreeReference) = [_transformed_online]
 
 
-#TODO
 function update_reference!(reduced_recorders, variational::TreeReference, state)
     isempty(discrete_variables(state)) || error("Updating a Gaussian reference with discrete variables.")
     
@@ -40,6 +40,9 @@ function update_reference!(reduced_recorders, variational::TreeReference, state)
         for i = 1:dimension
             push!(variational.mean, temp_mean[i])
             push!(variational.standard_deviation, temp_std[i])
+
+            push!(variational.which_variable, var_name)
+            push!(variational.which_index, i)
         end
     end
     @assert length(variational.mean) == length(variational.standard_deviation)
@@ -53,7 +56,7 @@ function update_reference!(reduced_recorders, variational::TreeReference, state)
                 I = compute_mutual_info(i, j)
 
                 push!(adjacency_list[i], (I, i, j))
-                push!(adjacency_list[j], (I, i, j))
+                push!(adjacency_list[j], (I, j, i))
             end
         end
     end
@@ -98,7 +101,18 @@ end
 
 
 function sample_iid!(variational::TreeReference, replica, shared)
+    new_state::Vector{Int} = Vector{Int}()
 
+    marginal_val = randn(replica.rng) * variational.standard_deviation[1] + variational.mean[1]
+    push!(new_state, marginal_val)
+    update_state!(replica.state, which_variable[1], 1, marginal_val)
+
+    for edge in variational.edge_set
+        params = tree_logdensity(variational, which_variable[edge[3]], which_variable[edge[2]], new_state[edge[2]])
+        val = rand(replica.rng) * params[2] + params[1]
+
+        update_state!(replica.state, which_variable[edge[3]], which_index[edge[3]], val)
+    end
 end
 
 
