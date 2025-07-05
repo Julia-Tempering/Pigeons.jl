@@ -38,6 +38,7 @@ using StaticArraysCore
 using Statistics
 using StatsBase
 using ZipFile
+using DataStructures
 
 import Base: Forward, @kwdef, show, print, merge, keys
 import Base.Threads.@threads
@@ -68,7 +69,7 @@ export pigeons, Inputs, PT,
     # getting information out of an execution:
     stepping_stone, n_tempered_restarts, n_round_trips, process_sample, get_sample,
     # variational references:
-    GaussianReference,
+    GaussianReference, TreeReference,
     # samplers
     SliceSampler, AutoMALA, Compose, AAPS, MALA, Mix
 

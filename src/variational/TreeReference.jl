@@ -2,10 +2,6 @@
 A Gaussian tree variational reference
 """
 
-import Pkg
-Pkg.add("DataStructures")
-using DataStructures
-
 @kwdef mutable struct TreeReference
     edge_set::Vector{Any} = Vector{Any}()
     mean::Dict{Tuple{Symbol, Vector{Any}}} = Dict{Symbol, Vector{Any}}()
