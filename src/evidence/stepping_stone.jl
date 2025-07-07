@@ -8,6 +8,12 @@ computed on the parallel tempering output.
 """
 function stepping_stone(pt::PT)
     p = stepping_stone_pair(pt)
+    if !isfinite(p[1])
+        return p[2]
+    end
+    if !isfinite(p[2])
+        return p[1]
+    end
     return (p[1] + p[2])/2.0
 end
 
