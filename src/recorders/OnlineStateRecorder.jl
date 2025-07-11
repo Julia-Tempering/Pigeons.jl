@@ -3,6 +3,7 @@ See [`online()`](@ref).
 """
 @kwdef struct OnlineStateRecorder
     stats::Dict{Pair{Symbol, Type}, Any} = Dict{Pair{Symbol, Type}, Any}()
+    is_full::Bool = false
 end
 
 OnlineStateRecorder(from_another::OnlineStateRecorder) = OnlineStateRecorder(copy(from_another.stats))
@@ -84,7 +85,23 @@ function register_online_type(type)
     end
 end
 
-function record!(recorder::OnlineStateRecorder, state)
+record!(recorder::OnlineStateRecorder, state) =
+    record!(recorder, state, Val(recorder.is_full))
+
+#TODO
+function record!(recorder::OnlineStateRecorder, state, is_full::Val{true})
+    if isempty(recorder.stats)
+        initialize_online_state_recorder!(recorder.stats, state)
+    end 
+    for name in recorded_continuous_variables(state) 
+        for stat in registered_online_types # NB: the more natural "for key in keys(recorder.stats)" leads to allocations in the inner loop
+            key = Pair(name, stat)
+            fit!(recorder.stats[key], variable(state, name))
+        end
+    end
+end
+
+function record!(recorder::OnlineStateRecorder, state, is_full::Val{false})
     if isempty(recorder.stats)
         initialize_online_state_recorder!(recorder.stats, state)
     end 
