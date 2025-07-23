@@ -92,6 +92,10 @@ pt = pigeons(
 nothing # hide
 ```
 
+Notice that [`sample_iid!()`](@ref) should provide samples exactly distributed 
+according to the `reference`, otherwise several theoretical guarantees of 
+Parallel Tempering are invalidated. 
+
 
 ## Changing the explorer 
 
