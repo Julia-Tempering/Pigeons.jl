@@ -41,8 +41,12 @@ The probability distribution of interest.
     $SIGNATURES 
 
     Perform i.i.d. sampling on the given [`Replica`](@ref) 
-    during its visit to the reference_log_potential created 
+    during its visit to the `reference_log_potential` created 
     by [`create_reference_log_potential()`](@ref).
+
+    Implementations should provide samples exactly distributed 
+    according to the `reference`, otherwise several theoretical guarantees of 
+    Parallel Tempering are invalidated. 
 
     Optional but recommended for e.g. jumping modes in 
     multi-modal problems.
