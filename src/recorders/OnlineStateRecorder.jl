@@ -2,11 +2,11 @@
 See [`online()`](@ref).
 """
 @kwdef struct OnlineStateRecorder
+    full::Bool = false 
     stats::Dict{Pair{Symbol, Type}, Any} = Dict{Pair{Symbol, Type}, Any}()
-    is_full::Bool = false
 end
 
-OnlineStateRecorder(from_another::OnlineStateRecorder) = OnlineStateRecorder(copy(from_another.stats))
+OnlineStateRecorder(from_another::OnlineStateRecorder) = OnlineStateRecorder(from_another.full, copy(from_another.stats))
 
 """
 $SIGNATURES 
@@ -31,9 +31,12 @@ get_transformed_statistic(reduced_recorders, variable_name::Symbol, t::Type{T}) 
     get_statistic(reduced_recorders, variable_name, t, false)
 
 function get_statistic(reduced_recorders, variable_name::Symbol, ::Type{T}, original_param = true) where {T}
-    recorder = original_param ? reduced_recorders.online : reduced_recorders._transformed_online
+    recorder = original_param ? reduced_recorders.online : reduced_recorders._transformed_online_full
     key = Pair(variable_name, T)
-    v = value(recorder.stats[key]) 
+    v = value(recorder.stats[key])
+    if T==CovMatrix
+        return v
+    end 
     return value.(v)
 end  
 
@@ -69,7 +72,7 @@ recorded_continuous_variables(state) = continuous_variables(state)
 `OnlineStat` types to be computed when the [`online()`] 
 recorder is enabled. 
 """
-const registered_online_types = [Mean, Variance]
+const registered_online_types = [Mean, Variance, CovMatrix]
 
 """
 $SIGNATURES 
@@ -85,23 +88,7 @@ function register_online_type(type)
     end
 end
 
-record!(recorder::OnlineStateRecorder, state) =
-    record!(recorder, state, Val(recorder.is_full))
-
-#TODO
-function record!(recorder::OnlineStateRecorder, state, is_full::Val{true})
-    if isempty(recorder.stats)
-        initialize_online_state_recorder!(recorder.stats, state)
-    end 
-    for name in recorded_continuous_variables(state) 
-        for stat in registered_online_types # NB: the more natural "for key in keys(recorder.stats)" leads to allocations in the inner loop
-            key = Pair(name, stat)
-            fit!(recorder.stats[key], variable(state, name))
-        end
-    end
-end
-
-function record!(recorder::OnlineStateRecorder, state, is_full::Val{false})
+function record!(recorder::OnlineStateRecorder, state)
     if isempty(recorder.stats)
         initialize_online_state_recorder!(recorder.stats, state)
     end 
@@ -117,6 +104,13 @@ initialize_online_state_recorder!(stats, state) =
     for stat_type in registered_online_types
         initialize_online_state_recorder!(stats, state, stat_type)
     end 
+
+initialize_online_state_recorder!(stats, state, ::Type{CovMatrix}) = 
+    for name in recorded_continuous_variables(state)
+        var = variable(state, name) 
+        key = Pair(name, CovMatrix)
+        stats[key] = CovMatrix()
+    end
 
 initialize_online_state_recorder!(stats, state, ::Type{T}) where {T} = 
     for name in recorded_continuous_variables(state)

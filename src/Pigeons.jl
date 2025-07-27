@@ -69,7 +69,7 @@ export pigeons, Inputs, PT,
     # getting information out of an execution:
     stepping_stone, n_tempered_restarts, n_round_trips, process_sample, get_sample,
     # variational references:
-    GaussianReference, TreeReference,
+    GaussianReference, TreeReference, DenseGaussianReference,
     # samplers
     SliceSampler, AutoMALA, Compose, AAPS, MALA, Mix
 
