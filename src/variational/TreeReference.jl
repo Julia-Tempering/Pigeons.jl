@@ -164,3 +164,48 @@ function tree_logdensity(variational::TreeReference, child_num, parent_num, stat
     return (new_mu, new_sigma)
 end
 
+function tree_gradient(variational::TreeReference, state)
+    gradient = 0.0
+
+    marginal_state = variable(state, variational.which_variable[1])[1]
+    marginal_mean = variational.mean[1]
+    marginal_standard_deviation = variational.standard_deviation[1]
+    gradient += -(marginal_state - marginal_mean) / marginal_standard_deviation^2
+
+    for edge in variational.edge_set
+        child_idx = edge[4]
+        parent_idx = edge[3]
+
+        parent_var_name = variational.which_variable[parent_idx]
+        child_var_name = variational.which_variable[child_idx]
+
+        state_at_parent = variable(state, parent_var_name)[variational.which_index[parent_idx]]
+        state_at_child = variable(state, child_var_name)[variational.which_index[child_idx]]
+
+        mu, sigma = tree_logdensity(variational, child_idx, parent_idx, state_at_parent, edge[1])
+        gradient += -(state_at_child - mu) / sigma^2
+    end
+    return gradient
+end
+
+
+
+# LogDensityProblemsAD implementation (currently only for special case of a singleton variable)
+
+LogDensityProblems.logdensity(log_potential::TreeReference, x) =
+    log_potential(x)
+
+function LogDensityProblems.dimension(log_potential::TreeReference)
+    dim = length(log_potential.edge_set) + 1
+    return dim
+end
+
+LogDensityProblemsAD.ADgradient(kind::ADTypes.AbstractADType, log_potential::TreeReference, replica::Replica) = 
+    BufferedAD(log_potential, replica.recorders.buffers)
+
+function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{TreeReference}, x)
+    variational = log_potential.enclosed
+    buffer = log_potential.buffer
+    @. buffer = tree_gradient(log_potential, x)
+    return LogDensityProblems.logdensity(variational, x), buffer
+end
