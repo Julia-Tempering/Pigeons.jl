@@ -50,19 +50,23 @@ function update_reference!(reduced_recorders, variational::TreeReference, state)
         end
     end
     @assert length(variational.mean) == length(variational.standard_deviation)
-    total_number_of_nodes = length(variational.mean)
 
-    variational.iid_sample_set = zeros(total_number_of_nodes)
+    variational.iid_sample_set = zeros(length(variational.mean))
+    variational.covariance_matrix = get_transformed_statistic(reduced_recorders, :singleton_variable, CovMatrix)
+    variational.edge_set = build_tree(variational)
+end
+
+
+function build_tree(variational::TreeReference)
+    dim = length(variational.mean)
 
     adjacency_list::Dict{Int, Vector{Tuple{Float64, Float64, Int, Int}}} = Dict{Int, Vector{Tuple{Float64, Float64, Int, Int}}}()
-    for i in 1:total_number_of_nodes
+    for i in 1:dim
         adjacency_list[i] = Vector{Tuple{Float64, Float64, Int, Int}}()
     end 
 
-    variational.covariance_matrix = get_transformed_statistic(reduced_recorders, :singleton_variable, CovMatrix)
-
-    for i = 1:total_number_of_nodes
-        for j = (i+1):total_number_of_nodes
+    for i = 1:dim
+        for j = (i+1):dim
             normalization = (variational.standard_deviation[i] * variational.standard_deviation[j])
             rho = variational.covariance_matrix[i,j] / normalization
             rho = clamp(rho, -0.99, 0.99)
@@ -73,11 +77,8 @@ function update_reference!(reduced_recorders, variational::TreeReference, state)
         end
     end
     root = 1
-    variational.edge_set = directed_max_tree(adjacency_list, root)
-
-    empty!(adjacency_list)
+    return directed_max_tree(adjacency_list, root)
 end
-
 
 
 function directed_max_tree(adjacency_list, root)
