@@ -9,12 +9,12 @@ A Gaussian tree variational reference
     which_variable::Vector{Symbol} = Vector{Symbol}()
     which_index::Vector{Int} = Vector{Int}()
     iid_sample_set::Vector{Float64} = Vector{Float64}()
-    first_tuning_round::Int = 11
     covariance_matrix::Matrix{Float64} = zeros(Float64, 0, 0)
+    first_tuning_round::Int = 10
     
-    function TreeReference(edge_set, mean, standard_deviation, which_variable, which_index, iid_sample_set, first_tuning_round, covariance_matrix)
+    function TreeReference(edge_set, mean, standard_deviation, which_variable, which_index, iid_sample_set, covariance_matrix, first_tuning_round)
         @assert first_tuning_round ≥ 1
-        new(edge_set, mean, standard_deviation, which_variable, which_index, iid_sample_set, first_tuning_round, covariance_matrix)
+        new(edge_set, mean, standard_deviation, which_variable, which_index, iid_sample_set, covariance_matrix, first_tuning_round)
     end
 end
 
@@ -56,7 +56,7 @@ function update_reference!(reduced_recorders, variational::TreeReference, state)
 
     adjacency_list::Dict{Int, Vector{Tuple{Float64, Float64, Int, Int}}} = Dict{Int, Vector{Tuple{Float64, Float64, Int, Int}}}()
     for i in 1:total_number_of_nodes
-        adjacency_list[i] = Vector{Int}()
+        adjacency_list[i] = Vector{Tuple{Float64, Float64, Int, Int}}()
     end 
 
     variational.covariance_matrix = get_transformed_statistic(reduced_recorders, :singleton_variable, CovMatrix)
@@ -65,10 +65,11 @@ function update_reference!(reduced_recorders, variational::TreeReference, state)
         for j = (i+1):total_number_of_nodes
             normalization = (variational.standard_deviation[i] * variational.standard_deviation[j])
             rho = variational.covariance_matrix[i,j] / normalization
+            rho = clamp(rho, -0.99, 0.99)
             I = -0.5*log(1-rho^2)
                 
-            push!(adjacency_list[i], (rho, I, i, j))
-            push!(adjacency_list[j], (rho, I, j, i))
+            push!(adjacency_list[i], (I, rho, i, j))
+            push!(adjacency_list[j], (I, rho, j, i))
         end
     end
     root = 1
@@ -118,8 +119,8 @@ function sample_iid!(variational::TreeReference, replica, shared)
         parent_idx = edge[3]
         child_idx = edge[4]
 
-        mu, sigma = tree_logdensity(variational, child_idx, parent_idx, variational.iid_sample_set[parent_idx], edge[1])
-        val = rand(replica.rng) * sigma + mu
+        mu, sigma = tree_logdensity(variational, child_idx, parent_idx, variational.iid_sample_set[parent_idx], edge[2])
+        val = randn(replica.rng) * sigma + mu
         variational.iid_sample_set[child_idx] = val
 
         update_state!(replica.state, variational.which_variable[child_idx], variational.which_index[child_idx], val)
@@ -133,7 +134,7 @@ function (variational::TreeReference)(state)
     marginal_state = variable(state, variational.which_variable[1])[1]
     marginal_mean = variational.mean[1]
     marginal_standard_deviation = variational.standard_deviation[1]
-    log_pdf += Distributions.logpdf(Distributions.Normal(marginal_mean, marginal_standard_deviation), marginal_state)[1]
+    log_pdf += Distributions.logpdf(Distributions.Normal(marginal_mean, marginal_standard_deviation), marginal_state)
 
     for edge in variational.edge_set
         child_idx = edge[4]
@@ -145,7 +146,7 @@ function (variational::TreeReference)(state)
         state_at_parent = variable(state, parent_var_name)[variational.which_index[parent_idx]]
         state_at_child = variable(state, child_var_name)[variational.which_index[child_idx]]
 
-        mu, sigma = tree_logdensity(variational, child_idx, parent_idx, state_at_parent, edge[1])
+        mu, sigma = tree_logdensity(variational, child_idx, parent_idx, state_at_parent, edge[2])
         log_pdf += Distributions.logpdf(Distributions.Normal(mu, sigma), state_at_child)
     end
     return log_pdf
@@ -165,12 +166,12 @@ function tree_logdensity(variational::TreeReference, child_num, parent_num, stat
 end
 
 function tree_gradient(variational::TreeReference, state)
-    gradient = 0.0
+    gradient = zeros(length(variational.mean))
 
     marginal_state = variable(state, variational.which_variable[1])[1]
     marginal_mean = variational.mean[1]
     marginal_standard_deviation = variational.standard_deviation[1]
-    gradient += -(marginal_state - marginal_mean) / marginal_standard_deviation^2
+    gradient[1] = -(marginal_state - marginal_mean) / marginal_standard_deviation^2
 
     for edge in variational.edge_set
         child_idx = edge[4]
@@ -182,8 +183,11 @@ function tree_gradient(variational::TreeReference, state)
         state_at_parent = variable(state, parent_var_name)[variational.which_index[parent_idx]]
         state_at_child = variable(state, child_var_name)[variational.which_index[child_idx]]
 
-        mu, sigma = tree_logdensity(variational, child_idx, parent_idx, state_at_parent, edge[1])
-        gradient += -(state_at_child - mu) / sigma^2
+        mu, sigma = tree_logdensity(variational, child_idx, parent_idx, state_at_parent, edge[2])
+        delta = -(state_at_child - mu) / sigma^2
+
+        gradient[child_idx] += delta
+        gradient[parent_idx] += delta * (edge[2] * variational.standard_deviation[child_idx] / variational.standard_deviation[parent_idx])
     end
     return gradient
 end
@@ -206,6 +210,6 @@ LogDensityProblemsAD.ADgradient(kind::ADTypes.AbstractADType, log_potential::Tre
 function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{TreeReference}, x)
     variational = log_potential.enclosed
     buffer = log_potential.buffer
-    @. buffer = tree_gradient(log_potential, x)
+    buffer .= tree_gradient(variational, x)
     return LogDensityProblems.logdensity(variational, x), buffer
 end
