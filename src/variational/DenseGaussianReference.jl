@@ -8,11 +8,12 @@ A Gaussian dense variational reference (i.e., with a dense covariance matrix).
     cholesky::Any = zeros(Float64, 0, 0)
     which_variable::Vector{Any} = Vector{Any}()
     which_index::Vector{Int} = Vector{Int}()
-    first_tuning_round::Int = 11 # TODO: this should be moved elsewhere?
+    identity_gaussian::Any = zeros(Float64, 0, 0)
+    first_tuning_round::Int = 10 # TODO: this should be moved elsewhere?
 
-    function DenseGaussianReference(mean, covariance, precision, cholesky, which_variable, which_index, first_tuning_round)
+    function DenseGaussianReference(mean, covariance, precision, cholesky, which_variable, which_index, identity_gaussian, first_tuning_round)
         @assert first_tuning_round ≥ 1
-        new(mean, covariance, precision, cholesky, which_variable, which_index, first_tuning_round)
+        new(mean, covariance, precision, cholesky, which_variable, which_index, identity_gaussian, first_tuning_round)
     end
 end
 
@@ -28,30 +29,32 @@ function update_reference!(reduced_recorders, variational::DenseGaussianReferenc
     empty!(variational.which_variable)
     empty!(variational.which_index)
     empty!(variational.mean)
+    empty!(variational.which_variable)
+    empty!(variational.which_index)
 
-    variational.covariance = get_transformed_statistic(reduced_recorders, :singleton_variable, CovMatrix)
+    eps = 1e-6
+    temp_covariance = get_transformed_statistic(reduced_recorders, :singleton_variable, CovMatrix)
+    variational.covariance = temp_covariance + eps * I
+
+    variational.mean = get_transformed_statistic(reduced_recorders, :singleton_variable, Mean)
+    variational.identity_gaussian = MvNormal(zeros(length(variational.mean)), I)
     variational.precision = inv(variational.covariance)
     variational.cholesky = cholesky(variational.covariance).L
-    variational.mean = get_transformed_statistic(reduced_recorders, :singleton_variable, Mean)
 
     for var_name in continuous_variables(state)
         for i = 1:length(variable(state, var_name))
             push!(variational.which_variable, var_name)
             push!(variational.which_index, i)
-        
         end
     end
 
 end
 
 function sample_iid!(variational::DenseGaussianReference, replica, shared)
-    dim = length(variational.mean)
-    identity_gaussian = MvNormal(zeros(dim), I)
-    z = rand(identity_gaussian)
-    
+    z = rand(variational.identity_gaussian)
     sample = variational.mean + variational.cholesky * z
 
-    for i in 1:dim
+    for i = 1:length(variational.mean)
         update_state!(replica.state, variational.which_variable[i], variational.which_index[i], sample[i])
     end
 end
@@ -59,7 +62,7 @@ end
 function (variational::DenseGaussianReference)(state)
     flattened_state = Vector{Float64}()
 
-    for i in 1:length(variational.mean)
+    for i = 1:length(variational.mean)
         name = variational.which_variable[i]
         index = variational.which_index[i]
         push!(flattened_state, Pigeons.variable(state, name)[index])
@@ -87,6 +90,6 @@ function LogDensityProblems.logdensity_and_gradient(log_potential::BufferedAD{De
     buffer = log_potential.buffer
     mean = variational.mean
     precision = variational.precision
-    @. buffer = -precision * (x - mean)
+    buffer .= -precision * (x - mean)
     return LogDensityProblems.logdensity(variational, x), buffer
 end
