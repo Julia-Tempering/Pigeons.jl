@@ -34,7 +34,7 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
         run: |
           REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -71,7 +71,7 @@ jobs:
       JULIA_MPI_TEST_ABI: OpenMPI
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -113,7 +113,7 @@ jobs:
       JULIA_MPI_TEST_BINARY: system
       ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install MPI via homebrew
         run: |
@@ -151,7 +151,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
