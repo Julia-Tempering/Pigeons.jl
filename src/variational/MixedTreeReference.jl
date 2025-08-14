@@ -4,22 +4,23 @@ A Gaussian tree variational reference
 
 @kwdef mutable struct MixedTreeReference
     edge_set::Vector{Tuple{Float64, Float64, Int, Int}} = Vector{Tuple{Float64, Float64, Int, Int}}()
-    mean::Vector{Float64} = Vector{Float64}()
-    standard_deviation::Vector{Float64} = Vector{Float64}()
+    continuous_mean::Vector{Float64} = Vector{Float64}()
+    continuous_std::Vector{Float64} = Vector{Float64}()
     which_variable::Vector{Symbol} = Vector{Symbol}()
     which_index::Vector{Int} = Vector{Int}()
     iid_sample_set::Vector{Float64} = Vector{Float64}()
     covariance_matrix::Matrix{Float64} = zeros(Float64, 0, 0)
+    discrete_map::Dict{Tuple{Symbol, Int, Symbol}, Tuple{Float64, Float64}} = Dict{Tuple{Symbol, Int, Symbol}, Tuple{Float64, Float64}}()
     first_tuning_round::Int = 10
     
-    function MixedTreeReference(edge_set, mean, standard_deviation, which_variable, which_index, iid_sample_set, covariance_matrix, first_tuning_round)
+    function MixedTreeReference(edge_set, continuous_mean, continuous_std, which_variable, which_index, iid_sample_set, covariance_matrix, discrete_map, first_tuning_round)
         @assert first_tuning_round ≥ 1
-        new(edge_set, mean, standard_deviation, which_variable, which_index, iid_sample_set, covariance_matrix, first_tuning_round)
+        new(edge_set, continuous_mean, continuous_std, which_variable, which_index, iid_sample_set, covariance_matrix, discrete_map, first_tuning_round)
     end
 end
 
 
-dim(variational::MixedTreeReference) = length(variational.mean)
+dim(variational::MixedTreeReference) = length(variational.continuous_mean) + length(unique(first.(keys(variational.discrete_map))))
 function activate_variational(variational::MixedTreeReference, iterators)
     iterators.round ≥ variational.first_tuning_round ? true : false
 end
@@ -28,10 +29,8 @@ variational_recorder_builders(::MixedTreeReference) = [_transformed_online_full]
 
 
 function update_reference!(reduced_recorders, variational::MixedTreeReference, state)
-    isempty(discrete_variables(state)) || error("Updating a Gaussian reference with discrete variables.")
-
-    empty!(variational.mean)
-    empty!(variational.standard_deviation)
+    empty!(variational.continuous_mean)
+    empty!(variational.continuous_std)
     empty!(variational.which_variable)
     empty!(variational.which_index)
     variational.edge_set = []
@@ -40,34 +39,34 @@ function update_reference!(reduced_recorders, variational::MixedTreeReference, s
         temp_mean = get_transformed_statistic(reduced_recorders, var_name, Mean)
         temp_std = sqrt.(get_transformed_statistic(reduced_recorders, var_name, Variance))
 
-        dimension = length(temp_mean)
-        for i = 1:dimension
-            push!(variational.mean, temp_mean[i])
-            push!(variational.standard_deviation, temp_std[i])
+        temp_dim = length(temp_mean)
+        for i = 1:temp_dim
+            push!(variational.continuous_mean, temp_mean[i])
+            push!(variational.continuous_std, temp_std[i])
 
             push!(variational.which_variable, var_name)
             push!(variational.which_index, i)
         end
     end
-    @assert length(variational.mean) == length(variational.standard_deviation)
+    @assert length(variational.continuous_mean) == length(variational.continuous_std)
 
-    variational.iid_sample_set = zeros(length(variational.mean))
+    variational.iid_sample_set = zeros(length(variational.continuous_mean))
     variational.covariance_matrix = get_transformed_statistic(reduced_recorders, :singleton_variable, CovMatrix)
     variational.edge_set = build_tree(variational)
 end
 
 
 function build_tree(variational::MixedTreeReference)
-    dim = length(variational.mean)
+    continuous_dim = length(variational.continuous_mean)
 
     adjacency_list::Dict{Int, Vector{Tuple{Float64, Float64, Int, Int}}} = Dict{Int, Vector{Tuple{Float64, Float64, Int, Int}}}()
-    for i in 1:dim
+    for i in 1:continuous_dim
         adjacency_list[i] = Vector{Tuple{Float64, Float64, Int, Int}}()
     end 
 
-    for i = 1:dim
-        for j = (i+1):dim
-            normalization = (variational.standard_deviation[i] * variational.standard_deviation[j])
+    for i = 1:continuous_dim
+        for j = (i+1):continuous_dim
+            normalization = (variational.continuous_std[i] * variational.continuous_std[j])
             rho = variational.covariance_matrix[i,j] / normalization
             rho = clamp(rho, -0.99, 0.99)
             I = -0.5*log(1-rho^2)
@@ -112,7 +111,7 @@ end
 
 
 function sample_iid!(variational::MixedTreeReference, replica, shared)
-    marginal_val = randn(replica.rng) * variational.standard_deviation[1] + variational.mean[1]
+    marginal_val = randn(replica.rng) * variational.continuous_std[1] + variational.continuous_mean[1]
     variational.iid_sample_set[1] = marginal_val
     update_state!(replica.state, variational.which_variable[1], 1, marginal_val)
 
@@ -133,8 +132,8 @@ function (variational::MixedTreeReference)(state)
     log_pdf = 0.0
 
     marginal_state = variable(state, variational.which_variable[1])[1]
-    marginal_mean = variational.mean[1]
-    marginal_standard_deviation = variational.standard_deviation[1]
+    marginal_mean = variational.continuous_mean[1]
+    marginal_standard_deviation = variational.continuous_std[1]
     log_pdf += Distributions.logpdf(Distributions.Normal(marginal_mean, marginal_standard_deviation), marginal_state)
 
     for edge in variational.edge_set
@@ -155,10 +154,10 @@ end
 
 
 function tree_logdensity(variational::MixedTreeReference, child_num, parent_num, state_at_parent, rho)
-    child_mean = variational.mean[child_num]
-    parent_mean = variational.mean[parent_num]
-    child_standard_deviation = variational.standard_deviation[child_num]
-    parent_standard_deviation = variational.standard_deviation[parent_num]
+    child_mean = variational.continuous_mean[child_num]
+    parent_mean = variational.continuous_mean[parent_num]
+    child_standard_deviation = variational.continuous_std[child_num]
+    parent_standard_deviation = variational.continuous_std[parent_num]
 
     new_mu = child_mean + rho * (child_standard_deviation / parent_standard_deviation) * (state_at_parent - parent_mean)
     new_sigma = sqrt((1-rho^2) * (child_standard_deviation)^2)
@@ -167,11 +166,11 @@ function tree_logdensity(variational::MixedTreeReference, child_num, parent_num,
 end
 
 function tree_gradient(variational::MixedTreeReference, state)
-    gradient = zeros(length(variational.mean))
+    gradient = zeros(length(variational.continuous_mean))
 
     marginal_state = variable(state, variational.which_variable[1])[1]
-    marginal_mean = variational.mean[1]
-    marginal_standard_deviation = variational.standard_deviation[1]
+    marginal_mean = variational.continuous_mean[1]
+    marginal_standard_deviation = variational.continuous_std[1]
     gradient[1] = -(marginal_state - marginal_mean) / marginal_standard_deviation^2
 
     for edge in variational.edge_set
@@ -188,7 +187,7 @@ function tree_gradient(variational::MixedTreeReference, state)
         delta = -(state_at_child - mu) / sigma^2
 
         gradient[child_idx] += delta
-        gradient[parent_idx] += delta * (edge[2] * variational.standard_deviation[child_idx] / variational.standard_deviation[parent_idx])
+        gradient[parent_idx] += delta * (edge[2] * variational.continuous_std[child_idx] / variational.continuous_std[parent_idx])
     end
     return gradient
 end
@@ -201,7 +200,7 @@ LogDensityProblems.logdensity(log_potential::MixedTreeReference, x) =
     log_potential(x)
 
 function LogDensityProblems.dimension(log_potential::MixedTreeReference)
-    dim = length(log_potential.edge_set) + 1
+    dim = length(variational.continuous_mean) + length(unique(first.(keys(variational.discrete_map))))
     return dim
 end
 
