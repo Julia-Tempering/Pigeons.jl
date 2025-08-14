@@ -3,7 +3,7 @@ Methods common to all variational references
 =#
 
 # Currently implemented variational references
-const VariationalReference = Union{GaussianReference, TreeReference, DenseGaussianReference}
+const VariationalReference = Union{GaussianReference, TreeReference, MixedTreeReference, DenseGaussianReference}
 
 # Elide the AD buffering system
 # Reasoning: 
