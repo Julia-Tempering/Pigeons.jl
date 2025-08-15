@@ -33,9 +33,7 @@ function update_path_if_needed(path, reduced_recorders, iterators, variational, 
     end
 end
 
-function update_path_variational(path, reduced_recorders, variational, state)
+function update_path_variational(path::InterpolatingPath, reduced_recorders, variational, state)
     update_reference!(reduced_recorders, variational, state)
-    path = InterpolatingPath(variational, path.target)
-    return path
+    return InterpolatingPath(variational, path.target, path.interpolator)
 end
-
