@@ -22,7 +22,7 @@ jobs:
 
       - name: Run benchmarking
         run: |
-          julia test/benchmark.jl > test/benchmark.csv
+          julia bench/benchmark.jl > bench/benchmark.csv
 
       - name: Commit new benchmark results
         uses: stefanzweifel/git-auto-commit-action@v5

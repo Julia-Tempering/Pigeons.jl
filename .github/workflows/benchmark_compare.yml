@@ -27,11 +27,11 @@ jobs:
 
       - name: Run benchmarking
         run: |
-          julia test/benchmark.jl > test/benchmark_new.csv
+          julia bench/benchmark.jl > bench/benchmark_new.csv
 
       - name: Compare old/new results
         run: |
-          julia test/compare_benchmarks.jl > out.md
+          julia bench/compare_benchmarks.jl > out.md
 
       - name: Post benchmark comparison to PR thread
         uses: mshick/add-pr-comment@v2.8.1

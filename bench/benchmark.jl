@@ -1,9 +1,9 @@
 # usage: julia test/benchmark.jl > test_results.csv
 
 using Pkg
-script_dir = @__DIR__
-Pkg.activate(script_dir)
-parent_dir = dirname(script_dir)
+bench_dir = @__DIR__
+Pkg.activate(bench_dir)
+parent_dir = dirname(bench_dir)
 Pkg.develop(PackageSpec(path=parent_dir))
 
 println("test_name,time_s,memory_B")

@@ -1,16 +1,13 @@
 using Pkg
-script_dir = @__DIR__
-Pkg.activate(script_dir)
-Pkg.add(["DataFrames", "PrettyTables", "CSV"])
-parent_dir = dirname(script_dir)
+bench_dir = @__DIR__
+Pkg.activate(bench_dir)
+parent_dir = dirname(bench_dir)
 Pkg.develop(PackageSpec(path=parent_dir))
-
-using DataFrames, PrettyTables, CSV
 
 function main()
     # load the two results dataframes
-    results = DataFrame(CSV.File("test/benchmark.csv"))
-    results_new = DataFrame(CSV.File("test/benchmark_new.csv"))
+    results = DataFrame(CSV.File("bench/benchmark.csv"))
+    results_new = DataFrame(CSV.File("bench/benchmark_new.csv"))
     
     # outer join (to account for new/removed tests)
     results_compared = outerjoin(results, results_new, on=:test_name, renamecols = "_old" => "_new")
