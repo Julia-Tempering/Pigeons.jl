@@ -29,7 +29,7 @@ function benchmark(lambda::Function, test_name::String)
 end
 
 using_time = @timed using Pigeons 
-benchmark(using_time.time, using_time.mem, "using Pigeons")
+benchmark(using_time.time, using_time.bytes, "using Pigeons")
 
 benchmark("mvn-1000") do 
     pigeons(target = toy_mvn_target(1000), show_report = false)
