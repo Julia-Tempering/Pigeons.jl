@@ -28,12 +28,14 @@ function main()
     results_compared = results_compared[:, ["test_name", "time_s_old", "time_s_new", "time_s_pct", "memory_B_old", "memory_B_new", "memory_B_pct"]]
     
     # nicer names for the columns
-    new_names = Dict(:test_name => "Test", :time_s_new => "New Time<br>[s]", :time_s_old => "Old Time<br>[s]",
+    new_names = Dict(:test_name => "Benchmark", :time_s_new => "New Time<br>[s]", :time_s_old => "Old Time<br>[s]",
                      :memory_B_new => "New Memory<br>[B]", :memory_B_old => "Old Memory<br>[B]",
     		 :time_s_pct => "ΔTime<br>[%]", :memory_B_pct => "ΔMemory<br>[%]")
     rename!(results_compared, new_names)
     
     # output the markdown representation
+	println("Benchmarking Results")
+	println("(all values are medians reported over 10 trials)")
     results_str = pretty_table(String, results_compared; backend=Val(:markdown))
 
     # remove datatypes and "nothing" at the end

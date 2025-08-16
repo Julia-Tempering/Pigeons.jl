@@ -10,15 +10,26 @@ include("setup.jl")
 
 println("test_name,time_s,memory_B")
 
-benchmark(timing, test_name::String) = println("$test_name,$(timing.time),$(timing.bytes)")
+benchmark(time, mem, test_name::String) = println("$test_name,$time,$mem")
 
 function benchmark(lambda::Function, test_name::String)
-    benchmark(@timed(lambda()), test_name)
-    benchmark(@timed(lambda()), test_name * " (second call)")
+	# collect timing for first run including compilation
+	first_timing = @timed lambda()
+	benchmark(first_timing.time, first_timing.bytes, test_name)
+
+	# collect median time across 10 trials of precompiled run
+	times = []
+	mems = []
+	for i=1:10
+		timing = @timed lambda()
+		append!(times, timing.time)
+		append!(mems, timing.bytes)
+	end
+	benchmark(median(times), median(mems), test_name * " (second call)")
 end
 
-include_timing = @timed using Pigeons 
-benchmark(include_timing, "using Pigeons")
+using_time = @timed using Pigeons 
+benchmark(using_time.time, using_time.mem, "using Pigeons")
 
 benchmark("mvn-1000") do 
     pigeons(target = toy_mvn_target(1000), show_report = false)
