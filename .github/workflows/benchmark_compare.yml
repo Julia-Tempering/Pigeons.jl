@@ -15,8 +15,7 @@ on:
 
 jobs:
   benchmark:
-    runs-on: ubuntu-latest
-    # runs-on: self-hosted
+    runs-on: self-hosted
     timeout-minutes: 60	
     steps:
       - name: Checkout
@@ -28,10 +27,13 @@ jobs:
       - name: Run benchmarking
         run: |
           julia bench/benchmark.jl > bench/benchmark_new.csv
+          julia -e "using InteractiveUtils; versioninfo(verbose=true)" > bench/benchmark_metainfo_new.log
 
       - name: Compare old/new results
         run: |
           julia bench/compare_benchmarks.jl > out.md
+          echo "\nBenchmark Metainfo Diff" >> out.md
+          diff bench/benchmark_metainfo.log bench/benchmark_metainfo_new.log >> out.md
 
       - name: Post benchmark comparison to PR thread
         uses: mshick/add-pr-comment@v2.8.1
