@@ -1,6 +1,5 @@
 # use single statement to avoid multiple precompile stages
-using Pigeons,
-    ADTypes,
+using ADTypes,
     ArgMacros,
     Bijectors,
     BridgeStan,
