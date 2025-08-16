@@ -28,6 +28,7 @@ jobs:
         run: |
           julia bench/benchmark.jl > bench/benchmark_new.csv
           julia -e "using InteractiveUtils; versioninfo(verbose=true)" > bench/benchmark_metainfo_new.log
+          sed -i '/Environment:/,$d' bench/benchmark_metainfo_new.log
 
       - name: Compare old/new results
         run: |
