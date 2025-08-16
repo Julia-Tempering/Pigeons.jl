@@ -32,10 +32,10 @@ jobs:
       - name: Compare old/new results
         run: |
           julia bench/compare_benchmarks.jl > out.md
-          echo "\nBenchmark Metainfo Diff" >> out.md
-          echo "```diff" >> out.md
+          echo "Benchmark Metainfo Diff" >> out.md
+          echo "\`\`\`diff" >> out.md
           diff -u bench/benchmark_metainfo.log bench/benchmark_metainfo_new.log >> out.md || :
-          echo "```" >> out.md
+          echo "\`\`\`" >> out.md
 
       - name: Post benchmark comparison to PR thread
         uses: mshick/add-pr-comment@v2.8.1
