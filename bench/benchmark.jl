@@ -6,6 +6,8 @@ Pkg.activate(bench_dir)
 parent_dir = dirname(bench_dir)
 Pkg.develop(PackageSpec(path=parent_dir))
 
+include("setup.jl")
+
 println("test_name,time_s,memory_B")
 
 benchmark(timing, test_name::String) = println("$test_name,$(timing.time),$(timing.bytes)")

@@ -4,6 +4,8 @@ Pkg.activate(bench_dir)
 parent_dir = dirname(bench_dir)
 Pkg.develop(PackageSpec(path=parent_dir))
 
+include("setup.jl")
+
 function main()
     # load the two results dataframes
     results = DataFrame(CSV.File("bench/benchmark.csv"))
