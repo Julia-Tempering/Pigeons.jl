@@ -34,8 +34,8 @@ function main()
     rename!(results_compared, new_names)
     
     # output the markdown representation
-	println("Benchmarking Results")
-	println("(all values are medians reported over 10 trials)")
+    println("Benchmarking Results")
+    println("All values are medians reported over 10 trials (except the 'using Pigeons' benchmark, which is run only once)")
     results_str = pretty_table(String, results_compared; backend=Val(:markdown))
 
     # remove datatypes and "nothing" at the end
