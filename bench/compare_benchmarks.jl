@@ -12,15 +12,15 @@ function print_single(val, side)
         if !ismissing(val)
     	    s *= @sprintf "%.2g" val
         else
-            s *= "X"
+            s *= "\\circ"
         end
-        s *= "\\to X"
+        s *= "\\to \\circ"
     else
-        s *= "X \\to"
+        s *= "\\circ \\to"
         if !ismissing(val)
             s *= @sprintf "%.2g" val
         else
-            s *= "X"
+            s *= "\\circ"
         end
     end
     s *= "\$"
@@ -39,13 +39,16 @@ function print_diff(old, new; lower_better=true)
     if !ismissing(old)
     	s *= @sprintf "%.2g" old
     else
-        s *= "X"
+        s *= "\\circ"
     end
     s *= "\\to"
     if !ismissing(new)
     	s *= @sprintf "%.2g" new
     else
-        s *= "X"
+        s *= "\\circ"
+    end
+    if !ismissing(new) && !ismissing(old) && old != 0
+        s *= "\\\\,\\\\,($(Int(round((new-old)/old*100)))\\\\%)"
     end
     s *= "\$"
     return s
@@ -97,7 +100,8 @@ function main()
     # output the markdown representation
     println("Benchmarking Results")
     println("All values are medians reported over 10 trials (except the 'using Pigeons' benchmark, which is run only once)")
-    println("X values either previously did not exist (left hand side of arrow) or have been deleted (right hand side of arrow)")
+    println("Green values indicate improved performance, red values indicate degraded performance")
+    println("\$\\circ\$ values either previously did not exist (left hand side of arrow) or have been deleted (right hand side of arrow)")
     results_str = pretty_table(String, results_clean; backend=Val(:markdown), header_alignment=:c)
 
     # remove datatypes and "nothing" at the end
