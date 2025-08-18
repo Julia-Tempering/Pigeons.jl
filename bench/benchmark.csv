@@ -1,4 +1,6 @@
 test_name,time_s,memory_B
+metainfo,Time<br>[s],Memory<br>[B]
+metainfo,lower,lower
 using Pigeons,1.94635339,99122392
 mvn-1000,7.489034165,510336560
 mvn-1000 (second call),0.083454934,1216240

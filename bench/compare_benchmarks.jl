@@ -6,43 +6,83 @@ Pkg.develop(PackageSpec(path=parent_dir))
 
 include("setup.jl")
 
+function print_single(val, color)
+    s = "\$\\color{$color}"
+    s *= @sprintf "%.2g" val
+    s *= "\$"
+    return s
+end
+
+function print_diff(old, new; lower_better=true)
+    s = "\$"
+    if (lower_better && new <= old) || (!lower_better && old <= new)
+        s *= "\\color{green}"
+    else
+        s *= "\\color{red}"
+    end
+    s *= @sprintf "%.2g" old
+    s *= "\\to"
+    s *= @sprintf "%.2g" new
+    s *= "\$"
+    return s
+end
+     
 function main()
-    # load the two results dataframes
-    results = DataFrame(CSV.File("bench/benchmark.csv"))
-    results_new = DataFrame(CSV.File("bench/benchmark_new.csv"))
-    
+    # load the CSV files
+    # first two data rows are metainfo: human-readable column titles, lower/higher better
+    meta_csv = CSV.File("bench/benchmark.csv")
+    meta_new_csv = CSV.File("bench/benchmark_new.csv")
+
+    # every row after that are benchmarking data rows
+    results = DataFrame(CSV.File("bench/benchmark.csv", skipto=4))
+    results_new = DataFrame(CSV.File("bench/benchmark_new.csv", skipto=4))
+
+    # get all column names across old and new results
+    allnames = union(names(results), names(results_new))
+
     # outer join (to account for new/removed tests)
     results_compared = outerjoin(results, results_new, on=:test_name, renamecols = "_old" => "_new")
+
+    results_clean = DataFrame()
+    human_readable_names = Dict("test_name" => "Benchmark")
+    for nm in allnames
+        # if the column is for test names, just skip
+        if nm == "test_name"
+            results_clean[!,nm] = results_compared[!,nm]
+        # if both old and new have this column
+        elseif nm * "_old" in names(results_compared) && nm * "_new" in names(results_compared)
+            lower = (meta_new_csv[nm][2] == "lower")
+            results_clean[!,nm] = print_diff.(results_compared[!,nm*"_old"], results_compared[!,nm*"_new"], lower_better = lower)
+            human_readable_names[nm] = meta_new_csv[nm][1]
+        # if only old has column
+        elseif nm * "_old" in names(results_compared) 
+            results_clean[!,nm] = print_single.(results_compared[!,nm*"_old"], "red")
+            human_readable_names[nm] = meta_csv[nm][1]
+        # if only new has column
+        elseif nm * "_new" in names(results_compared)
+            results_clean[!,nm] = print_single.(results_compared[!,nm*"_new"], "green")
+            human_readable_names[nm] = meta_new_csv[nm][1]
+        # error, one of them should have the name
+        else
+            error("name must be in one of the dataframes")
+        end
+    end
+    rename!(results_clean, human_readable_names)
     
-    # compute the percentage change in time/mem
-    results_compared.time_s_pct = round.(100 * (results_compared.time_s_new .- results_compared.time_s_old) ./ results_compared.time_s_old, digits=2)
-    results_compared.memory_B_pct = round.(100 * (results_compared.memory_B_new .- results_compared.memory_B_old) ./ results_compared.memory_B_old, digits=2)
-    
-    # round old/new results to 2 significant figures
-    results_compared.time_s_new = round.(results_compared.time_s_new, sigdigits=2)
-    results_compared.time_s_old = round.(results_compared.time_s_old, sigdigits=2)
-    results_compared.memory_B_new = round.(results_compared.memory_B_new, sigdigits=2)
-    results_compared.memory_B_old = round.(results_compared.memory_B_old, sigdigits=2)
-    
-    # order the columns nicely
-    results_compared = results_compared[:, ["test_name", "time_s_old", "time_s_new", "time_s_pct", "memory_B_old", "memory_B_new", "memory_B_pct"]]
-    
-    # nicer names for the columns
-    new_names = Dict(:test_name => "Benchmark", :time_s_new => "New Time<br>[s]", :time_s_old => "Old Time<br>[s]",
-                     :memory_B_new => "New Memory<br>[B]", :memory_B_old => "Old Memory<br>[B]",
-    		 :time_s_pct => "ΔTime<br>[%]", :memory_B_pct => "ΔMemory<br>[%]")
-    rename!(results_compared, new_names)
     
     # output the markdown representation
     println("Benchmarking Results")
     println("All values are medians reported over 10 trials (except the 'using Pigeons' benchmark, which is run only once)")
-    results_str = pretty_table(String, results_compared; backend=Val(:markdown))
+    results_str = pretty_table(String, results_clean; backend=Val(:markdown), header_alignment=:c)
 
     # remove datatypes and "nothing" at the end
-    to_remove = ["nothing", "<br>`Float64`", "<br>`String31`", "<br>`Int64`"]
+    to_remove = ["nothing", "<br>`Float64`", "<br>`String31`", "<br>`Int64`","<br>`String`"]
     for s in to_remove
     	results_str = replace(results_str, s => "")
     end
+    # change scientific notation to be latex friendly
+    results_str = replace(results_str, "e+" => "\\mathrm{e}")
+    results_str = replace(results_str, "e-" => "\\mathrm{e}-")
     
     # print the result
     println(results_str)
