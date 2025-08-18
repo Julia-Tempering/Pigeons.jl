@@ -6,23 +6,47 @@ Pkg.develop(PackageSpec(path=parent_dir))
 
 include("setup.jl")
 
-function print_single(val, color)
-    s = "\$\\color{$color}"
-    s *= @sprintf "%.2g" val
+function print_single(val, side)
+    s = "\$"
+    if side == "left"
+        if !ismissing(val)
+    	    s *= @sprintf "%.2g" val
+        else
+            s *= "X"
+        end
+        s *= "\\to X"
+    else
+        s *= "X \\to"
+        if !ismissing(val)
+            s *= @sprintf "%.2g" val
+        else
+            s *= "X"
+        end
+    end
     s *= "\$"
     return s
 end
 
 function print_diff(old, new; lower_better=true)
     s = "\$"
-    if (lower_better && new <= old) || (!lower_better && old <= new)
-        s *= "\\color{green}"
-    else
-        s *= "\\color{red}"
+    if !ismissing(old) && !ismissing(new)
+        if (lower_better && new <= old) || (!lower_better && old <= new)
+            s *= "\\color{green}"
+        else
+            s *= "\\color{red}"
+        end
     end
-    s *= @sprintf "%.2g" old
+    if !ismissing(old)
+    	s *= @sprintf "%.2g" old
+    else
+        s *= "X"
+    end
     s *= "\\to"
-    s *= @sprintf "%.2g" new
+    if !ismissing(new)
+    	s *= @sprintf "%.2g" new
+    else
+        s *= "X"
+    end
     s *= "\$"
     return s
 end
@@ -56,11 +80,11 @@ function main()
             human_readable_names[nm] = meta_new_csv[nm][1]
         # if only old has column
         elseif nm * "_old" in names(results_compared) 
-            results_clean[!,nm] = print_single.(results_compared[!,nm*"_old"], "red")
+            results_clean[!,nm] = print_single.(results_compared[!,nm*"_old"], "left")
             human_readable_names[nm] = meta_csv[nm][1]
         # if only new has column
         elseif nm * "_new" in names(results_compared)
-            results_clean[!,nm] = print_single.(results_compared[!,nm*"_new"], "green")
+            results_clean[!,nm] = print_single.(results_compared[!,nm*"_new"], "right")
             human_readable_names[nm] = meta_new_csv[nm][1]
         # error, one of them should have the name
         else
@@ -73,6 +97,7 @@ function main()
     # output the markdown representation
     println("Benchmarking Results")
     println("All values are medians reported over 10 trials (except the 'using Pigeons' benchmark, which is run only once)")
+    println("X values either previously did not exist (left hand side of arrow) or have been deleted (right hand side of arrow)")
     results_str = pretty_table(String, results_clean; backend=Val(:markdown), header_alignment=:c)
 
     # remove datatypes and "nothing" at the end
