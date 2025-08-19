@@ -48,7 +48,7 @@ function print_diff(old, new; lower_better=true)
         s *= "\\circ"
     end
     if !ismissing(new) && !ismissing(old) && old != 0
-        s *= "\\\\,\\\\,($(Int(round((new-old)/old*100)))\\\\%)"
+        s *= "\\\\,\\\\,($(Int(abs(round((new-old)/old*100))))\\\\%)"
     end
     s *= "\$"
     return s
