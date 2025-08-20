@@ -1,7 +1,16 @@
 #=
 Tweak of JuliaBUGS.getparams to allow for flattened vectors of mixed type
+Adapts to JuliaBUGS 0.10 API changes (parameters as accessor, GraphEvaluationData fields).
+Also hardens mixed-type eltype inference to handle scalars and arrays.
 =#
-type_join_eval_env(env) = typejoin(Set(eltype(v) for v in env)...)
+function type_join_eval_env(env)
+    T = Union{}
+    for v in env
+        tv = v isa AbstractArray ? eltype(v) : typeof(v)
+        T = promote_type(T, tv)
+    end
+    return T
+end
 function getparams(model::JuliaBUGS.BUGSModel)
     param_length = if model.transformed
         model.transformed_param_length
@@ -15,7 +24,8 @@ function getparams(model::JuliaBUGS.BUGSModel)
     TMix = type_join_eval_env(model.evaluation_env)
     param_vals = Vector{TMix}(undef, param_length)
     pos = 1
-    for v in model.parameters
+    # Use the parameter order consistent with logdensity evaluation
+    for v in model.graph_evaluation_data.sorted_parameters
         if !model.transformed
             val = AbstractPPL.get(model.evaluation_env, v)
             len = model.untransformed_var_lengths[v]
@@ -43,21 +53,19 @@ function getparams(model::JuliaBUGS.BUGSModel)
 end
 
 function make_private_model_copy(model::JuliaBUGS.BUGSModel)
+    # Deep copy graph and evaluation environment; rebuild GraphEvaluationData
     g = deepcopy(model.g)
-    parameters = model.parameters
-    sorted_nodes = model.flattened_graph_node_data.sorted_nodes
+    sorted_nodes = model.graph_evaluation_data.sorted_nodes
+    new_graph_eval_data = JuliaBUGS.Model.GraphEvaluationData(g, sorted_nodes)
+    new_env = deepcopy(model.evaluation_env)
+    new_mutable_symbols = JuliaBUGS.Model.get_mutable_symbols(new_graph_eval_data)
+
+    # Use keyword copy-constructor to avoid positional field mismatches
     return JuliaBUGS.BUGSModel(
-        model.transformed,
-        sum(model.untransformed_var_lengths[v] for v in parameters),
-        sum(model.transformed_var_lengths[v] for v in parameters),
-        model.untransformed_var_lengths,
-        model.transformed_var_lengths,
-        deepcopy(model.evaluation_env),
-        parameters,
-        JuliaBUGS.FlattenedGraphNodeData(g, sorted_nodes),
-        g,
-        nothing,
-        model.model_def,
-        model.data
+        model;
+        g = g,
+        evaluation_env = new_env,
+        graph_evaluation_data = new_graph_eval_data,
+        mutable_symbols = new_mutable_symbols,
     )
 end

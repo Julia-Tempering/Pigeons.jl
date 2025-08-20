@@ -60,15 +60,18 @@ end
 
 # log_potential evaluation
 (log_potential::JuliaBUGSLogPotential)(flattened_values) =
-    try 
-        log_prior, _, tempered_log_joint = last(
-            JuliaBUGS._tempered_evaluate!!(
-                log_potential.private_model, 
-                flattened_values;
-                temperature=log_potential.beta
-            )
+    try
+        # Evaluate at given values using JuliaBUGS 0.10 API
+        # We need both logprior and tempered_logjoint (for beta==0 and beta>0 cases)
+        _, log_densities = JuliaBUGS.evaluate_with_values!!(
+            log_potential.private_model,
+            flattened_values;
+            temperature=log_potential.beta,
+            transformed=log_potential.private_model.transformed,
         )
-        # avoid potential 0*Inf (= NaN) 
+        log_prior = log_densities.logprior
+        tempered_log_joint = log_densities.tempered_logjoint
+        # avoid potential 0*Inf (= NaN)
         return iszero(log_potential.beta) ? log_prior : tempered_log_joint
     catch e
         (isa(e, DomainError) || isa(e, BoundsError)) && return -Inf
@@ -81,8 +84,8 @@ function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shar
 end
 
 # parameter names
-Pigeons.sample_names(::Vector, log_potential::JuliaBUGSLogPotential) = 
-    [(Symbol(string(vn)) for vn in log_potential.private_model.parameters)...,:log_density]
+Pigeons.sample_names(::Vector, log_potential::JuliaBUGSLogPotential) =
+    [(Symbol(string(vn)) for vn in JuliaBUGS.parameters(log_potential.private_model))...,:log_density]
 
 # Parallelism invariance
 Pigeons.recursive_equal(a::Union{JuliaBUGSPath,JuliaBUGSLogPotential}, b) =
