@@ -28,7 +28,7 @@ end
     @test length(tree) == 4
     
     expected = [(4, dummy, 1,5), (10, dummy, 5, 4), (8, dummy, 4, 2), (9, dummy, 5, 3)]
-    for edge in expected
+    for edge in tree
         @test edge in expected
     end
 end
