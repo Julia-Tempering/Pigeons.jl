@@ -33,7 +33,7 @@ using_result = @timed using Pigeons
 benchmark(using_result.time, using_result.bytes, 0, 0, "using Pigeons")
 
 # settings building blocks
-n_rounds = 13 
+n_rounds = 10 
 n_chains = 10 # do not set higher than # cpus since we do MPI experiments
 effort = dry_run ? (; n_rounds = 2, n_chains = 2) : (; n_rounds, n_chains)
 base_settings = (; show_report = false, record = [traces; round_trip; record_default()], effort...)
