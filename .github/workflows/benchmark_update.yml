@@ -22,7 +22,7 @@ jobs:
       - name: Run benchmarking
         run: |
           julia bench/benchmark.jl > bench/benchmark.csv
-          julia -e "using InteractiveUtils; versioninfo(verbose=true)" > bench/benchmark_metainfo.log
+          julia -e "using InteractiveUtils; versioninfo()" > bench/benchmark_metainfo.log
           sed -i '/Environment:/,$d' bench/benchmark_metainfo.log
 
 
