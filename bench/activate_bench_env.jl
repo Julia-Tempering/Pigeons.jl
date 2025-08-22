@@ -17,15 +17,15 @@ project_root_dir = dirname(bench_dir)
 Pkg.develop(PackageSpec(path=project_root_dir))
 
 # TODO: change this, it will be registered shortly
-Pkg.add(url="https://github.com/Julia-Tempering/InferenceTargets", rev = "bd32af8e787961442ea0288b955abf466e10f96c")
+Pkg.add(url="https://github.com/Julia-Tempering/InferenceTargets", rev = "c449bb47694074742ae49ada2d4588361292429b")
 using InferenceTargets
 for collection in [:PigeonsExamples, :PosteriorDBTargets, :TuringPigeonsExamples]
     Pkg.add(InferenceTargets.registry[collection])
 end
 # we need to do this since we don't want to commit the Project.toml 
-# because we add non-registered packages as we go, and this would 
-# be easy to accidentally commit those changes. In turn they cause 
-# crash in CI. 
+# as we are adding non-registered packages. Without this, it would 
+# be easy to accidentally commit those non-registered to Project.toml.  
+# In turn they cause crash in CI since we don't want Manifest.toml committed either. 
 for pkg in ["BridgeStan", "MCMCChains", "Statistics"]
     Pkg.add(pkg)
 end
