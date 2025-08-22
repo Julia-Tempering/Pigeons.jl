@@ -4,7 +4,7 @@ Pkg.activate(bench_dir)
 parent_dir = dirname(bench_dir)
 Pkg.develop(PackageSpec(path=parent_dir))
 
-include("setup.jl")
+include("activate_bench_env.jl")
 
 function print_single(val, side)
     s = "\$"
