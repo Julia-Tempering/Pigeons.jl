@@ -99,7 +99,7 @@ function main()
     
     # output the markdown representation
     println("Benchmarking Results")
-    println("All values are medians reported over 10 trials (except the 'using Pigeons' benchmark, which is run only once)")
+    println("All values are medians reported over 5 trials (except the 'using Pigeons' benchmark, which is run only once)")
     println("Green values indicate improved performance, red values indicate degraded performance")
     println("\$\\circ\$ values either previously did not exist (left hand side of arrow) or have been deleted (right hand side of arrow)")
     results_str = pretty_table(String, results_clean; backend=Val(:markdown), header_alignment=:c)
@@ -111,7 +111,7 @@ function main()
     end
     # change scientific notation to be latex friendly
     results_str = replace(results_str, "e+" => "\\mathrm{e}")
-    results_str = replace(results_str, "e-" => "\\mathrm{e}-")
+	results_str = replace(results_str, "e-" => "\\mathrm{e}\\text{-}")
     
     # print the result
     println(results_str)

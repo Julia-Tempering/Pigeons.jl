@@ -9,6 +9,7 @@ on:
       - 'Project.toml'
       - 'src/**'
       - 'ext/**'
+      - 'bench/**'
     branches:
       - 'main'
 
@@ -16,7 +17,6 @@ on:
 jobs:
   benchmark:
     runs-on: self-hosted
-    timeout-minutes: 60	
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
 
       - name: Run benchmarking
         run: |
-          julia bench/benchmark.jl > bench/benchmark_new.csv
+          julia bench/benchmark.jl bench/benchmark_new.csv
           julia -e "using InteractiveUtils; versioninfo()" > bench/benchmark_metainfo_new.log
           sed -i '/Environment:/,$d' bench/benchmark_metainfo_new.log
 
