@@ -40,4 +40,5 @@ using   BridgeStan,
         Printf,
         PosteriorDBTargets,
         Statistics,
-        TuringPigeonsExamples
+        TuringPigeonsExamples,
+        Suppressor

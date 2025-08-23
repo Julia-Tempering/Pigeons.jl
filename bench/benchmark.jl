@@ -50,13 +50,13 @@ base_settings = (; show_report = true, record = [traces; round_trip; record_defa
 # first, a basic suite of quick native targets 
 for targetId in find_targetIds(PigeonsExamples)
 	target = load_target(PigeonsExamples, targetId)
-	benchmark(string(targetId)) do seed
+	benchmark("pigeons-"*string(targetId)) do seed
 		pigeons(; target, seed=seed, base_settings...) 
 	end
 end
 
 # Stan MPI processes
-benchmark("stan_8schools-mpi") do seed
+benchmark("stan-8schools-mpi") do seed
 	Pigeons.load(pigeons(; 
 		target = load_target(PosteriorDBTargets, "eight_schools-eight_schools_centered"), 
 		checkpoint = true, 
@@ -69,9 +69,9 @@ end
 
 # a few more interesting Stan targets
 more_stan_targets = [
-	"stan_lotka" => "hudson_lynx_hare-lotka_volterra", 
-	"stan_gp"    => "gp_pois_regr-gp_regr", 
-	"stan_garch" => "garch-garch11"
+	"stan-lotka" => "hudson_lynx_hare-lotka_volterra", 
+	"stan-gp"    => "gp_pois_regr-gp_regr", 
+	"stan-garch" => "garch-garch11"
 ]
 for (short_name, targetId) in collect(more_stan_targets)
 	target = load_target(PosteriorDBTargets, targetId)
@@ -85,7 +85,7 @@ for targetId in find_targetIds(TuringPigeonsExamples)
 	if targetId != :galaxy &&        # TODO: galaxy example leads to a bug with MCMChains (mismatch dim caused by simplex variable?)
 	   targetId != :iid_normal_1000  # too slow
 		target = load_target(TuringPigeonsExamples, targetId)
-		benchmark("$targetId") do seed
+		benchmark("turing-$targetId") do seed
 			pigeons(; target, seed=seed, base_settings...) 
 		end
 	end
