@@ -3,15 +3,15 @@ module PigeonsJuliaBUGSExt
 using Pigeons
 if isdefined(Base, :get_extension)
     import JuliaBUGS
-    using AbstractPPL # only need because we rewrite JuliaBUGS.getparams
-    using Bijectors # only need because we rewrite JuliaBUGS.getparams
+    using AbstractPPL # needed for AbstractPPL.get and parameter access
+    using Bijectors # needed for transformations in getparams
     using DocStringExtensions
     using SplittableRandoms: SplittableRandom, split
     using Random
 else
     import ..JuliaBUGS
-    using ..AbstractPPL # only need because we rewrite JuliaBUGS.getparams
-    using ..Bijectors # only need because we rewrite JuliaBUGS.getparams
+    using ..AbstractPPL # needed for AbstractPPL.get and parameter access
+    using ..Bijectors # needed for transformations in getparams
     using ..DocStringExtensions
     using ..SplittableRandoms: SplittableRandom, split
     using ..Random
