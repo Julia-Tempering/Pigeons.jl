@@ -4,9 +4,8 @@
 
 # Initialization and iid sampling
 function evaluate_and_initialize(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
-    # Use JuliaBUGS 0.10 API: evaluate_with_rng!! returns (evaluation_env, log_densities)
     new_env, _ = JuliaBUGS.Model.evaluate_with_rng!!(rng, model)  # sample a new evaluation environment
-    return JuliaBUGS.Model.initialize!(model, new_env)             # set the private_model's environment to the newly created one
+    return JuliaBUGS.initialize!(model, new_env)      # set the private_model's environment to the newly created one
 end
 
 # used for both initializing and iid sampling
@@ -19,7 +18,6 @@ _sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) =
 # Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
 # to call _sample_iid during initialization (**sequentially**, as done as of time
 # of writing) for different Replicas (i.e., they won't share the same state).
-# Default initialization returns Vector state for compatibility with slice sampling
 Pigeons.initialization(target::JuliaBUGSPath, rng::AbstractRNG, _::Int64) =
     _sample_iid(target.model, rng)
 
@@ -38,13 +36,13 @@ temperature parameter.
 
 $FIELDS
 """
-struct JuliaBUGSLogPotential{TMod<:JuliaBUGS.BUGSModel,TF<:AbstractFloat}
+struct JuliaBUGSLogPotential{TMod<:JuliaBUGS.BUGSModel, TF<:AbstractFloat}
     """
     A deep-enough copy of the original model that allows evaluation while
     avoiding race conditions between different Replicas.
     """
     private_model::TMod
-
+    
     """
     Tempering parameter.
     """
@@ -87,12 +85,12 @@ function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, ::Pi
     # Sample new values and initialize the model
     evaluate_and_initialize(log_potential.private_model, replica.rng)
     # Extract flattened parameters as Vector to match the initialization type
-    replica.state = JuliaBUGS.Model.getparams(log_potential.private_model)
+    replica.state = getparams(log_potential.private_model)
 end
 
 # parameter names for Vector state
 Pigeons.sample_names(::Vector, log_potential::JuliaBUGSLogPotential) =
-    [(Symbol(string(vn)) for vn in JuliaBUGS.Model.parameters(log_potential.private_model))..., :log_density]
+    [(Symbol(string(vn)) for vn in JuliaBUGS.parameters(log_potential.private_model))..., :log_density]
 
 # extract samples for Vector state
 Pigeons.extract_sample(state::Vector, log_potential::JuliaBUGSLogPotential) =
@@ -104,3 +102,11 @@ Pigeons.recursive_equal(a::Union{JuliaBUGSPath,JuliaBUGSLogPotential}, b) =
 # just check the betas match, the model is already checked within path
 Pigeons.recursive_equal(a::AbstractVector{<:JuliaBUGSLogPotential}, b) =
     all(lp1.beta == lp2.beta for (lp1, lp2) in zip(a, b))
+
+# BUGSModel-specific equality: compare only stable fields to avoid nondeterminism
+# in evaluation caches and generated functions while preserving true model identity.
+function Pigeons.recursive_equal(a::T, b) where {T<:JuliaBUGS.BUGSModel}
+    included = (:transformed, :model_def, :data)
+    excluded = Tuple(setdiff(fieldnames(T), included))
+    return Pigeons._recursive_equal(a, b, excluded)
+end

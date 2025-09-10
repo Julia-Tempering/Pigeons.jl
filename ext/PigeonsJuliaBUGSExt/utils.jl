@@ -1,8 +1,72 @@
 #=
-We directly use JuliaBUGS.Model.getparams from JuliaBUGS 0.10
-which properly handles parameter extraction with the correct ordering.
+Custom getparams for JuliaBUGS.BUGSModel that preserves parameter element
+types (e.g., keeps Int parameters as Int instead of promoting to Float64)
+while following JuliaBUGS 0.10’s ordering and length semantics.
+
+Returns a single-typed vector (e.g., Vector{Real} when mixing Int and Float),
+matching Pigeons’ historical behavior.
 =#
-getparams(model::JuliaBUGS.BUGSModel) = JuliaBUGS.Model.getparams(model)
+
+local_param_eltype(x) = x isa AbstractArray ? eltype(x) : typeof(x)
+
+function _infer_param_element_type(
+    model::JuliaBUGS.BUGSModel,
+    evaluation_env=model.evaluation_env,
+)
+    tmix = Union{}
+    for v in JuliaBUGS.Model.parameters(model)
+        if !model.transformed
+            val = AbstractPPL.get(evaluation_env, v)
+            T = local_param_eltype(val)
+        else
+            (; node_function, loop_vars) = model.g[v]
+            dist = node_function(evaluation_env, loop_vars)
+            transformed_value = Bijectors.transform(
+                Bijectors.bijector(dist), AbstractPPL.get(evaluation_env, v)
+            )
+            T = local_param_eltype(transformed_value)
+        end
+        tmix = tmix === Union{} ? T : typejoin(tmix, T)
+    end
+    return tmix === Union{} ? Float64 : tmix
+end
+
+function getparams(model::JuliaBUGS.BUGSModel, evaluation_env=model.evaluation_env)
+    param_length = if model.transformed
+        model.transformed_param_length
+    else
+        model.untransformed_param_length
+    end
+
+    TMix = _infer_param_element_type(model, evaluation_env)
+    param_vals = Vector{TMix}(undef, param_length)
+    pos = 1
+    for v in JuliaBUGS.Model.parameters(model)
+        if !model.transformed
+            val = AbstractPPL.get(evaluation_env, v)
+            len = model.untransformed_var_lengths[v]
+            if val isa AbstractArray
+                copyto!(param_vals, pos, vec(val), 1, len)
+            else
+                param_vals[pos] = val
+            end
+        else
+            (; node_function, loop_vars) = model.g[v]
+            dist = node_function(evaluation_env, loop_vars)
+            transformed_value = Bijectors.transform(
+                Bijectors.bijector(dist), AbstractPPL.get(evaluation_env, v)
+            )
+            len = model.transformed_var_lengths[v]
+            if transformed_value isa AbstractArray
+                copyto!(param_vals, pos, vec(transformed_value), 1, len)
+            else
+                param_vals[pos] = transformed_value
+            end
+        end
+        pos += len
+    end
+    return param_vals
+end
 
 function make_private_model_copy(model::JuliaBUGS.BUGSModel)
     # Deep copy graph and evaluation environment; rebuild GraphEvaluationData
