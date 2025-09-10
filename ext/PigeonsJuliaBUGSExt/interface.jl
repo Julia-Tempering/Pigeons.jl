@@ -8,18 +8,16 @@ function evaluate_and_initialize(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
     return JuliaBUGS.initialize!(model, new_env)      # set the private_model's environment to the newly created one
 end
 
-# used for both initializing and iid sampling
-# Note: state is a flattened vector of the parameters
-# Also, the vector is **concretely typed**. This means that if the evaluation
-# environment contains floats and integers, the latter will be cast to float.
-_sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) = 
-    getparams(evaluate_and_initialize(model, rng)) # flatten the unobserved parameters in the model's eval environment and return
+# Draw a single prior sample and return flattened parameters
+sample_params_from_prior(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) =
+    getparams(evaluate_and_initialize(model, rng))
+
 
 # Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
 # to call _sample_iid during initialization (**sequentially**, as done as of time
 # of writing) for different Replicas (i.e., they won't share the same state).
 Pigeons.initialization(target::JuliaBUGSPath, rng::AbstractRNG, _::Int64) =
-    _sample_iid(target.model, rng)
+    sample_params_from_prior(target.model, rng)
 
 # target is already a Path
 Pigeons.create_path(target::JuliaBUGSPath, ::Inputs) = target
@@ -82,10 +80,9 @@ end
 
 # iid sampling - extract parameters as Vector to match initialization type
 function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, ::Pigeons.Shared)
-    # Sample new values and initialize the model
-    evaluate_and_initialize(log_potential.private_model, replica.rng)
-    # Extract flattened parameters as Vector to match the initialization type
-    replica.state = getparams(log_potential.private_model)
+    # Draw exactly from the reference (prior) when beta=0
+    # Reference chains are the only ones for which sample_iid! is invoked.
+    replica.state = sample_params_from_prior(log_potential.private_model, replica.rng)
 end
 
 # parameter names for Vector state
@@ -109,4 +106,99 @@ function Pigeons.recursive_equal(a::T, b) where {T<:JuliaBUGS.BUGSModel}
     included = (:transformed, :model_def, :data)
     excluded = Tuple(setdiff(fieldnames(T), included))
     return Pigeons._recursive_equal(a, b, excluded)
+end
+
+#######################################
+# Robustness for log-ratio evaluation
+#######################################
+
+# Numerically robust log-ratio for a vector of JuliaBUGS log-potentials.
+#
+# Rationale:
+# - At support boundaries, the same state evaluated at two betas can give
+#   lp_num == -Inf and lp_den == -Inf (or both Inf). The default lp_num - lp_den
+#   becomes (-Inf) - (-Inf) or (Inf - Inf) which is NaN.
+# - These NaNs would leak into swap statistics and PT adaptation, tripping the
+#   “no NaN log potentials” test and destabilizing schedules.
+# Policy:
+# - If both sides are infinite with the same sign, return 0.0 (ratio 1.0) to
+#   stay well-defined and avoid NaNs. Otherwise, compute the normal difference.
+function Pigeons.log_unnormalized_ratio(
+    lps::AbstractVector{<:JuliaBUGSLogPotential},
+    numerator::Int,
+    denominator::Int,
+    state,
+)
+    lp_num = lps[numerator](state)
+    lp_den = lps[denominator](state)
+    if (lp_num == -Inf && lp_den == -Inf) || (lp_num == Inf && lp_den == Inf)
+        # Indeterminate form; map to a neutral, finite value to avoid NaNs.
+        return 0.0
+    end
+    ans = lp_num - lp_den
+    if isnan(ans)
+        # If a NaN still arises, surface a clear error with context.
+        error("Got NaN log-unnormalized ratio; Dumping information:\n\tlp_num=$lp_num\n\tlp_den=$lp_den\n\tState=$state")
+    end
+    return ans
+end
+
+#######################################
+# Robustness for swap acceptance
+#######################################
+
+# Robust swap acceptance for JuliaBUGS paths.
+#
+# Rationale:
+# - Acceptance uses exp(stat1.log_ratio + stat2.log_ratio). With +Inf and -Inf
+#   from two chains, the sum becomes NaN (0/0) and breaks stats/adaptation.
+# Policy:
+# - Finite sum: standard min(1, exp(sum)).
+# - NaN from opposite infinities: treat as 1.0 (neutral accept for 0/0 case).
+# - ±Inf sum: accept if +Inf, reject if -Inf.
+_is_opposite_infinities(a, b) = isinf(a) && isinf(b) && signbit(a) != signbit(b)
+
+function _robust_acceptance(stat1, stat2)
+    s = stat1.log_ratio + stat2.log_ratio
+    if isfinite(s)
+        return min(1.0, exp(s))
+    elseif isnan(s)
+        # (+Inf) + (-Inf) → NaN; interpret as a neutral accept.
+        return _is_opposite_infinities(stat1.log_ratio, stat2.log_ratio) ? 1.0 : 0.0
+    else
+        # s is ±Inf
+        return s > 0 ? 1.0 : 0.0
+    end
+end
+
+# Recorder hook using the robust acceptance above to avoid NaNs in recorded
+# statistics, while still recording the original log-ratios for diagnostics.
+function Pigeons.record_swap_stats!(
+    pair_swapper::AbstractVector{<:JuliaBUGSLogPotential},
+    recorders,
+    chain1::Int,
+    stat1,
+    chain2::Int,
+    stat2,
+)
+    acceptance_pr = _robust_acceptance(stat1, stat2)
+    key1 = (chain1, chain2)
+    key2 = (chain2, chain1)
+    Pigeons.@record_if_requested!(recorders, :swap_acceptance_pr, (key1, acceptance_pr))
+    Pigeons.@record_if_requested!(recorders, :log_sum_ratio, (key1, stat1.log_ratio))
+    Pigeons.@record_if_requested!(recorders, :log_sum_ratio, (key2, stat2.log_ratio))
+end
+
+# Swap decision mirroring the robust acceptance calculation. Identical to the
+# default when the sum is finite; well-defined in indeterminate cases.
+function Pigeons.swap_decision(
+    pair_swapper::AbstractVector{<:JuliaBUGSLogPotential},
+    chain1::Int,
+    stat1,
+    chain2::Int,
+    stat2,
+)
+    acceptance_pr = _robust_acceptance(stat1, stat2)
+    uniform = chain1 < chain2 ? stat1.uniform : stat2.uniform
+    return uniform < acceptance_pr
 end
