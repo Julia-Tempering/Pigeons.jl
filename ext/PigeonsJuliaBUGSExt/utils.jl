@@ -89,26 +89,3 @@ function make_private_model_copy(model::JuliaBUGS.BUGSModel)
         log_density_computation_function = nothing,     # Clear generated function reference
     )
 end
-
-import Serialization: serialize, deserialize
-
-function Serialization.serialize(s::Serialization.AbstractSerializer, path::JuliaBUGSPath{T}) where {T}
-    Serialization.writetag(s.io, Serialization.OBJECT_TAG)
-    Serialization.serialize(s, JuliaBUGSPath)
-    model = path.model
-    Serialization.serialize(s, model.model_def)
-    Serialization.serialize(s, model.data)
-    Serialization.serialize(s, model.evaluation_env)
-    Serialization.serialize(s, model.transformed)
-    return nothing
-end
-
-function Serialization.deserialize(s::Serialization.AbstractSerializer, ::Type{JuliaBUGSPath})
-    model_def = Serialization.deserialize(s)
-    data = Serialization.deserialize(s)
-    evaluation_env = Serialization.deserialize(s)
-    transformed = Serialization.deserialize(s)
-    model = JuliaBUGS.compile(model_def, data, evaluation_env; skip_validation=true)
-    model = JuliaBUGS.settrans(model, transformed)
-    return JuliaBUGSPath(model)
-end

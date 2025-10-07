@@ -8,7 +8,6 @@ if isdefined(Base, :get_extension)
     using DocStringExtensions
     using SplittableRandoms: SplittableRandom, split
     using Random
-    import Serialization
 else
     import ..JuliaBUGS
     using ..AbstractPPL # needed for AbstractPPL.get and parameter access
@@ -16,7 +15,6 @@ else
     using ..DocStringExtensions
     using ..SplittableRandoms: SplittableRandom, split
     using ..Random
-    import ..Serialization
 end
 
 include(joinpath(@__DIR__, "utils.jl"))
