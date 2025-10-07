@@ -83,16 +83,24 @@ end
 
 # internal
 
-
 # construct launch cmd and script for MPIProcesses and ChildProcess
 
 function launch_cmd(pt_arguments, exec_folder, dependencies, n_threads::Int, on_mpi::Bool)
     script_path  = launch_script(pt_arguments, exec_folder, dependencies, on_mpi)
     jl_cmd = `$(julia_cmd_no_start_up()) --project=$(project_dir())`
+    load_path_sep = Sys.iswindows() ? ';' : ':'
+    load_path = join(LOAD_PATH, string(load_path_sep))
     # forcing instantiate the project to make sure dependencies exist
     # also, precompile to avoid issues with coordinating access to compile cache
-    run(`$jl_cmd -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`)
-    return `$jl_cmd --threads=$n_threads --compiled-modules=$(launch_cmd_compiled_module_flag()) $script_path`
+    instantiate_cmd = setenv(
+        `$jl_cmd -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"`,
+        "JULIA_LOAD_PATH" => load_path,
+    )
+    run(instantiate_cmd)
+    return setenv(
+        `$jl_cmd --threads=$n_threads --compiled-modules=$(launch_cmd_compiled_module_flag()) $script_path`,
+        "JULIA_LOAD_PATH" => load_path,
+    )
 end
 launch_cmd_compiled_module_flag() = VERSION >= v"1.11" ? "existing" : "no"
 
