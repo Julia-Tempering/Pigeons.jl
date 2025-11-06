@@ -93,5 +93,58 @@ function Pigeons.recursive_equal(a::T, b) where T <: JuliaBUGS.BUGSModel
     Pigeons._recursive_equal(a,b,excluded)
 end
 # just check the betas match, the model is already checked within path
-Pigeons.recursive_equal(a::AbstractVector{<:JuliaBUGSLogPotential}, b) =    
+Pigeons.recursive_equal(a::AbstractVector{<:JuliaBUGSLogPotential}, b) =
     all(lp1.beta == lp2.beta for (lp1,lp2) in zip(a,b))
+
+#######################################
+# Serialization for MPI
+#######################################
+
+# Serialize JuliaBUGSPath - only serialize model_def and data, not the model
+function Serialization.serialize(s::AbstractSerializer, instance::Pigeons.JuliaBUGSPath)
+    Serialization.writetag(s.io, Serialization.OBJECT_TAG)
+    Serialization.serialize(s, Pigeons.JuliaBUGSPath)
+    # do not serialize model as it contains runtime-generated functions
+    Serialization.serialize(s, instance.model_def)
+    Serialization.serialize(s, instance.data)
+    Serialization.serialize(s, instance.model.transformed)  # also save transformed flag
+end
+
+# Deserialize JuliaBUGSPath - reconstruct the model from model_def and data
+function Serialization.deserialize(s::AbstractSerializer, ::Type{Pigeons.JuliaBUGSPath})
+    model_def = Serialization.deserialize(s)
+    immutable = Serialization.deserialize(s)
+    transformed = Serialization.deserialize(s)
+    # Reconstruct the model
+    model = JuliaBUGS.compile(model_def, immutable.data)
+    if transformed
+        model = JuliaBUGS.settrans(model)
+    end
+    return Pigeons.JuliaBUGSPath(model, model_def, immutable)
+end
+
+# Serialize JuliaBUGSLogPotential - serialize only model_def, data, transformed, and beta
+function Serialization.serialize(s::AbstractSerializer, instance::JuliaBUGSLogPotential{M, B}) where {M, B}
+    Serialization.writetag(s.io, Serialization.OBJECT_TAG)
+    Serialization.serialize(s, JuliaBUGSLogPotential{M, B})
+    # do not serialize private_model as it contains runtime-generated functions
+    Serialization.serialize(s, instance.private_model.model_def)
+    Serialization.serialize(s, instance.private_model.data)
+    Serialization.serialize(s, instance.private_model.transformed)
+    Serialization.serialize(s, instance.beta)
+end
+
+# Deserialize JuliaBUGSLogPotential - reconstruct the private_model
+function Serialization.deserialize(s::AbstractSerializer, ::Type{JuliaBUGSLogPotential{M, B}}) where {M, B}
+    model_def = Serialization.deserialize(s)
+    data = Serialization.deserialize(s)
+    transformed = Serialization.deserialize(s)
+    beta = Serialization.deserialize(s)
+    # Reconstruct the model
+    model = JuliaBUGS.compile(model_def, data)
+    if transformed
+        model = JuliaBUGS.settrans(model)
+    end
+    private_model = make_private_model_copy(model)
+    return JuliaBUGSLogPotential(private_model, beta)
+end

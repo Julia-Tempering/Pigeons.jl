@@ -11,4 +11,19 @@ $FIELDS
     A `JuliaBUGS.BUGSModel`.
     """
     model
+
+    """
+    Model definition (for serialization).
+    """
+    model_def
+
+    """
+    Data (for serialization).
+    """
+    data
+end
+
+# Constructor that automatically extracts model_def and data from model
+function JuliaBUGSPath(model)
+    JuliaBUGSPath(model, model.model_def, Pigeons.Immutable(model.data))
 end
