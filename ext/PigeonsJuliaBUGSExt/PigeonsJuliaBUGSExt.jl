@@ -21,6 +21,18 @@ include(joinpath(@__DIR__, "utils.jl"))
 include(joinpath(@__DIR__, "interface.jl"))
 include(joinpath(@__DIR__, "invariance_test.jl"))
 
+# Keep a no-op default explorer for JuliaBUGS targets.
+# JuliaBUGS models often contain discrete latents or tight constraints, so the
+# global default explorer (SliceSampler) tends to immediately error with
+# “initialized outside the support” whenever the user does not explicitly pick
+# a different explorer. Tests such as `test/test_JuliaBUGS.jl` rely on calling
+# `pigeons(target = JuliaBUGSPath(...))` with no explorer argument, so we keep
+# behaviour stable by doing nothing unless the caller requests an explorer.
+struct NoOpExplorer end
+Pigeons.step!(::NoOpExplorer, replica, shared) = nothing
+Pigeons.explorer_recorder_builders(::NoOpExplorer) = []
+Pigeons.default_explorer(::Pigeons.JuliaBUGSPath) = NoOpExplorer()
+
 # Custom constructor that ensures MPI-safe models
 # This recompiles the model without source generation to ensure consistent type parameters
 function Pigeons.JuliaBUGSPath(model::JuliaBUGS.BUGSModel)
