@@ -1,0 +1,160 @@
+function test_model_runs(model, models_dir, container_engine, img_name)
+    (subdir, model_name) = model
+
+    # Define directories
+    model_path = "$models_dir/$subdir/$model_name.tppl"
+    bin_path = "$models_dir/$subdir/$model_name.bin"
+    data_path = "$models_dir/$subdir/data/testdata_$model_name.json"
+    result_dir = "tppl-$(model_name)-results"
+
+    println("Compiling TreePPL model: $model_name")
+    tppl_binary = Pigeons.tppl_compile_model(
+        model_path, bin_path;
+        local_exploration_steps=2,
+        use_global=true,
+        record_samples=true,
+        sampling_period=1,
+        cps="full",
+        align=true,
+        kernel=true,
+        drift=1.0,
+        globalProb=0.1,
+        container_engine=container_engine,
+        img_name=img_name
+    )
+    @test isfile(tppl_binary.path)
+
+    println("Constructing TreePPL target for model: $model_name")
+    tppl_target = Pigeons.tppl_construct_target(tppl_binary, data_path, result_dir)
+
+    println("Running Pigeons on TreePPL model: $model_name")
+    pt = pigeons(target=tppl_target, n_rounds = 2, n_chains = 2)
+    Pigeons.kill_child_processes(pt)
+
+    # Remove the result directory
+    rm(result_dir, force = true, recursive=true)
+end
+
+# Small normalizing constant test
+function test_norm_const(
+    model,
+    models_dir,
+    data_path,
+    container_engine,
+    img_name,
+    norm_const,
+    ϵ,
+    n_rounds, 
+    n_chains
+)
+    (subdir, model_name) = model
+
+    # Define directories
+    model_path = "$models_dir/$subdir/$model_name.tppl"
+    bin_path = "$models_dir/$subdir/$model_name.bin"
+
+    # Compile the model without recording samples
+    tppl_binary = Pigeons.tppl_compile_model(
+        model_path, bin_path;
+        local_exploration_steps=10,
+        use_global=true,
+        record_samples=false,
+        sampling_period=1,
+        cps="full",
+        align=true,
+        kernel=true,
+        drift=1.0,
+        globalProb=0.1,
+        container_engine=container_engine,
+        img_name=img_name
+    )
+
+    tppl_target = Pigeons.tppl_construct_target(tppl_binary, data_path)
+
+    pt = pigeons(target=tppl_target, n_rounds = n_rounds, n_chains = n_chains)
+    Pigeons.kill_child_processes(pt)
+
+    est_norm_const =stepping_stone(pt)
+    @test abs(est_norm_const - norm_const) < ϵ
+end
+
+function test_norm_const_coin(models_dir, container_engine, img_name)
+    model = tppl_coin_model()
+    (subdir, model_name) = model
+    N = 10
+    data = [i % 2 == 0 for i in 1:N]
+
+    data_path = "$models_dir/$subdir/data/$(model_name)_N$(N)_data.json"
+    open(data_path, "w") do f
+        JSON.print(f, Dict("coinflips" => data))
+    end
+
+    # Analytical normalizing constant for Beta(2, 2) prior
+    α = 2.0
+    β = 2.0
+    logZ₀ = SpecialFunctions.logbeta(α, β)
+    logZ₁ = SpecialFunctions.logbeta(α + sum(data), β + N - sum(data))
+    norm_const = logZ₁ - logZ₀
+    ϵ = 0.05
+
+    test_norm_const(
+        model, models_dir, data_path, container_engine, img_name, norm_const, ϵ, 8, 3
+    )
+
+    # Remove the data file
+    rm(data_path, force = true)
+end
+
+# Define a few popular TreePPL models for testing
+tppl_coin_model() = ("lang", "coin")
+tppl_crbd_model() = ("diversification", "crbd")
+tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
+
+@testset "TreePPL runs" begin
+    if !(Sys.islinux() && Sys.ARCH == :x86_64)
+        @info "Skipping TreePPL tests since they only run on Linux x86-64 in CI at the moment."
+        return nothing
+    end
+
+    container_engine = "docker"
+    auto_install_folder = mkpath(Pigeons.mpi_settings_folder())
+    cd(auto_install_folder) do
+        # Clone the TreePPL repo to get access to models
+        # NOTE(ErikDanielsson) 2025-11-13: I have set the revision to the HEAD 
+        # commit of the main repo at the time of the Pigeons support merge. 
+        # TODO: This should be set to a release version (or multiple) once there is one.
+        revision = "9d35622" 
+        rel_loc = "treeppl"
+
+        # Ensure that the directory does not exist
+        rm(rel_loc, force = true, recursive=true)
+        run(`git clone https://github.com/ErikDanielsson/treeppl.git $rel_loc`) 
+
+        tppl_img_name = "docker.io/danielssonerik/treeppl:$revision"
+
+        cd(rel_loc) do
+            # Ensure that the desired revision is checked out
+            run(`git checkout $revision`)
+        end
+        
+        models_dir = abspath("treeppl/models")
+        models = [
+            tppl_coin_model(),
+            tppl_crbd_model(),
+            tppl_HRM_model()
+        ]
+
+        # Try compiling the models using the Docker container orchastrated by Podman
+        # The Docker container tag should match the checked out repository
+        for model in models
+            test_model_runs(model, models_dir, container_engine, tppl_img_name)
+        end
+
+        # Test normalizing constant estimation for the Beta Binomial model
+        test_norm_const_coin(models_dir, container_engine, tppl_img_name)
+
+
+    end
+end
+
+
