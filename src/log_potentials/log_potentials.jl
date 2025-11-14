@@ -43,10 +43,7 @@ e.g. where the state space is infinite dimensional, this can be overridden.
 function log_unnormalized_ratio(log_potentials::AbstractVector, numerator::Int, denominator::Int, state)
     lp_num = log_potentials[numerator](state)
     lp_den = log_potentials[denominator](state)
-    if (lp_num == -Inf && lp_den == -Inf) || (lp_num == Inf && lp_den == Inf)
-        return 0.0
-    end
-    ans = lp_num - lp_den
+    ans = lp_num-lp_den
     if isnan(ans)
         error("Got NaN log-unnormalized ratio; Dumping information:\n\tlp_num=$lp_num\n\tlp_den=$lp_den\n\tState=$state")
     end

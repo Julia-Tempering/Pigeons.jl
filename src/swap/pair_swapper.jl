@@ -85,18 +85,7 @@ where the [`pair_swapper`](@ref) is assumed to follow the [`log_potentials`](@re
     end
 end
 
-_is_opposite_infinities(a, b) = isinf(a) && isinf(b) && signbit(a) != signbit(b)
-
-function swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat)
-    s = stat1.log_ratio + stat2.log_ratio
-    if isfinite(s)
-        return min(1.0, exp(s))
-    elseif isnan(s)
-        return _is_opposite_infinities(stat1.log_ratio, stat2.log_ratio) ? 1.0 : 0.0
-    else
-        return s > 0 ? 1.0 : 0.0
-    end
-end
+swap_acceptance_probability(stat1::SwapStat, stat2::SwapStat) = min(1, exp(stat1.log_ratio + stat2.log_ratio))
 
 
 """
