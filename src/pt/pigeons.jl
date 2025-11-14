@@ -68,6 +68,7 @@ function communicate!(pt)
     swap!(swapper, pt.replicas, graph)
 end
 
+ensure_valid_state!(log_potential, replica) = nothing
 """
 $SIGNATURES 
 
@@ -101,7 +102,11 @@ multithreaded_flag(flag) = Val(flag && Threads.nthreads() > 1)
 function explore!(pt, replica, explorer)
     log_potential = find_log_potential(replica, pt.shared.tempering, pt.shared)
     before = eval_if_ac_requested(log_potential, replica)
-    if is_reference(pt.shared.tempering.swap_graphs, replica.chain)
+    is_ref = is_reference(pt.shared.tempering.swap_graphs, replica.chain)
+    if !is_ref
+        ensure_valid_state!(log_potential, replica)
+    end
+    if is_ref
         sample_iid!(log_potential, replica, pt.shared)
     else
         step!(explorer, replica, pt.shared)

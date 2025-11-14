@@ -12,12 +12,37 @@ end
 sample_params_from_prior(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) =
     getparams(evaluate_and_initialize(model, rng))
 
+const MAX_JULIABUGS_INITIALIZATION_ATTEMPTS = 10_000
+
+function _has_finite_loglikelihood(model::JuliaBUGS.BUGSModel, state)
+    try
+        _, log_densities = JuliaBUGS.Model.evaluate_with_values!!(
+            model,
+            state;
+            temperature=one(Float64),
+            transformed=model.transformed,
+        )
+        return isfinite(log_densities.loglikelihood)
+    catch e
+        (isa(e, DomainError) || isa(e, BoundsError)) && return false
+        rethrow(e)
+    end
+end
+
+
+function sample_params_in_support(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
+    for _ in 1:MAX_JULIABUGS_INITIALIZATION_ATTEMPTS
+        state = sample_params_from_prior(model, rng)
+        _has_finite_loglikelihood(model, state) && return state
+    end
+    error("Failed to sample a JuliaBUGS initial state with finite log likelihood after $(MAX_JULIABUGS_INITIALIZATION_ATTEMPTS) attempts. Consider providing a custom initialization or adjusting the prior.")
+end
 
 # Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
-# to call _sample_iid during initialization (**sequentially**, as done as of time
+# to call sample_params_in_support during initialization (**sequentially**, as done as of time
 # of writing) for different Replicas (i.e., they won't share the same state).
 Pigeons.initialization(target::JuliaBUGSPath, rng::AbstractRNG, _::Int64) =
-    sample_params_from_prior(target.model, rng)
+    sample_params_in_support(target.model, rng)
 
 # target is already a Path
 Pigeons.create_path(target::JuliaBUGSPath, ::Inputs) = target
@@ -80,9 +105,15 @@ end
 
 # iid sampling - extract parameters as Vector to match initialization type
 function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, ::Pigeons.Shared)
-    # Draw exactly from the reference (prior) when beta=0
-    # Reference chains are the only ones for which sample_iid! is invoked.
-    replica.state = sample_params_from_prior(log_potential.private_model, replica.rng)
+    # Draw exactly from the reference (prior) when beta=0. Even though reference chains
+    # only use the prior, ensure states remain in the likelihood support so swaps to
+    # β>0 chains always start from valid configurations.
+    replica.state = sample_params_in_support(log_potential.private_model, replica.rng)
+end
+
+function Pigeons.ensure_valid_state!(log_potential::JuliaBUGSLogPotential, replica)
+    isfinite(log_potential(replica.state)) && return
+    replica.state = sample_params_in_support(log_potential.private_model, replica.rng)
 end
 
 # parameter names for Vector state
