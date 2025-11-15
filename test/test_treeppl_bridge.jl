@@ -1,4 +1,9 @@
-function test_model_runs(model, models_dir, container_engine, img_name)
+function test_model_runs(
+    model::Tuple{AbstractString, AbstractString},
+    models_dir::AbstractString,
+    container_engine::AbstractString,
+    img_name::AbstractString
+)
     (subdir, model_name) = model
 
     # Define directories
@@ -37,15 +42,15 @@ end
 
 # Small normalizing constant test
 function test_norm_const(
-    model,
-    models_dir,
-    data_path,
-    container_engine,
-    img_name,
-    norm_const,
-    ϵ,
-    n_rounds, 
-    n_chains
+    model::Tuple{AbstractString, AbstractString},
+    models_dir::AbstractString,
+    data_path::AbstractString,
+    container_engine::AbstractString,
+    img_name::AbstractString,
+    norm_const::Float64,
+    ϵ::Float64,
+    n_rounds::Int, 
+    n_chains::Int
 )
     (subdir, model_name) = model
 
@@ -78,7 +83,11 @@ function test_norm_const(
     @test abs(est_norm_const - norm_const) < ϵ
 end
 
-function test_norm_const_coin(models_dir, container_engine, img_name)
+function test_norm_const_coin(
+    models_dir::AbstractString,
+    container_engine::AbstractString,
+    img_name::AbstractString
+)
     model = tppl_coin_model()
     (subdir, model_name) = model
     N = 10
@@ -105,7 +114,7 @@ function test_norm_const_coin(models_dir, container_engine, img_name)
     rm(data_path, force = true)
 end
 
-# Define a few popular TreePPL models for testing
+# Define a few TreePPL models for testing
 tppl_coin_model() = ("lang", "coin")
 tppl_crbd_model() = ("diversification", "crbd")
 tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
@@ -116,7 +125,6 @@ tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
         return nothing
     end
 
-    container_engine = "docker"
     auto_install_folder = mkpath(Pigeons.mpi_settings_folder())
     cd(auto_install_folder) do
         # Clone the TreePPL repo to get access to models
@@ -130,12 +138,14 @@ tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
         rm(rel_loc, force = true, recursive=true)
         run(`git clone https://github.com/ErikDanielsson/treeppl.git $rel_loc`) 
 
-        tppl_img_name = "docker.io/danielssonerik/treeppl:$revision"
-
         cd(rel_loc) do
             # Ensure that the desired revision is checked out
             run(`git checkout $revision`)
         end
+
+        container_engine = "docker"
+        # The Docker container tag should match the checked out repository
+        tppl_img_name = "docker.io/danielssonerik/treeppl:$revision"
         
         models_dir = abspath("treeppl/models")
         models = [
@@ -144,16 +154,13 @@ tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
             tppl_HRM_model()
         ]
 
-        # Try compiling the models using the Docker container orchastrated by Podman
-        # The Docker container tag should match the checked out repository
+        # Try compiling the models using the Docker container 
         for model in models
             test_model_runs(model, models_dir, container_engine, tppl_img_name)
         end
 
         # Test normalizing constant estimation for the Beta Binomial model
         test_norm_const_coin(models_dir, container_engine, tppl_img_name)
-
-
     end
 end
 
