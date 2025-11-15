@@ -11,81 +11,145 @@ using Pigeons
 run(`git clone https://github.com/treeppl/treeppl.git`)
 
 # Set up paths to a CRBD model 
-model_path = treeppl/models/diversification/crbd.tppl
-bin_path = treeppl/models/diversification/crbd.bin
-data_path = treeppl/models/lang/data/testdata_crbd.json
-result_path = treeppl/crbd_results
+model_path = "treeppl/models/lang/coin.tppl"
+bin_path = "treeppl/models/lang/coin.bin"
+data_path = "treeppl/models/lang/data/testdata_coin.json"
+output_path = "treeppl/coin_outputs"
 
 # Compile the TreePPL model with the correct flags using a Docker container with Podman
-tppl_bin = tppl_compile_model(
+tppl_bin = Pigeons.tppl_compile_model(
     model_path, bin_path;
-    container_engine="docker",
-    img_name="docker.io/danielssonerik/treeppl:main
+    # container_engine="docker",
+    # img_name="docker.io/danielssonerik/treeppl:9d35622"
 ) 
 
 # Construct the TreePPL target
-tppl_target = tppl_construct_target(tppl_bin, data_path, result_path)
+tppl_target = Pigeons.tppl_construct_target(tppl_bin, data_path, output_path)
 
 # Let Pigeons run the TreePPL model
-pigeons(target = tppl_target));
+pt  = pigeons(target = tppl_target, n_rounds = 2, n_chains = 2)
 ```
 """
 
-struct TreePPLTarget <: StreamTarget
-    command::Cmd
-    record_samples::Bool
+Base.@kwdef struct TreePPLTarget <: StreamTarget
+    bin_path::AbstractString
+    data_path::AbstractString
     output_dir::AbstractString
-end
-
-function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::Int64)
-    # Set the seed of the TreePPL process
-    envs = Pair{String, Any}["PPL_SEED" => java_seed(rng)]
-    if target.record_samples 
-        # Ensure that the output directory exists
-        mkpath(target.output_dir) 
-        # Instruct TreePPL to save samples to file
-        push!(envs, "PPL_OUTPUT" => "$(target.output_dir)/tppl-replica-$replica_index.json")
-    elseif target.output_dir != ""
-        @warn "You have specified an TreePPL output directory but record_samples is set to false. No samples will be recorded."
-    end
-    cmd_with_env = addenv(target.command, envs...)
-    StreamState(cmd_with_env, replica_index)
+    record_samples::Bool
+    container_engine::Union{String, Nothing}
+    img_name::Union{String, Nothing}
 end
 
 # Store the binary path and metadata about how we compiled it
 Base.@kwdef struct TreePPLBinary
     model_name::AbstractString
     path::AbstractString
+    container_engine::Union{String, Nothing}=nothing
+    img_name::Union{String, Nothing}=nothing
     local_exploration_steps::Int
     use_global::Bool
     record_samples::Bool
     sampling_period::Int
-    cps::String
+    cps::AbstractString
     align::Bool
     kernel::Bool
     drift::Float64
     globalProb::Float64
 end
 
+function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::Int64)
+    # Set the seed of the TreePPL process
+    envs = Dict{String, Any}("PPL_SEED" => java_seed(rng))
+    if target.record_samples 
+        # Ensure that the output directory exists
+        mkpath(target.output_dir) 
+        # Instruct TreePPL to save samples to file
+        envs["PPL_OUTPUT"] = "$(target.output_dir)/tppl-replica-$replica_index.json"
+    elseif target.output_dir != ""
+        @warn "You have specified an TreePPL output directory but record_samples is set to false. No samples will be recorded."
+    end
+    # Construct command for running the child process
+    cmd_with_env = (target.container_engine == nothing 
+        ? addenv(Cmd([target.bin_path, target.data_path]), envs...)
+        : construct_docker_podman_run_cmd(
+            target.bin_path,
+            target.data_path,
+            target.img_name,
+            target.container_engine,
+            envs,
+        ))
+    StreamState(cmd_with_env, replica_index)
+end
+
+# Helper method to constructing a TreePPL target from a TreePPL binary
+# It keeps the compilation metadata we need later on.
 function tppl_construct_target(
     binary::TreePPLBinary,
     data_path::AbstractString,
-    result_dir::AbstractString=""
+    output_dir::AbstractString=""
 )::TreePPLTarget
-    cmd = Cmd([binary.path, data_path])
-    return TreePPLTarget(cmd, binary.record_samples, result_dir)
+    return TreePPLTarget(
+        bin_path=binary.path,
+        data_path=data_path,
+        output_dir=output_dir,
+        record_samples=binary.record_samples,
+        container_engine=binary.container_engine,
+        img_name=binary.img_name,
+    )
 end
 
-function construct_docker_podman_cmd(
+function construct_docker_podman_run_cmd(
+    bin_path::AbstractString,
+    data_path::AbstractString,
+    img_name::AbstractString,
+    container_engine::AbstractString,
+    envs::Dict{String, Any}
+)::Cmd
+    if !(container_engine in ["docker", "podman"])
+        error("Unsupported container engine: $container_engine")
+    end
+    volumes = [
+        (abspath(dirname(bin_path)), "/in"),
+        (abspath(dirname(data_path)), "/data")
+    ]
+
+    if "PPL_OUTPUT" in keys(envs)
+        # Mount the output directory if we are recording samples
+        output_path = envs["PPL_OUTPUT"]
+        envs["PPL_OUTPUT"] = "/out/$(basename(output_path))"
+        push!(volumes, (abspath(dirname(output_path)), "/out"))
+    end
+    volume_args = vcat([["-v", "$source:$target"] for (source, target) in volumes]...)
+    docker_env_args = vcat([["-e", "$var=$val"] for (var, val) in envs]...)
+    # The command we run inside the container needs to be wrapped in a string
+    container_sh_cmd = "/in/$(basename(bin_path)) /data/$(basename(data_path))"
+    # This simple command for running the TreePPL compiler mounts the model directory and the directory
+    # where we want the binary. It then calls the compiler inside the container with the arguments.
+    # The command is constructed using a list since the enviroment variables should not be escaped.
+    cmd = Cmd([
+        container_engine, 
+        "run",
+        "--rm",
+        "-i",
+        volume_args...,
+        docker_env_args...,
+        img_name,
+        "sh",
+        "-c",
+        container_sh_cmd
+    ])
+    return cmd
+end
+
+function construct_docker_podman_compilation_cmd(
     model_path::AbstractString,
     bin::AbstractString,
     args::Vector,
     img_name::AbstractString,
     container_engine::AbstractString
-)
+)::Cmd
     if !(container_engine in ["docker", "podman"])
-        # This should be caught upstream
-        return nothing
+        error("Unsupported container engine: $container_engine")
     end
 
     model_dir = abspath(dirname(model_path))
@@ -108,12 +172,12 @@ function tppl_compile_model(
     model_path::AbstractString, bin::AbstractString="out";
     local_exploration_steps::Int=1, use_global::Bool=true,
     record_samples::Bool=true, sampling_period::Int=1,
-    cps::String="full", align::Bool=true,
+    cps::AbstractString="full", align::Bool=true,
     kernel::Bool=true, drift::Float64=1.0,
     globalProb::Float64=0.0,
-    tpplc="tpplc",
-    container_engine::Union{String, Nothing}=nothing,
-    img_name::Union{String, Nothing}=nothing
+    tpplc::AbstractString="tpplc",
+    container_engine::Union{AbstractString, Nothing}=nothing,
+    img_name::Union{AbstractString, Nothing}=nothing
 )::TreePPLBinary
     if !(cps in ["none", "full", "partial"])
         error("Only `--cps none`, `--cps full` and `--cps partial` are allowed.")
@@ -142,7 +206,7 @@ function tppl_compile_model(
     if container_engine == nothing
         run(`$tpplc $args $model_path --output $bin`)
     elseif container_engine in ["podman", "docker"]
-        run(construct_docker_podman_cmd(model_path, bin, args, img_name, container_engine))
+        run(construct_docker_podman_compilation_cmd(model_path, bin, args, img_name, container_engine))
     else
         error("Unsupported container engine: $container_engine")
     end
@@ -150,6 +214,8 @@ function tppl_compile_model(
     return TreePPLBinary(
         model_name=basename(model_path),
         path=abspath(bin),
+        container_engine=container_engine,
+        img_name=img_name,
         local_exploration_steps=local_exploration_steps,
         use_global=use_global,
         record_samples=record_samples,

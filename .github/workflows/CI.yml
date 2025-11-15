@@ -26,8 +26,6 @@ jobs:
   
       fail-fast: false
     steps:
-    - name: Install LAPACKE / LAPACK / OpenBLAS dependencies required by TreePPL binaries
-      run: sudo apt-get update && sudo apt-get install -y liblapacke-dev liblapack3 libopenblas0 libopenblas-dev
     - name: Test TreePPL Docker
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
@@ -50,11 +48,19 @@ jobs:
           sh -c "tpplc -m mcmc-lightweight --pigeons --pigeons-explore-steps 2 --cps full --mcmc-lw-gprob 0.1 --drift 1.0 --sampling-period 1 --kernel --align --incremental-printing /in/$model_name.tppl --output /out/$model_name.bin" 
 
         # Execute the compiled TreePPL model to verify that it runs
+        docker run --rm \
+          -v $model_dir:/in \
+          -v $model_dir/data:/data \
+          -v $model_dir:/out \
+          -e PPL_OUTPUT=/out/$model_name_results.json \
+          -e PPL_SEED=314 \
+          docker.io/danielssonerik/treeppl:9d35622 \
+          sh -c '
         printf '\ncall_sampler!(1.0)\nlog_potential(1.0)\n' \
           | sed 's/\\n/\n/g' \
           | PPL_OUTPUT=$model_dir/$model_name_results.json \
-          $model_dir/$model_name.bin \
-          $model_dir/data/testdata_$model_name.json
+          /in/$model_name.bin \
+          /data/testdata_$model_name.json' 
     
   # test using MPICH as MPI backend (default in MPI.jl)
   test-MPICH-jll:
@@ -75,9 +81,6 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
         run: |
           REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v LongPathsEnabled /t REG_DWORD /d 1 /f
-      - name: Install LAPACKE / LAPACK / OpenBLAS dependencies required by TreePPL binaries
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt-get update && sudo apt-get install -y liblapacke-dev liblapack3 libopenblas0 libopenblas-dev
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
@@ -115,9 +118,6 @@ jobs:
       JULIA_MPI_TEST_BINARY: OpenMPI_jll
       JULIA_MPI_TEST_ABI: OpenMPI
     steps:
-    - name: Install LAPACKE / LAPACK / OpenBLAS dependencies required by TreePPL binaries
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: sudo apt-get update && sudo apt-get install -y liblapacke-dev liblapack3 libopenblas0 libopenblas-dev
     - name: Checkout
       uses: actions/checkout@v5
     - uses: actions/setup-java@v4
