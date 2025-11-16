@@ -1,5 +1,5 @@
 function test_model_runs(
-    model::Tuple{AbstractString, AbstractString},
+    model::Tuple{AbstractString,AbstractString},
     models_dir::AbstractString,
     container_engine::AbstractString,
     img_name::AbstractString
@@ -33,23 +33,23 @@ function test_model_runs(
     tppl_target = Pigeons.tppl_construct_target(tppl_binary, data_path, result_dir)
 
     println("Running Pigeons on TreePPL model: $model_name")
-    pt = pigeons(target=tppl_target, n_rounds = 2, n_chains = 2)
+    pt = pigeons(target=tppl_target, n_rounds=2, n_chains=2)
     Pigeons.kill_child_processes(pt)
 
     # Remove the result directory
-    rm(result_dir, force = true, recursive=true)
+    rm(result_dir, force=true, recursive=true)
 end
 
 # Small normalizing constant test
 function test_norm_const(
-    model::Tuple{AbstractString, AbstractString},
+    model::Tuple{AbstractString,AbstractString},
     models_dir::AbstractString,
     data_path::AbstractString,
     container_engine::AbstractString,
     img_name::AbstractString,
     norm_const::Float64,
     ϵ::Float64,
-    n_rounds::Int, 
+    n_rounds::Int,
     n_chains::Int
 )
     (subdir, model_name) = model
@@ -76,10 +76,10 @@ function test_norm_const(
 
     tppl_target = Pigeons.tppl_construct_target(tppl_binary, data_path)
 
-    pt = pigeons(target=tppl_target, n_rounds = n_rounds, n_chains = n_chains)
+    pt = pigeons(target=tppl_target, n_rounds=n_rounds, n_chains=n_chains)
     Pigeons.kill_child_processes(pt)
 
-    est_norm_const =stepping_stone(pt)
+    est_norm_const = stepping_stone(pt)
     @test abs(est_norm_const - norm_const) < ϵ
 end
 
@@ -111,7 +111,7 @@ function test_norm_const_coin(
     )
 
     # Remove the data file
-    rm(data_path, force = true)
+    rm(data_path, force=true)
 end
 
 # Define a few TreePPL models for testing
@@ -131,12 +131,12 @@ tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
         # NOTE(ErikDanielsson) 2025-11-13: I have set the revision to the HEAD 
         # commit of the main repo at the time of the Pigeons support merge. 
         # TODO: This should be set to a release version (or multiple) once there is one.
-        revision = "9d35622" 
+        revision = "9d35622"
         rel_loc = "treeppl"
 
         # Ensure that the directory does not exist
-        rm(rel_loc, force = true, recursive=true)
-        run(`git clone https://github.com/ErikDanielsson/treeppl.git $rel_loc`) 
+        rm(rel_loc, force=true, recursive=true)
+        run(`git clone https://github.com/ErikDanielsson/treeppl.git $rel_loc`)
 
         cd(rel_loc) do
             # Ensure that the desired revision is checked out
@@ -146,7 +146,7 @@ tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
         container_engine = "docker"
         # The Docker container tag should match the checked out repository
         tppl_img_name = "docker.io/danielssonerik/treeppl:$revision"
-        
+
         models_dir = abspath("treeppl/models")
         models = [
             tppl_coin_model(),
@@ -163,5 +163,3 @@ tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
         test_norm_const_coin(models_dir, container_engine, tppl_img_name)
     end
 end
-
-

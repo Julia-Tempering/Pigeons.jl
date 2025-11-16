@@ -41,16 +41,16 @@ Base.@kwdef struct TreePPLTarget <: StreamTarget
     data_path::AbstractString
     output_dir::AbstractString
     record_samples::Bool
-    container_engine::Union{String, Nothing}
-    img_name::Union{String, Nothing}
+    container_engine::Union{String,Nothing}
+    img_name::Union{String,Nothing}
 end
 
 # Store the binary path and metadata about how we compiled it
 Base.@kwdef struct TreePPLBinary
     model_name::AbstractString
     path::AbstractString
-    container_engine::Union{String, Nothing}=nothing
-    img_name::Union{String, Nothing}=nothing
+    container_engine::Union{String,Nothing} = nothing
+    img_name::Union{String,Nothing} = nothing
     local_exploration_steps::Int
     use_global::Bool
     record_samples::Bool
@@ -64,10 +64,10 @@ end
 
 function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::Int64)::StreamState
     # Set the seed of the TreePPL process
-    envs = Dict{String, Any}("PPL_SEED" => java_seed(rng))
-    if target.record_samples 
+    envs = Dict{String,Any}("PPL_SEED" => java_seed(rng))
+    if target.record_samples
         # Ensure that the output directory exists
-        mkpath(target.output_dir) 
+        mkpath(target.output_dir)
         # Instruct TreePPL to save samples to file
         envs["PPL_OUTPUT"] = "$(target.output_dir)/tppl-replica-$replica_index.json"
     elseif target.output_dir != ""
@@ -115,8 +115,8 @@ function tppl_compile_model(
     kernel::Bool=true, drift::Float64=1.0,
     globalProb::Float64=0.0,
     tpplc::AbstractString="tpplc",
-    container_engine::Union{AbstractString, Nothing}=nothing,
-    img_name::Union{AbstractString, Nothing}=nothing
+    container_engine::Union{AbstractString,Nothing}=nothing,
+    img_name::Union{AbstractString,Nothing}=nothing
 )::TreePPLBinary
     if !(cps in ["none", "full", "partial"])
         error("Only `--cps none`, `--cps full` and `--cps partial` are allowed.")
@@ -175,7 +175,7 @@ function construct_docker_podman_run_cmd(
     data_path::AbstractString,
     img_name::AbstractString,
     container_engine::AbstractString,
-    envs::Dict{String, Any}
+    envs::Dict{String,Any}
 )::Cmd
     if !(container_engine in ["docker", "podman"])
         error("Unsupported container engine: $container_engine")
@@ -198,7 +198,7 @@ function construct_docker_podman_run_cmd(
     # NOTE(ErikDanielsson): We need to use the list construction of `Cmd` here to avoid 
     # the enviroment variables being interpreted as strings
     cmd = Cmd([
-        container_engine, 
+        container_engine,
         "run",
         "--rm",
         "-i",
