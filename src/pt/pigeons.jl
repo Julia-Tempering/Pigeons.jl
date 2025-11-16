@@ -68,16 +68,15 @@ function communicate!(pt)
     swap!(swapper, pt.replicas, graph)
 end
 
-ensure_valid_state!(log_potential, replica) = nothing
 """
-$SIGNATURES 
+$SIGNATURES
 
-Call [`sample_iid!`](@ref) or [`step!()`](@ref) on 
-each chain (depending if it is a reference or not 
-respectively). 
+Call [`sample_iid!`](@ref) or [`step!()`](@ref) on
+each chain (depending if it is a reference or not
+respectively).
 
-Uses `@threads` to parallelize across threads. 
-This is safe by the contract described in 
+Uses `@threads` to parallelize across threads.
+This is safe by the contract described in
 [`sample_iid!()`](@ref) and [`step!()`](@ref).
 """
 explore!(pt, explorer, multithreaded_flag::Val{true}) =
@@ -102,11 +101,7 @@ multithreaded_flag(flag) = Val(flag && Threads.nthreads() > 1)
 function explore!(pt, replica, explorer)
     log_potential = find_log_potential(replica, pt.shared.tempering, pt.shared)
     before = eval_if_ac_requested(log_potential, replica)
-    is_ref = is_reference(pt.shared.tempering.swap_graphs, replica.chain)
-    if !is_ref
-        ensure_valid_state!(log_potential, replica)
-    end
-    if is_ref
+    if is_reference(pt.shared.tempering.swap_graphs, replica.chain)
         sample_iid!(log_potential, replica, pt.shared)
     else
         step!(explorer, replica, pt.shared)
