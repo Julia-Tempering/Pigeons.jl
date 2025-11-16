@@ -8,10 +8,10 @@ For installation help, see the official [TreePPL installation instructions](http
 using Pigeons
 
 # Get the TreePPL models
-run(`git clone https://github.com/treeppl/treeppl.git`)
-cd("treeppl") do
-    run(`git checkout 9d35622`) # checkout a specific revision for reproducibility
-end
+# run(`git clone https://github.com/treeppl/treeppl.git`)
+# cd("treeppl") do
+#     run(`git checkout 9d35622`) # checkout a specific revision for reproducibility
+# end
 
 # Set up paths to a CRBD model 
 model_path = "treeppl/models/diversification/crbd.tppl"
@@ -175,7 +175,7 @@ function construct_docker_podman_run_cmd(
     data_path::AbstractString,
     img_name::AbstractString,
     container_engine::AbstractString,
-    envs::Dict{String,Any}
+    envs::Dict{String,<:Any}
 )::Cmd
     if !(container_engine in ["docker", "podman"])
         error("Unsupported container engine: $container_engine")
@@ -195,21 +195,16 @@ function construct_docker_podman_run_cmd(
     docker_env_args = vcat([["-e", "$var=$val"] for (var, val) in envs]...)
     # The command we run inside the container needs to be wrapped in a string
     container_sh_cmd = "/in/$(basename(bin_path)) /data/$(basename(data_path))"
-    # NOTE(ErikDanielsson): We need to use the list construction of `Cmd` here to avoid 
-    # the enviroment variables being interpreted as strings
-    cmd = Cmd([
-        container_engine,
-        "run",
-        "--rm",
-        "-i",
-        volume_args...,
-        docker_env_args...,
-        img_name,
-        "sh",
-        "-c",
-        container_sh_cmd
-    ])
-    return cmd
+
+     return `
+        $container_engine run
+        --rm
+        -i
+        $volume_args
+        $docker_env_args
+        $img_name
+        sh -c "$container_sh_cmd"
+    `
 end
 
 # This function generates a simple command for running the TreePPL compiler 
@@ -229,7 +224,7 @@ function construct_docker_podman_compilation_cmd(
     model_dir = abspath(dirname(model_path))
     bin_dir = abspath(dirname(bin))
 
-    container_sh_cmd = string(`tpplc $args /in/$(basename(model_path)) --output /out/$(basename(bin))`)
+    container_sh_cmd = "tpplc $(join(args, ' ')) /in/$(basename(model_path)) --output /out/$(basename(bin))"
 
     return `
     $container_engine run
@@ -237,6 +232,6 @@ function construct_docker_podman_compilation_cmd(
         -v $model_dir:/in
         -v $bin_dir:/out
         $img_name
-        sh -c "$container_sh_cmd"
+        sh -c $container_sh_cmd
     `
 end

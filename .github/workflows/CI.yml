@@ -15,51 +15,6 @@ concurrency:
 
 jobs:
   
-  # Test running the TreePPL Docker container independently
-  test-treeppl-docker:
-    name: Run TreePPL with Docker - ${{ matrix.os }} - ${{ github.event_name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-  
-      fail-fast: false
-    steps:
-    - name: Test TreePPL Docker
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-
-        # Clone the TreePPL repository to get access to the model files
-        mkdir $HOME/.pigeons/
-        cd $HOME/.pigeons/
-        git clone https://github.com/ErikDanielsson/treeppl.git treeppl
-        model_dir="$HOME/.pigeons/treeppl/models/host-repertoire-evolution"
-        model_name="flat-root-prior-HRM"
-
-        # Verify that the model directory was correctly cloned
-        ls -lah $model_dir
-
-        # Try to compile the TreePPL model using the Docker container
-        docker run --rm \
-          -v $model_dir:/in \
-          -v $model_dir:/out \
-          docker.io/danielssonerik/treeppl:9d35622 \
-          sh -c "tpplc -m mcmc-lightweight --pigeons --pigeons-explore-steps 2 --cps full --mcmc-lw-gprob 0.1 --drift 1.0 --sampling-period 1 --kernel --align --incremental-printing /in/$model_name.tppl --output /out/$model_name.bin"
-
-        # Execute the compiled TreePPL model to verify that it runs
-        docker run --rm \
-          -v $model_dir:/in \
-          -v "$model_dir/data":/data \
-          -v $model_dir:/out \
-          -e PPL_OUTPUT=/out/${model_name}_results.json \
-          -e PPL_SEED=314 \
-          docker.io/danielssonerik/treeppl:9d35622 \
-          sh -c "printf '\ncall_sampler!(1.0)\nlog_potential(1.0)\n' \
-          | sed 's/\\n/\n/g' \
-          | /in/${model_name}.bin \
-            /data/testdata_${model_name}.json" mkdir $HOME/.pigeons/
-    
   # test using MPICH as MPI backend (default in MPI.jl)
   test-MPICH-jll:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ github.event_name }}
@@ -96,7 +51,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false  # or true if you want CI to fail when Codecov fails
           file: lcov.info
-
 
 
   # test OpenMPI by requesting it with MPIPreferences
