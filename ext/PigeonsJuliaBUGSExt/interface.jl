@@ -9,8 +9,11 @@ function evaluate_and_initialize(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
 end
 
 # used for both initializing and iid sampling
-_sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) =
-    getparams(evaluate_and_initialize(model, rng))
+# Note: state is a flattened vector of the parameters
+# Also, the vector is **concretely typed**. This means that if the evaluation
+# environment contains floats and integers, the latter will be cast to float.
+_sample_iid(model::JuliaBUGS.BUGSModel, rng::AbstractRNG) = 
+    getparams(evaluate_and_initialize(model, rng)) # flatten the unobserved parameters in the model's eval environment and return
 
 # Note: JuliaBUGS.getparams creates a new vector on each call, so it is safe
 # to call _sample_iid during initialization (**sequentially**, as done as of time
@@ -55,7 +58,7 @@ function Pigeons.interpolate(path::JuliaBUGSPath, beta)
     JuliaBUGSLogPotential(private_model, beta)
 end
 
-# log_potential evaluation for Vector state (legacy, but kept for compatibility)
+# log_potential evaluation
 function (log_potential::JuliaBUGSLogPotential)(flattened_values::AbstractVector)
     try
         # Evaluate at given values using JuliaBUGS 0.10 API
@@ -82,7 +85,7 @@ function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shar
     replica.state = _sample_iid(log_potential.private_model, replica.rng)
 end
 
-# parameter names for Vector state
+# parameter names
 Pigeons.sample_names(::Vector, log_potential::JuliaBUGSLogPotential) =
     [(Symbol(string(vn)) for vn in JuliaBUGS.parameters(log_potential.private_model))..., :log_density]
 

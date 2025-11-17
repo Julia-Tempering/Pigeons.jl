@@ -69,14 +69,14 @@ function communicate!(pt)
 end
 
 """
-$SIGNATURES
+$SIGNATURES 
 
-Call [`sample_iid!`](@ref) or [`step!()`](@ref) on
-each chain (depending if it is a reference or not
-respectively).
+Call [`sample_iid!`](@ref) or [`step!()`](@ref) on 
+each chain (depending if it is a reference or not 
+respectively). 
 
-Uses `@threads` to parallelize across threads.
-This is safe by the contract described in
+Uses `@threads` to parallelize across threads. 
+This is safe by the contract described in 
 [`sample_iid!()`](@ref) and [`step!()`](@ref).
 """
 explore!(pt, explorer, multithreaded_flag::Val{true}) =
