@@ -2,16 +2,17 @@
 A [`StreamTarget`](@ref) delegating exploration to a
 [TreePPL](https://www.treeppl.org/) worker processes.
 
-For installation help, see the official [TreePPL installation instructions](https://treeppl.org/getting-started/getting-started) 
+To install TreePPL locally please see the  official [TreePPL installation instructions](https://treeppl.org/getting-started/getting-started).
+TreePPL can also be run inside Docker or Podman containers, e.g.
 
 ```@example TreePPL_Pigeons
 using Pigeons
 
 # Get the TreePPL models
-# run(`git clone https://github.com/treeppl/treeppl.git`)
-# cd("treeppl") do
-#     run(`git checkout 9d35622`) # checkout a specific revision for reproducibility
-# end
+run(`git clone https://github.com/treeppl/treeppl.git`)
+cd("treeppl") do
+    run(`git checkout 9d35622`) # checkout a specific revision for reproducibility
+end
 
 # Set up paths to a CRBD model 
 model_path = "treeppl/models/diversification/crbd.tppl"
@@ -33,56 +34,148 @@ tppl_target = Pigeons.tppl_construct_target(tppl_bin, data_path, output_path)
 pt  = pigeons(target = tppl_target, n_rounds = 2, n_chains = 2)
 ```
 
-Please see https://www.treeppl.org/ for more examples and documentation.
-"""
+Please see [treeppl.org](https://www.treeppl.org/) for more examples and documentation.
 
+$FIELDS
+"""
 Base.@kwdef struct TreePPLTarget <: StreamTarget
-    bin_path::AbstractString
-    data_path::AbstractString
-    output_dir::AbstractString
+
+    """
+    The path to the TreePPL binary to be executed.
+    """
+    bin_path::String
+
+    """
+    The path to the input data JSON file.
+    """
+    data_path::String
+
+    """
+    The directory path where TreePPL will save output samples.
+    """
+    output_dir::String
+
+    """
+    Whether the binary should be set up to record samples.
+    Note: This requires that the TreePPL binary was compiled with `record_samples=true` in the
+    [`tppl_compile_model`](@ref) function or with the `--incremental-printing` flag if the
+    model was compiled manually.
+    """
     record_samples::Bool
+
+    """
+    The container engine to use for running the TreePPL binary.
+    Only "docker" and "podman" are supported.
+    """
     container_engine::Union{String,Nothing}
+
+    """
+    The container image name where the TreePPL binary should be run
+    """
     img_name::Union{String,Nothing}
 end
 
-# Store the binary path and metadata about how we compiled it
+"""
+$SIGNATURES
+
+A struct representing a compiled TreePPL binary along with metadata about how
+it was compiled.
+
+The TreePPLBinary should be constructed by compiling the model with the
+[`tppl_compile_model`](@ref) function to ensure that all compilation metadata
+is kept. The fields below map directly to options in the [`tppl_compile_model`](@ref)
+function. For more information about what each field means, please see the
+[`tpplc --help`] command or visit [treeppl.org](https://www.treeppl.org/).
+
+$FIELDS
+"""
 Base.@kwdef struct TreePPLBinary
-    model_name::AbstractString
-    path::AbstractString
+
+    """
+    The path to the compiled TreePPL binary
+    """
+    path::String
+
+    """
+    The container engine to use for running the TreePPL binary.
+    Only "docker" and "podman" are supported.
+    """
     container_engine::Union{String,Nothing} = nothing
+
+    """
+    The container image name where the TreePPL binary was compiled
+    """
     img_name::Union{String,Nothing} = nothing
+
+    """
+    The number of local exploration steps to perform before communicating 
+    with Pigeons
+    """
     local_exploration_steps::Int
+
+    """
+    Whether the binary was compiled to use global proposals at temperature 0.
+    """
     use_global::Bool
+
+    """
+    Whether the binary was compiled to record samples.
+    """
     record_samples::Bool
+
+    """
+    The frequency of sample recording in terms of steps in the local kernel.
+    """
     sampling_period::Int
-    cps::AbstractString
+
+    """
+    The type of [CPS](https://en.wikipedia.org/wiki/Continuation-passing_style) transformation applied to the model.
+    """
+    cps::String
+
+    """
+    Whether the model was compiled to use the [aligned lightweight MCMC algorithm](https://arxiv.org/abs/2301.11664).
+    """
     align::Bool
+
+    """
+    Whether the model was compiled to use non-independent updates (drift kernels) at each assume statement.
+    """
     kernel::Bool
+
+    """
+    The scale of the proposal distribution for the drift kernels.
+    """
     drift::Float64
+
+    """
+    The probability of redrawing the whole program per local exploration step.
+    """
     globalProb::Float64
 end
 
 function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::Int64)::StreamState
     # Set the seed of the TreePPL process
-    envs = Dict{String,Any}("PPL_SEED" => java_seed(rng))
+    bin_env = Dict{String,Any}("PPL_SEED" => java_seed(rng))
     if target.record_samples
         # Ensure that the output directory exists
         mkpath(target.output_dir)
         # Instruct TreePPL to save samples to file
-        envs["PPL_OUTPUT"] = "$(target.output_dir)/tppl-replica-$replica_index.json"
+        bin_env["PPL_OUTPUT"] = "$(target.output_dir)/tppl-replica-$replica_index.json"
     elseif target.output_dir != ""
-        @warn "You have specified an TreePPL output directory but record_samples is set to false. No samples will be recorded."
+        @warn "You have specified an TreePPL output directory but `record_samples` is set to false. No samples will be recorded."
     end
-    # Construct command for running the child process
+
+    # Construct the command for running the child process
     if target.container_engine == nothing
-        cmd_with_env = `$(target.bin_path) $(target.data_path)`
+        cmd_with_env = addenv(`$(target.bin_path) $(target.data_path)`, bin_env)
     elseif target.container_engine in ["docker", "podman"]
         cmd_with_env = construct_docker_podman_run_cmd(
             target.bin_path,
             target.data_path,
             target.img_name,
             target.container_engine,
-            envs,
+            bin_env,
         )
     else
         error("Unsupported container engine: $(target.container_engine)")
@@ -90,8 +183,12 @@ function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::
     StreamState(cmd_with_env, replica_index)
 end
 
-# Helper method to constructing a TreePPL target from a TreePPL binary
-# It keeps the compilation metadata we need later on.
+"""
+$SIGNATURES
+
+Construct a [`TreePPLTarget`](@ref) from a [`TreePPLBinary`](@ref)
+and keeps necessary metadata about how the binary was compiled.
+"""
 function tppl_construct_target(
     binary::TreePPLBinary,
     data_path::AbstractString,
@@ -107,6 +204,18 @@ function tppl_construct_target(
     )
 end
 
+"""
+$SIGNATURES
+
+Compile a TreePPL model with a lightweight MCMC inference algorithm.
+
+The arguments `container_engine` and `img_name` can be used to run the TreePPL compiler
+inside a Docker or Podman container. See [`TreePPLTarget`](@ref) for an example.
+Set to `nothing` to use a local TreePPL installation.
+
+The the rest of the function arguments map to command line arguments in the TreePPL compiler. 
+For more information, run `tpplc --help` in your terminal or visit (treeppl.org)[https://www.treeppl.org/].
+"""
 function tppl_compile_model(
     model_path::AbstractString, bin::AbstractString="out";
     local_exploration_steps::Int=1, use_global::Bool=true,
@@ -151,7 +260,6 @@ function tppl_compile_model(
     end
 
     return TreePPLBinary(
-        model_name=basename(model_path),
         path=abspath(bin),
         container_engine=container_engine,
         img_name=img_name,
@@ -167,7 +275,8 @@ function tppl_compile_model(
     )
 end
 
-# This function generate a command for running a TreePPL binary inside a
+
+# This function generates a command for running a TreePPL binary inside a
 # Docker/Podman container mounts the binary, data and (optionally) output
 # directories. 
 function construct_docker_podman_run_cmd(
@@ -193,10 +302,13 @@ function construct_docker_podman_run_cmd(
     end
     volume_args = vcat([["-v", "$source:$target"] for (source, target) in volumes]...)
     docker_env_args = vcat([["-e", "$var=$val"] for (var, val) in envs]...)
+
     # The command we run inside the container needs to be wrapped in a string
     container_sh_cmd = "/in/$(basename(bin_path)) /data/$(basename(data_path))"
 
-     return `
+    # We need the -i flag to make sure that we can communicate over std streams 
+    # with the TreePPL process 
+    return `
         $container_engine run
         --rm
         -i
@@ -224,6 +336,7 @@ function construct_docker_podman_compilation_cmd(
     model_dir = abspath(dirname(model_path))
     bin_dir = abspath(dirname(bin))
 
+    # The command we run inside the container needs to be wrapped in a string
     container_sh_cmd = "tpplc $(join(args, ' ')) /in/$(basename(model_path)) --output /out/$(basename(bin))"
 
     return `
