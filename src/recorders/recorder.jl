@@ -99,7 +99,8 @@ transformed to be defined on an unconstrained space.
 This is used internally by [`explorer`](@ref)'s for adaptation purposes 
 (in particular, pre-conditioning and variational references).
 """
-@provides recorder _transformed_online() = OnlineStateRecorder() 
+@provides recorder _transformed_online() = OnlineStateRecorder()
+@provides recorder _transformed_online_full() = OnlineStateRecorder(full=true)
 
 """ 
 Restart and round-trip counts. 

@@ -20,6 +20,6 @@ function gradient_based_sampler_recorders!(recorders, explorer::GradientBasedSam
     push!(recorders, buffers)
     push!(recorders, Pigeons.ad_buffers)
     if hasproperty(explorer, :preconditioner) && explorer.preconditioner isa AdaptedDiagonalPreconditioner
-        push!(recorders, _transformed_online) # for mass matrix adaptation
+        push!(recorders, _transformed_online_full) # for mass matrix adaptation
     end
 end
