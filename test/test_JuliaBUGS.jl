@@ -1,4 +1,5 @@
-using JuliaBUGS
+import JuliaBUGS
+using JuliaBUGS: @bugs, compile, settrans
 
 include("supporting/analytic_solutions.jl")
 include("supporting/mpi_test_utils.jl")
