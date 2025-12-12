@@ -4,7 +4,7 @@ A Gaussian mean-field variational reference (i.e., with a diagonal covariance ma
 @kwdef mutable struct GaussianReference 
     mean::Dict{Symbol, Any} = Dict{Symbol, Any}() 
     standard_deviation::Dict{Symbol, Any} = Dict{Symbol, Any}() 
-    first_tuning_round::Int = 6 # TODO: this should be moved elsewhere?
+    first_tuning_round::Int = 11 # TODO: this should be moved elsewhere?
 
     function GaussianReference(mean, standard_deviation, first_tuning_round)
         @assert length(mean) == length(standard_deviation)
@@ -17,7 +17,7 @@ dim(variational::GaussianReference) = length(variational.mean)
 function activate_variational(variational::GaussianReference, iterators::Iterators) 
     iterators.round ≥ variational.first_tuning_round ? true : false
 end
-variational_recorder_builders(::GaussianReference) = [_transformed_online]
+variational_recorder_builders(::GaussianReference) = [_transformed_online_full]
 
 function update_reference!(reduced_recorders, variational::GaussianReference, state)
     isempty(discrete_variables(state)) || error("Updating a Gaussian reference with discrete variables.")
