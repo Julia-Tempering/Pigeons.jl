@@ -16,7 +16,7 @@ function Pigeons.forward_sample_condition_and_explore(
     # maybe condition the model using the sampled observations
     conditioned_model = if length(condition_on) > 0
         var_group = [JuliaBUGS.VarName{sym}() for sym in condition_on] # transform Symbols into VarNames
-        JuliaBUGS.condition(model, var_group)
+        JuliaBUGS.condition(model, var_group; regenerate_log_density=false)
     else
         model
     end
