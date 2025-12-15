@@ -3,7 +3,7 @@ A [`StreamTarget`](@ref) delegating exploration to a
 [TreePPL](https://www.treeppl.org/) worker processes.
 
 To install TreePPL locally please see the  official [TreePPL installation instructions](https://treeppl.org/getting-started/getting-started).
-TreePPL can also be run inside Docker or Podman containers, e.g.
+TreePPL can also be run inside Docker, Podman and Apptainer/Singularity containers, e.g.
 
 ```@example TreePPL_Pigeons
 using Pigeons
@@ -20,12 +20,12 @@ bin_path = "treeppl/models/host-repertoire-evolution/flat-root-prior-HRM.bin"
 data_path = "treeppl/models/host-repertoire-evolution/data/testdata_flat-root-prior-HRM.json"
 output_path = "treeppl/HRM_outputs"
 
-# Compile the TreePPL model with the correct flags using a Docker container with Podman
+# Compile the TreePPL model with the correct flags using a Docker container
 tppl_bin = Pigeons.tppl_compile_model(
     model_path, bin_path;
     local_exploration_steps=10, sampling_period=10,
     kernel=true, drift=0.01,
-    container_engine="podman",
+    container_engine="docker",
     img_name="docker.io/danielssonerik/treeppl:9d35622"
 ) 
 
@@ -67,7 +67,7 @@ Base.@kwdef struct TreePPLTarget <: StreamTarget
 
     """
     The container engine to use for running the TreePPL binary.
-    Only "docker" and "podman" are supported currently.
+    The supported options are "docker", "podman", "apptainer" and "singularity".
     """
     container_engine::Union{String,Nothing}
 
@@ -100,7 +100,7 @@ Base.@kwdef struct TreePPLBinary
 
     """
     The container engine to use for running the TreePPL binary.
-    Only "docker" and "podman" are supported currently.
+    The supported options are "docker", "podman", "apptainer" and "singularity".
     """
     container_engine::Union{String,Nothing} = nothing
 
@@ -160,6 +160,8 @@ function tppl_replica_output_path(output_dir::AbstractString, replica_index::Int
     return "$(output_dir)/tppl-replica-$replica_index.json"
 end
 
+const tppl_supported_container_engines = ["docker", "podman", "singularity", "apptainer"]
+
 function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::Int64)::StreamState
     # Set the seed of the TreePPL process
     bin_env = Dict{String,Any}("PPL_SEED" => java_seed(rng))
@@ -175,8 +177,8 @@ function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::
     # Construct the command for running the child process
     if target.container_engine == nothing
         cmd_with_env = addenv(`$(target.bin_path) $(target.data_path)`, bin_env)
-    elseif target.container_engine in ["docker", "podman"]
-        cmd_with_env = construct_docker_podman_run_cmd(
+    elseif target.container_engine in tppl_supported_container_engines
+        cmd_with_env = construct_container_run_cmd(
             target.bin_path,
             target.data_path,
             target.img_name,
@@ -186,6 +188,7 @@ function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::
     else
         error("Unsupported container engine: $(target.container_engine)")
     end
+    println(cmd_with_env)
     StreamState(cmd_with_env, replica_index)
 end
 
@@ -260,8 +263,8 @@ function tppl_compile_model(
     # Compile the model
     if container_engine == nothing
         run(`$tpplc $args $model_path --output $bin`)
-    elseif container_engine in ["podman", "docker"]
-        run(construct_docker_podman_compilation_cmd(model_path, bin, args, img_name, container_engine))
+    elseif container_engine in tppl_supported_container_engines
+        run(construct_container_compilation_cmd(model_path, bin, args, img_name, container_engine))
     else
         error("Unsupported container engine: $container_engine")
     end
@@ -340,60 +343,65 @@ function tppl_compile_samples(pt::PT, output_file::AbstractString)
     end
 end
 
-
 # This function generates a command for running a TreePPL binary inside a
-# Docker/Podman container mounts the binary, data and (optionally) output
-# directories. 
-function construct_docker_podman_run_cmd(
+# Docker/Podman/Apptainer/Singularity container mounts the binary, data and
+# (optionally) output directories. 
+function construct_container_run_cmd(
     bin_path::AbstractString,
     data_path::AbstractString,
     img_name::AbstractString,
     container_engine::AbstractString,
     envs::Dict{String,<:Any}
 )::Cmd
-    if !(container_engine in ["docker", "podman"])
+    if !(container_engine in tppl_supported_container_engines)
         error("Unsupported container engine: $container_engine")
     end
     volumes = [
-        (abspath(dirname(bin_path)), "/in"),
-        (abspath(dirname(data_path)), "/data")
+        abspath(dirname(bin_path)) => "/in",
+        abspath(dirname(data_path)) => "/data"
     ]
 
     if "PPL_OUTPUT" in keys(envs)
         # Mount the output directory if we are recording samples
         output_path = envs["PPL_OUTPUT"]
         envs["PPL_OUTPUT"] = "/out/$(basename(output_path))"
-        push!(volumes, (abspath(dirname(output_path)), "/out"))
+        push!(volumes, abspath(dirname(output_path)) => "/out")
     end
-    volume_args = vcat([["-v", "$source:$target"] for (source, target) in volumes]...)
-    docker_env_args = vcat([["-e", "$var=$val"] for (var, val) in envs]...)
 
     # The command we run inside the container needs to be wrapped in a string
     container_sh_cmd = "/in/$(basename(bin_path)) /data/$(basename(data_path))"
-    # We need the -i flag to make sure that we can communicate over std streams 
-    # with the TreePPL process 
-    return `
-        $container_engine run
-        --rm
-        -i
-        $volume_args
-        $docker_env_args
-        $img_name
-        sh -c "$container_sh_cmd"
-    `
+    if container_engine in ["docker", "podman"]
+        return construct_docker_podman_cmd(
+            container_sh_cmd,
+            img_name,
+            container_engine;
+            allow_stdin=true, 
+            volumes=volumes,
+            envs=envs
+        ) 
+    else
+        construct_apptainer_singularity_cmd(
+            container_sh_cmd,
+            img_name,
+            container_engine;
+            allow_stdin=true, 
+            volumes=volumes,
+            envs=envs
+        ) 
+    end
 end
 
 # This function generates a simple command for running the TreePPL compiler 
-# inside a Docker/Podman container. It mounts the model directory and the
-# directory where we want the binary. 
-function construct_docker_podman_compilation_cmd(
+# inside a Docker/Podman/Singularity/Apptainer container. It mounts the model
+# directory and the directory where we want the binary. 
+function construct_container_compilation_cmd(
     model_path::AbstractString,
     bin::AbstractString,
     args::Vector,
     img_name::AbstractString,
     container_engine::AbstractString
 )::Cmd
-    if !(container_engine in ["docker", "podman"])
+    if !(container_engine in tppl_supported_container_engines)
         error("Unsupported container engine: $container_engine")
     end
 
@@ -402,13 +410,81 @@ function construct_docker_podman_compilation_cmd(
 
     # The command we run inside the container needs to be wrapped in a string
     container_sh_cmd = "tpplc $(join(args, ' ')) /in/$(basename(model_path)) --output /out/$(basename(bin))"
+    volumes = [model_dir => "/in", bin_dir => "/out"]
+    if container_engine in ["docker", "podman"]
+        return construct_docker_podman_cmd(
+            container_sh_cmd,
+            img_name,
+            container_engine;
+            volumes=volumes
+        ) 
+    else
+        return construct_apptainer_singularity_cmd(
+            container_sh_cmd,
+            img_name,
+            container_engine;
+            volumes=volumes
+        )
+    end
+end
+
+# Construct a command for executing a Docker/Podman container
+function construct_docker_podman_cmd(
+    container_sh_cmd::AbstractString,
+    img_name::AbstractString,
+    container_engine::AbstractString;
+    allow_stdin::Bool=false,
+    volumes::AbstractVector{Pair{T1, T2}}=Pair{AbstractString, AbstractString}[],
+    envs::Dict{T3, T4}=Dict{AbstractString, Any}()
+)::Cmd where {T1, T2, T3 <: AbstractString, T4 <: Any}
+
+    if !(container_engine in ["docker", "podman"])
+        error("Unsupported container engine: $container_engine. Only `docker` and `podman` allowed here")
+    end
+
+    volume_args = vcat([["-v", "$source:$target"] for (source, target) in volumes]...)
+    docker_env_args = vcat([["-e", "$var=$val"] for (var, val) in envs]...)
+    docker_args = ["--rm"]
+    if allow_stdin
+        # The -i flag keeps std streams open so that we are able to communicate
+        # with the child process with the TreePPL process 
+        push!(docker_args, "-i")
+    end
 
     return `
-    $container_engine run
-        --rm
-        -v $model_dir:/in
-        -v $bin_dir:/out
+        $container_engine run
+        $docker_args
+        $volume_args
+        $docker_env_args
         $img_name
-        sh -c $container_sh_cmd
+        sh -c "$container_sh_cmd"
+    `
+end
+
+# Construct a command for executing an Apptainer/Singularity container
+function construct_apptainer_singularity_cmd(
+    container_sh_cmd::AbstractString,
+    img_name::AbstractString,
+    container_engine::AbstractString;
+    allow_stdin::Bool=false,
+    volumes::AbstractVector{Pair{T1, T2}}=Pair{AbstractString, AbstractString}[],
+    envs::Dict{T3, T4}=Dict{AbstractString, Any}()
+)::Cmd where {T1, T2, T3 <: AbstractString, T4 <: Any}
+
+    if !(container_engine in ["apptainer", "singularity"])
+        error("Unsupported container engine: $container_engine. Only `singularity` and `apptainer` allowed here")
+    end
+
+    volume_args = vcat([["--bind", "$source:$target"] for (source, target) in volumes]...)
+    env_args = vcat([["--env", "$var=$val"] for (var, val) in envs]...)
+    args = []
+
+    return `
+        $container_engine run
+        $args
+        $volume_args
+        $env_args
+        $img_name
+        sh -c "$container_sh_cmd"
     `
 end
