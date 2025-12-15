@@ -55,7 +55,7 @@ Base.@kwdef struct TreePPLTarget <: StreamTarget
     """
     The directory path where TreePPL will save output samples.
     """
-    output_dir::String
+    output_dir::Union{String,Nothing} 
 
     """
     Whether the binary should be set up to record samples.
@@ -69,12 +69,12 @@ Base.@kwdef struct TreePPLTarget <: StreamTarget
     The container engine to use for running the TreePPL binary.
     The supported options are "docker", "podman", "apptainer" and "singularity".
     """
-    container_engine::Union{String,Nothing}
+    container_engine::Union{String,Nothing} = nothing
 
     """
     The container image name where the TreePPL binary should be run
     """
-    img_name::Union{String,Nothing}
+    img_name::Union{String,Nothing} = nothing
 end
 
 """
@@ -167,10 +167,14 @@ function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::
     bin_env = Dict{String,Any}("PPL_SEED" => java_seed(rng))
     if target.record_samples
         # Ensure that the output directory exists
+        if target.output_dir == nothing
+            error("You have set `record_samples` to true but have not provided an `output_dir` where samples should be saved.")
+        end
+        # Create the output directory if it does not exist
         mkpath(target.output_dir)
         # Instruct TreePPL to save samples to file
         bin_env["PPL_OUTPUT"] = tppl_replica_output_path(target.output_dir, replica_index)
-    elseif target.output_dir != ""
+    elseif target.output_dir != nothing
         @warn "You have specified an TreePPL output directory but `record_samples` is set to false. No samples will be recorded."
     end
 
@@ -178,6 +182,9 @@ function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::
     if target.container_engine == nothing
         cmd_with_env = addenv(`$(target.bin_path) $(target.data_path)`, bin_env)
     elseif target.container_engine in tppl_supported_container_engines
+        if target.img_name == nothing
+            error("You have specified a container engine but have set `img_name=nothing`.")
+        end
         cmd_with_env = construct_container_run_cmd(
             target.bin_path,
             target.data_path,
@@ -188,7 +195,6 @@ function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::
     else
         error("Unsupported container engine: $(target.container_engine)")
     end
-    println(cmd_with_env)
     StreamState(cmd_with_env, replica_index)
 end
 
@@ -201,8 +207,17 @@ while keeping necessary metadata about how the binary was compiled.
 function tppl_construct_target(
     binary::TreePPLBinary,
     data_path::AbstractString,
-    output_dir::AbstractString=""
+    output_dir::Union{AbstractString,Nothing}=nothing
 )::TreePPLTarget
+    # Consistency checks
+    if binary.record_samples && output_dir == nothing
+        error("You have compiled the TreePPL binary to record samples but have not provided an `output_dir` where samples should be saved.")
+    end
+
+    if !binary.record_samples && output_dir != nothing
+        @warn "You have provided an `output_dir` but the TreePPL binary was not compiled to record samples. No samples will be recorded."
+    end
+
     return TreePPLTarget(
         bin_path=binary.path,
         data_path=data_path,
@@ -264,6 +279,9 @@ function tppl_compile_model(
     if container_engine == nothing
         run(`$tpplc $args $model_path --output $bin`)
     elseif container_engine in tppl_supported_container_engines
+        if img_name == nothing
+            error("You have specified a container engine but have set `img_name=nothing`.")
+        end
         run(construct_container_compilation_cmd(model_path, bin, args, img_name, container_engine))
     else
         error("Unsupported container engine: $container_engine")
@@ -309,14 +327,30 @@ function tppl_compile_samples(pt::PT, output_file::AbstractString)
         return
     end
 
-    # Compile the files for this run
+    tppl_compile_samples(
+        pt.inputs.target.output_dir,
+        pt.inputs.n_chains,
+        output_file
+    )
+end
+
+"""
+$SIGNATURES
+
+Compile a TreePPL the samples from a TreePPL model into a single file.
+Use this method when you no longer have access to the PT instance but have
+access to the output directory and know the number of chains you ran.
+"""
+function tppl_compile_samples(output_dir::AbstractString, n_chains::Int, output_file::AbstractString)
+
+    # Compile the files 
     files = [
-        tppl_replica_output_path(pt.inputs.target.output_dir, i)
-        for i in 1:pt.inputs.n_chains
+        tppl_replica_output_path(output_dir, i)
+        for i in 1:n_chains
     ]
 
     # Set up a priority queue for the samples
-    q = PriorityQueue{Tuple{String,IO}, Int}() 
+    q = PriorityQueue{Tuple{String,IO},Int}()
 
     # Open all files and read first line from each
     ios = [open(f) for f in files]
@@ -336,7 +370,7 @@ function tppl_compile_samples(pt::PT, output_file::AbstractString)
                 line = readline(io; keep=true)
                 iter, next_sample = rsplit(line, '\t')
                 enqueue!(q, (next_sample, io) => parse(Int, iter))
-            else 
+            else
                 close(io)
             end
         end
@@ -375,19 +409,19 @@ function construct_container_run_cmd(
             container_sh_cmd,
             img_name,
             container_engine;
-            allow_stdin=true, 
+            allow_stdin=true,
             volumes=volumes,
             envs=envs
-        ) 
+        )
     else
-        construct_apptainer_singularity_cmd(
+        return construct_apptainer_singularity_cmd(
             container_sh_cmd,
             img_name,
             container_engine;
-            allow_stdin=true, 
+            allow_stdin=true,
             volumes=volumes,
             envs=envs
-        ) 
+        )
     end
 end
 
@@ -417,7 +451,7 @@ function construct_container_compilation_cmd(
             img_name,
             container_engine;
             volumes=volumes
-        ) 
+        )
     else
         return construct_apptainer_singularity_cmd(
             container_sh_cmd,
@@ -434,28 +468,28 @@ function construct_docker_podman_cmd(
     img_name::AbstractString,
     container_engine::AbstractString;
     allow_stdin::Bool=false,
-    volumes::AbstractVector{Pair{T1, T2}}=Pair{AbstractString, AbstractString}[],
-    envs::Dict{T3, T4}=Dict{AbstractString, Any}()
-)::Cmd where {T1, T2, T3 <: AbstractString, T4 <: Any}
+    volumes::AbstractVector{Pair{T1,T2}}=Pair{AbstractString,AbstractString}[],
+    envs::Dict{T3,T4}=Dict{AbstractString,Any}()
+)::Cmd where {T1,T2,T3<:AbstractString,T4<:Any}
 
     if !(container_engine in ["docker", "podman"])
         error("Unsupported container engine: $container_engine. Only `docker` and `podman` allowed here")
     end
 
     volume_args = vcat([["-v", "$source:$target"] for (source, target) in volumes]...)
-    docker_env_args = vcat([["-e", "$var=$val"] for (var, val) in envs]...)
-    docker_args = ["--rm"]
+    env_args = vcat([["-e", "$var=$val"] for (var, val) in envs]...)
+    args = ["--rm"]
     if allow_stdin
         # The -i flag keeps std streams open so that we are able to communicate
-        # with the child process with the TreePPL process 
-        push!(docker_args, "-i")
+        # with the child process
+        push!(args, "-i")
     end
 
     return `
         $container_engine run
-        $docker_args
+        $args
         $volume_args
-        $docker_env_args
+        $env_args
         $img_name
         sh -c "$container_sh_cmd"
     `
@@ -467,9 +501,9 @@ function construct_apptainer_singularity_cmd(
     img_name::AbstractString,
     container_engine::AbstractString;
     allow_stdin::Bool=false,
-    volumes::AbstractVector{Pair{T1, T2}}=Pair{AbstractString, AbstractString}[],
-    envs::Dict{T3, T4}=Dict{AbstractString, Any}()
-)::Cmd where {T1, T2, T3 <: AbstractString, T4 <: Any}
+    volumes::AbstractVector{Pair{T1,T2}}=Pair{AbstractString,AbstractString}[],
+    envs::Dict{T3,T4}=Dict{AbstractString,Any}()
+)::Cmd where {T1,T2,T3<:AbstractString,T4<:Any}
 
     if !(container_engine in ["apptainer", "singularity"])
         error("Unsupported container engine: $container_engine. Only `singularity` and `apptainer` allowed here")
@@ -477,11 +511,9 @@ function construct_apptainer_singularity_cmd(
 
     volume_args = vcat([["--bind", "$source:$target"] for (source, target) in volumes]...)
     env_args = vcat([["--env", "$var=$val"] for (var, val) in envs]...)
-    args = []
 
     return `
         $container_engine run
-        $args
         $volume_args
         $env_args
         $img_name
