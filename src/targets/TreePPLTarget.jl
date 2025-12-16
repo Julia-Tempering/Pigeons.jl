@@ -167,22 +167,22 @@ function initialization(target::TreePPLTarget, rng::AbstractRNG, replica_index::
     bin_env = Dict{String,Any}("PPL_SEED" => java_seed(rng))
     if target.record_samples
         # Ensure that the output directory exists
-        if target.output_dir == nothing
+        if isnothing(target.output_dir)
             error("You have set `record_samples` to true but have not provided an `output_dir` where samples should be saved.")
         end
         # Create the output directory if it does not exist
         mkpath(target.output_dir)
         # Instruct TreePPL to save samples to file
         bin_env["PPL_OUTPUT"] = tppl_replica_output_path(target.output_dir, replica_index)
-    elseif target.output_dir != nothing
+    elseif !isnothing(target.output_dir)
         @warn "You have specified an TreePPL output directory but `record_samples` is set to false. No samples will be recorded."
     end
 
     # Construct the command for running the child process
-    if target.container_engine == nothing
+    if isnothing(target.container_engine)
         cmd_with_env = addenv(`$(target.bin_path) $(target.data_path)`, bin_env)
     elseif target.container_engine in tppl_supported_container_engines
-        if target.img_name == nothing
+        if isnothing(target.img_name)
             error("You have specified a container engine but have set `img_name=nothing`.")
         end
         cmd_with_env = construct_container_run_cmd(
@@ -210,11 +210,11 @@ function tppl_construct_target(
     output_dir::Union{AbstractString,Nothing}=nothing
 )::TreePPLTarget
     # Consistency checks
-    if binary.record_samples && output_dir == nothing
+    if binary.record_samples && isnothing(output_dir)
         error("You have compiled the TreePPL binary to record samples but have not provided an `output_dir` where samples should be saved.")
     end
 
-    if !binary.record_samples && output_dir != nothing
+    if !binary.record_samples && !isnothing(output_dir)
         @warn "You have provided an `output_dir` but the TreePPL binary was not compiled to record samples. No samples will be recorded."
     end
 
@@ -276,10 +276,10 @@ function tppl_compile_model(
     args = vcat(args, [flag for (cond, flag) in flags if cond])
 
     # Compile the model
-    if container_engine == nothing
+    if isnothing(container_engine)
         run(`$tpplc $args $model_path --output $bin`)
     elseif container_engine in tppl_supported_container_engines
-        if img_name == nothing
+        if isnothing(img_name)
             error("You have specified a container engine but have set `img_name=nothing`.")
         end
         run(construct_container_compilation_cmd(model_path, bin, args, img_name, container_engine))
@@ -322,8 +322,8 @@ function tppl_compile_samples(pt::PT, output_file::AbstractString)
         return
     end
 
-    if pt.inputs.target.output_dir == nothing
-        @warn("`output_dir == nothing` so no samples to compile")
+    if isnothing(pt.inputs.target.output_dir)
+        @warn("`output_dir` is `nothing` so no samples to compile")
         return
     end
 
