@@ -9,9 +9,9 @@ TreePPL can also be run inside Docker, Podman and Apptainer/Singularity containe
 using Pigeons
 
 # Get the TreePPL models
-run(`git clone https://github.com/ErikDanielsson/treeppl.git`)
+run(`git clone https://github.com/treeppl/treeppl.git`)
 cd("treeppl") do
-    run(`git checkout 9d35622`) # Checkout a specific revision for reproducibility
+    run(`git checkout 597a65a`) # Checkout a specific revision for reproducibility
 end
 
 # Set up paths to a CRBD model 
@@ -26,7 +26,7 @@ tppl_bin = Pigeons.tppl_compile_model(
     local_exploration_steps=10, sampling_period=10,
     kernel=true, drift=0.01,
     container_engine="docker",
-    img_name="docker.io/danielssonerik/treeppl:9d35622"
+    img_name="docker.io/danielssonerik/treeppl:597a65a"
 ) 
 
 # Construct the TreePPL target

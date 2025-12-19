@@ -16,14 +16,6 @@ function test_model_runs(
     tppl_binary = Pigeons.tppl_compile_model(
         model_path, bin_path;
         local_exploration_steps=2,
-        use_global=true,
-        record_samples=true,
-        sampling_period=1,
-        cps="full",
-        align=true,
-        kernel=true,
-        drift=1.0,
-        globalProb=0.1,
         container_engine=container_engine,
         img_name=img_name
     )
@@ -37,11 +29,13 @@ function test_model_runs(
     pt = pigeons(target=tppl_target, n_rounds=2, n_chains=n_chains)
     Pigeons.kill_child_processes(pt)
 
-    # Check that the samples seem fine
+    # Check that the samples seem to correctly written
+    println("Checking sample compilation")
     test_sample_compilation(pt, result_dir, n_chains)
 
     # Remove the result directory
     rm(result_dir, force=true, recursive=true)
+    return stepping_stone(pt)
 end
 
 function test_sample_compilation(pt::PT, result_dir::AbstractString, n_chains::Int)
@@ -61,6 +55,36 @@ function test_sample_compilation(pt::PT, result_dir::AbstractString, n_chains::I
         ]
     ) == length(readlines(compiled_samples_path))
 
+end
+
+function test_no_record_samples(
+    model::Tuple{AbstractString,AbstractString},
+    models_dir::AbstractString,
+    container_engine::AbstractString,
+    img_name::AbstractString
+)
+    (subdir, model_name) = model
+
+    # Define directories
+    model_path = "$models_dir/$subdir/$model_name.tppl"
+    bin_path = "$models_dir/$subdir/$model_name.bin"
+    data_path = "$models_dir/$subdir/data/testdata_$model_name.json"
+
+    # Compile the model without recording samples
+    println("Compiling TreePPL model: $model_name")
+    tppl_binary = Pigeons.tppl_compile_model(
+        model_path, bin_path;
+        local_exploration_steps=2,
+        record_samples=false,
+        container_engine=container_engine,
+        img_name=img_name
+    )
+
+    tppl_target = Pigeons.tppl_construct_target(tppl_binary, data_path)
+
+    pt = pigeons(target=tppl_target, n_rounds=2, n_chains=2)
+    Pigeons.kill_child_processes(pt)
+    return stepping_stone(pt)
 end
 
 # Small normalizing and mean constant test
@@ -119,7 +143,7 @@ function test_inference_accuracy(
     @test abs(est_mean - true_mean) < ϵ_mean
 end
 
-function test_norm_const_coin(
+function test_inference_accuracy_coin(
     models_dir::AbstractString,
     container_engine::AbstractString,
     img_name::AbstractString
@@ -141,6 +165,8 @@ function test_norm_const_coin(
     logZ₁ = SpecialFunctions.logbeta(α + sum(data), β + N - sum(data))
     norm_const = logZ₁ - logZ₀
     ϵ_norm_const = 0.05
+
+    # Analytical posterior mean for Beta(2, 2) prior
     true_mean = (α + sum(data)) / (α + β + N)
     ϵ_mean = 1e-4
 
@@ -172,13 +198,15 @@ tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
         # Clone the TreePPL repo to get access to models
         # NOTE(ErikDanielsson) 2025-11-13: I have set the revision to the HEAD 
         # commit of the main repo at the time of the Pigeons support merge. 
-        # TODO: This should be set to a release version (or multiple) once there is one.
-        revision = "9d35622"
+        # TODO: This should be set to a release version (or multiple) once
+        # there is one. The same holds for Docker containers which are
+        # currently not officially from TreePPL
+        revision = "597a65a"
         rel_loc = "treeppl"
 
         # Ensure that the directory does not exist
         rm(rel_loc, force=true, recursive=true)
-        run(`git clone https://github.com/ErikDanielsson/treeppl.git $rel_loc`)
+        run(`git clone https://github.com/treeppl/treeppl.git $rel_loc`)
 
         cd(rel_loc) do
             # Ensure that the desired revision is checked out
@@ -198,10 +226,16 @@ tppl_HRM_model() = ("host-repertoire-evolution", "flat-root-prior-HRM")
 
         # Try compiling the models using the Docker container 
         for model in models
-            test_model_runs(model, models_dir, container_engine, tppl_img_name)
+            norm_const_1 = test_model_runs(model, models_dir, container_engine, tppl_img_name)
+            norm_const_2 = test_no_record_samples(model, models_dir, container_engine, tppl_img_name)
+            # Check that recording samples does not effect inference (this would be a bug in TreePPL)
+            @test norm_const_1  == norm_const_2
         end
 
-        # Test normalizing constant estimation for the Beta Binomial model
-        test_norm_const_coin(models_dir, container_engine, tppl_img_name)
+        # Test inference accuracy in the Beta-Binomial model 
+        # NOTE(ErikDanielsson 19-12-2025): We might want to replace this with a
+        # phylogenetic model once tempering of hard constraints are handled in a
+        # more natural way in TreePPL
+        test_inference_accuracy_coin(models_dir, container_engine, tppl_img_name)
     end
 end
