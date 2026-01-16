@@ -12,6 +12,7 @@ import MPI: Comm, Allreduce, Comm_rank,
 
 using ADTypes
 using DataFrames
+using DataStructures
 using Dates
 using Distributions
 using DocStringExtensions
