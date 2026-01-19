@@ -1,4 +1,4 @@
-# Pigeons.jl
+# Pigeons.jl 
 
 <!---
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/Julia-Tempering/Pigeons.jl/stable/)
