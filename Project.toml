@@ -1,7 +1,7 @@
 name = "Pigeons"
 uuid = "0eb8d820-af6a-4919-95ae-11206f830c31"
-authors = ["Alexandre Bouchard-Côté <bouchard@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Paul Tiede <ptiede91@gmail.com>, Trevor Campbell <trevor@stat.ubc.ca>, Miguel Biron-Lattes <miguel.biron@stat.ubc.ca>, Saifuddin Syed <saifuddin.syed@stats.ox.ac.uk>"]
 version = "0.4.9"
+authors = ["Alexandre Bouchard-Côté <bouchard@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Paul Tiede <ptiede91@gmail.com>, Trevor Campbell <trevor@stat.ubc.ca>, Miguel Biron-Lattes <miguel.biron@stat.ubc.ca>, Saifuddin Syed <saifuddin.syed@stats.ox.ac.uk>"]
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -71,7 +71,7 @@ DataStructures = ">=0.9"
 DifferentiationInterface = "0.6.48"
 Distributions = "0.25"
 DocStringExtensions = "0.9"
-DynamicPPL = "0.35, 0.38"
+DynamicPPL = "0.35, 0.38, 0.39"
 Enzyme = "0.12, 0.13"
 Expect = "0.3"
 FillArrays = "1"
