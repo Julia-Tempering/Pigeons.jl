@@ -1,0 +1,17 @@
+first,second
+extended_traces,false
+checked_round,0
+extractor,nothing
+record,"Function[Pigeons.traces, Pigeons.round_trip, Pigeons.log_sum_ratio, Pigeons.timing_extrema, Pigeons.allocation_extrema]"
+multithreaded,false
+show_report,true
+n_chains,10
+variational,nothing
+explorer,nothing
+n_chains_variational,0
+target,"Pigeons.ScaledPrecisionNormalPath(1.0, 10.0, 2)"
+n_rounds,4
+exec_folder,nothing
+reference,nothing
+checkpoint,false
+seed,1

@@ -1,0 +1,1 @@
+--model.nTrials 100 --model.nFails 50 --experimentConfigs.resultsHTMLPage false --experimentConfigs.saveStandardStreams false --engine blang.engines.internals.factories.Pigeons --engine.random 1072283480587013471 --model demos.UnidentifiableProduct$Builder

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Why parallel tempering (PT)? · Pigeons.jl</title><meta name="title" content="Why parallel tempering (PT)? · Pigeons.jl"/><meta property="og:title" content="Why parallel tempering (PT)? · Pigeons.jl"/><meta property="twitter:title" content="Why parallel tempering (PT)? · Pigeons.jl"/><meta name="description" content="Documentation for Pigeons.jl."/><meta property="og:description" content="Documentation for Pigeons.jl."/><meta property="twitter:description" content="Documentation for Pigeons.jl."/><meta property="og:url" content="https://Julia-Tempering.github.io/Pigeons.jl/unidentifiable-example/"/><meta property="twitter:url" content="https://Julia-Tempering.github.io/Pigeons.jl/unidentifiable-example/"/><link rel="canonical" href="https://Julia-Tempering.github.io/Pigeons.jl/unidentifiable-example/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Pigeons.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Basic usage (local)</a></li><li class="is-active"><a class="tocitem" href>Why parallel tempering (PT)?</a><ul class="internal"><li><a class="tocitem" href="#Unidentifiable-example-without-PT"><span>Unidentifiable example without PT</span></a></li><li><a class="tocitem" href="#Unidentifiable-example-with-PT"><span>Unidentifiable example with PT</span></a></li></ul></li><li><a class="tocitem" href="../parallel/">Parallelization</a></li><li><a class="tocitem" href="../mpi/">Distributed usage (MPI)</a></li><li><a class="tocitem" href="../variational/">Variational PT</a></li><li><span class="tocitem">Supported inputs</span><ul><li><a class="tocitem" href="../input-overview/">Inputs overview</a></li><li><a class="tocitem" href="../input-turing/">Turing.jl model</a></li><li><a class="tocitem" href="../input-julia/">Black-box function</a></li><li><a class="tocitem" href="../input-stan/">Stan model</a></li><li><a class="tocitem" href="../input-nonjulian/">Non-julian MCMC</a></li><li><a class="tocitem" href="../input-explorers/">Custom MCMC</a></li></ul></li><li><span class="tocitem">Outputs</span><ul><li><a class="tocitem" href="../output-overview/">Outputs overview</a></li><li><a class="tocitem" href="../output-inferencereport/">Automated reports</a></li><li><a class="tocitem" href="../output-reports/">Standard output</a></li><li><a class="tocitem" href="../output-traces/">Traces</a></li><li><a class="tocitem" href="../output-plotting/">Plots</a></li><li><a class="tocitem" href="../output-normalization/">log(Z)</a></li><li><a class="tocitem" href="../output-numerical/">Numerical</a></li><li><a class="tocitem" href="../output-online/">Online stats</a></li><li><a class="tocitem" href="../output-off-memory/">Off-memory</a></li><li><a class="tocitem" href="../output-pt/">PT diagnostics</a></li><li><a class="tocitem" href="../output-custom-types/">Custom types</a></li><li><a class="tocitem" href="../output-extended/">Extended output</a></li><li><a class="tocitem" href="../output-mpi-postprocessing/">MPI output</a></li></ul></li><li><a class="tocitem" href="../checkpoints/">Checkpoints</a></li><li><a class="tocitem" href="../correctness/">Correctness checks</a></li><li><a class="tocitem" href="../pt/">More on PT</a></li><li><a class="tocitem" href="../distributed/">More on distributed PT</a></li><li><a class="tocitem" href="../interfaces/">Interfaces</a></li><li><a class="tocitem" href="../reference/">Reference</a></li><li><a class="tocitem" href="../developers/">For developers</a></li><li><a class="tocitem" href="../openings/">Openings</a></li><li><a class="tocitem" href="../about-us/">About Us</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Why parallel tempering (PT)?</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Why parallel tempering (PT)?</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Julia-Tempering/Pigeons.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/Julia-Tempering/Pigeons.jl/blob/main/docs/src/unidentifiable-example.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="unidentifiable-example"><a class="docs-heading-anchor" href="#unidentifiable-example">Why Parallel Tempering (PT)? An example.</a><a id="unidentifiable-example-1"></a><a class="docs-heading-anchor-permalink" href="#unidentifiable-example" title="Permalink"></a></h1><p>Consider a Bayesian model where the likelihood is a binomial distribution with probability parameter <span>$p$</span>.  Let us consider an over-parameterized model where we  write <span>$p = p_1 p_2$</span>. Assume that each <span>$p_i$</span> has a uniform prior on the interval <span>$[0, 1]$</span>. This is a toy example of an unidentifiable parameterization. In practice many popular  Bayesian models are unidentifiable. </p><p>When there are many observations, the posterior of  unidentifiable models concentrate on a sub-manifold,  making sampling difficult, as shown in the <a href="../output-plotting/#output-plotting">following pair plots</a>:</p><iframe src="../pair_plot.svg" style="height:500px;width:100%;"></iframe><h2 id="Unidentifiable-example-without-PT"><a class="docs-heading-anchor" href="#Unidentifiable-example-without-PT">Unidentifiable example without PT</a><a id="Unidentifiable-example-without-PT-1"></a><a class="docs-heading-anchor-permalink" href="#Unidentifiable-example-without-PT" title="Permalink"></a></h2><p>Let us look at trace plots obtained from performing  single-chain MCMC on this problem.  The key part of the code below is the argument  <code>n_chains = 1</code>: we have designed our PT implementation  so that setting the number of chains to one reduces to a  standard MCMC algorithm. </p><pre><code class="language-julia hljs">using DynamicPPL
+using Pigeons
+using MCMCChains
+using StatsPlots
+plotlyjs()
+
+# The model described above implemented in Turing
+# note we are using a large observation size here
+an_unidentifiable_model = Pigeons.toy_turing_unid_target(100000, 50000)
+
+pt = pigeons(
+        target = an_unidentifiable_model,
+        n_chains = 1, # &lt;- corresponds to single chain MCMC
+        record = [traces])
+
+# collect the statistics and convert to MCMCChains&#39; Chains
+samples = Chains(pt)
+# create the trace plots
+my_plot = StatsPlots.plot(samples)
+StatsPlots.savefig(my_plot, &quot;no_pt_posterior_densities_and_traces.html&quot;);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">───────────────────────────────────────────
+  scans    log(Z₁/Z₀)   min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ──────────
+        2          0          1          1
+        4          0          1          1
+        8          0          1          1
+       16          0          1          1
+       32          0          1          1
+       64          0          1          1
+      128          0          1          1
+      256          0          1          1
+      512          0          1          1
+ 1.02e+03          0          1          1
+───────────────────────────────────────────</code></pre><iframe src="../no_pt_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe><p>It is quite obvious that mixing is poor, as confirmed by effective sample size (ESS) estimates:</p><pre><code class="language-julia hljs">samples</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chains MCMC chain (1024×3×1 Array{Float64, 3}):
+
+Iterations        = 1:1:1024
+Number of chains  = 1
+Samples per chain = 1024
+parameters        = p1, p2
+internals         = log_density
+
+Summary Statistics
+ <span class="sgr1"> parameters </span> <span class="sgr1">    mean </span> <span class="sgr1">     std </span> <span class="sgr1">    mcse </span> <span class="sgr1"> ess_bulk </span> <span class="sgr1"> ess_tail </span> <span class="sgr1">    rhat </span> <span class="sgr1"> e</span> ⋯
+ <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  </span> ⋯
+
+          p1    0.9646    0.0244    0.0047    29.1938    76.8349    1.0231     ⋯
+          p2    0.5187    0.0135    0.0026    29.2742    72.9775    1.0226     ⋯
+<span class="sgr36">                                                                1 column omitted</span>
+
+Quantiles
+ <span class="sgr1"> parameters </span> <span class="sgr1">    2.5% </span> <span class="sgr1">   25.0% </span> <span class="sgr1">   50.0% </span> <span class="sgr1">   75.0% </span> <span class="sgr1">   97.5% </span>
+ <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span>
+
+          p1    0.9122    0.9491    0.9683    0.9846    0.9983
+          p2    0.5004    0.5080    0.5166    0.5269    0.5488
+</code></pre><h2 id="Unidentifiable-example-with-PT"><a class="docs-heading-anchor" href="#Unidentifiable-example-with-PT">Unidentifiable example with PT</a><a id="Unidentifiable-example-with-PT-1"></a><a class="docs-heading-anchor-permalink" href="#Unidentifiable-example-with-PT" title="Permalink"></a></h2><p>Let us enable parallel tempering now, by setting  <code>n_chains</code> to a value greater than one:</p><pre><code class="language-julia hljs">pt = pigeons(
+        target = an_unidentifiable_model,
+        n_chains = 10,
+        record = [traces, round_trip])
+
+# collect the statistics and convert to MCMCChains&#39; Chains
+samples = Chains(pt)
+# create the trace plots
+my_plot = StatsPlots.plot(samples)
+StatsPlots.savefig(my_plot, &quot;with_pt_posterior_densities_and_traces.html&quot;);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">───────────────────────────────────────────────────────────────────────────────────────
+  scans     restarts      Λ      log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2          0          2  -3.54e+03          0      0.778          1          1
+        4          0       2.35      -52.9   5.81e-38      0.739          1          1
+        8          0        3.2      -10.1      0.256      0.645          1          1
+       16          0       3.93      -10.8      0.319      0.563          1          1
+       32          0       3.51      -12.3      0.313       0.61          1          1
+       64          4       3.22      -10.9       0.41      0.642          1          1
+      128          7       3.63      -11.9      0.419      0.596          1          1
+      256         16       3.44      -11.5      0.566      0.618          1          1
+      512         40       3.43      -11.6      0.527      0.619          1          1
+ 1.02e+03         63       3.49      -11.8      0.563      0.612          1          1
+───────────────────────────────────────────────────────────────────────────────────────</code></pre><iframe src="../with_pt_posterior_densities_and_traces.html" style="height:500px;width:100%;"></iframe><p>There is a marked difference.  Thanks to round trips through the reference distribution,  where we can sample iid, we are able to jump at different  parts of the state space. </p><p>This is also confirmed by the PT ESS estimates:</p><pre><code class="language-julia hljs">samples</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chains MCMC chain (1024×3×1 Array{Float64, 3}):
+
+Iterations        = 1:1:1024
+Number of chains  = 1
+Samples per chain = 1024
+parameters        = p1, p2
+internals         = log_density
+
+Summary Statistics
+ <span class="sgr1"> parameters </span> <span class="sgr1">    mean </span> <span class="sgr1">     std </span> <span class="sgr1">    mcse </span> <span class="sgr1"> ess_bulk </span> <span class="sgr1"> ess_tail </span> <span class="sgr1">    rhat </span> <span class="sgr1"> e</span> ⋯
+ <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  </span> ⋯
+
+          p1    0.7375    0.1556    0.0207    87.7657   128.1847    1.0502     ⋯
+          p2    0.7103    0.1552    0.0153    85.8256   107.0261    1.0252     ⋯
+<span class="sgr36">                                                                1 column omitted</span>
+
+Quantiles
+ <span class="sgr1"> parameters </span> <span class="sgr1">    2.5% </span> <span class="sgr1">   25.0% </span> <span class="sgr1">   50.0% </span> <span class="sgr1">   75.0% </span> <span class="sgr1">   97.5% </span>
+ <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span>
+
+          p1    0.5069    0.5914    0.7321    0.8824    0.9814
+          p2    0.5088    0.5668    0.6832    0.8460    0.9877
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Basic usage (local)</a><a class="docs-footer-nextpage" href="../parallel/">Parallelization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 20 January 2026 03:52">Tuesday 20 January 2026</span>. Using Julia version 1.11.8.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
