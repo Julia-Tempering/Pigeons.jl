@@ -119,6 +119,15 @@ jobs:
         run: |
           brew install "${{ matrix.mpi }}"
 
+      #==!!!NEW CHANGE!!! Try test the following env var setting to fix macos-openmpi issue =====#
+      - name: Work around OpenMPI/PMIx interface selection on macOS runners
+        if: ${{ matrix.mpi == 'openmpi' }}
+        run: |
+          echo "PMIX_MCA_ptl_tcp_if_include=lo0" >> $GITHUB_ENV
+          echo "OMPI_MCA_btl_tcp_if_include=lo0" >> $GITHUB_ENV
+          echo "OMPI_MCA_oob_tcp_if_include=lo0" >> $GITHUB_ENV
+      #==========================================================================================#
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
