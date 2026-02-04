@@ -4,7 +4,7 @@
 
 # Initialization and iid sampling
 function evaluate_and_initialize(model::JuliaBUGS.BUGSModel, rng::AbstractRNG)
-    new_env = first(JuliaBUGS.evaluate!!(rng, model)) # sample a new evaluation environment
+    new_env, _ = JuliaBUGS.Model.evaluate_with_rng!!(rng, model)  # sample a new evaluation environment
     return JuliaBUGS.initialize!(model, new_env)      # set the private_model's environment to the newly created one
 end
 
@@ -59,21 +59,26 @@ function Pigeons.interpolate(path::JuliaBUGSPath, beta)
 end
 
 # log_potential evaluation
-(log_potential::JuliaBUGSLogPotential)(flattened_values) =
-    try 
-        log_prior, _, tempered_log_joint = last(
-            JuliaBUGS._tempered_evaluate!!(
-                log_potential.private_model, 
-                flattened_values;
-                temperature=log_potential.beta
-            )
+function (log_potential::JuliaBUGSLogPotential)(flattened_values::AbstractVector)
+    try
+        # Evaluate at given values using JuliaBUGS 0.10 API
+        # evaluate_with_values!! returns (evaluation_env, log_densities_namedtuple)
+        _, log_densities = JuliaBUGS.Model.evaluate_with_values!!(
+            log_potential.private_model,
+            flattened_values;
+            temperature=log_potential.beta,
+            transformed=log_potential.private_model.transformed,
         )
-        # avoid potential 0*Inf (= NaN) 
+        # log_densities is a NamedTuple with fields: logprior, loglikelihood, tempered_logjoint
+        log_prior = log_densities.logprior
+        tempered_log_joint = log_densities.tempered_logjoint
+        # avoid potential 0*Inf (= NaN)
         return iszero(log_potential.beta) ? log_prior : tempered_log_joint
     catch e
         (isa(e, DomainError) || isa(e, BoundsError)) && return -Inf
         rethrow(e)
     end
+end
 
 # iid sampling
 function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shared)
@@ -81,17 +86,20 @@ function Pigeons.sample_iid!(log_potential::JuliaBUGSLogPotential, replica, shar
 end
 
 # parameter names
-Pigeons.sample_names(::Vector, log_potential::JuliaBUGSLogPotential) = 
-    [(Symbol(string(vn)) for vn in log_potential.private_model.parameters)...,:log_density]
+Pigeons.sample_names(::Vector, log_potential::JuliaBUGSLogPotential) =
+    [(Symbol(string(vn)) for vn in JuliaBUGS.parameters(log_potential.private_model))..., :log_density]
 
 # Parallelism invariance
 Pigeons.recursive_equal(a::Union{JuliaBUGSPath,JuliaBUGSLogPotential}, b) =
-    Pigeons._recursive_equal(a,b)
-function Pigeons.recursive_equal(a::T, b) where T <: JuliaBUGS.BUGSModel
+    Pigeons._recursive_equal(a, b)
+# just check the betas match, the model is already checked within path
+Pigeons.recursive_equal(a::AbstractVector{<:JuliaBUGSLogPotential}, b) =
+    all(lp1.beta == lp2.beta for (lp1, lp2) in zip(a, b))
+
+# BUGSModel-specific equality: compare only stable fields to avoid nondeterminism
+# in evaluation caches and generated functions while preserving true model identity.
+function Pigeons.recursive_equal(a::T, b) where {T<:JuliaBUGS.BUGSModel}
     included = (:transformed, :model_def, :data)
     excluded = Tuple(setdiff(fieldnames(T), included))
-    Pigeons._recursive_equal(a,b,excluded)
+    return Pigeons._recursive_equal(a, b, excluded)
 end
-# just check the betas match, the model is already checked within path
-Pigeons.recursive_equal(a::AbstractVector{<:JuliaBUGSLogPotential}, b) =    
-    all(lp1.beta == lp2.beta for (lp1,lp2) in zip(a,b))
