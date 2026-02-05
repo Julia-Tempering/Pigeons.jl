@@ -14,16 +14,16 @@ pt = pigeons(target = Pigeons.toy_turing_unid_target(100, 50),
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
   scans        Λ        Λ_var      time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       1.39       3.24      0.263   1.14e+07      -8.14    0.00178      0.756          1          1
-        4       2.48       1.58    0.00444   4.39e+06      -5.17     0.0352      0.787          1          1
-        8       1.08       1.74    0.00838   8.58e+06      -4.52      0.508      0.852          1          1
-       16       1.68       1.53      0.016   1.71e+07      -5.03      0.589      0.831          1          1
-       32       1.22       1.71     0.0326   3.56e+07      -5.41      0.594      0.846          1          1
-       64       1.38       1.59     0.0672   6.85e+07      -5.04      0.714      0.844          1          1
-      128       1.47       1.01       0.46   1.49e+08      -4.95      0.791      0.869          1          1
-      256       1.41      0.995      0.331   2.74e+08      -4.96      0.799      0.873          1          1
-      512       1.48       1.05      0.622    5.5e+08      -5.02      0.818      0.867          1          1
- 1.02e+03       1.53       1.05       1.11    1.1e+09      -4.96      0.802      0.864          1          1
+        2       1.39       3.24      0.275   1.14e+07      -8.14    0.00178      0.756          1          1
+        4       2.48       1.58    0.00458   4.39e+06      -5.17     0.0352      0.787          1          1
+        8       1.08       1.74    0.00833   8.58e+06      -4.52      0.508      0.852          1          1
+       16       1.68       1.53     0.0156   1.71e+07      -5.03      0.589      0.831          1          1
+       32       1.22       1.71     0.0324   3.56e+07      -5.41      0.594      0.846          1          1
+       64       1.38       1.59     0.0613   6.85e+07      -5.04      0.714      0.844          1          1
+      128       1.47       1.01      0.478   1.49e+08      -4.95      0.791      0.869          1          1
+      256       1.41      0.995      0.337   2.74e+08      -4.96      0.799      0.873          1          1
+      512       1.48       1.05      0.676    5.5e+08      -5.02      0.818      0.867          1          1
+ 1.02e+03       1.53       1.05          2    1.1e+09      -4.96      0.802      0.864          1          1
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><h2 id="Round-trips-and-tempered-restarts"><a class="docs-heading-anchor" href="#Round-trips-and-tempered-restarts">Round trips and tempered restarts</a><a id="Round-trips-and-tempered-restarts-1"></a><a class="docs-heading-anchor-permalink" href="#Round-trips-and-tempered-restarts" title="Permalink"></a></h2><p>A tempered restart happens when a sample from the reference  percolates to the target.  When the reference supports iid sampling, tempered restarts  can enable large jumps in the state space. </p><p>A round-trip happens when we have a full cycle from  reference to target and back to reference. </p><p>To count tempered restarts and round trips,  add the <a href="../reference/#Pigeons.round_trip-Tuple{}"><code>round_trip()</code></a> recorder:</p><pre><code class="language-julia hljs">pt = pigeons(target = Pigeons.toy_turing_unid_target(100, 50),
            record = [round_trip; record_default()])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr36"><span class="sgr1">┌ Info: </span></span>Neither traces, disk, nor online recorders included.
 <span class="sgr36"><span class="sgr1">│ </span></span>   You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
@@ -31,16 +31,16 @@ pt = pigeons(target = Pigeons.toy_turing_unid_target(100, 50),
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
   scans     restarts      Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2          0       3.24    0.00906   1.14e+06      -8.14    0.00178       0.64          1          1
-        4          0       1.64    0.00227    2.1e+06      -5.04     0.0352      0.818          1          1
-        8          0       1.17    0.00405    4.1e+06      -4.42      0.708      0.871          1          1
-       16          1        1.2    0.00791   8.64e+06      -4.03      0.549      0.867          1          1
-       32          6       1.11     0.0154   1.69e+07      -4.77      0.754      0.877          1          1
-       64         11       1.35     0.0306   3.39e+07      -4.79      0.698       0.85          1          1
-      128         25        1.6      0.105   6.72e+07      -4.97      0.725      0.823          1          1
-      256         43       1.51      0.131   1.33e+08      -4.92      0.758      0.832          1          1
-      512         95       1.48      0.336   2.69e+08      -4.94      0.806      0.836          1          1
- 1.02e+03        170       1.53      0.591   5.37e+08      -5.08      0.808       0.83          1          1
+        2          0       3.24    0.00921   1.14e+06      -8.14    0.00178       0.64          1          1
+        4          0       1.64    0.00265    2.1e+06      -5.04     0.0352      0.818          1          1
+        8          0       1.17    0.00471    4.1e+06      -4.42      0.708      0.871          1          1
+       16          1        1.2    0.00921   8.65e+06      -4.03      0.549      0.867          1          1
+       32          6       1.11      0.018   1.69e+07      -4.77      0.754      0.877          1          1
+       64         11       1.35     0.0371   3.39e+07      -4.79      0.698       0.85          1          1
+      128         25        1.6     0.0875   6.72e+07      -4.97      0.725      0.823          1          1
+      256         43       1.51       0.21   1.33e+08      -4.92      0.758      0.832          1          1
+      512         95       1.48      0.284   2.69e+08      -4.94      0.806      0.836          1          1
+ 1.02e+03        170       1.53      0.638   5.37e+08      -5.08      0.808       0.83          1          1
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>The values can also be accessed as follows:</p><pre><code class="language-julia hljs">Pigeons.n_tempered_restarts(pt), Pigeons.n_round_trips(pt)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(170, 166)</code></pre><h2 id="Local-communication-barrier"><a class="docs-heading-anchor" href="#Local-communication-barrier">Local communication barrier</a><a id="Local-communication-barrier-1"></a><a class="docs-heading-anchor-permalink" href="#Local-communication-barrier" title="Permalink"></a></h2><p>When the global communication barrier is large,  many chains may be required to obtain tempered restarts. </p><p>The local communication barrier can be used to  visualize the cause of a high global communication barrier.  For example, if there is a sharp peak close to a  reference constructed from the prior, it may be  useful to switch to a <a href="../variational/#variational-pt">variational approximation</a>.</p><p>The local barrier can be plotted as follows:</p><pre><code class="language-julia hljs">using Plots
 plotlyjs()
 myplot = plot(pt.shared.tempering.communication_barriers.localbarrier);
@@ -60,4 +60,4 @@ savefig(myplot, &quot;index_process_plot.html&quot;);</code></pre><pre class="do
         8      0.597     -0.833      0.869      0.934
        16      0.686      -1.35      0.729      0.924
        32      0.818      -1.19        0.8      0.909
-──────────────────────────────────────────────────────</code></pre><iframe src="../index_process_plot.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../output-off-memory/">« Off-memory</a><a class="docs-footer-nextpage" href="../output-custom-types/">Custom types »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Wednesday 4 February 2026 10:17">Wednesday 4 February 2026</span>. Using Julia version 1.11.8.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+──────────────────────────────────────────────────────</code></pre><iframe src="../index_process_plot.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../output-off-memory/">« Off-memory</a><a class="docs-footer-nextpage" href="../output-custom-types/">Custom types »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Thursday 5 February 2026 01:03">Thursday 5 February 2026</span>. Using Julia version 1.11.8.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

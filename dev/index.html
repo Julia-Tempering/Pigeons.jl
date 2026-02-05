@@ -7,32 +7,32 @@ inputs = Inputs(target = toy_mvn_target(100))</code></pre><pre class="documenter
 ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2        7.5   2.87e-05    1.1e+04       -122   2.66e-15      0.167
-        4       5.56   3.82e-05   1.18e+04       -119    2.6e-07      0.382
-        8       5.82   5.49e-05   1.61e+04       -114    0.00137      0.353
-       16       7.02   9.55e-05   2.15e+04       -116   0.000205      0.219
-       32       7.14   0.000182   2.76e+04       -112     0.0379      0.206
-       64       7.18   0.000387   3.96e+04       -116     0.0442      0.202
-      128        7.2   0.000688   5.86e+04       -114      0.142        0.2
-      256       7.21    0.00138   5.66e+04       -115      0.151      0.199
-      512       7.14    0.00264   7.45e+04       -115       0.19      0.207
- 1.02e+03       7.12    0.00519   7.02e+04       -115      0.173      0.209
+        2        7.5   2.91e-05    1.1e+04       -122   2.66e-15      0.167
+        4       5.56   3.64e-05   1.18e+04       -119    2.6e-07      0.382
+        8       5.82   5.23e-05   1.61e+04       -114    0.00137      0.353
+       16       7.02   9.37e-05   2.15e+04       -116   0.000205      0.219
+       32       7.14   0.000176   2.76e+04       -112     0.0379      0.206
+       64       7.18   0.000355   3.96e+04       -116     0.0442      0.202
+      128        7.2   0.000668   5.86e+04       -114      0.142        0.2
+      256       7.21    0.00132   5.66e+04       -115      0.151      0.199
+      512       7.14    0.00265   7.45e+04       -115       0.19      0.207
+ 1.02e+03       7.12     0.0051   7.02e+04       -115      0.173      0.209
 ────────────────────────────────────────────────────────────────────────────</code></pre><p>This runs PT on a 100-dimensional MVN toy example with 10 chains  for <span>$2047 = 2^{11} - 1$</span> iterations, and  returns a <a href="reference/#Pigeons.PT"><code>PT</code></a> struct containing the results of  this run (more later on how to access information inside  a PT struct). Each line in the output provides information on a <em>round</em>, where the number of iteration  per round doubles at each round and adaptation is performed  between rounds. </p><p>Since the above two julia lines are the most common operations in this package, creating inputs and running PT can be done in one line  as follows:</p><pre><code class="language-julia hljs">pt = pigeons(target = toy_mvn_target(100));</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr36"><span class="sgr1">┌ Info: </span></span>Neither traces, disk, nor online recorders included.
 <span class="sgr36"><span class="sgr1">│ </span></span>   You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
 <span class="sgr36"><span class="sgr1">└ </span></span>   To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
 ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2        7.5   2.37e-05    1.1e+04       -122   2.66e-15      0.167
-        4       5.56   5.03e-05   1.18e+04       -119    2.6e-07      0.382
-        8       5.82   5.26e-05   1.61e+04       -114    0.00137      0.353
-       16       7.02   9.48e-05   2.15e+04       -116   0.000205      0.219
-       32       7.14    0.00018   2.76e+04       -112     0.0379      0.206
-       64       7.18   0.000361   3.96e+04       -116     0.0442      0.202
-      128        7.2   0.000711   5.86e+04       -114      0.142        0.2
-      256       7.21    0.00133   5.66e+04       -115      0.151      0.199
-      512       7.14    0.00262   7.45e+04       -115       0.19      0.207
- 1.02e+03       7.12    0.00515   7.02e+04       -115      0.173      0.209
+        2        7.5   2.28e-05    1.1e+04       -122   2.66e-15      0.167
+        4       5.56   3.27e-05   1.18e+04       -119    2.6e-07      0.382
+        8       5.82   5.34e-05   1.61e+04       -114    0.00137      0.353
+       16       7.02    9.4e-05   2.15e+04       -116   0.000205      0.219
+       32       7.14   0.000191   2.76e+04       -112     0.0379      0.206
+       64       7.18   0.000342   3.96e+04       -116     0.0442      0.202
+      128        7.2   0.000665   5.86e+04       -114      0.142        0.2
+      256       7.21    0.00132   5.66e+04       -115      0.151      0.199
+      512       7.14    0.00257   7.45e+04       -115       0.19      0.207
+ 1.02e+03       7.12    0.00507   7.02e+04       -115      0.173      0.209
 ────────────────────────────────────────────────────────────────────────────</code></pre><p>where the <code>args...</code> passed to <code>pigeons</code> are forwarded  to <a href="reference/#Pigeons.Inputs"><code>Inputs</code></a>.</p><p>Continuing on the above example, to perform two additional rounds of sampling, use the following (see also: <a href="checkpoints/#checkpoints-page">more advanced checkpoint/resume options at the checkpoint page</a>):</p><pre><code class="language-julia hljs">pt = increment_n_rounds!(pt, 2)
 pigeons(pt)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr36"><span class="sgr1">┌ Info: </span></span>Neither traces, disk, nor online recorders included.
 <span class="sgr36"><span class="sgr1">│ </span></span>   You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
@@ -42,8 +42,8 @@ pigeons(pt)</code></pre><pre class="documenter-example-output"><code class="nohi
 ────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
 ────────── ────────── ────────── ────────── ────────── ────────── ──────────
- 2.05e+03       7.16     0.0103   6.91e+04       -115      0.186      0.204
-  4.1e+03       7.17     0.0204   6.91e+04       -115      0.184      0.203
+ 2.05e+03       7.16     0.0101   6.91e+04       -115      0.186      0.204
+  4.1e+03       7.17       0.02   6.91e+04       -115      0.184      0.203
 ────────────────────────────────────────────────────────────────────────────</code></pre><h2 id="Scope"><a class="docs-heading-anchor" href="#Scope">Scope</a><a id="Scope-1"></a><a class="docs-heading-anchor-permalink" href="#Scope" title="Permalink"></a></h2><p>We describe here the class of problems that can be approached using Pigeons.  In summary: <a href="https://ubc-stat-ml.github.io/lebesgue/">computational Lebesgue integration</a>.</p><p>Let <span>$\pi(x)$</span> denote a probability density called the <strong>target</strong>.  In many problems, e.g. in Bayesian statistics, the density <span>$\pi$</span> is typically  known only up to a normalization constant, </p><p class="math-container">\[\pi(x) = \frac{\gamma(x)}{Z},\]</p><p>where <span>$\gamma$</span> can be evaluated pointwise, but <span>$Z$</span> is unknown. Pigeons takes as input the function <span>$\gamma$</span>.</p><p>!!! terminology <code>log_potential</code></p><pre><code class="nohighlight hljs">Since we work in log-scale, we use the terminology 
 `log_potential` as a shorthand for the 
 unnormalized log density ``\log \gamma(x)``. 
@@ -52,4 +52,4 @@ See informal interface [`log_potential`](@ref).</code></pre><p>Pigeons&#39; outp
   author={Surjanovic, Nikola and Biron-Lattes, Miguel and Tiede, Paul and Syed, Saifuddin and Campbell, Trevor and Bouchard-C{\^o}t{\&#39;e}, Alexandre},
   journal={arXiv:2308.09769},
   year={2023}
-}</code></pre><p><strong>APA</strong></p><p>Surjanovic, N., Biron-Lattes, M., Tiede, P., Syed, S., Campbell, T., &amp; Bouchard-Côté, A. (2023). Pigeons.jl: Distributed sampling from intractable distributions. <em>arXiv:2308.09769.</em></p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="unidentifiable-example/">Why parallel tempering (PT)? »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Wednesday 4 February 2026 10:17">Wednesday 4 February 2026</span>. Using Julia version 1.11.8.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+}</code></pre><p><strong>APA</strong></p><p>Surjanovic, N., Biron-Lattes, M., Tiede, P., Syed, S., Campbell, T., &amp; Bouchard-Côté, A. (2023). Pigeons.jl: Distributed sampling from intractable distributions. <em>arXiv:2308.09769.</em></p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="unidentifiable-example/">Why parallel tempering (PT)? »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Thursday 5 February 2026 01:03">Thursday 5 February 2026</span>. Using Julia version 1.11.8.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
