@@ -1,7 +1,7 @@
 name = "Pigeons"
 uuid = "0eb8d820-af6a-4919-95ae-11206f830c31"
-authors = ["Alexandre Bouchard-Côté <bouchard@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Paul Tiede <ptiede91@gmail.com>, Trevor Campbell <trevor@stat.ubc.ca>, Miguel Biron-Lattes <miguel.biron@stat.ubc.ca>, Saifuddin Syed <saifuddin.syed@stats.ox.ac.uk>"]
 version = "0.4.10"
+authors = ["Alexandre Bouchard-Côté <bouchard@stat.ubc.ca>, Nikola Surjanovic <nikola.surjanovic@stat.ubc.ca>, Paul Tiede <ptiede91@gmail.com>, Trevor Campbell <trevor@stat.ubc.ca>, Miguel Biron-Lattes <miguel.biron@stat.ubc.ca>, Saifuddin Syed <saifuddin.syed@stats.ox.ac.uk>"]
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -93,7 +93,7 @@ OrderedCollections = "1"
 RecipesBase = "1"
 Requires = "1"
 ReverseDiff = "1"
-Roots = "2"
+Roots = "2, 3"
 SpecialFunctions = "2"
 SplittableRandoms = "0.1"
 StaticArraysCore = "1"
