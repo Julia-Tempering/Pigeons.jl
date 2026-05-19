@@ -39,20 +39,7 @@ Samples per chain = 1024
 parameters        = p1, p2
 internals         = log_density
 
-Summary Statistics
- <span class="sgr1"> parameters </span> <span class="sgr1">    mean </span> <span class="sgr1">     std </span> <span class="sgr1">    mcse </span> <span class="sgr1"> ess_bulk </span> <span class="sgr1"> ess_tail </span> <span class="sgr1">    rhat </span> <span class="sgr1"> e</span> ⋯
- <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  </span> ⋯
-
-          p1    0.9646    0.0244    0.0047    29.1938    76.8349    1.0231     ⋯
-          p2    0.5187    0.0135    0.0026    29.2742    72.9775    1.0226     ⋯
-<span class="sgr36">                                                                1 column omitted</span>
-
-Quantiles
- <span class="sgr1"> parameters </span> <span class="sgr1">    2.5% </span> <span class="sgr1">   25.0% </span> <span class="sgr1">   50.0% </span> <span class="sgr1">   75.0% </span> <span class="sgr1">   97.5% </span>
- <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span>
-
-          p1    0.9122    0.9491    0.9683    0.9846    0.9983
-          p2    0.5004    0.5080    0.5166    0.5269    0.5488
+Use `describe(chains)` for summary statistics and quantiles.
 </code></pre><h2 id="Unidentifiable-example-with-PT"><a class="docs-heading-anchor" href="#Unidentifiable-example-with-PT">Unidentifiable example with PT</a><a id="Unidentifiable-example-with-PT-1"></a><a class="docs-heading-anchor-permalink" href="#Unidentifiable-example-with-PT" title="Permalink"></a></h2><p>Let us enable parallel tempering now, by setting  <code>n_chains</code> to a value greater than one:</p><pre><code class="language-julia hljs">pt = pigeons(
         target = an_unidentifiable_model,
         n_chains = 10,
@@ -83,18 +70,5 @@ Samples per chain = 1024
 parameters        = p1, p2
 internals         = log_density
 
-Summary Statistics
- <span class="sgr1"> parameters </span> <span class="sgr1">    mean </span> <span class="sgr1">     std </span> <span class="sgr1">    mcse </span> <span class="sgr1"> ess_bulk </span> <span class="sgr1"> ess_tail </span> <span class="sgr1">    rhat </span> <span class="sgr1"> e</span> ⋯
- <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90">  Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90">  </span> ⋯
-
-          p1    0.7375    0.1556    0.0207    87.7657   128.1847    1.0502     ⋯
-          p2    0.7103    0.1552    0.0153    85.8256   107.0261    1.0252     ⋯
-<span class="sgr36">                                                                1 column omitted</span>
-
-Quantiles
- <span class="sgr1"> parameters </span> <span class="sgr1">    2.5% </span> <span class="sgr1">   25.0% </span> <span class="sgr1">   50.0% </span> <span class="sgr1">   75.0% </span> <span class="sgr1">   97.5% </span>
- <span class="sgr90">     Symbol </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span> <span class="sgr90"> Float64 </span>
-
-          p1    0.5069    0.5914    0.7321    0.8824    0.9814
-          p2    0.5088    0.5668    0.6832    0.8460    0.9877
-</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Basic usage (local)</a><a class="docs-footer-nextpage" href="../parallel/">Parallelization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 4 May 2026 00:32">Monday 4 May 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Use `describe(chains)` for summary statistics and quantiles.
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Basic usage (local)</a><a class="docs-footer-nextpage" href="../parallel/">Parallelization »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 19 May 2026 18:10">Tuesday 19 May 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
