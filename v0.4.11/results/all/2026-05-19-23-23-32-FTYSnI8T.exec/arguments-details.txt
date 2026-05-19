@@ -1,0 +1,100 @@
+# --annealSupport <boolean> (default value: true)
+
+# --checkIsDAG <boolean> (default value: true)
+
+  --engine blang.engines.internals.factories.Pigeons    # <PosteriorInferenceEngine: SCM|PT|MCMC|AIS|Forward|Exact|None|fully qualified> (default value: PT)
+
+# --engine.nPassesPerScan <double> (default value: 3)
+
+  --engine.random 1019402278608728788    # <Random>
+
+# --excludeFromOutput <List: Space separated items or "file <path>" to load from newline separated file> (optional)
+
+# --experimentConfigs.configFile <File> (optional)
+#   description: If set, use those arguments in provided file that do not appear in the provided arguments.
+
+# --experimentConfigs.description <String> (optional)
+#   description: Documentation for this run.
+
+# --experimentConfigs.managedExecutionFolder <boolean> (default value: true)
+#   description: Automatically organize results into subdirectories of 'results/all'?
+
+# --experimentConfigs.maxIndentationToPrint <int> (default value: inf)
+#   description: Use -1 to silence all output done through blang.System.*
+
+# --experimentConfigs.recordExecutionInfo <boolean> (default value: true)
+#   description: Record information such as timing, main class, code version, etc for this run?
+
+# --experimentConfigs.recordGitInfo <boolean> (default value: false)
+
+  --experimentConfigs.resultsHTMLPage false    # <boolean> (default value: true)
+
+  --experimentConfigs.saveStandardStreams false    # <boolean> (default value: true)
+#   description: Save combined standard out and err into a file?
+
+# --experimentConfigs.tabularWriter <TabularWriterFactory: CSV|Spark|fully qualified> (default value: CSV)
+
+# --experimentConfigs.tabularWriter.compressed <boolean> (default value: false)
+
+# --experimentConfigs.uniqueExperimentDirectoryName <String> (optional)
+
+# --initRandom <Random> (default value: 1)
+
+  --model demos.UnidentifiableProduct$Builder    # <ModelBuilder: fully qualified>
+
+  --model.nFails 50    # <IntVar: An integer or NA> (optional)
+
+  --model.nTrials 100    # <IntVar: An integer or NA> (optional)
+
+# --model.x <RealVar: A number or NA> (optional)
+
+# --model.y <RealVar: A number or NA> (optional)
+
+# --postProcessor <PostProcessor: DefaultPostProcessor|NoPostProcessor|fully qualified> (default value: NoPostProcessor)
+
+# --postProcessor.blangExecutionDirectory <File> (optional)
+#   description: When called from Blang, this will be the latest run, otherwise point to the .exec folder created by Blang
+
+# --postProcessor.experimentConfigs.configFile <File> (optional)
+#   description: If set, use those arguments in provided file that do not appear in the provided arguments.
+
+# --postProcessor.experimentConfigs.description <String> (optional)
+#   description: Documentation for this run.
+
+# --postProcessor.experimentConfigs.managedExecutionFolder <boolean> (default value: true)
+#   description: Automatically organize results into subdirectories of 'results/all'?
+
+# --postProcessor.experimentConfigs.maxIndentationToPrint <int> (default value: inf)
+#   description: Use -1 to silence all output done through blang.System.*
+
+# --postProcessor.experimentConfigs.recordExecutionInfo <boolean> (default value: true)
+#   description: Record information such as timing, main class, code version, etc for this run?
+
+# --postProcessor.experimentConfigs.recordGitInfo <boolean> (default value: false)
+
+# --postProcessor.experimentConfigs.resultsHTMLPage <boolean> (default value: true)
+
+# --postProcessor.experimentConfigs.saveStandardStreams <boolean> (default value: true)
+#   description: Save combined standard out and err into a file?
+
+# --postProcessor.experimentConfigs.tabularWriter <TabularWriterFactory: CSV|Spark|fully qualified> (default value: CSV)
+
+# --postProcessor.experimentConfigs.tabularWriter.compressed <boolean> (default value: false)
+
+# --postProcessor.experimentConfigs.uniqueExperimentDirectoryName <String> (optional)
+
+# --printAccessibilityGraph <boolean> (default value: false)
+
+# --samplers.additional <SamplerSet: Fully qualified instances of blang.mcmc.Sampler>
+#   description: Samplers to be added.
+
+# --samplers.excluded <SamplerSet: Fully qualified instances of blang.mcmc.Sampler>
+#   description: Samplers to be excluded (only useful if useAnnotation = true).
+
+# --samplers.useAnnotation <boolean> (default value: true)
+#   description: If the arguments of the annotations @Samplers should be used to determine a starting set of sampler types.
+
+# --stripped <boolean> (default value: false)
+#   description: Stripped means that the construction of forward simulators and annealers is skipped
+
+# --treatNaNAsNegativeInfinity <boolean> (default value: false)
