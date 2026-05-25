@@ -53,9 +53,9 @@ end
 
 function Pigeons.sample_names(state::DynamicPPL.VarInfo, _)
     result = Symbol[]
-    all_names = DynamicPPL.getsym.(keys(state))
-    for var_name in all_names
-        var = Pigeons.variable(state, var_name)
+    for vn in keys(state)
+        var_name = Symbol(vn)
+        var = getindex(state, vn)
         if var isa Number || (var isa AbstractArray && length(var) == 1)
             push!(result, var_name)
         elseif var isa AbstractArray
