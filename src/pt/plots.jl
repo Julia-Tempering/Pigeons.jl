@@ -36,4 +36,23 @@ plot(pt.shared.tempering.communication_barriers.localbarrier)
     return x, y
 end  
 
+"""
+```@example
+using Pigeons
+using Plots
+pt = pigeons(target = toy_mvn_target(1))
+result = stepping_stone_per_chain(pt)
+plot(result)
+```
+"""
+@recipe function plot_logz_per_chain(result::NamedTuple{(:betas, :log_norm_constants)})
+    xlabel --> "β"
+    ylabel --> "log(Z_β / Z₀)"
+    legend := false
+    markershape --> :circle
+    markersize --> 3
+    linewidth --> 2
+    return result.betas, result.log_norm_constants
+end
+
 
