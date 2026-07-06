@@ -10,16 +10,16 @@ pigeons(
 ──────────────────────────────────────────────────────────────────────────────────────────────────
   scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       3.24   0.000657   3.72e+05      -8.14    0.00178       0.64          1          1
-        4       1.64    0.00104   7.07e+05      -5.04     0.0352      0.818          1          1
-        8       1.17    0.00172   1.35e+06      -4.42      0.708      0.871          1          1
-       16        1.2    0.00308   2.75e+06      -4.03      0.549      0.867          1          1
-       32       1.11    0.00579   5.37e+06      -4.77      0.754      0.877          1          1
-       64       1.08      0.156   7.51e+07      -4.84      0.754      0.879          1          1
-      128       1.01      0.304    1.5e+08      -4.93      0.818      0.888          1          1
-      256      0.918      0.706   2.99e+08         -5      0.889      0.898          1          1
-      512       1.04       1.33   5.93e+08      -5.01      0.858      0.885          1          1
- 1.02e+03      0.999       2.64   1.19e+09      -4.95      0.857      0.889          1          1
+        2       3.24   0.000833   3.72e+05      -8.14    0.00178       0.64          1          1
+        4       1.64    0.00131   7.07e+05      -5.04     0.0352      0.818          1          1
+        8       1.17    0.00216   1.35e+06      -4.42      0.708      0.871          1          1
+       16        1.2     0.0038   2.75e+06      -4.03      0.549      0.867          1          1
+       32       1.11    0.00734   5.37e+06      -4.77      0.754      0.877          1          1
+       64       1.08      0.199   7.51e+07      -4.84      0.754      0.879          1          1
+      128       1.01      0.499    1.5e+08      -4.93      0.818      0.888          1          1
+      256      0.918      0.784   2.99e+08         -5      0.889      0.898          1          1
+      512       1.04       1.68   5.93e+08      -5.01      0.858      0.885          1          1
+ 1.02e+03      0.999       3.25   1.19e+09      -4.95      0.857      0.889          1          1
 ──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><p>Note variational fitting only starts at <code>first_tuning_round</code>.  The fixed reference is used before that point.</p><h2 id="Stabilized-variational-PT"><a class="docs-heading-anchor" href="#Stabilized-variational-PT">Stabilized variational PT</a><a id="Stabilized-variational-PT-1"></a><a class="docs-heading-anchor-permalink" href="#Stabilized-variational-PT" title="Permalink"></a></h2><p><a href="https://arxiv.org/abs/2206.00080">Surjanovic et al., 2022</a> describes situations where the variational fitting can  cause catastrophic forgetting of modes.  This is remediated by using both a fixed and a variational  reference each linked to two copies of the target, which  are also swapped according to a non-reversible swapping  scheme. </p><p>Enable stabilized variational PT by adding the <code>n_chains_variational</code> option  to <code>pigeons(...)</code>:</p><pre><code class="language-julia hljs">pigeons(
     target = Pigeons.toy_turing_unid_target(100, 50),
     variational = GaussianReference(first_tuning_round = 5),
@@ -29,14 +29,14 @@ pigeons(
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
   scans        Λ        Λ_var      time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
 ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
-        2       1.39       3.24    0.00104   7.89e+05      -8.14    0.00178      0.756          1          1
-        4       2.48       1.58     0.0018   1.49e+06      -5.17     0.0352      0.787          1          1
-        8       1.08       1.74    0.00317    2.9e+06      -4.52      0.508      0.852          1          1
-       16       1.68       1.53    0.00597   5.66e+06      -5.03      0.589      0.831          1          1
-       32       1.22       1.71     0.0122   1.16e+07      -5.41      0.594      0.846          1          1
-       64       1.59       1.14      0.206   8.51e+07      -5.04       0.74      0.856          1          1
-      128       1.51      0.987      0.334   1.72e+08      -4.89      0.765      0.868          1          1
-      256       1.46          1      0.699   3.39e+08         -5      0.806       0.87          1          1
-      512       1.48       1.02        1.4   6.84e+08      -4.97      0.784      0.868          1          1
- 1.02e+03       1.51       1.07        2.8   1.36e+09      -4.95      0.792      0.864          1          1
-─────────────────────────────────────────────────────────────────────────────────────────────────────────────</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../mpi/">« Distributed usage (MPI)</a><a class="docs-footer-nextpage" href="../input-overview/">Inputs overview »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 5 June 2026 21:33">Friday 5 June 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+        2       1.39       3.24    0.00127   7.89e+05      -8.14    0.00178      0.756          1          1
+        4       2.48       1.58    0.00222   1.49e+06      -5.17     0.0352      0.787          1          1
+        8       1.08       1.74    0.00412    2.9e+06      -4.52      0.508      0.852          1          1
+       16       1.68       1.53    0.00749   5.66e+06      -5.03      0.589      0.831          1          1
+       32       1.22       1.71     0.0155   1.16e+07      -5.41      0.594      0.846          1          1
+       64       1.59       1.14      0.258   8.51e+07      -5.04       0.74      0.856          1          1
+      128       1.51      0.987      0.432   1.72e+08      -4.89      0.765      0.868          1          1
+      256       1.46          1       1.18   3.39e+08         -5      0.806       0.87          1          1
+      512       1.48       1.02        1.8   6.84e+08      -4.97      0.784      0.868          1          1
+ 1.02e+03       1.51       1.07       3.52   1.36e+09      -4.95      0.792      0.864          1          1
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../mpi/">« Distributed usage (MPI)</a><a class="docs-footer-nextpage" href="../input-overview/">Inputs overview »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 6 July 2026 16:54">Monday 6 July 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
