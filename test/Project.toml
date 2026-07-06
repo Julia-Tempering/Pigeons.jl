@@ -6,6 +6,7 @@ Bijectors = "76274a88-744f-5084-9051-94815aaf08c4"
 BridgeStan = "c88b6f0a-829e-4b0b-94b7-f06ab5908f5a"
 Comrade = "99d987ce-9a1e-4df8-bc0b-1ea019aa547b"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
 DynamicPPL = "366bfd00-2699-11ea-058f-f148b4cae6d8"
@@ -45,4 +46,4 @@ VLBIImagePriors = "b1ba175b-8447-452c-b961-7db2d6f7a029"
 ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 
 [compat]
-Comrade = "=0.11.25" # fix package version for now, should be removed when possible
+Comrade = "=0.11.25"
