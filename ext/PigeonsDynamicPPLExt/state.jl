@@ -1,3 +1,5 @@
+using DynamicPPL: AbstractPPL
+
 # grouping of variables
 function variables(vi::DynamicPPL.VarInfo, ::Type{T}) where {T}
     vns = keys(vi)
@@ -52,22 +54,19 @@ function Pigeons.extract_sample(state::DynamicPPL.VarInfo, log_potential)
     return result
 end
 
-function Pigeons.sample_names(state::DynamicPPL.VarInfo, _)
-    result = Symbol[]
-    all_names = DynamicPPL.getsym.(keys(state))
-    for var_name in all_names
-        var = Pigeons.variable(state, var_name)
-        if var isa Number || (var isa AbstractArray && length(var) == 1)
-            push!(result, var_name)
-        elseif var isa AbstractArray
-            for i in eachindex(var)
-                var_and_index_name = Symbol(var_name, "[", join(ind2sub(size(var), i), ","), "]")
-                push!(result, var_and_index_name)
-            end
-        else
-            error("don't know how to handle var `$var_name` of type $(typeof(var))")
-        end
+function Pigeons.sample_names(state::DynamicPPL.VarInfo, log_potential)
+    # Convert vectorised values in varinfo back to untransformed space
+    model = Pigeons.turing_model(log_potential)
+    accs = DynamicPPL.OnlyAccsVarInfo(DynamicPPL.RawValueAccumulator(false))
+    init_strat = DynamicPPL.InitFromParams(DynamicPPL.get_values(state))
+    _, accs = DynamicPPL.init!!(model, accs, init_strat, DynamicPPL.UnlinkAll())
+    vnt = DynamicPPL.get_raw_values(accs)
+    # Generate variable names based on the structure of each value
+    result = VarName[]
+    for (vn, val) in pairs(vnt)
+        append!(result, AbstractPPL.varname_leaves(vn, val))
     end
+    result = map(Symbol, result)
     push!(result, :log_density)
     return result
 end
