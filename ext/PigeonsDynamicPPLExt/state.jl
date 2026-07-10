@@ -96,10 +96,19 @@ function Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, 
 end
 
 # specialized equality checks
-Pigeons._recursive_equal(a::DynamicPPL.VarInfo, b::DynamicPPL.VarInfo) =
-    length(a) == length(b) &&
-    sample_names(a, 1) == sample_names(b, 1) && # second argument of sample_names() is dummy
-    DynamicPPL.internal_values_as_vector(a) == DynamicPPL.internal_values_as_vector(b)
+function Pigeons._recursive_equal(a::DynamicPPL.VarInfo, b::DynamicPPL.VarInfo)
+    ka = keys(a)
+    kb = keys(b)
+    if length(ka) != length(kb)
+        return false
+    end
+    for (vn_a, vn_b) in zip(ka, kb)
+        if vn_a != vn_b || DynamicPPL.getindex_internal(a, vn_a) != DynamicPPL.getindex_internal(b, vn_b)
+            return false
+        end
+    end
+    return true
+end
 
 
 Pigeons.recursive_equal(
