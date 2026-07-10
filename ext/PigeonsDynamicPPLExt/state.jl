@@ -23,7 +23,7 @@ end
 # (default in pigeons as of Jul-24), and constrained otherwise
 Pigeons.variable(state::DynamicPPL.VarInfo, name::Symbol) =
     if name === :singleton_variable
-        DynamicPPL.getindex_internal(state, :)
+        DynamicPPL.internal_values_as_vector(state)
     else
         vns = [vn for vn in keys(state) if Symbol(vn) === name]
         mapreduce(vn -> DynamicPPL.getindex_internal(state, vn), vcat, vns)
@@ -47,7 +47,7 @@ ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
 function Pigeons.extract_sample(state::DynamicPPL.VarInfo, log_potential)
     result = Vector{Union{Float64,Int64}}()
     invlink_vi = DynamicPPL.invlink(state, Pigeons.turing_model(log_potential))
-    push!(result, invlink_vi[:]...) # result = DynamicPPL.getindex_internal(invlink_vi, :) is also acceptable
+    append!(result, DynamicPPL.internal_values_as_vector(invlink_vi))
     push!(result, log_potential(state))
     return result
 end
@@ -100,7 +100,7 @@ end
 Pigeons._recursive_equal(a::DynamicPPL.VarInfo, b::DynamicPPL.VarInfo) =
     length(a) == length(b) &&
     sample_names(a, 1) == sample_names(b, 1) && # second argument of sample_names() is dummy
-    DynamicPPL.getindex_internal(a, :) == DynamicPPL.getindex_internal(b, :)
+    DynamicPPL.internal_values_as_vector(a) == DynamicPPL.internal_values_as_vector(b)
 
 
 Pigeons.recursive_equal(

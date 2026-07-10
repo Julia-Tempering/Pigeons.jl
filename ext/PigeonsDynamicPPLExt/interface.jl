@@ -35,7 +35,7 @@ Pigeons.@provides target Pigeons.TuringLogPotential(model::DynamicPPL.Model) =
     TuringLogPotential(model, false)
 
 is_fully_continuous(vi::DynamicPPL.VarInfo) =
-    all(values -> eltype(values.val) <: AbstractFloat, vi.values.data)
+    all(tv -> eltype(DynamicPPL.get_internal_value(tv)) <: AbstractFloat, values(vi))
 
 # checks needed when using gradient-based explorers
 function Pigeons.initialization(
