@@ -40,16 +40,23 @@ function Pigeons.update_state!(vi::DynamicPPL.VarInfo, name::Symbol, index::Int,
     return DynamicPPL.setindex_internal!!(vi, vals, vn)
 end
 
-
-
-# From Turing.jl/src/utilities/helper.jl
-ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
-
+# This is a replacement for `DynamicPPL.internal_values_as_vector` that avoids converting
+# Integer-valued parameters to Float64. DynamicPPL's implementation of
+# `internal_values_as_vector` uses `mapfoldl(..., vcat)` but because of Julia's type
+# promotion rules, vcatting a `Vector{Float64}` and a `Vector{Int}` will result in a
+# `Vector{Float64}` rather than the union of those two types (see e.g., `vcat([1.0], [2])`
+# --> `[1.0, 2.0]`).
+function vectorise_with_types(vi::DynamicPPL.VarInfo)
+    result = Vector{Real}()
+    for vn in keys(vi)
+        append!(result, DynamicPPL.getindex_internal(vi, vn))
+    end
+    return map(identity, result) # Concretise if possible
+end
 
 function Pigeons.extract_sample(state::DynamicPPL.VarInfo, log_potential)
-    result = Vector{Union{Float64,Int64}}()
     invlink_vi = DynamicPPL.invlink(state, Pigeons.turing_model(log_potential))
-    append!(result, DynamicPPL.internal_values_as_vector(invlink_vi))
+    result = vectorise_with_types(invlink_vi)
     push!(result, log_potential(state))
     return result
 end
