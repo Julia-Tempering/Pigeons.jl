@@ -101,8 +101,7 @@ end
 
 # adapted from DPPL to use buffer 
 # https://github.com/TuringLang/DynamicPPL.jl/blob/fb5413f482b962d97b6e4728d560297cd713c295/src/logdensityfunction.jl#L202
-_use_closure(::DI.AutoReverseDiff{compile}) where {compile} = compile
-_use_closure(::DI.AbstractADType) = false
+
 function LogDensityProblems.logdensity_and_gradient(
     b::Pigeons.BufferedAD{<:DynamicPPL.LogDensityFunction},
     params::AbstractVector
@@ -110,38 +109,42 @@ function LogDensityProblems.logdensity_and_gradient(
     ldf = b.enclosed
     buffer = b.buffer
 
-    ldf._adprep === nothing &&
-        error("Gradient preparation not available; this should not happen")
-    params = convert(DynamicPPL.get_input_vector_type(ldf), params)  # Concretise type
-    # Make branching statically inferrable, i.e. type-stable (even if the two
-    # branches happen to return different types)
-    return if _use_closure(ldf.adtype)
-        DI.value_and_gradient!(
-            DynamicPPL.LogDensityAt(
-                ldf.model,
-                ldf._getlogdensity,
-                ldf._varname_ranges,
-                ldf.transform_strategy,
-                ldf._accs,
-            ),
-            buffer,
-            ldf._adprep,
-            ldf.adtype,
-            params,
-        )
+    @static if pkgversion(DynamicPPL) < v"0.42"
+        ldf._adprep === nothing &&
+            error("Gradient preparation not available; this should not happen")
+        params = convert(DynamicPPL.get_input_vector_type(ldf), params)  # Concretise type
+        # Make branching statically inferrable, i.e. type-stable (even if the two
+        # branches happen to return different types)
+        return if DynamicPPL._use_closure(ldf.adtype)
+            DI.value_and_gradient!(
+                DynamicPPL.LogDensityAt(
+                    ldf.model,
+                    ldf._getlogdensity,
+                    ldf._varname_ranges,
+                    ldf.transform_strategy,
+                    ldf._accs,
+                ),
+                buffer,
+                ldf._adprep,
+                ldf.adtype,
+                params,
+            )
+        else
+            DI.value_and_gradient!(
+                DynamicPPL.logdensity_at,
+                buffer,
+                ldf._adprep,
+                ldf.adtype,
+                params,
+                DI.Constant(ldf.model),
+                DI.Constant(ldf._getlogdensity),
+                DI.Constant(ldf._varname_ranges),
+                DI.Constant(ldf.transform_strategy),
+                DI.Constant(ldf._accs),
+            )
+        end
     else
-        DI.value_and_gradient!(
-            DynamicPPL.logdensity_at,
-            buffer,
-            ldf._adprep,
-            ldf.adtype,
-            params,
-            DI.Constant(ldf.model),
-            DI.Constant(ldf._getlogdensity),
-            DI.Constant(ldf._varname_ranges),
-            DI.Constant(ldf.transform_strategy),
-            DI.Constant(ldf._accs),
-        )
+        error("Doesn't work with DPPL@0.42 yet")
     end
 end
 
