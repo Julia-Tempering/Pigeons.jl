@@ -101,6 +101,8 @@ end
 
 # adapted from DPPL to use buffer 
 # https://github.com/TuringLang/DynamicPPL.jl/blob/fb5413f482b962d97b6e4728d560297cd713c295/src/logdensityfunction.jl#L202
+_use_closure(::DI.AutoReverseDiff{compile}) where {compile} = compile
+_use_closure(::DI.AbstractADType) = false
 function LogDensityProblems.logdensity_and_gradient(
     b::Pigeons.BufferedAD{<:DynamicPPL.LogDensityFunction},
     params::AbstractVector
@@ -113,7 +115,7 @@ function LogDensityProblems.logdensity_and_gradient(
     params = convert(DynamicPPL.get_input_vector_type(ldf), params)  # Concretise type
     # Make branching statically inferrable, i.e. type-stable (even if the two
     # branches happen to return different types)
-    return if DynamicPPL._use_closure(ldf.adtype)
+    return if _use_closure(ldf.adtype)
         DI.value_and_gradient!(
             DynamicPPL.LogDensityAt(
                 ldf.model,
