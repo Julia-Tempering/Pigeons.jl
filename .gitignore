@@ -28,3 +28,4 @@ examples/.CondaPkg
 examples/benchmarks
 benchmarks
 *.bu
+bench/Project.toml
