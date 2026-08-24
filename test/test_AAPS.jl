@@ -13,8 +13,7 @@
         end
         v = var(pt, var_name)
         for i in 1:2  # not eachindex(v) as we skip :log_density
-            # @test abs(v[i] - 0.1) < 0.03
-            @test abs(v[i] - 0.1) > 0.03 # delibrately mess up the test to see if CI jumps over the failed ones
+            @test abs(v[i] - 0.1) < 0.03
         end
     end
 
