@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Log Ratio of Normalizing Constant Across the Tempering Ladder · Pigeons.jl</title><meta name="title" content="Log Ratio of Normalizing Constant Across the Tempering Ladder · Pigeons.jl"/><meta property="og:title" content="Log Ratio of Normalizing Constant Across the Tempering Ladder · Pigeons.jl"/><meta property="twitter:title" content="Log Ratio of Normalizing Constant Across the Tempering Ladder · Pigeons.jl"/><meta name="description" content="Documentation for Pigeons.jl."/><meta property="og:description" content="Documentation for Pigeons.jl."/><meta property="twitter:description" content="Documentation for Pigeons.jl."/><meta property="og:url" content="https://Julia-Tempering.github.io/Pigeons.jl/logZ_per_chain/"/><meta property="twitter:url" content="https://Julia-Tempering.github.io/Pigeons.jl/logZ_per_chain/"/><link rel="canonical" href="https://Julia-Tempering.github.io/Pigeons.jl/logZ_per_chain/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../assets/documentercitations/citations-hover.css" rel="stylesheet" type="text/css"/><link href="../assets/documentercitations/citations.css" rel="stylesheet" type="text/css"/><script src="../assets/documentercitations/citations-data.js"></script><script src="../assets/documentercitations/citations-hover.js"></script><script src="../assets/documentercitations/citations-backlinks.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Pigeons.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Basic usage (local)</a></li><li><a class="tocitem" href="../unidentifiable-example/">Why parallel tempering (PT)?</a></li><li><a class="tocitem" href="../parallel/">Parallelization</a></li><li><a class="tocitem" href="../mpi/">Distributed usage (MPI)</a></li><li><a class="tocitem" href="../variational/">Variational PT</a></li><li><span class="tocitem">Supported inputs</span><ul><li><a class="tocitem" href="../input-overview/">Inputs overview</a></li><li><a class="tocitem" href="../input-turing/">Turing.jl model</a></li><li><a class="tocitem" href="../input-julia/">Black-box function</a></li><li><a class="tocitem" href="../input-stan/">Stan model</a></li><li><a class="tocitem" href="../input-nonjulian/">Non-julian MCMC</a></li><li><a class="tocitem" href="../input-explorers/">Custom MCMC</a></li></ul></li><li><span class="tocitem">Outputs</span><ul><li><a class="tocitem" href="../output-overview/">Outputs overview</a></li><li><a class="tocitem" href="../output-inferencereport/">Automated reports</a></li><li><a class="tocitem" href="../output-reports/">Standard output</a></li><li><a class="tocitem" href="../output-traces/">Traces</a></li><li><a class="tocitem" href="../output-plotting/">Plots</a></li><li><a class="tocitem" href="../output-normalization/">log(Z)</a></li><li><a class="tocitem" href="../output-numerical/">Numerical</a></li><li><a class="tocitem" href="../output-online/">Online stats</a></li><li><a class="tocitem" href="../output-off-memory/">Off-memory</a></li><li><a class="tocitem" href="../output-pt/">PT diagnostics</a></li><li><a class="tocitem" href="../output-custom-types/">Custom types</a></li><li><a class="tocitem" href="../output-extended/">Extended output</a></li><li><a class="tocitem" href="../output-mpi-postprocessing/">MPI output</a></li><li class="is-active"><a class="tocitem" href>Log Ratio of Normalizing Constant Across the Tempering Ladder</a><ul class="internal"><li><a class="tocitem" href="#Background"><span>Background</span></a></li><li><a class="tocitem" href="#Computing-per-chain-estimated-log-ratio-of-the-normalizing-constants"><span>Computing per-chain estimated log-ratio of the normalizing constants</span></a></li><li><a class="tocitem" href="#Plotting"><span>Plotting</span></a></li><li><a class="tocitem" href="#Validation-against-analytic-results"><span>Validation against analytic results</span></a></li></ul></li></ul></li><li><a class="tocitem" href="../checkpoints/">Checkpoints</a></li><li><a class="tocitem" href="../correctness/">Correctness checks</a></li><li><a class="tocitem" href="../pt/">More on PT</a></li><li><a class="tocitem" href="../distributed/">More on distributed PT</a></li><li><a class="tocitem" href="../interfaces/">Interfaces</a></li><li><a class="tocitem" href="../reference/">Reference</a></li><li><a class="tocitem" href="../developers/">For developers</a></li><li><a class="tocitem" href="../openings/">Openings</a></li><li><a class="tocitem" href="../about-us/">About Us</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Outputs</a></li><li class="is-active"><a href>Log Ratio of Normalizing Constant Across the Tempering Ladder</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Log Ratio of Normalizing Constant Across the Tempering Ladder</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Julia-Tempering/Pigeons.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/Julia-Tempering/Pigeons.jl/blob/main/docs/src/logZ_per_chain.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="logZ-per-chain-page"><a class="docs-heading-anchor" href="#logZ-per-chain-page">Log Ratio of Normalizing Constant Across the Tempering Ladder</a><a id="logZ-per-chain-page-1"></a><a class="docs-heading-anchor-permalink" href="#logZ-per-chain-page" title="Permalink"></a></h1><h2 id="Background"><a class="docs-heading-anchor" href="#Background">Background</a><a id="Background-1"></a><a class="docs-heading-anchor-permalink" href="#Background" title="Permalink"></a></h2><p>The standard <a href="../reference/#Pigeons.stepping_stone-Tuple{PT}"><code>stepping_stone()</code></a> estimator computes a single  number: <span>$\log(Z_1/Z_0)$</span>, the log-ratio of the normalizing constants  of the target and reference. </p><p>However, the stepping stone estimator is built from a <strong>telescoping product</strong>:</p><p class="math-container">\[\log \frac{Z_1}{Z_0} = \sum_{k=0}^{K-1} \log \frac{Z_{\beta_{k+1}}}{Z_{\beta_k}}\]</p><p>where <span>$\beta_0 = 0, \beta_1, \ldots, \beta_K = 1$</span> is the temperature schedule.</p><p>By computing <em>partial sums</em> of this telescoping decomposition, we can  estimate <span>$\log(Z_{\beta_k}/Z_0)$</span> for every distribution in the  tempering ladder, not just the final target.</p><h2 id="Computing-per-chain-estimated-log-ratio-of-the-normalizing-constants"><a class="docs-heading-anchor" href="#Computing-per-chain-estimated-log-ratio-of-the-normalizing-constants">Computing per-chain estimated log-ratio of the normalizing constants</a><a id="Computing-per-chain-estimated-log-ratio-of-the-normalizing-constants-1"></a><a class="docs-heading-anchor-permalink" href="#Computing-per-chain-estimated-log-ratio-of-the-normalizing-constants" title="Permalink"></a></h2><p>Use <a href="../reference/#Pigeons.stepping_stone_per_chain-Tuple{PT}"><code>stepping_stone_per_chain()</code></a> to obtain the estimated  <span>$\log(Z_{\beta_k}/Z_0)$</span> at each temperature:</p><pre><code class="language-julia hljs">using Pigeons
+using Plots
+plotlyjs()
+
+pt = pigeons(
+    target = toy_mvn_target(2),
+    n_rounds = 10,
+    n_chains = 15)
+
+result = stepping_stone_per_chain(pt)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr36"><span class="sgr1">┌ Info: </span></span>Neither traces, disk, nor online recorders included.
+<span class="sgr36"><span class="sgr1">│ </span></span>   You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
+<span class="sgr36"><span class="sgr1">└ </span></span>   To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+────────────────────────────────────────────────────────────────────────────
+  scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)
+────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2      0.755   1.73e-05   1.48e+04      -1.96      0.808      0.946
+        4       1.37   3.33e-05   2.23e+04      -1.97      0.339      0.902
+        8      0.634   5.61e-05   5.28e+04      -2.37      0.844      0.955
+       16      0.836   7.31e-05      1e+05      -2.06      0.752       0.94
+       32       1.19   0.000119   1.35e+05      -2.34      0.828      0.915
+       64      0.937   0.000182   1.61e+05      -2.17      0.875      0.933
+      128       1.15   0.000291   1.62e+05      -2.22      0.829      0.918
+      256       1.04    0.00051   1.61e+05      -2.25      0.886      0.926
+      512       1.18   0.000914   1.61e+05      -2.29      0.894      0.916
+ 1.02e+03       1.14    0.00169   1.61e+05       -2.3      0.892      0.919
+────────────────────────────────────────────────────────────────────────────</code></pre><p>The returned <code>result</code> is a <code>NamedTuple</code> with two fields:</p><ul><li><code>result.betas</code>: the temperature schedule (from 0 to 1)</li><li><code>result.log_norm_constants</code>: the cumulative <span>$\log(Z_{\beta_k}/Z_0)$</span> estimates</li></ul><pre><code class="language-julia hljs">result.betas</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">15-element Vector{Float64}:
+ 0.0
+ 0.01757708771971812
+ 0.041349173462473694
+ 0.07091137342617272
+ 0.10162993693214742
+ 0.13784485127605098
+ 0.18391654220233056
+ 0.23496845125333288
+ 0.29473126125324184
+ 0.36102605371585944
+ 0.4532458120436915
+ 0.5667616604505494
+ 0.680052265839591
+ 0.829047442802425
+ 1.0</code></pre><pre><code class="language-julia hljs">result.log_norm_constants</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">15-element Vector{Float64}:
+  0.0
+ -0.20549928756264046
+ -0.3706125252970711
+ -0.5459243273786463
+ -0.7026033861297183
+ -0.8650004897759263
+ -1.0400216449752375
+ -1.1948611209028113
+ -1.3407802283097072
+ -1.5063418991203905
+ -1.654853210034438
+ -1.823306649457607
+ -1.9940046977634895
+ -2.1681592712233164
+ -2.30039787422387</code></pre><h2 id="Plotting"><a class="docs-heading-anchor" href="#Plotting">Plotting</a><a id="Plotting-1"></a><a class="docs-heading-anchor-permalink" href="#Plotting" title="Permalink"></a></h2><p>The result can be plotted directly using the built-in <code>Plots.jl</code> recipe:</p><pre><code class="language-julia hljs">myplot = plot(result)
+savefig(myplot, &quot;logz_per_chain_plot.html&quot;);</code></pre><iframe src="../logz_per_chain_plot.html" style="height:500px;width:100%;"></iframe><h2 id="Validation-against-analytic-results"><a class="docs-heading-anchor" href="#Validation-against-analytic-results">Validation against analytic results</a><a id="Validation-against-analytic-results-1"></a><a class="docs-heading-anchor-permalink" href="#Validation-against-analytic-results" title="Permalink"></a></h2><p>When both the target and reference are multivariate normals with  kernels <span>$\exp(-x^\top x / (2\sigma^2))$</span>, the log-normalizing  constant ratio has a closed-form expression:</p><p class="math-container">\[\log \frac{Z_{\beta}}{Z_0} = -\frac{d}{2}\left[\log(\sigma_{\text{ref}}^2) + \log\left(\frac{\beta}{\sigma_{\text{target}}^2} + \frac{1-\beta}{\sigma_{\text{ref}}^2}\right)\right]\]</p><p>This can be used to verify the estimator:</p><pre><code class="language-julia hljs">d = 5
+var_ref = 25.0
+var_target = 1.0
+
+struct LogMVN
+    var::Float64
+end
+
+(m::LogMVN)(x) = -(x&#39; * x) / (2 * m.var)
+
+Pigeons.initialization(mvn::LogMVN, rng, dim) = randn(rng, d)
+
+pt_test = pigeons(
+    target = LogMVN(var_target),
+    reference = LogMVN(var_ref),
+    n_rounds = 10,
+    n_chains = 30)
+
+result_test = stepping_stone_per_chain(pt_test)
+
+analytic = [
+    -(d/2) * (log(var_ref) + log(β/var_target + (1-β)/var_ref))
+    for β in result_test.betas
+]
+
+myplot = plot(result_test.betas, result_test.log_norm_constants,
+    label=&quot;Stepping stone&quot;, linewidth=2)
+plot!(result_test.betas, analytic,
+    label=&quot;Analytic&quot;, linestyle=:dash, linewidth=2)
+xlabel!(&quot;β&quot;)
+ylabel!(&quot;log(Z_β / Z₀)&quot;)
+savefig(myplot, &quot;logz_validation_plot.html&quot;);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr36"><span class="sgr1">┌ Info: </span></span>Neither traces, disk, nor online recorders included.
+<span class="sgr36"><span class="sgr1">│ </span></span>   You may not have access to your samples (unless you are using a custom recorder, or maybe you just want log(Z)).
+<span class="sgr36"><span class="sgr1">└ </span></span>   To add recorders, use e.g. pigeons(target = ..., record = [traces; record_default()])
+<span class="sgr33"><span class="sgr1">┌ Warning: </span></span>It looks like sample_iid!() is not implemented for a
+<span class="sgr33"><span class="sgr1">│ </span></span>reference_log_potential of type Main.LogMVN.
+<span class="sgr33"><span class="sgr1">│ </span></span>Instead, using step!().
+<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ Pigeons ~/work/Pigeons.jl/Pigeons.jl/src/targets/target.jl:55</span>
+──────────────────────────────────────────────────────────────────────────────────────────────────
+  scans        Λ        time(s)    allc(B)  log(Z₁/Z₀)   min(α)     mean(α)    min(αₑ)   mean(αₑ)
+────────── ────────── ────────── ────────── ────────── ────────── ────────── ────────── ──────────
+        2       2.66    0.00782   2.06e+05      -9.45      0.526      0.908          1          1
+        4       3.11   0.000581   8.96e+04      -9.15     0.0679      0.893          1          1
+        8       2.85    0.00117    1.8e+05      -8.01       0.38      0.902          1          1
+       16       2.99    0.00223   3.59e+05      -8.83      0.682      0.897          1          1
+       32       2.66    0.00431   5.22e+05      -7.86      0.834      0.908          1          1
+       64       2.77    0.00849   7.36e+05      -8.06      0.777      0.904          1          1
+      128       2.84     0.0168   1.02e+06      -8.28      0.854      0.902          1          1
+      256       2.64     0.0333   1.03e+06      -7.99      0.867      0.909          1          1
+      512        2.8     0.0662   1.06e+06      -8.01      0.862      0.903          1          1
+ 1.02e+03       2.73      0.132   1.09e+06      -8.11      0.887      0.906          1          1
+──────────────────────────────────────────────────────────────────────────────────────────────────</code></pre><iframe src="../logz_validation_plot.html" style="height:500px;width:100%;"></iframe></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../output-mpi-postprocessing/">« MPI output</a><a class="docs-footer-nextpage" href="../checkpoints/">Checkpoints »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 24 August 2026 22:01">Monday 24 August 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
