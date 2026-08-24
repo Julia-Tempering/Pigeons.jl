@@ -66,7 +66,7 @@ export pigeons, Inputs, PT,
     Result, setup_mpi, queue_status, queue_ncpus_free, kill_job, watch,
     # load, <- removed to avoid clash - see https://github.com/Julia-Tempering/Pigeons.jl/issues/200
     # getting information out of an execution:
-    stepping_stone, n_tempered_restarts, n_round_trips, process_sample, get_sample,
+    stepping_stone, stepping_stone_per_chain, n_tempered_restarts, n_round_trips, process_sample, get_sample,
     # variational references:
     GaussianReference,
     # samplers

@@ -55,7 +55,8 @@ InferenceReport.headless() do
                 "PT diagnostics" => "output-pt.md",
                 "Custom types" => "output-custom-types.md",
                 "Extended output" => "output-extended.md",
-                "MPI output" => "output-mpi-postprocessing.md"
+                "MPI output" => "output-mpi-postprocessing.md",
+                "Log Ratio of Normalizing Constant Across the Tempering Ladder" => "logZ_per_chain.md"
             ],
             "Checkpoints" => "checkpoints.md",
             "Correctness checks" => "correctness.md",

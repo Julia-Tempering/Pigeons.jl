@@ -63,3 +63,51 @@ function stepping_stone_keys(pt::PT, log_sum_ratios::GroupBy, ::StabilizedPT)
     end
     return result
 end
+
+"""
+$SIGNATURES
+
+Compute estimated ``\\log(Z_{\\beta_k}/Z_0)`` for each temperature ``\\beta_k`` 
+in the schedule, using the stepping stone estimator's telescoping decomposition.
+
+Returns a `NamedTuple` with fields:
+- `betas::Vector{Float64}` — the temperature schedule (0.0 to 1.0)
+- `log_norm_constants::Vector{Float64}` — cumulative ``\\log(Z_{\\beta_k}/Z_0)``
+"""
+function stepping_stone_per_chain(pt::PT)
+    return _stepping_stone_per_chain(pt, pt.shared.tempering)
+end
+
+function _stepping_stone_per_chain(pt::PT, tempering::NonReversiblePT)
+    betas = tempering.schedule.grids
+    K = length(betas)
+
+    log_sum_ratios = pt.reduced_recorders.log_sum_ratio
+
+    # Collect forward estimates: key(i, i+1)
+    # Collect backward estimates: key(i+1, i)
+    # Sandwich estimator: average forward and backward
+
+    forward = zeros(K) # forward[k] = estimate of log(Z_{β_k}/Z_{β_{k-1}}) from chain k-1 -> k
+    backward = zeros(K) # backward[k] = estimate of log(Z_{β_{k-1}}/Z_{β_{k}}) from chain k -> k-1
+
+    for (i, j) in keys(log_sum_ratios.value)
+        ls = log_sum_ratios[(i, j)]
+        est = value(ls) - log(ls.n)
+
+        if i < j && j <= K 
+            forward[j] = est 
+        elseif i > j && i <= K 
+            backward[i] = est 
+        end
+    end
+
+    # build cumulative sums 
+    log_norm_constants = zeros(K)
+    for k in 2:K
+        local_est = (forward[k] + (-backward[k])) / 2.0
+        log_norm_constants[k] = log_norm_constants[k-1] + local_est
+    end
+
+    return (betas = collect(betas), log_norm_constants = log_norm_constants)
+end
