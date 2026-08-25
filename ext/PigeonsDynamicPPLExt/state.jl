@@ -1,3 +1,5 @@
+using DynamicPPL: AbstractPPL
+
 # grouping of variables
 function variables(vi::DynamicPPL.VarInfo, ::Type{T}) where {T}
     vns = keys(vi)
@@ -23,7 +25,7 @@ end
 # (default in pigeons as of Jul-24), and constrained otherwise
 Pigeons.variable(state::DynamicPPL.VarInfo, name::Symbol) =
     if name === :singleton_variable
-        DynamicPPL.getindex_internal(state, :)
+        DynamicPPL.internal_values_as_vector(state)
     else
         vns = [vn for vn in keys(state) if Symbol(vn) === name]
         mapreduce(vn -> DynamicPPL.getindex_internal(state, vn), vcat, vns)
@@ -38,36 +40,40 @@ function Pigeons.update_state!(vi::DynamicPPL.VarInfo, name::Symbol, index::Int,
     return DynamicPPL.setindex_internal!!(vi, vals, vn)
 end
 
-
-
-# From Turing.jl/src/utilities/helper.jl
-ind2sub(v, i) = Tuple(CartesianIndices(v)[i])
-
+# This is a replacement for `DynamicPPL.internal_values_as_vector` that avoids converting
+# Integer-valued parameters to Float64. DynamicPPL's implementation of
+# `internal_values_as_vector` uses `mapfoldl(..., vcat)` but because of Julia's type
+# promotion rules, vcatting a `Vector{Float64}` and a `Vector{Int}` will result in a
+# `Vector{Float64}` rather than the union of those two types (see e.g., `vcat([1.0], [2])`
+# --> `[1.0, 2.0]`).
+function vectorise_with_types(vi::DynamicPPL.VarInfo)
+    result = Vector{Real}()
+    for vn in keys(vi)
+        append!(result, DynamicPPL.getindex_internal(vi, vn))
+    end
+    return map(identity, result) # Concretise if possible
+end
 
 function Pigeons.extract_sample(state::DynamicPPL.VarInfo, log_potential)
-    result = Vector{Union{Float64,Int64}}()
     invlink_vi = DynamicPPL.invlink(state, Pigeons.turing_model(log_potential))
-    push!(result, invlink_vi[:]...) # result = DynamicPPL.getindex_internal(invlink_vi, :) is also acceptable
+    result = vectorise_with_types(invlink_vi)
     push!(result, log_potential(state))
     return result
 end
 
-function Pigeons.sample_names(state::DynamicPPL.VarInfo, _)
-    result = Symbol[]
-    all_names = DynamicPPL.getsym.(keys(state))
-    for var_name in all_names
-        var = Pigeons.variable(state, var_name)
-        if var isa Number || (var isa AbstractArray && length(var) == 1)
-            push!(result, var_name)
-        elseif var isa AbstractArray
-            for i in eachindex(var)
-                var_and_index_name = Symbol(var_name, "[", join(ind2sub(size(var), i), ","), "]")
-                push!(result, var_and_index_name)
-            end
-        else
-            error("don't know how to handle var `$var_name` of type $(typeof(var))")
-        end
+function Pigeons.sample_names(state::DynamicPPL.VarInfo, log_potential)
+    # Convert vectorised values in varinfo back to untransformed space
+    model = Pigeons.turing_model(log_potential)
+    accs = DynamicPPL.OnlyAccsVarInfo(DynamicPPL.RawValueAccumulator(false))
+    init_strat = DynamicPPL.InitFromParams(DynamicPPL.get_values(state))
+    _, accs = DynamicPPL.init!!(model, accs, init_strat, DynamicPPL.UnlinkAll())
+    vnt = DynamicPPL.get_raw_values(accs)
+    # Generate variable names based on the structure of each value
+    result = VarName[]
+    for (vn, val) in pairs(vnt)
+        append!(result, AbstractPPL.varname_leaves(vn, val))
     end
+    result = map(Symbol, result)
     push!(result, :log_density)
     return result
 end
@@ -97,10 +103,19 @@ function Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, 
 end
 
 # specialized equality checks
-Pigeons._recursive_equal(a::DynamicPPL.VarInfo, b::DynamicPPL.VarInfo) =
-    length(a) == length(b) &&
-    sample_names(a, 1) == sample_names(b, 1) && # second argument of sample_names() is dummy
-    DynamicPPL.getindex_internal(a, :) == DynamicPPL.getindex_internal(b, :)
+function Pigeons._recursive_equal(a::DynamicPPL.VarInfo, b::DynamicPPL.VarInfo)
+    ka = keys(a)
+    kb = keys(b)
+    if length(ka) != length(kb)
+        return false
+    end
+    for (vn_a, vn_b) in zip(ka, kb)
+        if vn_a != vn_b || DynamicPPL.getindex_internal(a, vn_a) != DynamicPPL.getindex_internal(b, vn_b)
+            return false
+        end
+    end
+    return true
+end
 
 
 Pigeons.recursive_equal(
