@@ -22,4 +22,5 @@ pigeons(target = toy_mvn_target(1), n_rounds = 2)
 @test_throws "MethodError: no method matching toy_turing_target(::Int64)" pigeons(target = Pigeons.toy_turing_target(2))
 
 using DynamicPPL
+using DifferentiationInterface
 pigeons(target = Pigeons.toy_turing_target(2), n_rounds = 2)

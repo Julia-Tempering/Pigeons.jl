@@ -15,7 +15,8 @@ function Pigeons.forward_sample_condition_and_explore(
     condition_on::Union{Nothing,NTuple{<:Any,Symbol}}=nothing
 )
     # forward simulation
-    vi = DynamicPPL.VarInfo(model)
+    vi = DynamicPPL.VarInfo()
+    vi = DynamicPPL.setacc!!(vi, DynamicPPL.RawValueAccumulator(false))
     vi = last(DynamicPPL.init!!(
         rng,
         model,
@@ -32,12 +33,12 @@ function Pigeons.forward_sample_condition_and_explore(
         # its sampled value
         obs_pairs = Iterators.map(condition_on) do sym
             vn = DynamicPPL.VarName{sym}()
-            vn => vi[vn]
+            vn => DynamicPPL.get_raw_values(vi)[vn]
         end
 
         # condition the model using the sampled observations, and evaluate it
         conditioned_model = DynamicPPL.condition(model, obs_pairs...)
-        cond_vi = DynamicPPL.VarInfo(conditioned_model)
+        cond_vi = DynamicPPL.VarInfo()
         cond_vi = last(DynamicPPL.init!!(
             rng,
             conditioned_model,
@@ -45,7 +46,6 @@ function Pigeons.forward_sample_condition_and_explore(
             DynamicPPL.InitFromPrior(),
             DynamicPPL.UnlinkAll(),
         ))
-
 
         vns_cond = keys(cond_vi)
         # set the values of cond_vi to the ones that generated the observations
@@ -72,8 +72,7 @@ function Pigeons.forward_sample_condition_and_explore(
     end
 
     # return a flattened version of state
-    # return state[:]
-    return DynamicPPL.getindex_internal(state, :)
+    return DynamicPPL.internal_values_as_vector(state)
 end
 
 Pigeons.forward_sample_condition_and_explore(target::TuringLogPotential, args...; kwargs...) =

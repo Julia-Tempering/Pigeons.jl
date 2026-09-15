@@ -56,7 +56,7 @@ include("supporting/mpi_test_utils.jl")
                 record,
                 checkpoint = true,
                 on = ChildProcess(
-                        dependencies = [Distributions, DynamicPPL, LinearAlgebra, joinpath(@__DIR__, "supporting/turing_models.jl")],
+                    dependencies=[Distributions, DynamicPPL, DifferentiationInterface, LinearAlgebra, joinpath(@__DIR__, "supporting/turing_models.jl")],
                         n_local_mpi_processes = n_mpis,
                         n_threads = 2,
                         mpiexec_args = extra_mpi_args()))
