@@ -1,0 +1,44 @@
+name: Run benchmarking suite to compare PR to main
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - 'Project.toml'
+      - 'src/**'
+      - 'ext/**'
+      - 'bench/**'
+    branches:
+      - 'main'
+
+
+jobs:
+  benchmark:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+
+      - name: Run benchmarking
+        run: |
+          julia bench/benchmark.jl bench/benchmark_new.csv
+          julia -e "using InteractiveUtils; versioninfo()" > bench/benchmark_metainfo_new.log
+          sed -i '/Environment:/,$d' bench/benchmark_metainfo_new.log
+
+      - name: Compare old/new results
+        run: |
+          julia bench/compare_benchmarks.jl > out.md
+          echo "Benchmark Metainfo Diff" >> out.md
+          echo "\`\`\`diff" >> out.md
+          diff -u bench/benchmark_metainfo.log bench/benchmark_metainfo_new.log >> out.md || :
+          echo "\`\`\`" >> out.md
+
+      - name: Post benchmark comparison to PR thread
+        uses: mshick/add-pr-comment@v2.8.1
+        with:
+          message-path: out.md
