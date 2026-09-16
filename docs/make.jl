@@ -1,3 +1,4 @@
+using DifferentiationInterface
 using DynamicPPL
 using BridgeStan
 using Pigeons

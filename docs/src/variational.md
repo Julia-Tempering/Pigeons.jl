@@ -18,6 +18,7 @@ to `pigeons(...)`:
 
 ```@example variational
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 
 pigeons(

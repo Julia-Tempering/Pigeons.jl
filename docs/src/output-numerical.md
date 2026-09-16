@@ -14,16 +14,17 @@ We outline some useful features here, read
 
 ## Quick summary of ESS, moments, etc
 
-Make sure to have the third party packages `DynamicPPL` and `MCMCChains` installed via 
+Make sure to have the third party packages `DynamicPPL`, `DifferentiationInterface` and `MCMCChains` installed via 
 
 ```
-using Pkg; Pkg.add("DynamicPPL", "MCMCChains")
+using Pkg; Pkg.add("DynamicPPL", "DifferentiationInterface", "MCMCChains")
 ```
 
 Also make sure to record the trace, with `record = [traces]`:
 
 ```@example numerical
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 using MCMCChains
 
