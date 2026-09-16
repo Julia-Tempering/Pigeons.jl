@@ -13,6 +13,39 @@ include("supporting/analytic_solutions.jl")
     @test isapprox(logz_am, truth, rtol = 0.2)
 end
 
+@testset "Turing extract_values" begin
+    @testset "mixed continuous and discrete" begin
+        @model function cont_and_discrete()
+            x ~ Normal()
+            y ~ Poisson(2.5)
+            2.0 ~ Normal(x + y)
+        end
+        model = cont_and_discrete()
+        vi = DynamicPPL.VarInfo(model)
+        lp = TuringLogPotential(model)
+        sample = Pigeons.extract_sample(vi, lp)
+        @test eltype(sample) == Real
+        @test length(sample) == 3 # x, y, log_density
+        @test sample[1] isa Float64
+        @test sample[2] isa Int
+        @test sample[3] isa Float64
+    end
+
+    @testset "all continuous" begin
+        @model function cont_only()
+            x ~ Normal()
+            1.0 ~ Normal(x)
+        end
+        model = cont_only()
+        vi = DynamicPPL.VarInfo(model)
+        lp = TuringLogPotential(model)
+        sample = Pigeons.extract_sample(vi, lp)
+        # Check that the result is concretised
+        @test eltype(sample) == Float64
+        @test length(sample) == 2 # x, log_density
+    end
+end
+
 @testset "Turing-variable-names" begin
     pt = pigeons(target = TuringLogPotential(model_with_vectors()), n_rounds = 2);
     @test length(sample_names(pt)) == 4 + 1 # +1 for :log_density

@@ -93,8 +93,7 @@ function test_slice_sampler_Turing()
         cached_lp = slice_sample!(h, vi, log_potential, cached_lp, replica)
 
         inv_vi = DynamicPPL.invlink(vi, model) # inverse transform the unconstrained parameter space back to constrained space
-        state = DynamicPPL.getindex_internal(inv_vi, :)[1]
-        # state = DynamicPPL.getindex_internal(vi, :)[1] # this will be parameters' values from unconstrained space
+        state = DynamicPPL.internal_values_as_vector(inv_vi)[1]
 
         states[i] = state
     end

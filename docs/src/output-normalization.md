@@ -26,6 +26,7 @@ It is shown in the [standard output report](@ref output-reports) produced at eac
 
 ```@example constants
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 
 # example target: Binomial likelihood with parameter p = p1 * p2

@@ -38,6 +38,7 @@ with (*)):
 
 ```@example traces
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 using MCMCChains
 using StatsPlots
@@ -48,8 +49,8 @@ an_unidentifiable_model = Pigeons.toy_turing_unid_target(100, 50)
 
 pt_result = pigeons(target = an_unidentifiable_model, 
                 # (*) run in two new MPI processes 
-                # make sure the MPI processes load DynamicPPL
-                on = ChildProcess(n_local_mpi_processes = 2, dependencies=[DynamicPPL]), 
+                # make sure the MPI processes load DynamicPPL and DifferentiationInterface
+                on = ChildProcess(n_local_mpi_processes = 2, dependencies=[DynamicPPL,DifferentiationInterface]), 
                 # (*) signal that we want the PT object to be 
                 #     serialized at the end of each round
                 checkpoint = true,

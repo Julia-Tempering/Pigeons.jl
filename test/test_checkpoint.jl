@@ -10,7 +10,7 @@ end
         p2 = PT("results/latest")
         compare_pts(p1, p2)
 
-        r = pigeons(;target, checkpoint = true, on = ChildProcess(n_local_mpi_processes = 2, dependencies=[DynamicPPL,]))
+        r = pigeons(; target, checkpoint=true, on=ChildProcess(n_local_mpi_processes=2, dependencies=[DynamicPPL, DifferentiationInterface]))
         p3 = Pigeons.load(r)
         compare_pts(p1, p3)
     end
