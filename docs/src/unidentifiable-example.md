@@ -30,6 +30,7 @@ standard MCMC algorithm.
 
 ```@example why
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 using MCMCChains
 using StatsPlots

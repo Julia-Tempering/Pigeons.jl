@@ -6,10 +6,10 @@ CurrentModule = Pigeons
 
 To target the posterior distribution specified by 
 a [Turing.jl](https://github.com/TuringLang/Turing.jl) model first load `Turing`
-or `DynamicPPL` and use [`TuringLogPotential`](@ref):
+or `DynamicPPL` along with `DifferentiationInterface` and use [`TuringLogPotential`](@ref):
 
 ```@example turing
-using DynamicPPL, Pigeons, Distributions
+using DynamicPPL, Pigeons, Distributions, DifferentiationInterface
 
 DynamicPPL.@model function my_turing_model(n_trials, n_successes)
     p1 ~ Uniform(0, 1)
@@ -113,7 +113,7 @@ It is sometimes useful to provide a custom initialization, for example to start 
 This can be done as follows:
 
 ```@example custom_init
-using DynamicPPL, Pigeons, Distributions, Random
+using DynamicPPL, Pigeons, Distributions, Random, DifferentiationInterface
 
 DynamicPPL.@model function toy_beta_binom_model(n_trials, n_successes)
     p ~ Uniform(0, 1)

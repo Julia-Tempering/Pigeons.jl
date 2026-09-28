@@ -13,6 +13,7 @@ To indicate that the traces should be saved, use
 
 ```@example record-traces
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 
 target = Pigeons.toy_turing_unid_target(100, 50)

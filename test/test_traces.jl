@@ -45,7 +45,7 @@ end
                     extended_traces,
                     multithreaded = false,  # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
                     checkpoint = true,
-                    on = ChildProcess(n_local_mpi_processes = 2, n_threads = 1, dependencies=[DynamicPPL, BridgeStan])) # setting to more than 1 puts too much pressure on CI instances?
+                on=ChildProcess(n_local_mpi_processes=2, n_threads=1, dependencies=[DynamicPPL, DifferentiationInterface, BridgeStan])) # setting to more than 1 puts too much pressure on CI instances?
             pt = Pigeons.load(r)
             @test length(pt.reduced_recorders.traces) == 1024 * (extended_traces ? 10 : 1)
             for chain in Pigeons.chains_with_samples(pt)

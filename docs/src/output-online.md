@@ -22,6 +22,7 @@ access to constant memory computation of the mean and variance.
 
 ```@example online
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 
 # example target: Binomial likelihood with parameter p = p1 * p2

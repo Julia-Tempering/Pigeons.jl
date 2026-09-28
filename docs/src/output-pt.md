@@ -22,6 +22,7 @@ at each round and can also be accessed via
 
 ```@example pt
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 
 pt = pigeons(target = Pigeons.toy_turing_unid_target(100, 50))
@@ -34,6 +35,7 @@ respectively:
 
 ```@example pt
 using DynamicPPL
+using DifferentiationInterface
 using Pigeons
 
 pt = pigeons(target = Pigeons.toy_turing_unid_target(100, 50), 

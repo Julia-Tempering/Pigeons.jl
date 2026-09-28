@@ -34,7 +34,7 @@ end
 @testset "update_state!" begin
     syms = Symbol.(keys(vi))
     updated_vi = Pigeons.update_state!(vi, syms[1], 1, 0.81)
-    @test DynamicPPL.getindex_internal(updated_vi, :)[1] == 0.81
+    @test DynamicPPL.internal_values_as_vector(updated_vi)[1] == 0.81
 end
 
 
@@ -43,7 +43,7 @@ end
     lp = TuringLogPotential(model)
     extracted_sample_values = Pigeons.extract_sample(vi, lp)
     # test sample_names
-    extracted_sample_names = Pigeons.sample_names(vi, nothing)
+    extracted_sample_names = Pigeons.sample_names(vi, lp)
     @test length(extracted_sample_values) == length(extracted_sample_names)
 
 end
@@ -115,7 +115,7 @@ end
         replica = Pigeons.Replica(vi, 1, rng, (;), 1)
         cached_lp = Pigeons.slice_sample!(h, vi, log_potential, cached_lp, replica)
         inv_vi = DynamicPPL.invlink(vi, model)
-        state = DynamicPPL.getindex_internal(inv_vi, :)[1]
+        state = DynamicPPL.internal_values_as_vector(inv_vi)[1]
         states[i] = state
     end
     @test abs(mean(states) - 0.7) < 0.1

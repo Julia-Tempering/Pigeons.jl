@@ -1,5 +1,6 @@
 using Distributions
 using DynamicPPL
+using DifferentiationInterface
 using FillArrays: Fill
 
 @model function _GalaxyTuring(y, b_0, B_0, N = length(y))
