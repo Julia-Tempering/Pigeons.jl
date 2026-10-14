@@ -126,6 +126,25 @@ pt = pigeons(
 nothing # hide
 ```
 
+When gradients are not available but the target has strongly correlated (or badly scaled) 
+parameters, the [`WhitenedSliceSampler`](@ref) is a gradient-free alternative. It behaves 
+as a [`SliceSampler`](@ref) during the first rounds; then, at the end of each round, 
+it estimates the mean and the covariance of the target from the samples of the target chain(s), 
+and slices along the axes of the corresponding whitened variables in the following round:
+
+```@example julia
+pt = pigeons(
+        target = MyLogPotential(100, 50), 
+        reference = MyLogPotential(0, 0), 
+        explorer = WhitenedSliceSampler()
+    )
+nothing # hide
+```
+
+The whitening is full by default; use `WhitenedSliceSampler(whitening = :diagonal)` to only 
+adapt one scale per parameter. The [`WhitenedSliceSampler`](@ref) requires states that are 
+vectors of `Float64` (e.g., black-box Julia targets and Stan targets).
+
 Pigeons have several built-in [`explorer`](@ref) kernels such as 
 [`AutoMALA`](@ref) and a [`SliceSampler`](@ref). 
 However when the state space is neither the reals nor the integers, 

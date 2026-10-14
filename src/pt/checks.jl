@@ -131,6 +131,7 @@ also call `_recursive_equal`.
 const RecursiveEqualInnerType = 
     Union{
         StanState, SplittableRandom, Replica, Augmentation, AutoMALA, SliceSampler,
+        WhitenedSliceSampler, TargetStateRecorder,
         Compose, Mix, Iterators, Schedule, DEO, BlangTarget, NonReversiblePT,
         InterpolatingPath, InterpolatedLogPotential, RoundTripRecorder,
         OnlineStateRecorder, LocalBarrier, NamedTuple, Tuple, Inputs

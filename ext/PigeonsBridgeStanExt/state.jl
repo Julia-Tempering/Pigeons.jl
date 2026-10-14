@@ -40,6 +40,8 @@ explorer implementations
 =#
 Pigeons.slice_sample!(h::SliceSampler, state::Pigeons.StanState, args...) =
     Pigeons.slice_sample!(h, state.unconstrained_parameters, args...)
+Pigeons.step!(explorer::Pigeons.WhitenedSliceSampler, replica, shared, state::Pigeons.StanState) =
+    Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
 Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, state::Pigeons.StanState) =
     Pigeons.step!(explorer, replica, shared, state.unconstrained_parameters)
 
