@@ -1,0 +1,6 @@
+test_name,time_first_s,time_s,memory_B
+metainfo,Time (First)<br>[s],Time<br>[s],Memory<br>[B]
+metainfo,lower,lower,lower
+using Pigeons,0,1.94635339,99122392
+mvn-1000,0,7.489034165,510336560
+mvn-1000 (second call),0,0.083454934,1216240
