@@ -23,12 +23,14 @@ Base.show(io::IO, slp::StanLogPotential) =
 
 function stan_threads_options()
     if Threads.nthreads() > 1
-        @warn """
-              At the moment, for StanLogPotential please use a single thread
-              (but several MPI processes can still be used).""" maxlog=1
-        # return ["STAN_THREADS=true"] # not so simple?..  see https://github.com/Julia-Tempering/Pigeons.jl/issues/92
-    end
-    return Vector{String}()
+        # @warn """
+        #       At the moment, for StanLogPotential please use a single thread
+        #       (but several MPI processes can still be used).""" maxlog=1
+        # # return ["STAN_THREADS=true"] # not so simple?..  see https://github.com/Julia-Tempering/Pigeons.jl/issues/92
+        return ["TBB_LIBRARIES=tbb","STAN_THREADS=true"]
+    else
+        return Vector{String}()
+    end    
 end
 
 function Serialization.serialize(s::AbstractSerializer, instance::StanLogPotential{M, S, D, E}) where {M, S, D, E}
