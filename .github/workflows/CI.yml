@@ -26,7 +26,9 @@ jobs:
           - '1.11'
           - '1.12'
         os:
-          - ubuntu-latest
+          # - ubuntu-latest
+          - ubuntu-24.04
+          - ubuntu-26.04
           - macos-15-intel
           - windows-latest
     steps:
@@ -44,7 +46,41 @@ jobs:
           version: ${{ matrix.version }}
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
+
+      # Diagnose the Ubuntu environment before running tests
+      - name: Check Ubuntu environment
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          cat /etc/os-release
+          gcc --version
+          g++ --version
+
+
       - uses: julia-actions/julia-runtest@v1
+      
+      
+      # Diagnose Stan library if tests fail
+      - name: Diagnose Stan library
+        if: ${{ failure() && runner.os == 'Linux' }}
+        run: |
+          SO="examples/stan/mvn_model.so"
+
+          if [ -f "$SO" ]; then
+            echo "Stan library exists"
+            ls -lh "$SO"
+            file "$SO"
+
+            echo "Dependencies and unresolved symbols:"
+            ldd -r "$SO" || true
+
+            echo "Required libraries:"
+            readelf -d "$SO" | grep -E 'NEEDED|RPATH|RUNPATH' || true
+          else
+            echo "Stan library does not exist"
+          fi
+
+
+
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v5
         with:
@@ -63,7 +99,9 @@ jobs:
         version:
           - '1.11'
         os:
-          - ubuntu-latest
+          # - ubuntu-latest
+          - ubuntu-24.04
+          - ubuntu-26.04
 
       fail-fast: false
     env:
@@ -92,7 +130,34 @@ jobs:
         MPIPreferences.use_jll_binary("OpenMPI_jll")
         rm("test/Manifest.toml")
 
+    - name: Check Ubuntu environment
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        cat /etc/os-release
+        gcc --version
+        g++ --version
+
     - uses: julia-actions/julia-runtest@v1
+
+
+    - name: Diagnose Stan library
+      if: ${{ failure() && runner.os == 'Linux' }}
+      run: |
+        SO="examples/stan/mvn_model.so"
+
+        if [ -f "$SO" ]; then
+          echo "Stan library exists"
+          ls -lh "$SO"
+          file "$SO"
+
+          echo "Dependencies and unresolved symbols:"
+          ldd -r "$SO" || true
+
+          echo "Required libraries:"
+          readelf -d "$SO" | grep -E 'NEEDED|RPATH|RUNPATH' || true
+        else
+          echo "Stan library does not exist"
+        fi
   
 
   # # CI is getting too slow! 
@@ -128,6 +193,12 @@ jobs:
           echo "PMIX_MCA_ptl_tcp_if_include=lo0" >> $GITHUB_ENV
           echo "OMPI_MCA_btl_tcp_if_include=lo0" >> $GITHUB_ENV
           echo "OMPI_MCA_oob_tcp_if_include=lo0" >> $GITHUB_ENV
+
+      - name: Work around MPICH/OFI transport issue on macOS runners
+        if: ${{ matrix.mpi == 'mpich' }}
+        run: |
+          echo "FI_PROVIDER=tcp" >> $GITHUB_ENV
+
       #==========================================================================================#
 
       - uses: actions/setup-java@v4
