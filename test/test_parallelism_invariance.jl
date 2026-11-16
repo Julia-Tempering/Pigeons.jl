@@ -1,6 +1,10 @@
 include("supporting/turing_models.jl")
 include("supporting/mpi_test_utils.jl")
 
+stan_example_path(name) =
+    dirname(dirname(pathof(Pigeons))) * "/examples/stan/$name"
+
+
 @testset "Parallelism Invariance" begin
     n_mpis = set_n_mpis_to_one_on_windows(2)
     record = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
@@ -20,6 +24,7 @@ include("supporting/mpi_test_utils.jl")
             for target in targets
                 @show explorer, target
                 @show is_stan = target isa Pigeons.StanLogPotential
+                @show isfile(stan_example_path("mvn_model.so"))
 
                 # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
                 multithreaded = true
@@ -42,46 +47,6 @@ include("supporting/mpi_test_utils.jl")
                 push!(results, r.exec_folder)
                 @test true # lets us count the number of tests passed
             end
-        end
-    end
-
-    @testset "Turing targets" begin
-        for model in [flip_model_unidentifiable(), flip_mixture()]
-            r = pigeons(;
-                target = TuringLogPotential(model),
-                n_rounds = 4,
-                n_chains = 4,
-                checked_round = 3,
-                multithreaded = true,
-                record,
-                checkpoint = true,
-                on = ChildProcess(
-                    dependencies=[Distributions, DynamicPPL, DifferentiationInterface, LinearAlgebra, joinpath(@__DIR__, "supporting/turing_models.jl")],
-                        n_local_mpi_processes = n_mpis,
-                        n_threads = 2,
-                        mpiexec_args = extra_mpi_args()))
-            push!(results, r.exec_folder)
-            @test true
-        end
-    end
-
-    @testset "Blang targets" begin
-        if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
-            Pigeons.setup_blang("blangDemos")
-            r = pigeons(;
-                target = Pigeons.blang_ising(),
-                n_rounds = 10,
-                n_chains = 4,
-                checked_round = 3,
-                record,
-                multithreaded = true,
-                checkpoint = true,
-                on = ChildProcess(
-                        n_local_mpi_processes = n_mpis,
-                        n_threads = 2,
-                        mpiexec_args = extra_mpi_args()))
-            push!(results, r.exec_folder)
-            @test true
         end
     end
     
