@@ -21,6 +21,13 @@ include("supporting/mpi_test_utils.jl")
                 @show explorer, target
                 @show is_stan = target isa Pigeons.StanLogPotential
 
+                if is_stan
+                    bs_path = BridgeStan.get_bridgestan_path()
+                    run(`make -C $bs_path clean`) # clean before each run to avoid stale artifacts 
+                    # rm(target.stan_file)
+                    target = toy_stan_target(1)
+                end
+
                 # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
                 multithreaded = true
 

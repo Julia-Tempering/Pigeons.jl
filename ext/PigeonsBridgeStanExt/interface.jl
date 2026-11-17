@@ -8,9 +8,9 @@ See `BridgeStan` for details.
 function Pigeons.StanLogPotential(stan_file, data, extra_information = nothing)
     model = BridgeStan.StanModel(stan_file, data; make_args = stan_threads_options())
     # After the first call to `BridgeStan.StanModel`, the `.stan` file is compiled into a `.so` file and the `stan_file` argument is replaced with the path to that file. This ensures that subsequent calls to `BridgeStan.StanModel` do not recompile the model and cause issues in multithreaded environments.
-    if endswith(stan_file, ".stan")
-        stan_file = replace(stan_file, ".stan" => "_model.so")
-    end
+    # if endswith(stan_file, ".stan")
+    #     stan_file = replace(stan_file, ".stan" => "_model.so")
+    # end
     result = StanLogPotential(
         model,
         stan_file,
@@ -31,7 +31,7 @@ function stan_threads_options()
         #       At the moment, for StanLogPotential please use a single thread
         #       (but several MPI processes can still be used).""" maxlog=1
         # # return ["STAN_THREADS=true"] # not so simple?..  see https://github.com/Julia-Tempering/Pigeons.jl/issues/92
-        return ["TBB_LIBRARIES=tbb","STAN_THREADS=true"]
+        return ["STAN_THREADS=true"]
     else
         return Vector{String}()
     end    
