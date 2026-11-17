@@ -1,10 +1,6 @@
 include("supporting/turing_models.jl")
 include("supporting/mpi_test_utils.jl")
 
-stan_example_path(name) =
-    dirname(dirname(pathof(Pigeons))) * "/examples/stan/$name"
-
-
 @testset "Parallelism Invariance" begin
     n_mpis = set_n_mpis_to_one_on_windows(2)
     record = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
@@ -24,7 +20,6 @@ stan_example_path(name) =
             for target in targets
                 @show explorer, target
                 @show is_stan = target isa Pigeons.StanLogPotential
-                @show isfile(stan_example_path("mvn_model.so"))
 
                 # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
                 multithreaded = true
