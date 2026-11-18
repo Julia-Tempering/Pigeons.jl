@@ -5,12 +5,13 @@ The `stan_file` argument can be a path to the file with a `.stan` suffix.
 The `data` argument can be a path with a file with `.json` suffix or the json string itself.
 See `BridgeStan` for details.
 """
-function Pigeons.StanLogPotential(stan_file, data, extra_information = nothing)
-    model = BridgeStan.StanModel(stan_file, data; make_args = stan_threads_options())
+function Pigeons.StanLogPotential(stan_file, data, extra_information = nothing; recompile = true, make_args = stan_threads_options())
     # After the first call to `BridgeStan.StanModel`, the `.stan` file is compiled into a `.so` file and the `stan_file` argument is replaced with the path to that file. This ensures that subsequent calls to `BridgeStan.StanModel` do not recompile the model and cause issues in multithreaded environments.
-    # if endswith(stan_file, ".stan")
-    #     stan_file = replace(stan_file, ".stan" => "_model.so")
-    # end
+    if !recompile
+        stan_file = replace(stan_file, ".stan" => "_model.so")        
+    end
+    
+    model = BridgeStan.StanModel(stan_file, data; make_args)
     result = StanLogPotential(
         model,
         stan_file,
@@ -50,7 +51,7 @@ function Serialization.deserialize(s::AbstractSerializer, type::Type{StanLogPote
     stan_file = Serialization.deserialize(s)
     immutable = Serialization.deserialize(s)
     extra = Serialization.deserialize(s)
-    return StanLogPotential(stan_file, immutable.data, extra)
+    return StanLogPotential(stan_file, immutable.data, extra; recompile=false)
 end
 
 

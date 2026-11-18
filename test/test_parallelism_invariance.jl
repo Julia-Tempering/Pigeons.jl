@@ -5,7 +5,7 @@ include("supporting/mpi_test_utils.jl")
     n_mpis = set_n_mpis_to_one_on_windows(2)
     record = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
     targets = Any[toy_mvn_target(1)]
-    is_windows_in_CI() || push!(targets, toy_stan_target(1))
+    is_windows_in_CI() || push!(targets, toy_stan_target(1; make_args = ["STAN_THREADS=true"]))
     results = String[] # stores exec folders for afterwards testing `compare_checkpoints`
 
     @testset "Julia+Stan targets * multiple explorers" begin
@@ -16,17 +16,10 @@ include("supporting/mpi_test_utils.jl")
             AutoMALA(preconditioner=Pigeons.MixDiagonalPreconditioner(0,0), base_n_refresh=1), # turn off zero-one inflation
             AutoMALA(preconditioner=Pigeons.DiagonalPreconditioner(), base_n_refresh=1)
         )
-        for explorer in [SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA()), mixed_AM]
+        for explorer in [AutoMALA(), SliceSampler(), Compose(SliceSampler(), AutoMALA()), mixed_AM]
             for target in targets
                 @show explorer, target
                 @show is_stan = target isa Pigeons.StanLogPotential
-
-                if is_stan
-                    bs_path = BridgeStan.get_bridgestan_path()
-                    run(`make -C $bs_path clean`) # clean before each run to avoid stale artifacts 
-                    # rm(target.stan_file)
-                    target = toy_stan_target(1)
-                end
 
                 # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
                 multithreaded = true
