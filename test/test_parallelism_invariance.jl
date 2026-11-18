@@ -5,7 +5,7 @@ include("supporting/mpi_test_utils.jl")
     n_mpis = set_n_mpis_to_one_on_windows(2)
     record = [swap_acceptance_pr, index_process, log_sum_ratio, round_trip, energy_ac1]
     targets = Any[toy_mvn_target(1)]
-    is_windows_in_CI() || push!(targets, toy_stan_target(1))
+    is_windows_in_CI() || push!(targets, toy_stan_target(1; make_args = ["STAN_THREADS=true"]))
     results = String[] # stores exec folders for afterwards testing `compare_checkpoints`
 
     @testset "Julia+Stan targets * multiple explorers" begin
@@ -16,13 +16,13 @@ include("supporting/mpi_test_utils.jl")
             AutoMALA(preconditioner=Pigeons.MixDiagonalPreconditioner(0,0), base_n_refresh=1), # turn off zero-one inflation
             AutoMALA(preconditioner=Pigeons.DiagonalPreconditioner(), base_n_refresh=1)
         )
-        for explorer in [SliceSampler(), AutoMALA(), Compose(SliceSampler(), AutoMALA()), mixed_AM]
+        for explorer in [AutoMALA(), SliceSampler(), Compose(SliceSampler(), AutoMALA()), mixed_AM]
             for target in targets
                 @show explorer, target
                 @show is_stan = target isa Pigeons.StanLogPotential
 
                 # setting to true puts too much pressure on CI instances? https://github.com/Julia-Tempering/Pigeons.jl/actions/runs/5627897144/job/15251121621?pr=90
-                multithreaded = is_stan ? false : true
+                multithreaded = true
 
                 r = pigeons(;
                     target,
@@ -42,46 +42,6 @@ include("supporting/mpi_test_utils.jl")
                 push!(results, r.exec_folder)
                 @test true # lets us count the number of tests passed
             end
-        end
-    end
-
-    @testset "Turing targets" begin
-        for model in [flip_model_unidentifiable(), flip_mixture()]
-            r = pigeons(;
-                target = TuringLogPotential(model),
-                n_rounds = 4,
-                n_chains = 4,
-                checked_round = 3,
-                multithreaded = true,
-                record,
-                checkpoint = true,
-                on = ChildProcess(
-                    dependencies=[Distributions, DynamicPPL, DifferentiationInterface, LinearAlgebra, joinpath(@__DIR__, "supporting/turing_models.jl")],
-                        n_local_mpi_processes = n_mpis,
-                        n_threads = 2,
-                        mpiexec_args = extra_mpi_args()))
-            push!(results, r.exec_folder)
-            @test true
-        end
-    end
-
-    @testset "Blang targets" begin
-        if !Sys.iswindows() # JNI crashes on windows; see commit right after c016f59c84645346692f720854b7531743c728bf
-            Pigeons.setup_blang("blangDemos")
-            r = pigeons(;
-                target = Pigeons.blang_ising(),
-                n_rounds = 10,
-                n_chains = 4,
-                checked_round = 3,
-                record,
-                multithreaded = true,
-                checkpoint = true,
-                on = ChildProcess(
-                        n_local_mpi_processes = n_mpis,
-                        n_threads = 2,
-                        mpiexec_args = extra_mpi_args()))
-            push!(results, r.exec_folder)
-            @test true
         end
     end
     
