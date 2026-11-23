@@ -1,3 +1,5 @@
+const exec_folder_counter = Threads.Atomic{Int}(0)
+
 """
 Return a unique subfolder of 
 `results/all/`, making sure the 
@@ -7,11 +9,21 @@ called `results/latest``
 """
 function next_exec_folder()
     formatted_time = Dates.format(now(), dateformat"yyyy-mm-dd-HH-MM-SS")
-    rng = SplittableRandom(getpid() * now().instant.periods.value)
-    result = abspath("results/all/$formatted_time-$(randstring(rng, 8))")
-    mkpath(result)
-    _ensure_symlinked(result)
-    return result
+    seed = hash((getpid(), now().instant.periods.value, Threads.atomic_add!(exec_folder_counter, 1)))
+    rng = SplittableRandom(seed)
+    parent = abspath("results/all")
+    mkpath(parent)
+    while true
+        result = joinpath(parent, "$formatted_time-$(randstring(rng, 8))")
+        try
+            mkdir(result)
+        catch e
+            e isa Base.IOError && e.code == Base.UV_EEXIST || rethrow()
+            continue
+        end
+        _ensure_symlinked(result)
+        return result
+    end
 end
 
 function _ensure_symlinked(exec)
