@@ -4,8 +4,8 @@ CurrentModule = Pigeons
 
 # [Custom explorers](@id input-explorers)
 
-Pigeons have several built-in [`explorer`](@ref) kernels such as 
-[`AutoMALA`](@ref) and a [`SliceSampler`](@ref). 
+Pigeons has several built-in [`explorer`](@ref) kernels such as 
+[`AutoMALA`](@ref), [`SliceSampler`](@ref), and [`LazySliceSampler`](@ref). 
 However when the state space is neither the reals nor the integers, 
 or for performance reasons, it may be necessary to create custom 
 exploration MCMC kernels. 
