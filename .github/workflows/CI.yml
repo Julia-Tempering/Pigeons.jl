@@ -26,11 +26,12 @@ jobs:
           - '1.11'
           - '1.12'
         os:
-          # - ubuntu-latest
-          - ubuntu-24.04
-          - ubuntu-26.04
+          - ubuntu-latest
           - macos-15-intel
           - windows-latest
+        exclude:
+          - version: '1.11'
+            os: ubuntu-latest
     steps:
       - name: Enable long paths on windows
         if: ${{ startsWith(matrix.os, 'windows') }}
@@ -97,11 +98,9 @@ jobs:
     strategy:
       matrix:
         version:
-          - '1.11'
+          - '1.12'
         os:
-          # - ubuntu-latest
-          - ubuntu-24.04
-          - ubuntu-26.04
+          - ubuntu-latest
 
       fail-fast: false
     env:
