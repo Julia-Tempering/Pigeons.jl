@@ -8,6 +8,9 @@ the log slice height, using the one-shot quantile rule from
 width (and the fixed width for integer coordinates); `n_passes` is the
 number of coordinate sweeps per kernel iteration. 
 Adaptation is based on iterations from the preceding round.
+
+Based on Campbell (2026) "Optimal slice-adaptive tuning of hybrid slice sampling."
+https://arxiv.org/abs/2609.08172
 """
 @kwdef struct LazySliceSampler
     w::Float64 = 1.0
