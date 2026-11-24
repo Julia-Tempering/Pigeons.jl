@@ -87,6 +87,16 @@ function Pigeons.slice_sample!(h::SliceSampler, vi::DynamicPPL.VarInfo, log_pote
     return cached_lp
 end
 
+function Pigeons.slice_sample!(h::Pigeons.LazySliceSampler, vi::DynamicPPL.VarInfo, log_potential, cached_lp, replica)
+    offset = 0
+    for vn in keys(vi)
+        block = DynamicPPL.getindex_internal(vi, vn)
+        cached_lp = Pigeons.slice_sample!(h, block, log_potential, cached_lp, replica, offset)
+        offset += length(block)
+    end
+    return cached_lp
+end
+
 function Pigeons.step!(explorer::Pigeons.GradientBasedSampler, replica, shared, vi::DynamicPPL.VarInfo)
     vector_state = Pigeons.get_buffer(replica.recorders.buffers, :flattened_vi, get_dimension(vi))
     flatten!(vi, vector_state)

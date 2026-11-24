@@ -29,19 +29,12 @@ function step!(explorer::SliceSampler, replica, shared)
     end
 end
 
-cached_log_potential(log_potential, state, cached_lp) =
-    return if cached_lp == -Inf
-        result = log_potential(state)
-        if result == -Inf
-            error("SliceSampler supports contrained target, but the sampler should be initialized in the support: $state")
-        end
-        result
-    else
-        cached_lp
-    end
-
 function slice_sample!(h::SliceSampler, state::AbstractVector, log_potential, cached_lp, replica)
-    cached_lp = cached_log_potential(log_potential, replica.state, cached_lp) # note: we pass `replica.state` instead of `state` in case the latter is the vector version of a non-vector state (e.g. stan and dppl models)
+	if cached_lp == -Inf
+    	@record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 1))
+        cached_lp = log_potential(replica.state)
+    end
+	isfinite(cached_lp) || error("SliceSampler requires a finite initial log density, got $cached_lp")
     
     # iterate over coordinates
     for c in eachindex(state)
@@ -65,6 +58,7 @@ end
 function slice_sample_coord!(h, replica, pointer, log_potential, cached_lp, ::Type{Bool})
     state = replica.state
     rng = replica.rng
+    @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 1))
     if pointer[]                    # currently true => already have lp1
         lp1 = cached_lp
         pointer[] = false
@@ -105,6 +99,7 @@ function slice_double(h::SliceSampler, replica, z, pointer, log_potential)
     potent_L = log_potential(state) # store the log potential
     pointer[] = R
     potent_R = log_potential(state)
+    @record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 2))
 
     while (K > 0) && ((z < potent_L) || (z < potent_R))
         V = rand(rng)
@@ -217,11 +212,13 @@ function slice_accept(h::SliceSampler, replica, new_position, z, L, R, lp_L, lp_
             if Lstale
                 pointer[] = Lhat
                 lp_L = log_potential(state)
+    			@record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 1))
                 Lstale = false
             end
             if Rstale
                 pointer[] = Rhat
                 lp_R = log_potential(state)
+    			@record_if_requested!(replica.recorders, :explorer_n_steps, (replica.chain, 1))
                 Rstale = false
             end
             if  ((z >= lp_L) && (z >= lp_R))
