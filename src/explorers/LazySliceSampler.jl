@@ -1,6 +1,9 @@
 """
     LazySliceSampler(; w = 1.0, n_passes = 3)
 
+Based on Campbell (2026) "Optimal slice-adaptive tuning of hybrid slice sampling."
+[Campbell, 2026](https://arxiv.org/abs/2609.08172)
+
 Coordinate-wise lazy doubling slice sampler. Between PT rounds, widths are
 tuned separately for each chain and continuous coordinate as a function of
 the log slice height, using the one-shot quantile rule from
@@ -9,8 +12,9 @@ width (and the fixed width for integer coordinates); `n_passes` is the
 number of coordinate sweeps per kernel iteration. 
 Adaptation is based on iterations from the preceding round.
 
-Based on Campbell (2026) "Optimal slice-adaptive tuning of hybrid slice sampling."
-https://arxiv.org/abs/2609.08172
+Fields:
+$FIELDS
+
 """
 @kwdef struct LazySliceSampler
     w::Float64 = 1.0
