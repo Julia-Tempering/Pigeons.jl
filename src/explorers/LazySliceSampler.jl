@@ -1,5 +1,5 @@
 """
-    LazySliceSampler(; w = 10.0, p = 20, n_passes = 3, max_iter = 1024)
+    LazySliceSampler(; w = 1.0, n_passes = 3)
 
 Coordinate-wise lazy doubling slice sampler. Between PT rounds, widths are
 tuned separately for each chain and continuous coordinate as a function of
